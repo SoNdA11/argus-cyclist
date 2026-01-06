@@ -1,0 +1,7 @@
+build/bin/
+frontend/dist/
+
+node_modules/
+frontend/node_modules/
+
+frontend/src/config.js

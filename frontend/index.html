@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Argus Cyclist 3D</title>
+    
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+</head>
+<body>
+
+    <div id="token-warning" class="hidden">
+        <h3>Configuration Required</h3>
+        <p>Please edit <b>src/config.js</b> and add your Mapbox Token.</p>
+        <button id="btnCloseWarning">Close</button>
+    </div>
+
+    <div id="settingsModal" class="modal-overlay">
+        <div class="settings-content">
+            <h2>Welcome to Argus Cyclist</h2>
+            <p class="description">
+                This allows you to simulate cycling indoors using GPX routes and 3D maps.
+                Configure your profile and devices below.
+            </p>
+
+            <div class="settings-grid">
+                <section class="settings-section">
+                    <h3>🚴 Profile & Units</h3>
+                    <div class="input-group">
+                        <label>Rider Weight (kg)</label>
+                        <input type="number" id="inputRiderWeight" value="66.5" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label>Bike Weight (kg)</label>
+                        <input type="number" id="inputBikeWeight" value="8.0" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label>Units</label>
+                        <select id="selectUnits">
+                            <option value="metric">Metric (km, m)</option>
+                            <option value="imperial">Imperial (mi, ft)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="settings-section">
+                    <h3>📡 Devices</h3>
+                    <div class="device-row">
+                        <span>Smart Trainer</span>
+                        <button id="btnConnTrainer" class="btn-secondary">Scan/Connect</button>
+                        <span id="statusTrainer" class="status-indicator">Disconnected</span>
+                    </div>
+                    <div class="device-row">
+                        <span>Heart Rate</span>
+                        <button id="btnConnHR" class="btn-secondary">Scan/Connect</button>
+                        <span id="statusHR" class="status-indicator">Disconnected</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnCloseSettings" class="btn-primary">Ready to Ride</button>
+            </div>
+        </div>
+    </div>
+
+<div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-content-small">
+            <h3>Workout Paused</h3>
+            <div class="action-buttons">
+                <button id="btnResume" class="btn-safe">Resume</button>
+                <button id="btnFinishSave" class="btn-finish">Finish & Save</button>
+                <button id="btnDiscard" class="btn-danger">Discard</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="brand">ARGUS<span>CYCLIST</span> <span id="filename" class="filename-display">3D PRO</span></div>
+        <div class="header-controls">
+            <button class="btn-icon" id="btnOpenSettings" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+            <button class="btn-icon" id="btnCenter" title="Center Map">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+            <button class="btn-icon" id="btnLayers" title="Switch Layer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </button>
+            
+            <button id="btnImport" class="btn-import">Import GPX</button>
+            <button id="btnAction" class="btn-action btn-start hidden">START RIDE</button>
+        </div>
+    </header>
+
+    <div class="main-viewport">
+        <aside class="hud-sidebar">
+            <div class="data-card"><span class="data-label">Time</span><div class="data-value val-time" id="time">00:00:00</div></div>
+            <div class="data-card"><span class="data-label">Power</span><div class="data-value val-watts" id="watts">0<span class="data-unit">w</span></div></div>
+            
+            <div class="data-card"><span class="data-label">W/Kg</span><div class="data-value" id="wkg">0.0<span class="data-unit">w/kg</span></div></div>
+            
+            <div class="data-card"><span class="data-label">Speed</span><div class="data-value" id="speed">0.0<span class="data-unit">km/h</span></div></div>
+            <div class="data-card"><span class="data-label">Heart Rate</span><div class="data-value val-hr" id="hr">--<span class="data-unit">❤</span></div></div>
+            <div class="data-card"><span class="data-label">Cadence</span><div class="data-value" id="rpm">0<span class="data-unit">rpm</span></div></div>
+            <div class="data-card"><span class="data-label">Grade</span><div class="data-value val-grade" id="grade">0.0<span class="data-unit">%</span></div></div>
+            
+            <div class="data-card mt-auto"><span class="data-label">Distance</span><div class="data-value" id="dist">0.0<span class="data-unit">km</span></div></div>
+            
+            <div class="data-card"><span class="data-label">Remaining</span><div class="data-value val-rem" id="distRem">0.0<span class="data-unit">km</span></div></div>
+        </aside>
+        
+        <main id="map-container"></main>
+    </div>
+
+    <footer>
+        <div class="elevation-header"><span>Elevation Profile</span><span id="elevationCurrent"></span></div>
+        <div class="elevation-graph-container">
+            <canvas id="elevationCanvas"></canvas>
+            <div id="progressCursor"></div>
+        </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
