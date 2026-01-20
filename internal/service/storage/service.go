@@ -3,10 +3,18 @@ package storage
 import (
 	"argus-cyclist/internal/domain"
 	"fmt"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
+
+type PowerRecord struct {
+	Duration int       `json:"duration" gorm:"primaryKey"`
+	Watts    int       `json:"watts"`
+	Wkg      float64   `json:"wkg"`
+	Date     time.Time `json:"date"`
+}
 
 // Service encapsulates all database operations.
 // It acts as the persistence layer of the application.
@@ -33,9 +41,18 @@ func NewService() *Service {
 
 	// AutoMigrate automatically creates or updates database tables
 	// based on the domain models.
-	err = db.AutoMigrate(&domain.UserProfile{}, &domain.Activity{})
+	err = db.AutoMigrate(&domain.UserProfile{}, &domain.Activity{}, &PowerRecord{})
 	if err != nil {
-		fmt.Println("Erro na migração do banco:", err)
+		fmt.Println("Error during database migration.:", err)
+	}
+
+	defaultIntervals := []int{1, 5, 15, 30, 60, 300, 600, 1200} // 1s, 5s, 15s, 30s, 1m, 5m, 10m, 20m
+	for _, duration := range defaultIntervals {
+		var count int64
+		db.Model(&PowerRecord{}).Where("duration = ?", duration).Count(&count)
+		if count == 0 {
+			db.Create(&PowerRecord{Duration: duration, Watts: 0, Wkg: 0, Date: time.Now()})
+		}
 	}
 
 	// Create a default user profile if none exists.
@@ -109,4 +126,36 @@ func (s *Service) GetTotalDistance() float64 {
 	}
 
 	return *total
+}
+
+func (s *Service) GetActivitiesByMonth(monthStr string) ([]domain.Activity, error) {
+	var activities []domain.Activity
+	err := s.db.Where("strftime('%Y-%m', created_at) = ?", monthStr).Order("created_at asc").Find(&activities).Error
+	return activities, err
+}
+
+func (s *Service) GetTotalDuration() int64 {
+	var total *int64
+	s.db.Model(&domain.Activity{}).Select("sum(duration)").Scan(&total)
+	if total == nil {
+		return 0
+	}
+	return *total
+}
+
+func (s *Service) GetPowerCurve() []PowerRecord {
+	var records []PowerRecord
+	s.db.Order("duration ASC").Find(&records)
+	return records
+}
+
+func (s *Service) CheckAndUpdateRecord(newRec PowerRecord) bool {
+	var oldRec PowerRecord
+	s.db.First(&oldRec, newRec.Duration)
+
+	if newRec.Watts > oldRec.Watts {
+		s.db.Save(&newRec)
+		return true
+	}
+	return false
 }

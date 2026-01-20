@@ -368,35 +368,3 @@ footer {
 
 .stat-box small { color: var(--argus-text-dim); display: block; font-size: 0.8rem;}
 .stat-box strong { font-size: 1.4rem; color: var(--argus-safe); }
-
-/* --- ROUTE EDITOR PANEL --- */
-.editor-panel {
-    position: absolute;
-    top: 200px;
-    right: 20px;
-    width: 280px;
-    background: rgba(20, 20, 30, 0.95);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--argus-border);
-    z-index: 200;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
-    backdrop-filter: blur(10px);
-}
-
-.editor-panel h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--argus-safe); }
-.editor-instr { font-size: 0.8rem; color: #ccc; margin-bottom: 1rem; }
-
-.editor-stats {
-    display: flex; justify-content: space-between;
-    margin-bottom: 1rem; padding: 0.5rem;
-    background: rgba(255,255,255,0.05); border-radius: 4px;
-}
-.editor-stats span { font-size: 0.8rem; color: #aaa; }
-.editor-stats strong { color: #fff; display: block; font-size: 1rem; }
-
-.editor-actions { display: flex; flex-direction: column; gap: 8px; }
-.editor-actions input {
-    background: rgba(0,0,0,0.3); border: 1px solid var(--argus-border);
-    color: #fff; padding: 8px; border-radius: 4px;
-}

@@ -45,6 +45,8 @@ type App struct {
 	sessionStart     time.Time // Session start time (for duration calculation)
 	sessionPowerSum  uint64    // Sum of power samples (for average power)
 	sessionTicks     int       // Number of power samples
+	sessionPowerData []int
+	simPower int16
 }
 
 type ExportPoint struct {
@@ -142,9 +144,21 @@ func (a *App) GetActivities() []domain.Activity {
 // GetTotalStats returns aggregated statistics.
 func (a *App) GetTotalStats() map[string]float64 {
 	dist := a.storageService.GetTotalDistance()
+	dur := a.storageService.GetTotalDuration() // Nova função
 	return map[string]float64{
-		"total_km": dist / 1000.0,
+		"total_km":   dist / 1000.0,
+		"total_time": float64(dur), // Segundos
 	}
+}
+
+func (a *App) GetMonthlyActivities(year int, month int) []domain.Activity {
+	monthStr := fmt.Sprintf("%04d-%02d", year, month)
+	acts, _ := a.storageService.GetActivitiesByMonth(monthStr)
+	return acts
+}
+
+func (a *App) GetPowerCurve() []storage.PowerRecord {
+	return a.storageService.GetPowerCurve()
 }
 
 // ====================
@@ -302,6 +316,7 @@ func (a *App) startSession() string {
 		return "Error: Trainer Disconnected"
 	}
 
+	a.sessionPowerData = []int{}
 	a.currentDist = 0
     a.sessionStart = time.Now()
     a.sessionPowerSum = 0
@@ -382,6 +397,28 @@ func (a *App) FinishSession() string {
 	routeName := a.currentRouteName
 	if routeName == "" {
 		routeName = "Treino Livre"
+	}
+
+	userWeight := a.GetUserProfile().Weight
+	if userWeight == 0 { userWeight = 75 } // Fallback
+
+	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
+	
+	for _, duration := range intervals {
+		bestWatts := a.calculateMMP(a.sessionPowerData, duration)
+		
+		if bestWatts > 0 {
+			wkg := float64(bestWatts) / userWeight
+			
+			record := storage.PowerRecord{
+				Duration: duration,
+				Watts:    bestWatts,
+				Wkg:      wkg,
+				Date:     time.Now(),
+			}
+			
+			a.storageService.CheckAndUpdateRecord(record)
+		}
 	}
 
 	// 3. Build FIT file path
@@ -486,6 +523,8 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				lastHRTime = time.Now()
 			}
 
+			currentPower += a.simPower
+
 			now := time.Now()
 			if a.isPaused {
 				lastUpdate = now
@@ -500,9 +539,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			dt := now.Sub(lastUpdate).Seconds()
 			lastUpdate = now
 
-			// Accumulate statistics (only while recording)
-			a.sessionPowerSum += uint64(currentPower)
-            a.sessionTicks++
+			if a.isRecording {
+				a.sessionPowerSum += uint64(currentPower)
+				a.sessionTicks++
+				
+				a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
+			}
 
 			// Sensor timeout handling
 			if now.Sub(lastPowerTime) > sensorTimeout {
@@ -547,4 +589,27 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 // Currently not implemented.
 func (a *App) ChangePowerSimulation(delta int) int {
 	return -1
+}
+
+func (a *App) calculateMMP(data []int, window int) int {
+	if len(data) < window {
+		return 0
+	}
+	
+	maxSum := 0
+	currentSum := 0
+
+	for i := 0; i < window; i++ {
+		currentSum += data[i]
+	}
+	maxSum = currentSum
+
+	for i := window; i < len(data); i++ {
+		currentSum += data[i] - data[i-window]
+		if currentSum > maxSum {
+			maxSum = currentSum
+		}
+	}
+
+	return maxSum / window
 }
