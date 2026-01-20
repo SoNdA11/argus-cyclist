@@ -26,12 +26,28 @@ export function FinishSession() {
   return window['go']['main']['App']['FinishSession']();
 }
 
+export function GetActivities() {
+  return window['go']['main']['App']['GetActivities']();
+}
+
 export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }
 
 export function GetRoutePath() {
   return window['go']['main']['App']['GetRoutePath']();
+}
+
+export function GetTotalStats() {
+  return window['go']['main']['App']['GetTotalStats']();
+}
+
+export function GetUserProfile() {
+  return window['go']['main']['App']['GetUserProfile']();
+}
+
+export function OpenFileFolder(arg1) {
+  return window['go']['main']['App']['OpenFileFolder'](arg1);
 }
 
 export function SelectGPX() {
@@ -44,4 +60,8 @@ export function ToggleAlwaysOnTop(arg1) {
 
 export function ToggleSession() {
   return window['go']['main']['App']['ToggleSession']();
+}
+
+export function UpdateUserProfile(arg1) {
+  return window['go']['main']['App']['UpdateUserProfile'](arg1);
 }

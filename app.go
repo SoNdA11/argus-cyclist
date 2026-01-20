@@ -3,24 +3,31 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
+	stdruntime "runtime"
 
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble"
 	"argus-cyclist/internal/service/fit"
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
+	"argus-cyclist/internal/service/storage"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// App is the main application struct exposed to Wails.
+// It orchestrates services, session lifecycle, and runtime events.
 type App struct {
 	ctx            context.Context
 	gpxService     *gpx.Service
 	fitService     *fit.Service
 	physicsEngine  *sim.Engine
 	trainerService domain.TrainerService
+	storageService *storage.Service
 
 	isRecording bool
 	isPaused    bool
@@ -31,27 +38,113 @@ type App struct {
 	currentDist   float64
 	telemetryChan chan domain.Telemetry
 	cancelSim     context.CancelFunc
+
+	// Session metadata
+	currentRouteName string    // Selected GPX route name
+	sessionStart     time.Time // Session start time (for duration calculation)
+	sessionPowerSum  uint64    // Sum of power samples (for average power)
+	sessionTicks     int       // Number of power samples
 }
 
+// NewApp initializes all core services and dependencies.
 func NewApp() *App {
+	// Initialize persistent storage (SQLite)
+	store := storage.NewService()
+	
+	// Load user profile to configure the physics engine
+	profile, _ := store.GetProfile()
+
 	return &App{
 		gpxService:     gpx.NewService(),
 		fitService:     fit.NewService(),
-		physicsEngine:  sim.NewEngine(75.0, 9.0),
+		// Initialize physics engine using stored user data
+		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight), 
 		trainerService: ble.NewRealService(),
+		storageService: store,
 		telemetryChan:  make(chan domain.Telemetry),
 	}
 }
 
+// Startup is called by Wails when the app starts.
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// Shutdown is called by Wails when the app is closing.
 func (a *App) Shutdown(ctx context.Context) {
 	fmt.Println("Closing app: Disconnecting BLE...")
 	a.trainerService.Disconnect()
 }
 
+// OpenFileFolder opens the system file explorer at the given file location.
+func (a *App) OpenFileFolder(filename string) {
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return
+	}
+
+	dir := filepath.Dir(absPath)
+
+	var cmd *exec.Cmd
+	
+	// OS-specific file explorer handling
+	switch stdruntime.GOOS { 
+	case "windows":
+		cmd = exec.Command("explorer", "/select,", absPath)
+	case "darwin":
+		cmd = exec.Command("open", "-R", absPath)
+	case "linux":
+		cmd = exec.Command("xdg-open", dir)
+	default:
+		return
+	}
+	
+	cmd.Start()
+}
+
+
+// ====================
+// USER PROFILE & STATS
+// ====================
+
+// GetUserProfile returns the persisted user profile.
+func (a *App) GetUserProfile() domain.UserProfile {
+	u, _ := a.storageService.GetProfile()
+	return u
+}
+
+// UpdateUserProfile updates the user profile and applies changes
+// immediately to the physics engine.
+func (a *App) UpdateUserProfile(u domain.UserProfile) string {
+	if err := a.storageService.UpdateProfile(u); err != nil {
+		return "Error updating profile"
+	}
+
+	// Apply changes in real time
+	a.physicsEngine.UserWeight = u.Weight
+	a.physicsEngine.BikeWeight = u.BikeWeight
+	return "Profile Saved"
+}
+
+// GetActivities returns recent recorded activities.
+func (a *App) GetActivities() []domain.Activity {
+	acts, _ := a.storageService.GetRecentActivities(50)
+	return acts
+}
+
+// GetTotalStats returns aggregated statistics.
+func (a *App) GetTotalStats() map[string]float64 {
+	dist := a.storageService.GetTotalDistance()
+	return map[string]float64{
+		"total_km": dist / 1000.0,
+	}
+}
+
+// ====================
+// GPX & ROUTE HANDLING
+// ====================
+
+// SelectGPX opens a file dialog and loads the selected GPX route.
 func (a *App) SelectGPX() string {
 	selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select the GPX Route", Filters: []runtime.FileFilter{{DisplayName: "GPX files", Pattern: "*.gpx"}},
@@ -66,18 +159,23 @@ func (a *App) SelectGPX() string {
 		return ""
 	}
 
+	a.currentRouteName = filepath.Base(selection)
+
 	totalDistKm := 0.0
 	if len(points) > 0 {
 		totalDistKm = points[len(points)-1].Distance / 1000.0
 	}
 	runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("GPX Loaded: %d points | %.2f km", len(points), totalDistKm))
-	return filepath.Base(selection)
+
+	return a.currentRouteName
 }
 
+// GetRoutePath returns all processed GPX points.
 func (a *App) GetRoutePath() []domain.RoutePoint {
 	return a.gpxService.GetAllPoints()
 }
 
+// GetElevationProfile returns only elevation values for charting.
 func (a *App) GetElevationProfile() []float64 {
 	points := a.gpxService.GetAllPoints()
 	elevations := make([]float64, len(points))
@@ -87,10 +185,16 @@ func (a *App) GetElevationProfile() []float64 {
 	return elevations
 }
 
+// =======================
+// WINDOW & DEVICE CONTROL
+// =======================
+
+// ToggleAlwaysOnTop toggles the window always-on-top state.
 func (a *App) ToggleAlwaysOnTop(on bool) {
 	runtime.WindowSetAlwaysOnTop(a.ctx, on)
 }
 
+// ConnectTrainer connects to the smart trainer via BLE.
 func (a *App) ConnectTrainer() (string, error) {
 	if a.isTrainerConnected {
 		return "Trainer Already Connected", nil
@@ -108,6 +212,7 @@ func (a *App) ConnectTrainer() (string, error) {
 	return "Trainer Connected", nil
 }
 
+// ConnectHeartRate connects to a heart rate monitor.
 func (a *App) ConnectHeartRate() (string, error) {
 	if a.isHRConnected {
 		return "HR Already Connected", nil
@@ -125,6 +230,11 @@ func (a *App) ConnectHeartRate() (string, error) {
 	return "HR Monitor Connected", nil
 }
 
+// =================
+// SESSION LIFECYCLE
+// =================
+
+// ToggleSession starts, pauses, or resumes a training session.
 func (a *App) ToggleSession() string {
 	if a.isRecording {
 		if a.isPaused {
@@ -135,6 +245,7 @@ func (a *App) ToggleSession() string {
 	return a.startSession()
 }
 
+// startSession initializes a new training session.
 func (a *App) startSession() string {
 	// Requires that at least the Trainer is connected
 	if !a.isTrainerConnected {
@@ -142,8 +253,11 @@ func (a *App) startSession() string {
 		return "Error: Trainer Disconnected"
 	}
 
-	a.fitService.StartSession(time.Now())
 	a.currentDist = 0
+    a.sessionStart = time.Now()
+    a.sessionPowerSum = 0
+    a.sessionTicks = 0
+	
 	a.isRecording = true
 	a.isPaused = false
 
@@ -164,42 +278,101 @@ func (a *App) startSession() string {
 	return "Started"
 }
 
+// pauseSession pauses the current session.
 func (a *App) pauseSession() string {
 	a.isPaused = true
 	runtime.EventsEmit(a.ctx, "status_change", "PAUSED")
 	return "Paused"
 }
 
+// resumeSession resumes a paused session.
 func (a *App) resumeSession() string {
 	a.isPaused = false
 	runtime.EventsEmit(a.ctx, "status_change", "RECORDING")
 	return "Recording"
 }
 
+// FinishSession finalizes the current training session.
+// It calculates statistics, saves the activity to the database,
+// exports the FIT file, and resets the application state.
 func (a *App) FinishSession() string {
 	if !a.isRecording {
 		return "Not recording"
 	}
 
+	// Stop simulation/game loop
 	if a.cancelSim != nil {
 		a.cancelSim()
 	}
+
+	// 1. Define and create the workouts directory
+	workoutsDir := "workouts"
+
+	// Create directory if it does not exist
+	if err := os.MkdirAll(workoutsDir, 0755); err != nil {
+		runtime.EventsEmit(a.ctx, "error", "Error creating workouts directory")
+		workoutsDir = "." // Fallback to project root
+	}
+
+	// 2. Calculate session statistics (with safety checks)
+	duration := time.Since(a.sessionStart)
+	durationSec := duration.Seconds()
+
+	avgPower := 0
+	if a.sessionTicks > 0 {
+		avgPower = int(a.sessionPowerSum) / a.sessionTicks
+	}
+	
+	// Average power calculation (protected)
+	var avgSpeed float64 = 0.0
+	if durationSec > 0 {
+		avgSpeed = (a.currentDist / durationSec) * 3.6
+	}
+
+	// Route name fallback
+	routeName := a.currentRouteName
+	if routeName == "" {
+		routeName = "Treino Livre"
+	}
+
+	// 3. Build FIT file path
+	fileName := fmt.Sprintf("workout_%s.fit", time.Now().Format("2006-01-02_15-04-05"))
+	fullPath := filepath.Join(workoutsDir, fileName)
+
+	// 4. Create activity record for the database
+	activity := domain.Activity{
+		RouteName:      routeName,
+		Filename:       fullPath,
+		TotalDistance:  a.currentDist,
+		Duration:       int64(durationSec),
+		AvgPower:       avgPower,
+		AvgSpeed:       avgSpeed,
+		CreatedAt:      time.Now(),
+	}
+	
+	if err := a.storageService.SaveActivity(activity); err != nil {
+		fmt.Println("Database save error:", err)
+	}
+
+	// 5. Save FIT file to disk
+	if err := a.fitService.Save(fullPath); err != nil {
+		runtime.EventsEmit(a.ctx, "error", "Error saving FIT file")
+		fmt.Println("FIT save error:", err)
+	} else {
+		absPath, _ := filepath.Abs(fullPath)
+		runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("Workout saved: %s", absPath))
+	}
+
+	// 6. Final cleanup
 	a.isRecording = false
 	a.isPaused = false
-
-	filename := fmt.Sprintf("workout_%s.fit", time.Now().Format("2006-01-02_15-04"))
-
-	if err := a.fitService.Save(filename); err != nil {
-		runtime.EventsEmit(a.ctx, "error", "Error saving FIT file")
-	} else {
-		absPath, _ := filepath.Abs(filename)
-		runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("Saved: %s", absPath))
-	}
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 	return "Finished"
 }
 
+// DiscardSession cancels the current session without saving any data.
+// Connected devices remain active.
 func (a *App) DiscardSession() string {
 	if a.isRecording {
 		if a.cancelSim != nil {
@@ -214,6 +387,8 @@ func (a *App) DiscardSession() string {
 	return "Discarded"
 }
 
+// DisconnectDevice disconnects all BLE devices.
+// If a session is active, it is immediately stopped and discarded.
 func (a *App) DisconnectDevice() string {
 	if a.isRecording {
 		if a.cancelSim != nil {
@@ -231,6 +406,10 @@ func (a *App) DisconnectDevice() string {
 	return "Disconnected"
 }
 
+// gameLoop is the core simulation loop.
+// It processes telemetry input, applies physics,
+// updates distance, controls trainer resistance,
+// records FIT data, and emits frontend events.
 func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 	lastUpdate := time.Now()
 	var currentPower int16 = 0
@@ -245,6 +424,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 	for {
 		select {
 		case <-ctx.Done():
+			// Session stopped or application closing
 			return
 		case rawData := <-input:
 			if rawData.Power != -1 {
@@ -267,9 +447,15 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				continue
 			}
 
+			// Delta time calculation
 			dt := now.Sub(lastUpdate).Seconds()
 			lastUpdate = now
 
+			// Accumulate statistics (only while recording)
+			a.sessionPowerSum += uint64(currentPower)
+            a.sessionTicks++
+
+			// Sensor timeout handling
 			if now.Sub(lastPowerTime) > sensorTimeout {
 				currentPower = 0
 				currentCadence = 0
@@ -278,10 +464,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				currentHR = 0
 			}
 
+			// Physics & route simulation
 			routePoint := a.gpxService.GetPointAtDistance(a.currentDist)
 			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
 			a.currentDist += speedMs * dt
 
+			// End of route handling
 			if totalRouteDistance > 0 && a.currentDist >= totalRouteDistance {
 				a.currentDist = totalRouteDistance
 				a.FinishSession()
@@ -289,20 +477,25 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				return
 			}
 
+			// Apply grade to smart trainer
 			a.trainerService.SetGrade(routePoint.Grade)
 
+			// Build telemetry packet
 			fullTelemetry := domain.Telemetry{
 				Timestamp: now, Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
 			}
 
+			// Persist FIT record and notify frontend
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
 		}
 	}
 }
 
+// ChangePowerSimulation is a placeholder for manual power simulation.
+// Currently not implemented.
 func (a *App) ChangePowerSimulation(delta int) int {
 	return -1
 }
