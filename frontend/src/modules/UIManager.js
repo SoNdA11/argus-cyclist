@@ -56,6 +56,9 @@ export class UIManager {
             statTotalDist : document.getElementById('statTotalDist'),
             statTotalActivities : document.getElementById('statTotalActivities')
         };
+
+        // --- GLOBAL ACCESS ---
+        window.ui = this;
         
         // --- TIMER STATE ---
         this.timerInterval = null;
@@ -166,6 +169,25 @@ export class UIManager {
         this.stopTimer();
         this.secondsElapsed = 0;
         this.updateTimerDisplay();
+    }
+
+    startRouteEditor() {
+        document.getElementById('routeEditorPanel').style.display = 'block';
+        document.getElementById('btnOpenEditor').style.display = 'none'; // Esconde botão de abrir
+        
+        // Zera stats
+        document.getElementById('editorDist').innerText = "0.0 km";
+        document.getElementById('editorElev').innerText = "0 m";
+        document.getElementById('editorRouteName').value = "";
+
+        window.mapController.enableEditorMode();
+    }
+
+    cancelRoute() {
+        document.getElementById('routeEditorPanel').style.display = 'none';
+        document.getElementById('btnOpenEditor').style.display = 'block';
+        
+        window.mapController.disableEditorMode();
     }
 
     /**
@@ -337,5 +359,28 @@ export class UIManager {
     } catch (e) {
         console.error("Error loading history:", e);
     }
+    }
+
+    async saveRoute() {
+        const points = window.mapController.getGeneratedRoute();
+        if (!points || points.length === 0) {
+            alert("Create a route first by clicking 2 points on map.");
+            return;
+        }
+
+        const name = document.getElementById('editorRouteName').value.trim();
+        
+        try {
+            // Chama o Backend para salvar
+            const result = await window.go.main.App.SaveGeneratedGPX(name, points);
+            alert(result); // Mostra "Saved: ..."
+            
+            this.cancelRoute(); // Fecha editor
+            
+            // Opcional: Recarregar lista de rotas se você tiver uma
+            
+        } catch (e) {
+            alert("Error saving: " + e);
+        }
     }
 }

@@ -125,6 +125,9 @@
             <button class="btn-icon" id="btnLayers" title="Switch Layer">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
             </button>
+            <button id="btnOpenEditor" class="btn-import" onclick="window.ui.startRouteEditor()">
+                Create Route
+            </button>
             <button id="btnImport" class="btn-import">Import GPX</button>
             <button id="btnAction" class="btn-action btn-start hidden">START RIDE</button>
         </div>
@@ -147,6 +150,21 @@
         </aside>
         
         <main id="map-container"></main>
+        <div id="routeEditorPanel" class="editor-panel" style="display: none;">
+            <h3>🗺️ Route Creator</h3>
+            <p class="editor-instr">Click 2 points on the map (Start & End)</p>
+            
+            <div class="editor-stats">
+                <span>Dist: <strong id="editorDist">0.0 km</strong></span>
+                <span>Elev: <strong id="editorElev">0 m</strong></span>
+            </div>
+            <div class="editor-actions">
+                <input type="text" id="editorRouteName" placeholder="Route Name (Optional)">
+                <button class="btn-primary" onclick="window.ui.saveRoute()">💾 Save GPX</button>
+                <button class="btn-secondary" onclick="window.ui.cancelRoute()">❌ Cancel</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -156,7 +174,6 @@
             <div id="progressCursor"></div>
         </div>
     </footer>
-
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -6,8 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 	stdruntime "runtime"
+	"strings"
+	"time"
 
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble"
@@ -44,6 +45,12 @@ type App struct {
 	sessionStart     time.Time // Session start time (for duration calculation)
 	sessionPowerSum  uint64    // Sum of power samples (for average power)
 	sessionTicks     int       // Number of power samples
+}
+
+type ExportPoint struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+	Ele float64 `json:"ele"`
 }
 
 // NewApp initializes all core services and dependencies.
@@ -183,6 +190,48 @@ func (a *App) GetElevationProfile() []float64 {
 		elevations[i] = p.Elevation
 	}
 	return elevations
+}
+
+// SaveGeneratedGPX receives points from the frontend and creates a GPX file.
+func (a *App) SaveGeneratedGPX(name string, points []ExportPoint) string {
+	if name == "" {
+		name = fmt.Sprintf("route_%s", time.Now().Format("20060102_1504"))
+	}
+
+	// 1. Create the XML content.
+	var sb strings.Builder
+	sb.WriteString(`<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Argus Cyclist">
+  <trk>
+    <name>` + name + `</name>
+    <trkseg>
+`)
+
+	for _, p := range points {
+		sb.WriteString(fmt.Sprintf(`      <trkpt lat="%.6f" lon="%.6f"><ele>%.2f</ele></trkpt>
+`, p.Lat, p.Lon, p.Ele))
+	}
+
+	sb.WriteString(`    </trkseg>
+  </trk>
+</gpx>`)
+
+	// 2. Ensures that the routes folder exists.
+	routesDir := "routes"
+	if _, err := os.Stat(routesDir); os.IsNotExist(err) {
+		os.Mkdir(routesDir, 0755)
+	}
+
+	// 3. Save the file.
+	filename := fmt.Sprintf("%s.gpx", name)
+	fullPath := filepath.Join(routesDir, filename)
+	
+	err := os.WriteFile(fullPath, []byte(sb.String()), 0644)
+	if err != nil {
+		return "Error saving file: " + err.Error()
+	}
+
+	return "Saved: " + fullPath
 }
 
 // =======================
