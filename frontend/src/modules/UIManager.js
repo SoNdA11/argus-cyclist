@@ -65,6 +65,10 @@ export class UIManager {
         this.riderWeight = CONFIG.DEFAULT_RIDER_WEIGHT;
         this.bikeWeight = CONFIG.DEFAULT_BIKE_WEIGHT;
         this.units = CONFIG.DEFAULT_UNITS; // 'metric' or 'imperial'
+
+        // --- CHART & CALENDAR STATE ---
+        this.currentDate = new Date();
+        window.changeMonth = (d) => this.changeMonth(d);
     }
 
     // =========================
@@ -261,6 +265,31 @@ export class UIManager {
         console.error("Error loading profile:", e);
         }
     }
+    
+    // --- CHART & CALENDAR LOGIC ---
+    
+    formatDuration(seconds) {
+        if (!seconds) {
+            return "00:00";
+        }
+
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        return `${minutes}m`;
+    }
+
+    changeMonth(delta) {
+        this.currentDate.setMonth(
+            this.currentDate.getMonth() + delta
+        );
+
+        this.renderCalendar();
+    }
 
     /**
      * Save user profile to backend.
@@ -289,21 +318,33 @@ export class UIManager {
      * Load activity history and global statistics.
      */
     async loadHistory() {
-    try {
-        const activities = await window.go.main.App.GetActivities();
-        const stats = await window.go.main.App.GetTotalStats();
-        
-        // Update global stats
-        this.els.statTotalDist.innerText = stats.total_km.toFixed(1) + " km";
-        this.els.statTotalActivities.innerText = activities.length;
+        try {
+            const activities = await window.go.main.App.GetActivities();
+            const stats = await window.go.main.App.GetTotalStats();
 
+            this.renderPowerCurve();
+            this.renderCalendar();
+
+            if (stats) {
+                this.els.statTotalDist.innerText = (stats.total_km || 0).toFixed(1) + " km";
+                this.els.statTotalActivities.innerText = activities.length;
+                    
+                const totalSec = stats.total_time || 0;
+                const h = Math.floor(totalSec/3600);
+                const m = Math.floor((totalSec%3600)/60);
+                document.getElementById('statTotalTime').innerText = `${h}h ${m}m`;
+                }
+
+            this.renderActivityList(activities);
+            } catch(e) { console.error(e); }
+    }
+
+    renderActivityList(activities) {
         this.els.historyContainer.innerHTML = "";
-        
-        if (activities.length === 0) {
-            this.els.historyContainer.innerHTML = "<div style='padding:1rem'>No activities yet. Go ride!</div>";
-            return;
+        if(!activities || activities.length === 0) {
+             this.els.historyContainer.innerHTML = "<div style='padding:1rem'>No activities.</div>";
+             return;
         }
-
             activities.forEach(act => {
             const date = act.created_at ? new Date(act.created_at).toLocaleDateString() : "--/--";
             
@@ -333,9 +374,94 @@ export class UIManager {
             `;
             this.els.historyContainer.appendChild(div);
         });
-
-    } catch (e) {
-        console.error("Error loading history:", e);
     }
+
+    async renderCalendar() {
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth() + 1;
+        
+        document.getElementById('calendarTitle').innerText = this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+        const container = document.getElementById('calendarGrid');
+        container.innerHTML = "";
+
+        // Cabeçalhos
+        ['S','M','T','W','T','F','S'].forEach(d => container.innerHTML += `<div class="cal-day-header">${d}</div>`);
+
+        const activities = await window.go.main.App.GetMonthlyActivities(year, month);
+        const actMap = {};
+        activities.forEach(a => actMap[new Date(a.created_at).getDate()] = true);
+
+        const firstDay = new Date(year, month - 1, 1).getDay();
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const today = new Date();
+
+        // Espaços vazios
+        for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
+
+        // Dias
+        for(let d=1; d<=daysInMonth; d++) {
+            const hasAct = actMap[d];
+            const isToday = (d === today.getDate() && month-1 === today.getMonth() && year === today.getFullYear());
+            let cls = "cal-day";
+            if(hasAct) cls += " active";
+            if(isToday) cls += " today";
+            
+            const dot = hasAct ? `<div class="cal-dot"></div>` : '';
+            container.innerHTML += `<div class="${cls}">${d}${dot}</div>`;
+        }
+    }
+
+    async renderBestEfforts() {
+        try {
+            const best = await window.go.main.App.GetBestEfforts();
+            
+            document.getElementById('recPower').innerText = (best.max_power || 0) + "w";
+            
+            const distKm = (best.max_distance || 0) / 1000;
+            document.getElementById('recDist').innerText = distKm.toFixed(1) + "km";
+            
+            document.getElementById('recTime').innerText = this.formatDuration(best.max_duration || 0);
+            
+        } catch(e) {
+            console.error("Error loading records:", e);
+        }
+    }
+
+    formatDurationLabel(seconds) {
+        if (seconds < 60) return seconds + "s";
+        return (seconds / 60) + "min";
+    }
+
+    async renderPowerCurve() {
+        try {
+            const records = await window.go.main.App.GetPowerCurve();
+            const tbody = document.getElementById('powerCurveBody');
+            tbody.innerHTML = "";
+
+            records.forEach(rec => {
+                const label = this.formatDurationLabel(rec.duration);
+                // Formata data: DD/MM/YYYY HH:MM
+                const dateObj = new Date(rec.date);
+                const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // Se o watt for 0, mostra traço
+                if (rec.watts === 0) return; 
+
+                const row = `
+                    <tr>
+                        <td>${label}</td>
+                        <td class="col-watts">${rec.watts}w</td>
+                        <td>${rec.wkg.toFixed(2)}</td>
+                        <td class="col-date">${dateStr}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            
+            if (tbody.innerHTML === "") {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:10px;'>No records yet</td></tr>";
+            }
+
+        } catch (e) { console.error(e); }
     }
 }

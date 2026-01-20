@@ -34,6 +34,14 @@ export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }
 
+export function GetMonthlyActivities(arg1, arg2) {
+  return window['go']['main']['App']['GetMonthlyActivities'](arg1, arg2);
+}
+
+export function GetPowerCurve() {
+  return window['go']['main']['App']['GetPowerCurve']();
+}
+
 export function GetRoutePath() {
   return window['go']['main']['App']['GetRoutePath']();
 }

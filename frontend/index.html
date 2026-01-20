@@ -72,25 +72,61 @@
                 </div>
             </div>
 
-            <div id="tab-history" class="tab-pane">
+<div id="tab-history" class="tab-pane">
+                
                 <div class="stat-summary">
                     <div class="stat-box">
                         <small>Total Distance</small>
                         <strong id="statTotalDist">0 km</strong>
                     </div>
                     <div class="stat-box">
-                        <small>Total Activities</small>
+                        <small>Total Time</small>
+                        <strong id="statTotalTime">00:00</strong>
+                    </div>
+                    <div class="stat-box">
+                        <small>Activities</small>
                         <strong id="statTotalActivities">0</strong>
+                    </div>
+                </div>
+
+                    <div class="dashboard-row">
+                    
+                    <div class="records-container compact">
+                        <h4>Power Records (MMP)</h4>
+                        <div class="power-table-wrapper">
+                            <table class="power-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Watts</th>
+                                        <th>W/Kg</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="powerCurveBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="calendar-wrapper compact">
+                        <div class="calendar-header">
+                            <button class="btn-icon-small" onclick="changeMonth(-1)">‹</button>
+                            <h4 id="calendarTitle">Month</h4>
+                            <button class="btn-icon-small" onclick="changeMonth(1)">›</button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
                     </div>
                 </div>
 
                 <h3>Recent Activities</h3>
                 <div class="history-list">
                     <div class="history-item history-header">
-                        <span>Date / Route</span>
-                        <span>Dist</span>
-                        <span>Avg Pwr</span>
-                        <span>File</span>
+                        <span style="flex: 2;">Date / Route</span>
+                        <span style="flex: 1;">Time</span>
+                        <span style="flex: 1;">Dist</span>
+                        <span style="flex: 1;">Avg Pwr</span>
+                        <span style="width: 40px;">File</span>
                     </div>
                     <div id="historyContainer">
                         <div class="history-item"><span>Loading...</span></div>
