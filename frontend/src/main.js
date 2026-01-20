@@ -10,6 +10,7 @@ import { ElevationChart } from './modules/ElevationChart.js';
 
 // Core controllers
 const mapCtrl = new MapController();
+window.mapController = mapCtrl;
 const ui = new UIManager();
 const chart = new ElevationChart('elevationCanvas');
 

@@ -58,6 +58,10 @@ export function OpenFileFolder(arg1) {
   return window['go']['main']['App']['OpenFileFolder'](arg1);
 }
 
+export function SaveGeneratedGPX(arg1, arg2) {
+  return window['go']['main']['App']['SaveGeneratedGPX'](arg1, arg2);
+}
+
 export function SelectGPX() {
   return window['go']['main']['App']['SelectGPX']();
 }

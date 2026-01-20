@@ -9,6 +9,12 @@ export class MapController {
         this.prevLngLat = null;
         this.lastBearingUpdatePos = null;
         this.routeGeoJSON = null;
+
+        // --- EDITOR STATE ---
+        this.editorMode = false;
+        this.editorMarkers = [];
+        this.editorPoints = [];
+        this.generatedRouteData = null;
     }
 
     init(containerId) {
@@ -40,6 +46,12 @@ export class MapController {
             this.addRouteLayer();
         });
 
+        this.map.on('click', (e) => {
+            if (this.editorMode) {
+                this.handleEditorClick(e);
+            }
+        });
+
         this.map.on('dragstart', () => { 
             this.followCyclist = false; 
         });
@@ -66,10 +78,9 @@ export class MapController {
 
         try {
             this.map.setConfigProperty('basemap', 'lightPreset', preset);
-            
             this.map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
         } catch (e) {
-            console.log("Estilo atual não suporta configuração Standard (ok se for custom)");
+            console.log("Current style does not support Standard configuration (ok if it's custom).");
         }
 
         if (!this.map.getSource('mapbox-dem')) {
@@ -201,5 +212,149 @@ export class MapController {
         const dx = currentPos[0] - this.lastBearingUpdatePos[0];
         const dy = currentPos[1] - this.lastBearingUpdatePos[1];
         return Math.sqrt(dx*dx + dy*dy) > 0.0001; 
+    }
+
+    // --- EDITOR LOGIC ---
+
+    enableEditorMode() {
+        this.editorMode = true;
+        this.editorPoints = [];
+        this.generatedRouteData = null;
+            
+        this.map.getCanvas().style.cursor = 'crosshair';
+            
+        if (this.map.getSource('editor-route')) {
+            this.map.removeLayer('editor-route-line');
+            this.map.removeSource('editor-route');
+        }
+            
+        if (this.editorMarkers) {
+            this.editorMarkers.forEach(m => m.remove());
+        }
+        this.editorMarkers = [];
+    }
+
+    disableEditorMode() {
+        this.editorMode = false;
+        this.map.getCanvas().style.cursor = '';
+        if (this.editorMarkers) {
+            this.editorMarkers.forEach(m => m.remove());
+        }
+        if (this.map.getSource('editor-route')) {
+            this.map.removeLayer('editor-route-line');
+            this.map.removeSource('editor-route');
+        }
+    }
+
+    async handleEditorClick(e) {
+        if (!this.editorMode) return;
+        
+        if (this.editorPoints.length >= 2) {
+            return; 
+        }
+
+        const coord = e.lngLat;
+        const pointIndex = this.editorPoints.length; 
+        
+        this.editorPoints.push(coord);
+
+        const color = pointIndex === 0 ? '#00ff00' : '#ff0000';
+        const el = document.createElement('div');
+        el.className = 'editor-marker';
+        el.style.backgroundColor = color;
+        el.style.width = '15px'; el.style.height = '15px'; el.style.borderRadius = '50%';
+        el.style.border = '2px solid white';
+        el.style.cursor = 'grab';
+        el.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
+        
+        const marker = new window.mapboxgl.Marker({ element: el, draggable: true })
+            .setLngLat(coord)
+            .addTo(this.map);
+
+        marker.on('dragend', async () => {
+            const newLngLat = marker.getLngLat();
+            
+            this.editorPoints[pointIndex] = newLngLat;
+            
+            console.log(`Point ${pointIndex} moved to:`, newLngLat);
+
+            if (this.editorPoints.length === 2) {
+                await this.calculateRoute();
+            }
+        });
+
+        this.editorMarkers.push(marker);
+
+        if (this.editorPoints.length === 2) {
+            await this.calculateRoute();
+        }
+    }
+
+    async calculateRoute() {
+        const start = this.editorPoints[0];
+        const end = this.editorPoints[1];
+        const token = window.mapboxgl.accessToken;
+
+        const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${start.lng},${start.lat};${end.lng},${end.lat}?geometries=geojson&overview=full&access_token=${token}`;
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.routes || data.routes.length === 0) {
+                alert("No route found!");
+                return;
+            }
+
+            const route = data.routes[0];
+            const coordinates = route.geometry.coordinates;
+
+            const enrichedPoints = coordinates.map(coord => {
+                const elevation = this.map.queryTerrainElevation({lng: coord[0], lat: coord[1]}) || 0;
+                return { lat: coord[1], lon: coord[0], ele: elevation };
+            });
+
+            this.generatedRouteData = enrichedPoints;
+
+            const distKm = (route.distance / 1000).toFixed(2);
+            let elevGain = 0;
+            for(let i=1; i<enrichedPoints.length; i++) {
+                const diff = enrichedPoints[i].ele - enrichedPoints[i-1].ele;
+                if (diff > 0) elevGain += diff;
+            }
+
+            document.getElementById('editorDist').innerText = distKm + " km";
+            document.getElementById('editorElev').innerText = elevGain.toFixed(0) + " m";
+
+            this.drawEditorRoute(coordinates);
+
+        } catch (e) {
+            console.error("Error fetching route:", e);
+            alert("Error calculating route");
+        }
+    }
+
+    drawEditorRoute(coords) {
+        if (this.map.getSource('editor-route')) {
+            this.map.getSource('editor-route').setData({
+                type: 'Feature', geometry: { type: 'LineString', coordinates: coords }
+            });
+        } else {
+            this.map.addSource('editor-route', {
+                type: 'geojson',
+                data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } }
+            });
+            this.map.addLayer({
+                id: 'editor-route-line',
+                type: 'line',
+                source: 'editor-route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': '#38bdf8', 'line-width': 4 }
+            });
+        }
+    }
+
+    getGeneratedRoute() {
+        return this.generatedRouteData;
     }
 }
