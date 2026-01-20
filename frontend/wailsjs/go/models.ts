@@ -122,3 +122,24 @@ export namespace domain {
 
 }
 
+export namespace main {
+	
+	export class ExportPoint {
+	    lat: number;
+	    lon: number;
+	    ele: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportPoint(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.lat = source["lat"];
+	        this.lon = source["lon"];
+	        this.ele = source["ele"];
+	    }
+	}
+
+}
+
