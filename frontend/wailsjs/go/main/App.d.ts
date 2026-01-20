@@ -14,12 +14,22 @@ export function DisconnectDevice():Promise<string>;
 
 export function FinishSession():Promise<string>;
 
+export function GetActivities():Promise<Array<domain.Activity>>;
+
 export function GetElevationProfile():Promise<Array<number>>;
 
 export function GetRoutePath():Promise<Array<domain.RoutePoint>>;
+
+export function GetTotalStats():Promise<Record<string, number>>;
+
+export function GetUserProfile():Promise<domain.UserProfile>;
+
+export function OpenFileFolder(arg1:string):Promise<void>;
 
 export function SelectGPX():Promise<string>;
 
 export function ToggleAlwaysOnTop(arg1:boolean):Promise<void>;
 
 export function ToggleSession():Promise<string>;
+
+export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;

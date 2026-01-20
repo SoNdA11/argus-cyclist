@@ -4,26 +4,33 @@ import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
 
-// --- INITIALIZATION ---
+// ==========================
+// APPLICATION INITIALIZATION
+// ==========================
+
+// Core controllers
 const mapCtrl = new MapController();
 const ui = new UIManager();
 const chart = new ElevationChart('elevationCanvas');
 
+// Global state
 let totalRouteDistance = 0;
 let isRecording = false;
 
-// Initialize Map
+// Initialize the map
 mapCtrl.init('map-container');
 
-// Open Settings/Welcome immediately
+// Open Settings
 ui.toggleSettings(true);
 
-// Verify Token
+// Validate Mapbox token
 if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
     ui.showTokenWarning();
 }
 
-// --- EVENT LISTENERS (UI) ---
+// ==================
+// UI EVENT LISTENERS
+// ==================
 
 document.getElementById('btnCloseSettings').addEventListener('click', () => {
     ui.toggleSettings(false);
@@ -32,6 +39,10 @@ document.getElementById('btnCloseSettings').addEventListener('click', () => {
 document.getElementById('btnOpenSettings').addEventListener('click', () => {
     ui.toggleSettings(true);
 });
+
+// ==================
+// DEVICE CONNECTIONS
+// ==================
 
 document.getElementById('btnConnTrainer').addEventListener('click', async () => {
     const btn = document.getElementById('btnConnTrainer');
@@ -72,6 +83,10 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
     }
 });
 
+// ============
+// MAP CONTROLS
+// ============
+
 document.getElementById('btnLayers').addEventListener('click', () => {
     mapCtrl.toggleLayer();
     chart.draw();
@@ -80,6 +95,10 @@ document.getElementById('btnLayers').addEventListener('click', () => {
 document.getElementById('btnCenter').addEventListener('click', () => {
     mapCtrl.centerCamera();
 });
+
+// ==========
+// GPX IMPORT
+// ==========
 
 document.getElementById('btnImport').addEventListener('click', async () => {
     try {
@@ -91,6 +110,7 @@ document.getElementById('btnImport').addEventListener('click', async () => {
             const routePoints = await window.go.main.App.GetRoutePath();
             
             if (routePoints.length > 1) {
+                // Build GeoJSON from route segments
                 const features = [];
                 for(let i=0; i < routePoints.length - 1; i++) {
                     features.push({
@@ -109,12 +129,15 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 const geoJson = { type: 'FeatureCollection', features: features };
                 mapCtrl.renderRoute(geoJson);
 
+                // Set initial camera position
                 const start = routePoints[0];
                 mapCtrl.setInitialPosition(start.lat, start.lon);
 
+                // Load elevation profile
                 const elevations = await window.go.main.App.GetElevationProfile();
                 chart.setData(elevations);
-                
+
+                // Cache total route distance (meters)
                 totalRouteDistance = routePoints[routePoints.length-1].distance;
             }
         }
@@ -122,6 +145,10 @@ document.getElementById('btnImport').addEventListener('click', async () => {
         alert("Error importing GPX: " + e); 
     }
 });
+
+// ==================
+// RECORDING CONTROLS
+// ==================
 
 document.getElementById('btnAction').addEventListener('click', async () => {
     if (!isRecording) {
@@ -151,6 +178,10 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
     }
 });
 
+// =======================
+// KEYBOARD DEBUG CONTROLS
+// =======================
+
 document.addEventListener('keydown', async (e) => {
     let delta = 0; 
     if(e.key === "ArrowUp") delta = 10; 
@@ -160,6 +191,27 @@ document.addEventListener('keydown', async (e) => {
         await window.go.main.App.ChangePowerSimulation(delta);
     }
 });
+
+// =======================
+// TAB NAVIGATION (GLOBAL)
+// =======================
+
+/**
+ * Switch visible tab content and active button.
+ */
+function openTab(tabId, event) {
+    document.querySelectorAll('.tab-pane')
+        .forEach(el => el.classList.remove('active'));
+
+    document.querySelectorAll('.tab-btn')
+        .forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// Expose function to global scope (used by inline HTML handlers)
+window.openTab = openTab;
 
 // --- WAILS RUNTIME EVENTS ---
 

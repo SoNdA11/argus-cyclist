@@ -15,56 +15,94 @@
         <p>Please edit <b>src/config.js</b> and add your Mapbox Token.</p>
         <button id="btnCloseWarning">Close</button>
     </div>
-
-    <div id="settingsModal" class="modal-overlay">
+   <div id="settingsModal" class="modal-overlay">
         <div class="settings-content">
-            <h2>Welcome to Argus Cyclist</h2>
-            <p class="description">
-                This allows you to simulate cycling indoors using GPX routes and 3D maps.
-                Configure your profile and devices below.
-            </p>
+            <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('tab-profile', event)">
+                Profile & Devices
+            </button>
 
-            <div class="settings-grid">
-                <section class="settings-section">
-                    <h3>🚴 Profile & Units</h3>
-                    <div class="input-group">
-                        <label>Rider Weight (kg)</label>
-                        <input type="number" id="inputRiderWeight" value="66.5" step="0.5">
-                    </div>
-                    <div class="input-group">
-                        <label>Bike Weight (kg)</label>
-                        <input type="number" id="inputBikeWeight" value="8.0" step="0.5">
-                    </div>
-                    <div class="input-group">
-                        <label>Units</label>
-                        <select id="selectUnits">
-                            <option value="metric">Metric (km, m)</option>
-                            <option value="imperial">Imperial (mi, ft)</option>
-                        </select>
-                    </div>
-                </section>
+            <button class="tab-btn" onclick="openTab('tab-history', event)">
+                History & Stats
+            </button>
+            </div>
 
-                <section class="settings-section">
-                    <h3>📡 Devices</h3>
-                    <div class="device-row">
-                        <span>Smart Trainer</span>
-                        <button id="btnConnTrainer" class="btn-secondary">Scan/Connect</button>
-                        <span id="statusTrainer" class="status-indicator">Disconnected</span>
+            <div id="tab-profile" class="tab-pane active">
+                <div class="settings-grid">
+                    <section class="settings-section">
+                        <h3>🚴 Profile</h3>
+                        <div class="input-group">
+                            <label>Name</label>
+                            <input type="text" id="inputName" placeholder="Cyclist Name">
+                        </div>
+                        <div class="input-group">
+                            <label>Weight (kg)</label>
+                            <input type="number" id="inputRiderWeight" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label>Bike Weight (kg)</label>
+                            <input type="number" id="inputBikeWeight" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label>FTP (Watts)</label>
+                            <input type="number" id="inputFTP" placeholder="200">
+                        </div>
+                        <div class="input-group">
+                            <label>Units</label>
+                            <select id="selectUnits">
+                                <option value="metric">Metric (km, m)</option>
+                                <option value="imperial">Imperial (mi, ft)</option>
+                            </select>
+                        </div>
+                    </section>
+
+                    <section class="settings-section">
+                        <h3>📡 Devices</h3>
+                        <div class="device-row">
+                            <span>Smart Trainer</span>
+                            <button id="btnConnTrainer" class="btn-secondary">Scan</button>
+                            <span id="statusTrainer" class="status-indicator">Disconnected</span>
+                        </div>
+                        <div class="device-row">
+                            <span>Heart Rate</span>
+                            <button id="btnConnHR" class="btn-secondary">Scan</button>
+                            <span id="statusHR" class="status-indicator">Disconnected</span>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab-history" class="tab-pane">
+                <div class="stat-summary">
+                    <div class="stat-box">
+                        <small>Total Distance</small>
+                        <strong id="statTotalDist">0 km</strong>
                     </div>
-                    <div class="device-row">
-                        <span>Heart Rate</span>
-                        <button id="btnConnHR" class="btn-secondary">Scan/Connect</button>
-                        <span id="statusHR" class="status-indicator">Disconnected</span>
+                    <div class="stat-box">
+                        <small>Total Activities</small>
+                        <strong id="statTotalActivities">0</strong>
                     </div>
-                </section>
+                </div>
+
+                <h3>Recent Activities</h3>
+                <div class="history-list">
+                    <div class="history-item history-header">
+                        <span>Date / Route</span>
+                        <span>Dist</span>
+                        <span>Avg Pwr</span>
+                        <span>File</span>
+                    </div>
+                    <div id="historyContainer">
+                        <div class="history-item"><span>Loading...</span></div>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-actions">
-                <button id="btnCloseSettings" class="btn-primary">Ready to Ride</button>
+                <button id="btnCloseSettings" class="btn-primary">Save & Close</button>
             </div>
         </div>
     </div>
-
 <div id="confirmModal" class="modal-overlay hidden">
         <div class="modal-content-small">
             <h3>Workout Paused</h3>
@@ -75,7 +113,6 @@
             </div>
         </div>
     </div>
-
     <header>
         <div class="brand">ARGUS<span>CYCLIST</span> <span id="filename" class="filename-display">3D PRO</span></div>
         <div class="header-controls">
@@ -88,12 +125,10 @@
             <button class="btn-icon" id="btnLayers" title="Switch Layer">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
             </button>
-            
             <button id="btnImport" class="btn-import">Import GPX</button>
             <button id="btnAction" class="btn-action btn-start hidden">START RIDE</button>
         </div>
     </header>
-
     <div class="main-viewport">
         <aside class="hud-sidebar">
             <div class="data-card"><span class="data-label">Time</span><div class="data-value val-time" id="time">00:00:00</div></div>

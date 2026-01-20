@@ -292,3 +292,79 @@ footer {
 .hidden { display: none !important; }
 
 .modal-overlay.active { display: flex !important; }
+
+/* --- DASHBOARD & HISTORY --- */
+.settings-content {
+    max-width: 800px;
+    width: 90%;
+}
+
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--argus-text-dim);
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--argus-safe);
+    border-bottom-color: var(--argus-safe);
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.history-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.9rem;
+    align-items: center;
+}
+
+.history-item:last-child { border-bottom: none; }
+
+.history-header {
+    font-weight: bold;
+    color: var(--argus-text-dim);
+    background: rgba(0,0,0,0.3);
+    position: sticky;
+    top: 0;
+}
+
+.stat-summary {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    background: var(--argus-bg-card);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.stat-box small { color: var(--argus-text-dim); display: block; font-size: 0.8rem;}
+.stat-box strong { font-size: 1.4rem; color: var(--argus-safe); }
