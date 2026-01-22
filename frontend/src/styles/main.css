@@ -274,7 +274,7 @@ footer {
 .action-buttons { display: flex; gap: 15px; margin-top: 20px; }
 
 /* Button Styles */
-.btn-primary { background: var(--power-color); color: #fff; padding: 10px 24px; font-weight: bold; border-radius: 4px; font-size: 1rem; }
+.btn-primary { background: var(--power-color); color: #fff; padding: 10px 24px; font-weight: bold; border-radius: 10px; font-size: 1rem; }
 .btn-primary:hover { filter: brightness(1.1); }
 
 .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; font-size: 0.8rem; }
@@ -331,7 +331,8 @@ footer {
 }
 
 .history-list {
-    max-height: 300px;
+    height: 250px;
+    max-height: 35vh;
     overflow-y: auto;
     background: rgba(0,0,0,0.2);
     border-radius: 8px;
@@ -352,7 +353,9 @@ footer {
 .history-header {
     font-weight: bold;
     color: var(--argus-text-dim);
-    background: rgba(0,0,0,0.3);
+    background-color: var(--bg-app); 
+    z-index: 10; 
+    border-bottom: 2px solid var(--border-color);
     position: sticky;
     top: 0;
 }
@@ -375,16 +378,17 @@ footer {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-bottom: 1rem;
-    height: 200px;
+    height: 320px;
 }
 
-.chart-container.compact {
+.records-container.compact {
     background: rgba(0,0,0,0.2);
     border-radius: 8px;
     padding: 0.8rem;
     display: flex;
     flex-direction: column;
-    margin: 0;
+    overflow: hidden;
+    height: 100%;
 }
 
 .chart-container h4 {
@@ -458,31 +462,26 @@ footer {
 }
 
 .cal-day.active {
-    color: #fff;
-    font-weight: bold;
+    background-color: var(--argus-safe);
+    color: #000;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.cal-day.active:hover {
+    background-color: var(--argus-safe);
+    filter: brightness(1.1);
 }
 
 .cal-dot {
-    position: absolute;
-    bottom: 2px;
-    width: 4px;
-    height: 4px;
-    background-color: var(--argus-safe);
-    border-radius: 50%;
-}
-
-.cal-day.today {
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-.cal-day:hover {
-    background: rgba(255,255,255,0.05);
+    display: none; 
 }
 
 /* --- POWER CURVE TABLE --- */
 .power-table-wrapper {
-    overflow-y: auto;
     flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin-top: 0.5rem;
 }
 
 .power-table {
