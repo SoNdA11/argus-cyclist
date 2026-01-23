@@ -66,6 +66,10 @@ export function SelectGPX() {
   return window['go']['main']['App']['SelectGPX']();
 }
 
+export function SelectProfileImage() {
+  return window['go']['main']['App']['SelectProfileImage']();
+}
+
 export function ToggleAlwaysOnTop(arg1) {
   return window['go']['main']['App']['ToggleAlwaysOnTop'](arg1);
 }

@@ -14,28 +14,28 @@ export class UIManager {
          */
         this.els = {
             // Telemetry values
-            watts: document.getElementById('watts'), 
-            hr: document.getElementById('hr'), 
-            rpm: document.getElementById('rpm'), 
-            grade: document.getElementById('grade'), 
-            dist: document.getElementById('dist'), 
+            watts: document.getElementById('watts'),
+            hr: document.getElementById('hr'),
+            rpm: document.getElementById('rpm'),
+            grade: document.getElementById('grade'),
+            dist: document.getElementById('dist'),
             speed: document.getElementById('speed'),
             time: document.getElementById('time'),
             wkg: document.getElementById('wkg'),
             distRem: document.getElementById('distRem'),
-            
+
             // Main controls
-            btnImport: document.getElementById('btnImport'), 
+            btnImport: document.getElementById('btnImport'),
             btnAction: document.getElementById('btnAction'),
             btnOpenSettings: document.getElementById('btnOpenSettings'),
-            
+
             // Settings Modal Elements
             settingsModal: document.getElementById('settingsModal'),
             btnCloseSettings: document.getElementById('btnCloseSettings'),
             inputRiderWeight: document.getElementById('inputRiderWeight'),
             inputBikeWeight: document.getElementById('inputBikeWeight'),
             selectUnits: document.getElementById('selectUnits'),
-            
+
             // Confirm Modal Elements
             confirmModal: document.getElementById('confirmModal'),
             btnResume: document.getElementById('btnResume'),
@@ -48,22 +48,22 @@ export class UIManager {
 
             // Warning & profile
             tokenWarning: document.getElementById('token-warning'),
-            inputName : document.getElementById('inputName'),
-            inputFTP : document.getElementById('inputFTP'),
+            inputName: document.getElementById('inputName'),
+            inputFTP: document.getElementById('inputFTP'),
 
             // History & statistics
-            historyContainer : document.getElementById('historyContainer'),
-            statTotalDist : document.getElementById('statTotalDist'),
-            statTotalActivities : document.getElementById('statTotalActivities')
+            historyContainer: document.getElementById('historyContainer'),
+            statTotalDist: document.getElementById('statTotalDist'),
+            statTotalActivities: document.getElementById('statTotalActivities')
         };
 
         // --- GLOBAL ACCESS ---
         window.ui = this;
-        
+
         // --- TIMER STATE ---
         this.timerInterval = null;
         this.secondsElapsed = 0;
-        
+
         // --- USER PREFERENCES ---
         this.riderWeight = CONFIG.DEFAULT_RIDER_WEIGHT;
         this.bikeWeight = CONFIG.DEFAULT_BIKE_WEIGHT;
@@ -72,6 +72,9 @@ export class UIManager {
         // --- CHART & CALENDAR STATE ---
         this.currentDate = new Date();
         window.changeMonth = (d) => this.changeMonth(d);
+
+        // --- PHOTO ---
+        this.currentPhotoData = "";
     }
 
     // =========================
@@ -138,7 +141,7 @@ export class UIManager {
             const remainingMeters = Math.max(0, totalRouteDistance - data.total_dist);
             const remObj = this.formatDist(remainingMeters);
             this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit}</span>`;
-            
+
             // Cursor
             const pct = Math.min((data.total_dist / totalRouteDistance) * 100, 100);
             this.els.cursor.style.left = pct + '%';
@@ -157,7 +160,7 @@ export class UIManager {
     // ===========
 
     startTimer() {
-        this.stopTimer(); 
+        this.stopTimer();
         this.updateTimerDisplay();
         this.timerInterval = setInterval(() => {
             this.secondsElapsed++;
@@ -178,7 +181,7 @@ export class UIManager {
     startRouteEditor() {
         document.getElementById('routeEditorPanel').style.display = 'block';
         document.getElementById('btnOpenEditor').style.display = 'none'; // Esconde botão de abrir
-        
+
         // Zera stats
         document.getElementById('editorDist').innerText = "0.0 km";
         document.getElementById('editorElev').innerText = "0 m";
@@ -190,7 +193,7 @@ export class UIManager {
     cancelRoute() {
         document.getElementById('routeEditorPanel').style.display = 'none';
         document.getElementById('btnOpenEditor').style.display = 'block';
-        
+
         window.mapController.disableEditorMode();
     }
 
@@ -207,7 +210,7 @@ export class UIManager {
     // ===================
     // MODALS & UI STATES
     // ===================
-    
+
     /**
      * Open or close the settings modal.
      */
@@ -236,8 +239,8 @@ export class UIManager {
      */
     setRecordingState(state) {
         if (state === 'RECORDING') {
-            this.els.btnAction.innerText = "STOP"; 
-            this.els.btnAction.className = "btn-action btn-stop"; 
+            this.els.btnAction.innerText = "STOP";
+            this.els.btnAction.className = "btn-action btn-stop";
             this.els.btnImport.disabled = true;
             this.startTimer();
             this.toggleConfirmModal(false);
@@ -245,8 +248,8 @@ export class UIManager {
             this.stopTimer();
             this.toggleConfirmModal(true);
         } else { // IDLE
-            this.els.btnAction.innerText = "START RIDE"; 
-            this.els.btnAction.className = "btn-action btn-start"; 
+            this.els.btnAction.innerText = "START RIDE";
+            this.els.btnAction.className = "btn-action btn-start";
             this.els.btnImport.disabled = false;
             this.resetTimer();
             this.toggleConfirmModal(false);
@@ -269,27 +272,27 @@ export class UIManager {
      * Load user profile from backend (Go/Wails).
      */
     async loadUserProfile() {
-    try {
-        const profile = await window.go.main.App.GetUserProfile();
+        try {
+            const profile = await window.go.main.App.GetUserProfile();
 
-        this.els.inputName.value = profile.name || "";
-        this.els.inputRiderWeight.value = profile.weight || 75;
-        this.els.inputBikeWeight.value = profile.bike_weight || 9;
-        this.els.inputFTP.value = profile.ftp || 200;
+            this.els.inputName.value = profile.name || "";
+            this.els.inputRiderWeight.value = profile.weight || 75;
+            this.els.inputBikeWeight.value = profile.bike_weight || 9;
+            this.els.inputFTP.value = profile.ftp || 200;
 
-        this.riderWeight = profile.weight;
-        this.bikeWeight = profile.bike_weight;
-        this.els.selectUnits.value = profile.units || "metric";
-        this.units = this.els.selectUnits.value;
-        
-        console.log("Profile Loaded:", profile);
-    } catch (e) {
-        console.error("Error loading profile:", e);
+            this.riderWeight = profile.weight;
+            this.bikeWeight = profile.bike_weight;
+            this.els.selectUnits.value = profile.units || "metric";
+            this.units = this.els.selectUnits.value;
+
+            console.log("Profile Loaded:", profile);
+        } catch (e) {
+            console.error("Error loading profile:", e);
         }
     }
-    
+
     // --- CHART & CALENDAR LOGIC ---
-    
+
     formatDuration(seconds) {
         if (!seconds) {
             return "00:00";
@@ -317,22 +320,22 @@ export class UIManager {
      * Save user profile to backend.
      */
     async saveUserProfile() {
-    const profile = {
-        name: this.els.inputName.value,
-        weight: parseFloat(this.els.inputRiderWeight.value),
-        bike_weight: parseFloat(this.els.inputBikeWeight.value),
-        ftp: parseInt(this.els.inputFTP.value),
-        units: this.els.selectUnits.value
-    };
+        const profile = {
+            name: this.els.inputName.value,
+            weight: parseFloat(this.els.inputRiderWeight.value),
+            bike_weight: parseFloat(this.els.inputBikeWeight.value),
+            ftp: parseInt(this.els.inputFTP.value),
+            units: this.els.selectUnits.value
+        };
 
-    try {
-        await window.go.main.App.UpdateUserProfile(profile);
-        this.riderWeight = profile.weight;
-        this.bikeWeight = profile.bike_weight;
-        this.units = profile.units;
-        console.log("Profile Saved");
-    } catch (e) {
-        alert("Error saving profile: " + e);
+        try {
+            await window.go.main.App.UpdateUserProfile(profile);
+            this.riderWeight = profile.weight;
+            this.bikeWeight = profile.bike_weight;
+            this.units = profile.units;
+            console.log("Profile Saved");
+        } catch (e) {
+            alert("Error saving profile: " + e);
         }
     }
 
@@ -350,31 +353,31 @@ export class UIManager {
             if (stats) {
                 this.els.statTotalDist.innerText = (stats.total_km || 0).toFixed(1) + " km";
                 this.els.statTotalActivities.innerText = activities.length;
-                    
+
                 const totalSec = stats.total_time || 0;
-                const h = Math.floor(totalSec/3600);
-                const m = Math.floor((totalSec%3600)/60);
+                const h = Math.floor(totalSec / 3600);
+                const m = Math.floor((totalSec % 3600) / 60);
                 document.getElementById('statTotalTime').innerText = `${h}h ${m}m`;
-                }
+            }
 
             this.renderActivityList(activities);
-            } catch(e) { console.error(e); }
+        } catch (e) { console.error(e); }
     }
 
     renderActivityList(activities) {
         this.els.historyContainer.innerHTML = "";
-        if(!activities || activities.length === 0) {
-             this.els.historyContainer.innerHTML = "<div style='padding:1rem'>No activities.</div>";
-             return;
+        if (!activities || activities.length === 0) {
+            this.els.historyContainer.innerHTML = "<div style='padding:1rem'>No activities.</div>";
+            return;
         }
-            activities.forEach(act => {
+        activities.forEach(act => {
             const date = act.created_at ? new Date(act.created_at).toLocaleDateString() : "--/--";
-            
+
             const distVal = act.total_distance || 0;
             const dist = (distVal / 1000).toFixed(1) + " km";
             const name = act.route_name || "Treino Livre";
             const pwr = act.avg_power || 0;
-            
+
             // Escape Windows paths for JS strings
             const rawFilename = act.filename || "";
             const safeFilename = rawFilename.replace(/\\/g, '\\\\');
@@ -401,13 +404,13 @@ export class UIManager {
     async renderCalendar() {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth() + 1;
-        
+
         document.getElementById('calendarTitle').innerText = this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
         const container = document.getElementById('calendarGrid');
         container.innerHTML = "";
 
         // Cabeçalhos
-        ['S','M','T','W','T','F','S'].forEach(d => container.innerHTML += `<div class="cal-day-header">${d}</div>`);
+        ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => container.innerHTML += `<div class="cal-day-header">${d}</div>`);
 
         const activities = await window.go.main.App.GetMonthlyActivities(year, month);
         const actMap = {};
@@ -418,16 +421,16 @@ export class UIManager {
         const today = new Date();
 
         // Espaços vazios
-        for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
+        for (let i = 0; i < firstDay; i++) container.innerHTML += `<div></div>`;
 
         // Dias
-        for(let d=1; d<=daysInMonth; d++) {
+        for (let d = 1; d <= daysInMonth; d++) {
             const hasAct = actMap[d];
-            const isToday = (d === today.getDate() && month-1 === today.getMonth() && year === today.getFullYear());
+            const isToday = (d === today.getDate() && month - 1 === today.getMonth() && year === today.getFullYear());
             let cls = "cal-day";
-            if(hasAct) cls += " active";
-            if(isToday) cls += " today";
-            
+            if (hasAct) cls += " active";
+            if (isToday) cls += " today";
+
             const dot = hasAct ? `<div class="cal-dot"></div>` : '';
             container.innerHTML += `<div class="${cls}">${d}${dot}</div>`;
         }
@@ -436,15 +439,15 @@ export class UIManager {
     async renderBestEfforts() {
         try {
             const best = await window.go.main.App.GetBestEfforts();
-            
+
             document.getElementById('recPower').innerText = (best.max_power || 0) + "w";
-            
+
             const distKm = (best.max_distance || 0) / 1000;
             document.getElementById('recDist').innerText = distKm.toFixed(1) + "km";
-            
+
             document.getElementById('recTime').innerText = this.formatDuration(best.max_duration || 0);
-            
-        } catch(e) {
+
+        } catch (e) {
             console.error("Error loading records:", e);
         }
     }
@@ -464,10 +467,10 @@ export class UIManager {
                 const label = this.formatDurationLabel(rec.duration);
                 // Formata data: DD/MM/YYYY HH:MM
                 const dateObj = new Date(rec.date);
-                const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                
+                const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
                 // Se o watt for 0, mostra traço
-                if (rec.watts === 0) return; 
+                if (rec.watts === 0) return;
 
                 const row = `
                     <tr>
@@ -479,7 +482,7 @@ export class UIManager {
                 `;
                 tbody.innerHTML += row;
             });
-            
+
             if (tbody.innerHTML === "") {
                 tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:10px;'>No records yet</td></tr>";
             }
@@ -495,18 +498,72 @@ export class UIManager {
         }
 
         const name = document.getElementById('editorRouteName').value.trim();
-        
+
         try {
             // Chama o Backend para salvar
             const result = await window.go.main.App.SaveGeneratedGPX(name, points);
             alert(result); // Mostra "Saved: ..."
-            
+
             this.cancelRoute(); // Fecha editor
-            
+
             // Opcional: Recarregar lista de rotas se você tiver uma
-            
+
         } catch (e) {
             alert("Error saving: " + e);
+        }
+    }
+
+    async selectProfileImage() {
+        try {
+            const base64Data = await window.go.main.App.SelectProfileImage();
+            if (base64Data) {
+                document.getElementById('profileImage').src = base64Data;
+                this.currentPhotoData = base64Data;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async loadUserProfile() {
+        try {
+            const profile = await window.go.main.App.GetUserProfile();
+
+            this.els.inputName.value = profile.name || "";
+
+            document.getElementById('profileNameDisplay').innerText = profile.name || "Cyclist";
+
+            this.els.inputRiderWeight.value = profile.weight || 75;
+            this.els.inputBikeWeight.value = profile.bike_weight || 9;
+            this.els.inputFTP.value = profile.ftp || 200;
+            this.els.selectUnits.value = profile.units || "metric";
+
+            if (profile.photo && profile.photo.length > 10) {
+                document.getElementById('profileImage').src = profile.photo;
+                this.currentPhotoData = profile.photo;
+            }
+
+        } catch (e) {
+            console.error("Error loading profile:", e);
+        }
+    }
+
+    async saveUserProfile() {
+        const profile = {
+            name: this.els.inputName.value,
+            photo: this.currentPhotoData,
+            weight: parseFloat(this.els.inputRiderWeight.value),
+            bike_weight: parseFloat(this.els.inputBikeWeight.value),
+            ftp: parseInt(this.els.inputFTP.value),
+            units: this.els.selectUnits.value
+        };
+
+        try {
+            await window.go.main.App.UpdateUserProfile(profile);
+            document.getElementById('profileNameDisplay').innerText = profile.name;
+
+        } catch (e) {
+            alert("Error saving profile: " + e);
         }
     }
 }

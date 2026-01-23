@@ -72,6 +72,7 @@ export namespace domain {
 	export class UserProfile {
 	    id: number;
 	    name: string;
+	    photo: string;
 	    weight: number;
 	    bike_weight: number;
 	    ftp: number;
@@ -91,6 +92,7 @@ export namespace domain {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.name = source["name"];
+	        this.photo = source["photo"];
 	        this.weight = source["weight"];
 	        this.bike_weight = source["bike_weight"];
 	        this.ftp = source["ftp"];

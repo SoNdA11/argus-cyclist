@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -111,6 +112,37 @@ func (a *App) OpenFileFolder(filename string) {
 	cmd.Start()
 }
 
+// SelectProfileImage opens a dialog to select an image and returns it as Base64.
+func (a *App) SelectProfileImage() string {
+    selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+        Title: "Select Profile Picture",
+        Filters: []runtime.FileFilter{
+            {DisplayName: "Images", Pattern: "*.png;*.jpg;*.jpeg"},
+        },
+    })
+
+    if err != nil || selection == "" {
+        return ""
+    }
+
+    // Read file
+	bytes, err := os.ReadFile(selection)
+	if err != nil {
+		runtime.EventsEmit(a.ctx, "error", "Error reading image")
+		return ""
+	}
+
+
+    // Convert to Base64 string to display easily in Frontend
+    var base64Encoding string
+    mimeType := "image/png" // Default detection could be better but this works for basic img tags
+    if strings.HasSuffix(selection, ".jpg") || strings.HasSuffix(selection, ".jpeg") {
+        mimeType = "image/jpeg"
+    }
+    
+    base64Encoding = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(bytes))
+    return base64Encoding
+}
 
 // ====================
 // USER PROFILE & STATS
