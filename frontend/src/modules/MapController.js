@@ -42,19 +42,17 @@ export class MapController {
         }), 'top-right');
 
         this.map.on('style.load', () => {
-            this.configureStandardStyle();
+            this.configureTheme();
             this.addRouteLayer();
+            
+            if (this.editorMode) this.setupEditorLayers(); 
         });
 
         this.map.on('click', (e) => {
-            if (this.editorMode) {
-                this.handleEditorClick(e);
-            }
+            if (this.editorMode) this.handleEditorClick(e);
         });
 
-        this.map.on('dragstart', () => { 
-            this.followCyclist = false; 
-        });
+        this.map.on('dragstart', () => { this.followCyclist = false; });
 
         this.initMarker();
     }
@@ -67,98 +65,140 @@ export class MapController {
             .addTo(this.map);
     }
 
-    // --- MAPBOX STANDARD ---
-    configureStandardStyle() {
-        let preset = 'day';
-        if (this.currentStyleIndex === 0) {
-            preset = 'dusk'; 
-        } else {
-            preset = 'day';
-        }
-
-        try {
-            this.map.setConfigProperty('basemap', 'lightPreset', preset);
-            this.map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-        } catch (e) {
-            console.log("Current style does not support Standard configuration (ok if it's custom).");
-        }
-
-        if (!this.map.getSource('mapbox-dem')) {
-            this.map.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                'tileSize': 512,
-                'maxzoom': 14
-            });
-        }
-        this.map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.0 });
-    }
+    // ================
+    // THEME MANAGEMENT
+    // ================
 
     toggleLayer() {
-        this.currentStyleIndex = (this.currentStyleIndex + 1) % CONFIG.STYLES.length;
-        const newStyle = CONFIG.STYLES[this.currentStyleIndex];
-        const newTheme = CONFIG.THEMES[this.currentStyleIndex];
-
-        document.documentElement.setAttribute('data-theme', newTheme);
+        const nextIndex = (this.currentStyleIndex + 1) % CONFIG.STYLES.length;
         
-        this.map.setStyle(newStyle);
+        const currentStyleURL = CONFIG.STYLES[this.currentStyleIndex];
+        const nextStyleURL = CONFIG.STYLES[nextIndex];
+        const nextThemeName = CONFIG.THEMES[nextIndex];
+
+        this.currentStyleIndex = nextIndex;
+        document.documentElement.setAttribute('data-theme', nextThemeName);
+
+        if (currentStyleURL === nextStyleURL) {
+            console.log("Mesmo estilo base, forçando atualização de luz:", nextThemeName);
+            this.configureTheme(); 
+        } else {
+            this.map.setStyle(nextStyleURL);
+        }
     }
+
+    configureTheme() {
+        const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
+        
+        if (this.map.getLayer('tron-buildings')) {
+            if(this.map.getLayer('tron-buildings')) this.map.removeLayer('tron-buildings');
+            this.map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.0 });
+        }
+
+        if (['day', 'dusk', 'night', 'satellite'].includes(currentTheme)) {
+            let preset = 'day';
+            if (currentTheme === 'dusk') preset = 'dusk';
+            if (currentTheme === 'night') preset = 'night';
+            
+            try {
+                this.map.setConfigProperty('basemap', 'lightPreset', preset);
+                this.map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+            } catch (e) {
+                console.log("Estilo não suporta config (ok para Tron/Custom)");
+            }
+
+            if (!this.map.getSource('mapbox-dem')) {
+                this.map.addSource('mapbox-dem', {
+                    'type': 'raster-dem',
+                    'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                    'tileSize': 512, 'maxzoom': 14
+                });
+            }
+            this.map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.0 });
+        }
+
+        if (currentTheme === 'tron') {
+            this.map.setTerrain(null);
+
+            this.map.setFog({
+                'range': [2.0, 12.0],
+                'color': '#000000',
+                'high-color': '#202020',
+                'horizon-blend': 0.1,
+                'space-color': '#000000',
+                'star-intensity': 0.8
+            });
+            
+            if (!this.map.getLayer('tron-buildings') && this.map.getSource('composite')) {
+                this.map.addLayer({
+                    'id': 'tron-buildings',
+                    'source': 'composite',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 13,
+                    'paint': {
+                        'fill-extrusion-color': '#000000',
+                        'fill-extrusion-height': ['get', 'height'],
+                        'fill-extrusion-base': ['get', 'min_height'],
+                        'fill-extrusion-opacity': 0.7
+                    }
+                });
+            }
+        }
+    }
+
+    // ===============
+    // ROUTE RENDERING
+    // ===============
 
     addRouteLayer() {
         if (!this.routeGeoJSON) return;
+        const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
 
         if (!this.map.getSource('route')) {
             this.map.addSource('route', { type: 'geojson', data: this.routeGeoJSON });
         }
 
-        if (this.map.getLayer('route')) this.map.removeLayer('route');
-        if (this.map.getLayer('route-outline')) this.map.removeLayer('route-outline');
-
-        this.map.addLayer({
-            id: 'route-outline', type: 'line', source: 'route',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-                'line-width': 12,
-                'line-color': '#000000',
-                'line-opacity': 0.5,
-                'line-blur': 2
-            },
-            slot: 'middle'
+        ['route', 'route-outline', 'route-glow'].forEach(id => {
+            if (this.map.getLayer(id)) this.map.removeLayer(id);
         });
 
-        this.map.addLayer({
-            id: 'route', type: 'line', source: 'route',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-                'line-width': 7, 
-                'line-color': [
-                    'interpolate', ['linear'], ['get', 'grade'],
-                    -5, '#00ff00', 0, '#38bdf8', 3, '#38bdf8', 6, '#fbbf24', 10, '#ef4444', 15, '#991b1b'
-                ],
-                'line-opacity': 1.0
-            },
-            slot: 'middle'
-        });
-    }
+        if (currentTheme === 'tron') {
+            this.map.addLayer({
+                id: 'route-glow', type: 'line', source: 'route',
+                paint: { 'line-width': 10, 'line-color': '#00ffff', 'line-opacity': 0.6, 'line-blur': 5 }
+            });
+            this.map.addLayer({
+                id: 'route', type: 'line', source: 'route',
+                paint: { 'line-width': 3, 'line-color': '#ffffff' }
+            });
+        } 
 
-    centerCamera() {
-        if (this.prevLngLat) {
-            this.followCyclist = true;
-            this.map.flyTo({ 
-                center: this.prevLngLat, 
-                zoom: 17, 
-                pitch: 75, 
-                bearing: this.map.getBearing() 
+        else {
+            this.map.addLayer({
+                id: 'route-outline', type: 'line', source: 'route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-width': 10, 'line-color': '#000000', 'line-opacity': 0.5, 'line-blur': 1 }
+            });
+            this.map.addLayer({
+                id: 'route', type: 'line', source: 'route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-width': 6, 
+                    'line-color': [
+                        'interpolate', ['linear'], ['get', 'grade'],
+                        -5, '#00ff00', 0, '#38bdf8', 3, '#38bdf8', 6, '#fbbf24', 10, '#ef4444', 15, '#991b1b'
+                    ],
+                    'line-opacity': 1.0
+                }
             });
         }
     }
 
-    renderRoute(geojson) {
-        this.routeGeoJSON = geojson;
-        if (this.map.isStyleLoaded()) {
-            this.addRouteLayer();
-        }
-    }
+    // ===================
+    // CAMERA AND POSITION
+    // ===================
 
     updateCyclistPosition(lat, lon, speed) {
         if (lat === 0 && lon === 0) return;
@@ -195,6 +235,18 @@ export class MapController {
         this.followCyclist = true;
     }
 
+    centerCamera() {
+        if (this.prevLngLat) {
+            this.followCyclist = true;
+            this.map.flyTo({ 
+                center: this.prevLngLat, 
+                zoom: 17, 
+                pitch: 75, 
+                bearing: this.map.getBearing() 
+            });
+        }
+    }
+
     calculateBearing(lat1, lon1, lat2, lon2) {
         const toRad = (deg) => deg * Math.PI / 180;
         const toDeg = (rad) => rad * 180 / Math.PI;
@@ -214,7 +266,41 @@ export class MapController {
         return Math.sqrt(dx*dx + dy*dy) > 0.0001; 
     }
 
-    // --- EDITOR LOGIC ---
+    renderRoute(geojson) {
+        this.routeGeoJSON = geojson;
+        if (this.map.isStyleLoaded()) {
+            this.addRouteLayer();
+        }
+    }
+
+    // ============
+    // EDITOR LOGIC 
+    // ============
+
+    calculateTotalDistance() {
+        let dist = 0;
+        if (this.editorPoints.length > 1) {
+            for (let i = 0; i < this.editorPoints.length - 1; i++) {
+                const p1 = new window.mapboxgl.LngLat(this.editorPoints[i][0], this.editorPoints[i][1]);
+                const p2 = new window.mapboxgl.LngLat(this.editorPoints[i+1][0], this.editorPoints[i+1][1]);
+                dist += p1.distanceTo(p2);
+            }
+        }
+        const km = dist / 1000;
+        if (document.getElementById('editorDist')) {
+            document.getElementById('editorDist').innerText = km.toFixed(2) + " km";
+        }
+    }
+
+    getRouteData() {
+        const nameInput = document.getElementById('editorRouteName');
+        return {
+            name: nameInput ? nameInput.value : "Custom Route",
+            points: this.editorPoints,
+            isCircuit: false,
+            laps: 1
+        };
+    }
 
     enableEditorMode() {
         this.editorMode = true;
