@@ -36,6 +36,8 @@ export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promi
 
 export function SelectGPX():Promise<string>;
 
+export function SelectProfileImage():Promise<string>;
+
 export function ToggleAlwaysOnTop(arg1:boolean):Promise<void>;
 
 export function ToggleSession():Promise<string>;
