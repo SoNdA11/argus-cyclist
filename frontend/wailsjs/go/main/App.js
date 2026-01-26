@@ -70,6 +70,14 @@ export function SelectProfileImage() {
   return window['go']['main']['App']['SelectProfileImage']();
 }
 
+export function SetPowerTarget(arg1) {
+  return window['go']['main']['App']['SetPowerTarget'](arg1);
+}
+
+export function SetTrainerMode(arg1) {
+  return window['go']['main']['App']['SetTrainerMode'](arg1);
+}
+
 export function ToggleAlwaysOnTop(arg1) {
   return window['go']['main']['App']['ToggleAlwaysOnTop'](arg1);
 }

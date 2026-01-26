@@ -17,6 +17,12 @@ type TrainerService interface {
 	// SetGrade sends the slope/grade to the trainer (if connected)
 	SetGrade(grade float64) error
 
+	// SetPower sends the target power (ERG mode) to the trainer
+	SetPower(watts float64) error
+
+	// SetTrainerMode switches between "SIM" and "ERG"
+	SetTrainerMode(mode string)
+
 	// Disconnect disconnects everything
 	Disconnect()
 }

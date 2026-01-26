@@ -33,6 +33,32 @@ if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
 // UI EVENT LISTENERS
 // ==================
 
+
+document.getElementById('selectTrainerMode').addEventListener('change', async (e) => {
+    const mode = e.target.value;
+    const ergControl = document.getElementById('ergControl');
+    
+    if (mode === 'ERG') {
+        ergControl.classList.remove('hidden');
+    } else {
+        ergControl.classList.add('hidden');
+    }
+
+    if (window.go && window.go.main && window.go.main.App) {
+        await window.go.main.App.SetTrainerMode(mode);
+        console.log("Trainer Mode Switched to:", mode);
+    }
+});
+
+
+document.getElementById('btnSetPower').addEventListener('click', async () => {
+    const watts = parseFloat(document.getElementById('inputTargetPower').value);
+    if (window.go && window.go.main && window.go.main.App) {
+        await window.go.main.App.SetPowerTarget(watts);
+        console.log("ERG Power Set to:", watts);
+    }
+});
+
 document.getElementById('btnCloseSettings').addEventListener('click', () => {
     ui.toggleSettings(false);
 });
@@ -48,7 +74,7 @@ document.getElementById('btnOpenSettings').addEventListener('click', () => {
 document.getElementById('btnConnTrainer').addEventListener('click', async () => {
     const btn = document.getElementById('btnConnTrainer');
     const status = document.getElementById('statusTrainer');
-    
+
     btn.innerText = "Scanning...";
     btn.disabled = true;
 
@@ -109,24 +135,24 @@ document.getElementById('btnImport').addEventListener('click', async () => {
             ui.els.btnAction.classList.remove('hidden');
 
             const routePoints = await window.go.main.App.GetRoutePath();
-            
+
             if (routePoints.length > 1) {
                 // Build GeoJSON from route segments
                 const features = [];
-                for(let i=0; i < routePoints.length - 1; i++) {
+                for (let i = 0; i < routePoints.length - 1; i++) {
                     features.push({
                         type: 'Feature',
-                        properties: { grade: routePoints[i].grade }, 
+                        properties: { grade: routePoints[i].grade },
                         geometry: {
                             type: 'LineString',
                             coordinates: [
                                 [routePoints[i].lon, routePoints[i].lat],
-                                [routePoints[i+1].lon, routePoints[i+1].lat]
+                                [routePoints[i + 1].lon, routePoints[i + 1].lat]
                             ]
                         }
                     });
                 }
-                
+
                 const geoJson = { type: 'FeatureCollection', features: features };
                 mapCtrl.renderRoute(geoJson);
 
@@ -139,11 +165,11 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 chart.setData(elevations);
 
                 // Cache total route distance (meters)
-                totalRouteDistance = routePoints[routePoints.length-1].distance;
+                totalRouteDistance = routePoints[routePoints.length - 1].distance;
             }
         }
-    } catch (e) { 
-        alert("Error importing GPX: " + e); 
+    } catch (e) {
+        alert("Error importing GPX: " + e);
     }
 });
 
@@ -153,9 +179,9 @@ document.getElementById('btnImport').addEventListener('click', async () => {
 
 document.getElementById('btnAction').addEventListener('click', async () => {
     if (!isRecording) {
-        try { 
-            await window.go.main.App.ToggleSession(); 
-        } catch(e) { alert("Error: " + e); }
+        try {
+            await window.go.main.App.ToggleSession();
+        } catch (e) { alert("Error: " + e); }
     } else {
         await window.go.main.App.ToggleSession();
     }
@@ -172,7 +198,7 @@ document.getElementById('btnFinishSave').addEventListener('click', async () => {
 });
 
 document.getElementById('btnDiscard').addEventListener('click', async () => {
-    if(confirm("Discard this activity? It won't be saved.")) {
+    if (confirm("Discard this activity? It won't be saved.")) {
         await window.go.main.App.DiscardSession();
         ui.setRecordingState('IDLE');
         isRecording = false;
@@ -184,11 +210,11 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
 // =======================
 
 document.addEventListener('keydown', async (e) => {
-    let delta = 0; 
-    if(e.key === "ArrowUp") delta = 10; 
-    if(e.key === "ArrowDown") delta = -10;
-    
-    if(delta !== 0 && window.go && window.go.main && window.go.main.App) {
+    let delta = 0;
+    if (e.key === "ArrowUp") delta = 10;
+    if (e.key === "ArrowDown") delta = -10;
+
+    if (delta !== 0 && window.go && window.go.main && window.go.main.App) {
         await window.go.main.App.ChangePowerSimulation(delta);
     }
 });
@@ -219,13 +245,13 @@ window.openTab = openTab;
 if (window.runtime) {
     window.runtime.EventsOn("ble_connection_status", (data) => {
         if (data.stage === "READY") {
-            mapCtrl.followCyclist = true; 
+            mapCtrl.followCyclist = true;
         }
     });
 
     window.runtime.EventsOn("status_change", (status) => {
-        console.log("Status changed to:", status); 
-        
+        console.log("Status changed to:", status);
+
         if (status === "RECORDING") {
             ui.setRecordingState('RECORDING');
             isRecording = true;
