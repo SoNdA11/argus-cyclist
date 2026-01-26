@@ -600,8 +600,8 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				return
 			}
 
-			// Apply grade to smart trainer
-			a.trainerService.SetGrade(routePoint.Grade)
+					// Apply grade to smart trainer
+					a.trainerService.SetGrade(routePoint.Grade)
 
 			// Build telemetry packet
 			fullTelemetry := domain.Telemetry{
@@ -614,6 +614,20 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
 		}
+	}
+}
+
+// SetPowerTarget sets the target power for ERG mode.
+func (a *App) SetPowerTarget(watts float64) {
+	if a.trainerService != nil {
+		a.trainerService.SetPower(watts)
+	}
+}
+
+// SetTrainerMode switches between SIM and ERG
+func (a *App) SetTrainerMode(mode string) {
+	if a.trainerService != nil {
+		a.trainerService.SetTrainerMode(mode)
 	}
 }
 

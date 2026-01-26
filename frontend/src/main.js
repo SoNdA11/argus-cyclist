@@ -33,6 +33,30 @@ if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
 // UI EVENT LISTENERS
 // ==================
 
+document.getElementById('selectTrainerMode').addEventListener('change', async (e) => {
+    const mode = e.target.value;
+    const ergControl = document.getElementById('ergControl');
+    
+    if (mode === 'ERG') {
+        ergControl.classList.remove('hidden');
+    } else {
+        ergControl.classList.add('hidden');
+    }
+
+    if (window.go && window.go.main && window.go.main.App) {
+        await window.go.main.App.SetTrainerMode(mode);
+        console.log("Trainer Mode Switched to:", mode);
+    }
+});
+
+document.getElementById('btnSetPower').addEventListener('click', async () => {
+    const watts = parseFloat(document.getElementById('inputTargetPower').value);
+    if (window.go && window.go.main && window.go.main.App) {
+        await window.go.main.App.SetPowerTarget(watts);
+        console.log("ERG Power Set to:", watts);
+    }
+});
+
 document.getElementById('btnCloseSettings').addEventListener('click', () => {
     ui.toggleSettings(false);
 });

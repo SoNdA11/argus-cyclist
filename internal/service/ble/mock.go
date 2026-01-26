@@ -13,7 +13,7 @@ type MockService struct {
 	currentHR    uint8
 }
 
-func NewMockService() *MockService {
+func NewMockService() domain.TrainerService {
 	return &MockService{
 		stopChan:     make(chan struct{}),
 		currentPower: 150,
@@ -22,48 +22,44 @@ func NewMockService() *MockService {
 	}
 }
 
-// Connect simulates a delay so the user can see the loading screen
-func (m *MockService) Connect(onStatus func(stage string, data string)) error {
-    onStatus("SCANNING", "Scanning for simulated devices...")
+func (m *MockService) ConnectTrainer(onStatus func(string, string)) error {
+    onStatus("SCAN_TRAINER", "Scanning for simulated devices...")
     time.Sleep(1 * time.Second)
-    
-    onStatus("FOUND", "Argus X1 Simulator")
-    time.Sleep(500 * time.Millisecond)
-    
-    onStatus("CONNECTING", "Connecting...")
-    time.Sleep(500 * time.Millisecond)
-    
-    onStatus("DISCOVERING", "Configuring services...")
-    time.Sleep(500 * time.Millisecond)
-    
-    onStatus("READY", "Connected")
+    onStatus("TRAINER_CONNECTED", "Argus X1 Simulator Connected")
     return nil
 }
 
-func (m *MockService) Disconnect() error {
+func (m *MockService) ConnectHR(onStatus func(string, string)) error {
+    onStatus("SCAN_HR", "Scanning for simulated HR...")
+    time.Sleep(500 * time.Millisecond)
+    onStatus("HR_CONNECTED", "Simulated HR Connected")
+    return nil
+}
+
+func (m *MockService) Disconnect() {
     // Checks if the channel is already closed to avoid panic
     select {
     case <-m.stopChan:
-        return nil
+        return
     default:
         close(m.stopChan)
     }
-    return nil
 }
 
 func (m *MockService) SetGrade(grade float64) error {
     return nil
 }
 
-// AdjustPower allows manual control (Exported with capital 'A')
-func (m *MockService) AdjustPower(delta int16) int16 {
-    m.currentPower += delta
-    if m.currentPower < 0 { m.currentPower = 0 }
-    if m.currentPower > 1200 { m.currentPower = 1200 }
-    return m.currentPower
+func (m *MockService) SetPower(watts float64) error {
+	m.currentPower = int16(watts)
+	return nil
 }
 
-func (m *MockService) SubscribeStats(ch chan<- domain.Telemetry) error {
+func (m *MockService) SetTrainerMode(mode string) {
+	// Mock doesn't need logic for this
+}
+
+func (m *MockService) SubscribeStats(ch chan domain.Telemetry) error {
 	m.stopChan = make(chan struct{})
 
 	go func() {

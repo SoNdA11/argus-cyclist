@@ -89,6 +89,24 @@
                                 </div>
                             </div>
                         </section>
+
+                        <section class="settings-section">
+                            <h3>⚙️ Trainer Control (ANT+ FE-C)</h3>
+                            <div class="input-group">
+                                <label>Mode</label>
+                                <select id="selectTrainerMode">
+                                    <option value="SIM">Simulation (Grade)</option>
+                                    <option value="ERG">ERG (Target Power)</option>
+                                </select>
+                            </div>
+                            <div id="ergControl" class="input-group hidden">
+                                <label>Target Power (Watts)</label>
+                                <div class="input-row">
+                                    <input type="number" id="inputTargetPower" value="150" step="5">
+                                    <button id="btnSetPower" class="btn-primary">Set</button>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>
