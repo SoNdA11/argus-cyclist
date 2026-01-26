@@ -179,10 +179,10 @@ func (a *App) GetActivities() []domain.Activity {
 // GetTotalStats returns aggregated statistics.
 func (a *App) GetTotalStats() map[string]float64 {
 	dist := a.storageService.GetTotalDistance()
-	dur := a.storageService.GetTotalDuration() // Nova função
+	dur := a.storageService.GetTotalDuration()
 	return map[string]float64{
 		"total_km":   dist / 1000.0,
-		"total_time": float64(dur), // Segundos
+		"total_time": float64(dur),
 	}
 }
 
