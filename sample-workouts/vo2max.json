@@ -1,0 +1,14 @@
+{
+  "name": "VO2 Max Boost",
+  "description": "Short, intense bursts to improve top-end power.",
+  "ftp": 200,
+  "steps": [
+    { "name": "Warmup", "type": "steady", "duration": 300, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Burst 1", "type": "steady", "duration": 60, "powerLow": 120, "powerHigh": 120 },
+    { "name": "Recovery", "type": "steady", "duration": 60, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Burst 2", "type": "steady", "duration": 60, "powerLow": 120, "powerHigh": 120 },
+    { "name": "Recovery", "type": "steady", "duration": 60, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Burst 3", "type": "steady", "duration": 60, "powerLow": 120, "powerHigh": 120 },
+    { "name": "Cooldown", "type": "steady", "duration": 300, "powerLow": 40, "powerHigh": 40 }
+  ]
+}

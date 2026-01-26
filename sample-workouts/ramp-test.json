@@ -1,0 +1,12 @@
+{
+  "name": "Ramp Test",
+  "description": "Classic FTP test to find your limits.",
+  "ftp": 200,
+  "steps": [
+    { "name": "Warmup", "type": "steady", "duration": 120, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Ramp 1", "type": "ramp", "duration": 60, "powerLow": 50, "powerHigh": 60 },
+    { "name": "Ramp 2", "type": "ramp", "duration": 60, "powerLow": 60, "powerHigh": 70 },
+    { "name": "Ramp 3", "type": "ramp", "duration": 60, "powerLow": 70, "powerHigh": 80 },
+    { "name": "Cooldown", "type": "steady", "duration": 120, "powerLow": 40, "powerHigh": 40 }
+  ]
+}

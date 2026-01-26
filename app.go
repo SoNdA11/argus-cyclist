@@ -17,6 +17,7 @@ import (
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/storage"
+	"argus-cyclist/internal/service/workout"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -28,6 +29,7 @@ type App struct {
 	gpxService     *gpx.Service
 	fitService     *fit.Service
 	physicsEngine  *sim.Engine
+	workoutEngine  *workout.Engine
 	trainerService domain.TrainerService
 	storageService *storage.Service
 
@@ -64,15 +66,16 @@ func NewApp() *App {
 	// Load user profile to configure the physics engine
 	profile, _ := store.GetProfile()
 
-	return &App{
-		gpxService:     gpx.NewService(),
-		fitService:     fit.NewService(),
-		// Initialize physics engine using stored user data
-		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight), 
-		trainerService: ble.NewRealService(),
-		storageService: store,
-		telemetryChan:  make(chan domain.Telemetry),
-	}
+		return &App{
+			gpxService:     gpx.NewService(),
+			fitService:     fit.NewService(),
+			// Initialize physics engine using stored user data
+			physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight), 
+			workoutEngine:  workout.NewEngine(),
+			trainerService: ble.NewRealService(),
+			storageService: store,
+			telemetryChan:  make(chan domain.Telemetry),
+		}
 }
 
 // Startup is called by Wails when the app starts.
@@ -587,10 +590,21 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				currentHR = 0
 			}
 
-			// Physics & route simulation
-			routePoint := a.gpxService.GetPointAtDistance(a.currentDist)
-			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
-			a.currentDist += speedMs * dt
+				// Workout Engine
+				if a.workoutEngine.GetState().Active {
+					targetPower, finished := a.workoutEngine.Tick()
+					if finished {
+						runtime.EventsEmit(a.ctx, "workout_finished", true)
+					} else {
+						a.trainerService.SetPower(targetPower)
+						runtime.EventsEmit(a.ctx, "workout_update", a.workoutEngine.GetState())
+					}
+				}
+
+				// Physics & route simulation
+				routePoint := a.gpxService.GetPointAtDistance(a.currentDist)
+				speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
+				a.currentDist += speedMs * dt
 
 			// End of route handling
 			if totalRouteDistance > 0 && a.currentDist >= totalRouteDistance {
@@ -600,8 +614,10 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				return
 			}
 
-					// Apply grade to smart trainer
-					a.trainerService.SetGrade(routePoint.Grade)
+						// Apply grade to smart trainer (only if not in workout)
+						if !a.workoutEngine.GetState().Active {
+							a.trainerService.SetGrade(routePoint.Grade)
+						}
 
 			// Build telemetry packet
 			fullTelemetry := domain.Telemetry{
@@ -629,6 +645,29 @@ func (a *App) SetTrainerMode(mode string) {
 	if a.trainerService != nil {
 		a.trainerService.SetTrainerMode(mode)
 	}
+}
+
+// StartWorkout starts a structured workout from a file path
+func (a *App) StartWorkout(path string) error {
+	w, err := workout.LoadWorkoutFromFile(path)
+	if err != nil {
+		return err
+	}
+	// Garante que o rolo entre em modo ERG
+	a.SetTrainerMode("ERG")
+	return a.workoutEngine.StartWorkout(w)
+}
+
+// StopWorkout stops the current structured workout
+func (a *App) StopWorkout() {
+	a.workoutEngine.StopWorkout()
+	// Volta para o modo SIM
+	a.SetTrainerMode("SIM")
+}
+
+// GetWorkoutState returns the current state of the workout
+func (a *App) GetWorkoutState() domain.WorkoutState {
+	return a.workoutEngine.GetState()
 }
 
 // ChangePowerSimulation is a placeholder for manual power simulation.

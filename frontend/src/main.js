@@ -33,6 +33,78 @@ if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
 // UI EVENT LISTENERS
 // ==================
 
+// Workout Gallery
+const workoutModal = document.getElementById('workoutModal');
+document.getElementById('btnOpenWorkouts').addEventListener('click', () => {
+    workoutModal.classList.remove('hidden');
+    loadWorkoutGallery();
+});
+document.getElementById('btnCloseWorkouts').addEventListener('click', () => workoutModal.classList.add('hidden'));
+
+async function loadWorkoutGallery() {
+    const list = document.getElementById('workoutList');
+    list.innerHTML = '<div class="text-gray-500">Loading workouts...</div>';
+    
+    // Treinos de exemplo (No futuro virão do backend)
+    const sampleWorkouts = [
+        { id: 'ramp-test', name: 'Ramp Test', description: 'Classic FTP test to find your limits.', duration: '20 min', path: 'sample-workouts/ramp-test.json' },
+        { id: 'sweet-spot', name: 'Sweet Spot Intervals', description: 'Build aerobic engine with 2x10min intervals.', duration: '45 min', path: 'sample-workouts/sweet-spot.json' },
+        { id: 'vo2-max', name: 'VO2 Max Boost', description: 'Short, intense bursts to improve top-end power.', duration: '30 min', path: 'sample-workouts/vo2max.json' }
+    ];
+
+    list.innerHTML = sampleWorkouts.map(w => `
+        <div class="bg-gray-900 p-4 rounded-xl border border-gray-700 hover:border-blue-500 transition-all cursor-pointer group" onclick="window.ui.selectWorkout('${w.path}')">
+            <div class="flex justify-between items-start mb-2">
+                <h4 class="font-bold text-lg group-hover:text-blue-400">${w.name}</h4>
+                <span class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">${w.duration}</span>
+            </div>
+            <p class="text-sm text-gray-500">${w.description}</p>
+        </div>
+    `).join('');
+}
+
+window.ui.selectWorkout = async (path) => {
+    if (window.go && window.go.main && window.go.main.App) {
+        try {
+            await window.go.main.App.StartWorkout(path);
+            workoutModal.classList.add('hidden');
+            document.getElementById('workoutHUD').classList.remove('hidden');
+            console.log("Workout started:", path);
+        } catch (e) {
+            alert("Error starting workout: " + e);
+        }
+    }
+};
+
+document.getElementById('btnStopWorkout').addEventListener('click', async () => {
+    if (window.go && window.go.main && window.go.main.App) {
+        await window.go.main.App.StopWorkout();
+        document.getElementById('workoutHUD').classList.add('hidden');
+    }
+});
+
+// Eventos do Workout Engine
+if (window.runtime) {
+    window.runtime.EventsOn("workout_update", (state) => {
+        document.getElementById('stepTimer').innerText = formatTime(state.remainingInStep);
+        document.getElementById('targetPowerDisplay').innerText = Math.round(state.targetPower);
+        document.getElementById('stepProgressBar').style.width = `${(state.elapsedInStep / (state.elapsedInStep + state.remainingInStep)) * 100}%`;
+        
+        // Aqui poderíamos atualizar a lista de próximos passos
+    });
+
+    window.runtime.EventsOn("workout_finished", () => {
+        alert("Workout Finished! Great job!");
+        document.getElementById('workoutHUD').classList.add('hidden');
+    });
+}
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 document.getElementById('selectTrainerMode').addEventListener('change', async (e) => {
     const mode = e.target.value;
     const ergControl = document.getElementById('ergControl');

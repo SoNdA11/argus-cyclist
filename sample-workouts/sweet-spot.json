@@ -1,0 +1,12 @@
+{
+  "name": "Sweet Spot Intervals",
+  "description": "Build aerobic engine with 2x10min intervals.",
+  "ftp": 200,
+  "steps": [
+    { "name": "Warmup", "type": "steady", "duration": 300, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Interval 1", "type": "steady", "duration": 600, "powerLow": 88, "powerHigh": 88 },
+    { "name": "Recovery", "type": "steady", "duration": 300, "powerLow": 50, "powerHigh": 50 },
+    { "name": "Interval 2", "type": "steady", "duration": 600, "powerLow": 88, "powerHigh": 88 },
+    { "name": "Cooldown", "type": "steady", "duration": 300, "powerLow": 40, "powerHigh": 40 }
+  ]
+}
