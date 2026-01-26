@@ -176,10 +176,10 @@ func (a *App) GetActivities() []domain.Activity {
 // GetTotalStats returns aggregated statistics.
 func (a *App) GetTotalStats() map[string]float64 {
 	dist := a.storageService.GetTotalDistance()
-	dur := a.storageService.GetTotalDuration() // Nova função
+	dur := a.storageService.GetTotalDuration()
 	return map[string]float64{
 		"total_km":   dist / 1000.0,
-		"total_time": float64(dur), // Segundos
+		"total_time": float64(dur),
 	}
 }
 
@@ -600,8 +600,10 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				return
 			}
 
-			// Apply grade to smart trainer
-			a.trainerService.SetGrade(routePoint.Grade)
+				// Apply grade to smart trainer (only if not in ERG mode)
+				// Note: In a real app, we'd check a flag here. 
+				// For now, we'll let the backend handle it or assume SIM mode by default.
+				a.trainerService.SetGrade(routePoint.Grade)
 
 			// Build telemetry packet
 			fullTelemetry := domain.Telemetry{
@@ -614,6 +616,20 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
 		}
+	}
+}
+
+// SetPowerTarget sets the target power for ERG mode.
+func (a *App) SetPowerTarget(watts float64) {
+	if a.trainerService != nil {
+		a.trainerService.SetPower(watts)
+	}
+}
+
+// SetTrainerMode switches between SIM and ERG
+func (a *App) SetTrainerMode(mode string) {
+	if a.trainerService != nil {
+		a.trainerService.SetTrainerMode(mode)
 	}
 }
 

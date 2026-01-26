@@ -38,6 +38,10 @@ export function SelectGPX():Promise<string>;
 
 export function SelectProfileImage():Promise<string>;
 
+export function SetPowerTarget(arg1:number):Promise<void>;
+
+export function SetTrainerMode(arg1:string):Promise<void>;
+
 export function ToggleAlwaysOnTop(arg1:boolean):Promise<void>;
 
 export function ToggleSession():Promise<string>;
