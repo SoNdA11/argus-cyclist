@@ -70,6 +70,8 @@ func NewApp() *App {
 		// Initialize physics engine using stored user data
 		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight), 
 		trainerService: ble.NewRealService(),
+		//trainerService: ble.NewMockService(),
+
 		storageService: store,
 		telemetryChan:  make(chan domain.Telemetry),
 	}
@@ -634,9 +636,14 @@ func (a *App) SetTrainerMode(mode string) {
 }
 
 // ChangePowerSimulation is a placeholder for manual power simulation.
-// Currently not implemented.
 func (a *App) ChangePowerSimulation(delta int) int {
-	return -1
+	a.simPower += int16(delta)
+	
+	if a.simPower < -500 {
+		a.simPower = -500
+	}
+
+	return int(a.simPower)
 }
 
 func (a *App) calculateMMP(data []int, window int) int {
