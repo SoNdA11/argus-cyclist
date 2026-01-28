@@ -4,7 +4,7 @@ export class MapController {
     constructor() {
         this.map = null;
         this.marker = null;
-        this.currentStyleIndex = 0; 
+        this.currentStyleIndex = 0;
         this.followCyclist = false;
         this.prevLngLat = null;
         this.lastBearingUpdatePos = null;
@@ -32,20 +32,20 @@ export class MapController {
             zoom: CONFIG.DEFAULT_ZOOM,
             pitch: 75,
             bearing: 0,
-            antialias: true, 
+            antialias: true,
             projection: 'globe'
         });
 
-        this.map.addControl(new window.mapboxgl.NavigationControl({ 
-            showCompass: true, 
-            visualizePitch: true 
+        this.map.addControl(new window.mapboxgl.NavigationControl({
+            showCompass: true,
+            visualizePitch: true
         }), 'top-right');
 
         this.map.on('style.load', () => {
             this.configureTheme();
             this.addRouteLayer();
-            
-            if (this.editorMode) this.setupEditorLayers(); 
+
+            if (this.editorMode) this.setupEditorLayers();
         });
 
         this.map.on('click', (e) => {
@@ -71,7 +71,7 @@ export class MapController {
 
     toggleLayer() {
         const nextIndex = (this.currentStyleIndex + 1) % CONFIG.STYLES.length;
-        
+
         const currentStyleURL = CONFIG.STYLES[this.currentStyleIndex];
         const nextStyleURL = CONFIG.STYLES[nextIndex];
         const nextThemeName = CONFIG.THEMES[nextIndex];
@@ -81,7 +81,7 @@ export class MapController {
 
         if (currentStyleURL === nextStyleURL) {
             console.log("Mesmo estilo base, forçando atualização de luz:", nextThemeName);
-            this.configureTheme(); 
+            this.configureTheme();
         } else {
             this.map.setStyle(nextStyleURL);
         }
@@ -89,9 +89,9 @@ export class MapController {
 
     configureTheme() {
         const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
-        
+
         if (this.map.getLayer('tron-buildings')) {
-            if(this.map.getLayer('tron-buildings')) this.map.removeLayer('tron-buildings');
+            if (this.map.getLayer('tron-buildings')) this.map.removeLayer('tron-buildings');
             this.map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.0 });
         }
 
@@ -99,7 +99,7 @@ export class MapController {
             let preset = 'day';
             if (currentTheme === 'dusk') preset = 'dusk';
             if (currentTheme === 'night') preset = 'night';
-            
+
             try {
                 this.map.setConfigProperty('basemap', 'lightPreset', preset);
                 this.map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
@@ -107,6 +107,7 @@ export class MapController {
                 console.log("Estilo não suporta config (ok para Tron/Custom)");
             }
 
+            /*
             if (!this.map.getSource('mapbox-dem')) {
                 this.map.addSource('mapbox-dem', {
                     'type': 'raster-dem',
@@ -115,6 +116,9 @@ export class MapController {
                 });
             }
             this.map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.0 });
+            */
+
+            this.map.setTerrain(null);
         }
 
         if (currentTheme === 'tron') {
@@ -128,7 +132,7 @@ export class MapController {
                 'space-color': '#000000',
                 'star-intensity': 0.8
             });
-            
+
             if (!this.map.getLayer('tron-buildings') && this.map.getSource('composite')) {
                 this.map.addLayer({
                     'id': 'tron-buildings',
@@ -173,7 +177,7 @@ export class MapController {
                 id: 'route', type: 'line', source: 'route',
                 paint: { 'line-width': 3, 'line-color': '#ffffff' }
             });
-        } 
+        }
 
         else {
             this.map.addLayer({
@@ -185,7 +189,7 @@ export class MapController {
                 id: 'route', type: 'line', source: 'route',
                 layout: { 'line-join': 'round', 'line-cap': 'round' },
                 paint: {
-                    'line-width': 6, 
+                    'line-width': 6,
                     'line-color': [
                         'interpolate', ['linear'], ['get', 'grade'],
                         -5, '#00ff00', 0, '#38bdf8', 3, '#38bdf8', 6, '#fbbf24', 10, '#ef4444', 15, '#991b1b'
@@ -206,25 +210,29 @@ export class MapController {
         const newLngLat = [lon, lat];
         this.marker.setLngLat(newLngLat);
 
-        if (this.shouldUpdateBearing(newLngLat)) {
-            if (this.prevLngLat) {
-                const bearing = this.calculateBearing(this.prevLngLat[1], this.prevLngLat[0], lat, lon);
-                
-                if (!isNaN(bearing) && speed > 3.0 && this.followCyclist) {
-                    this.map.easeTo({
-                        center: newLngLat,
-                        bearing: bearing, 
-                        pitch: 75, 
-                        duration: 1000, 
-                        easing: (t) => t
-                    });
+        if (!this.followCyclist) return;
+
+        let targetBearing = this.map.getBearing();
+
+        if (this.prevLngLat) {
+            const freshBearing = this.calculateBearing(this.prevLngLat[1], this.prevLngLat[0], lat, lon);
+
+            if (!isNaN(freshBearing) && speed > 3.0) {
+                const diff = Math.abs(freshBearing - targetBearing);
+                if (diff > 2.0) {
+                    targetBearing = freshBearing;
                 }
             }
-            this.lastBearingUpdatePos = newLngLat;
-        } else if (this.followCyclist) {
-            this.map.easeTo({ center: newLngLat, duration: 1000, easing: (t) => t });
         }
-        
+
+        this.map.easeTo({
+            center: newLngLat,
+            bearing: targetBearing,
+            pitch: 75,
+            duration: 1500,
+            easing: (t) => t
+        });
+
         this.prevLngLat = newLngLat;
     }
 
@@ -238,11 +246,11 @@ export class MapController {
     centerCamera() {
         if (this.prevLngLat) {
             this.followCyclist = true;
-            this.map.flyTo({ 
-                center: this.prevLngLat, 
-                zoom: 17, 
-                pitch: 75, 
-                bearing: this.map.getBearing() 
+            this.map.flyTo({
+                center: this.prevLngLat,
+                zoom: 17,
+                pitch: 75,
+                bearing: this.map.getBearing()
             });
         }
     }
@@ -252,18 +260,18 @@ export class MapController {
         const toDeg = (rad) => rad * 180 / Math.PI;
         const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
         const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-                  Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
         return (toDeg(Math.atan2(y, x)) + 360) % 360;
     }
 
     shouldUpdateBearing(currentPos) {
-        if (!this.lastBearingUpdatePos) { 
-            this.lastBearingUpdatePos = currentPos; 
-            return true; 
+        if (!this.lastBearingUpdatePos) {
+            this.lastBearingUpdatePos = currentPos;
+            return true;
         }
         const dx = currentPos[0] - this.lastBearingUpdatePos[0];
         const dy = currentPos[1] - this.lastBearingUpdatePos[1];
-        return Math.sqrt(dx*dx + dy*dy) > 0.0001; 
+        return Math.sqrt(dx * dx + dy * dy) > 0.0001;
     }
 
     renderRoute(geojson) {
@@ -282,7 +290,7 @@ export class MapController {
         if (this.editorPoints.length > 1) {
             for (let i = 0; i < this.editorPoints.length - 1; i++) {
                 const p1 = new window.mapboxgl.LngLat(this.editorPoints[i][0], this.editorPoints[i][1]);
-                const p2 = new window.mapboxgl.LngLat(this.editorPoints[i+1][0], this.editorPoints[i+1][1]);
+                const p2 = new window.mapboxgl.LngLat(this.editorPoints[i + 1][0], this.editorPoints[i + 1][1]);
                 dist += p1.distanceTo(p2);
             }
         }
@@ -306,14 +314,14 @@ export class MapController {
         this.editorMode = true;
         this.editorPoints = [];
         this.generatedRouteData = null;
-            
+
         this.map.getCanvas().style.cursor = 'crosshair';
-            
+
         if (this.map.getSource('editor-route')) {
             this.map.removeLayer('editor-route-line');
             this.map.removeSource('editor-route');
         }
-            
+
         if (this.editorMarkers) {
             this.editorMarkers.forEach(m => m.remove());
         }
@@ -334,14 +342,14 @@ export class MapController {
 
     async handleEditorClick(e) {
         if (!this.editorMode) return;
-        
+
         if (this.editorPoints.length >= 2) {
-            return; 
+            return;
         }
 
         const coord = e.lngLat;
-        const pointIndex = this.editorPoints.length; 
-        
+        const pointIndex = this.editorPoints.length;
+
         this.editorPoints.push(coord);
 
         const color = pointIndex === 0 ? '#00ff00' : '#ff0000';
@@ -352,16 +360,16 @@ export class MapController {
         el.style.border = '2px solid white';
         el.style.cursor = 'grab';
         el.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
-        
+
         const marker = new window.mapboxgl.Marker({ element: el, draggable: true })
             .setLngLat(coord)
             .addTo(this.map);
 
         marker.on('dragend', async () => {
             const newLngLat = marker.getLngLat();
-            
+
             this.editorPoints[pointIndex] = newLngLat;
-            
+
             console.log(`Point ${pointIndex} moved to:`, newLngLat);
 
             if (this.editorPoints.length === 2) {
@@ -396,7 +404,7 @@ export class MapController {
             const coordinates = route.geometry.coordinates;
 
             const enrichedPoints = coordinates.map(coord => {
-                const elevation = this.map.queryTerrainElevation({lng: coord[0], lat: coord[1]}) || 0;
+                const elevation = this.map.queryTerrainElevation({ lng: coord[0], lat: coord[1] }) || 0;
                 return { lat: coord[1], lon: coord[0], ele: elevation };
             });
 
@@ -404,8 +412,8 @@ export class MapController {
 
             const distKm = (route.distance / 1000).toFixed(2);
             let elevGain = 0;
-            for(let i=1; i<enrichedPoints.length; i++) {
-                const diff = enrichedPoints[i].ele - enrichedPoints[i-1].ele;
+            for (let i = 1; i < enrichedPoints.length; i++) {
+                const diff = enrichedPoints[i].ele - enrichedPoints[i - 1].ele;
                 if (diff > 0) elevGain += diff;
             }
 

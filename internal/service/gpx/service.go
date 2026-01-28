@@ -97,24 +97,47 @@ func (s *Service) GetPointAtDistance(distanceMeter float64) domain.RoutePoint {
 		return lastPoint
 	}
 
+	if distanceMeter <= s.points[0].Distance {
+		return s.points[0]
+	}
+
 	low := 0
 	high := len(s.points) - 1
 
 	for low <= high {
 		mid := (low + high) / 2
-		pMid := s.points[mid]
-
-		if pMid.Distance < distanceMeter {
+		if s.points[mid].Distance < distanceMeter {
 			low = mid + 1
 		} else {
 			high = mid - 1
 		}
 	}
 
-	if low >= len(s.points) { return lastPoint }
-	if low == 0 { return s.points[0] }
+	idxNext := low
+	idxPrev := low - 1
 
-	return s.points[low]
+	pPrev := s.points[idxPrev]
+	pNext := s.points[idxNext]
+
+	segmentDist := pNext.Distance - pPrev.Distance
+	if segmentDist <= 0 {
+		return pPrev
+	}
+
+	ratio := (distanceMeter - pPrev.Distance) / segmentDist
+
+	return domain.RoutePoint{
+		Latitude:  lerp(pPrev.Latitude, pNext.Latitude, ratio),
+		Longitude: lerp(pPrev.Longitude, pNext.Longitude, ratio),
+		Elevation: lerp(pPrev.Elevation, pNext.Elevation, ratio),
+		Grade:     pPrev.Grade,
+		Distance:  distanceMeter,
+	}
+}
+
+// Função auxiliar simples para interpolação
+func lerp(start, end, ratio float64) float64 {
+	return start + ratio*(end-start)
 }
 
 func smoothGrades(points []domain.RoutePoint) []domain.RoutePoint {
