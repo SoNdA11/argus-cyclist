@@ -79,6 +79,9 @@ export namespace domain {
 	    max_hr: number;
 	    theme: string;
 	    units: string;
+	    level: number;
+	    current_xp: number;
+	    total_coins: number;
 	    // Go type: time
 	    created_at: any;
 	    // Go type: time
@@ -99,6 +102,9 @@ export namespace domain {
 	        this.max_hr = source["max_hr"];
 	        this.theme = source["theme"];
 	        this.units = source["units"];
+	        this.level = source["level"];
+	        this.current_xp = source["current_xp"];
+	        this.total_coins = source["total_coins"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
 	    }

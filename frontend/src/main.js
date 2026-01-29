@@ -37,7 +37,7 @@ if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
 document.getElementById('selectTrainerMode').addEventListener('change', async (e) => {
     const mode = e.target.value;
     const ergControl = document.getElementById('ergControl');
-    
+
     if (mode === 'ERG') {
         ergControl.classList.remove('hidden');
     } else {
@@ -265,9 +265,9 @@ if (window.runtime) {
             isRecording = false;
         }
     });
-
+    
     window.runtime.EventsOn("telemetry_update", (data) => {
         ui.updateTelemetry(data, totalRouteDistance);
-        mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed);
+        mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
     });
 }

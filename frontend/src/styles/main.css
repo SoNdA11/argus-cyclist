@@ -1110,3 +1110,78 @@ footer {
     margin-top: 15px;
     color: var(--text-main);
 }
+
+/* --- XP BAR --- */
+.xp-container {
+    width: 100%;
+    max-width: 120px;
+    margin: 10px auto 5px auto;
+    position: relative;
+}
+
+.xp-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.level-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fbbf24;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 1px 8px;
+    border-radius: 8px;
+    border: 2px solid #1e1e1e;
+    z-index: 10;
+}
+
+.player-progression {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.level-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.level-pill {
+    background: var(--power-color);
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.xp-container-inline {
+    flex: 1;
+    max-width: 120px;
+}
+
+.badges-row {
+    display: flex;
+    gap: 5px;
+    height: 20px;
+}
