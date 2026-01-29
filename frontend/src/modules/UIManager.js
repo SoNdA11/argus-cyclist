@@ -75,6 +75,10 @@ export class UIManager {
 
         // --- PHOTO ---
         this.currentPhotoData = "";
+
+        this.level = 1;
+        this.xp = 0;
+        this.nextLevelXp = 500;
     }
 
     // =========================
@@ -285,6 +289,13 @@ export class UIManager {
             this.els.selectUnits.value = profile.units || "metric";
             this.units = this.els.selectUnits.value;
 
+            this.level = profile.level || 1;
+            this.xp = profile.current_xp || 0;
+
+            const lvlLabel = document.getElementById('level-val');
+            if (lvlLabel) lvlLabel.innerText = this.level;
+            this.updateXPBarUI();
+
             console.log("Profile Loaded:", profile);
         } catch (e) {
             console.error("Error loading profile:", e);
@@ -322,10 +333,13 @@ export class UIManager {
     async saveUserProfile() {
         const profile = {
             name: this.els.inputName.value,
+            photo: this.currentPhotoData,
             weight: parseFloat(this.els.inputRiderWeight.value),
             bike_weight: parseFloat(this.els.inputBikeWeight.value),
             ftp: parseInt(this.els.inputFTP.value),
-            units: this.els.selectUnits.value
+            units: this.els.selectUnits.value,
+            level: this.level,
+            current_xp: parseInt(this.xp)
         };
 
         try {
@@ -538,6 +552,12 @@ export class UIManager {
             this.els.inputFTP.value = profile.ftp || 200;
             this.els.selectUnits.value = profile.units || "metric";
 
+            this.level = profile.level || 1;
+            this.xp = profile.current_xp || 0;
+            const lvlLabel = document.getElementById('level-val');
+            if (lvlLabel) lvlLabel.innerText = this.level;
+            this.updateXPBarUI();
+
             if (profile.photo && profile.photo.length > 10) {
                 document.getElementById('profileImage').src = profile.photo;
                 this.currentPhotoData = profile.photo;
@@ -555,7 +575,9 @@ export class UIManager {
             weight: parseFloat(this.els.inputRiderWeight.value),
             bike_weight: parseFloat(this.els.inputBikeWeight.value),
             ftp: parseInt(this.els.inputFTP.value),
-            units: this.els.selectUnits.value
+            units: this.els.selectUnits.value,
+            level: this.level,
+            current_xp: parseInt(this.xp)
         };
 
         try {
@@ -564,6 +586,41 @@ export class UIManager {
 
         } catch (e) {
             alert("Error saving profile: " + e);
+        }
+    }
+
+    // Método Novo
+    addXP(amount) {
+        this.xp += amount;
+
+        // Verifica Level Up
+        if (this.xp >= this.nextLevelXp) {
+            this.levelUp();
+        }
+
+        // Atualiza UI (usando Math.floor para visualização, mas mantendo a precisão interna)
+        this.updateXPBarUI();
+    }
+
+    levelUp() {
+        this.level++;
+        this.xp = Math.max(0, this.xp - this.nextLevelXp);
+        this.nextLevelXp = Math.floor(this.nextLevelXp * 1.2);
+
+        console.log(`LEVEL UP! Nível ${this.level}`);
+
+        const lvlLabel = document.getElementById('level-val');
+        if (lvlLabel) lvlLabel.innerText = this.level;
+
+        this.saveUserProfile();
+    }
+
+    updateXPBarUI() {
+        const pct = Math.min((this.xp / this.nextLevelXp) * 100, 100);
+
+        const bar = document.getElementById('xp-fill');
+        if (bar) {
+            bar.style.width = `${pct}%`;
         }
     }
 }

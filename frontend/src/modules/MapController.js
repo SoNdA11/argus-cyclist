@@ -15,6 +15,8 @@ export class MapController {
         this.editorMarkers = [];
         this.editorPoints = [];
         this.generatedRouteData = null;
+
+        this.lastXPDist = 0;
     }
 
     init(containerId) {
@@ -204,7 +206,7 @@ export class MapController {
     // CAMERA AND POSITION
     // ===================
 
-    updateCyclistPosition(lat, lon, speed) {
+    updateCyclistPosition(lat, lon, speed, telemetry) {
         if (lat === 0 && lon === 0) return;
 
         const newLngLat = [lon, lat];
@@ -234,6 +236,38 @@ export class MapController {
         });
 
         this.prevLngLat = newLngLat;
+
+        if (telemetry && telemetry.total_dist > 0) {
+            this.calculatePassiveXP(telemetry);
+        }
+    }
+
+    calculatePassiveXP(telemetry) {
+
+        if (telemetry.total_dist <= 0) return;
+
+        if (this.lastXPDist === 0) {
+            this.lastXPDist = telemetry.total_dist;
+            return;
+        }
+
+        const deltaMeters = telemetry.total_dist - this.lastXPDist;
+
+        if (deltaMeters > 1.0) {
+
+            let xpGain = deltaMeters * 0.1;
+
+            const grade = telemetry.grade || 0;
+
+            if (grade > 2.0) xpGain *= 1.5;
+            if (grade > 5.0) xpGain *= 2.0;
+
+            if (window.ui && window.ui.addXP) {
+                window.ui.addXP(xpGain);
+            }
+
+            this.lastXPDist = telemetry.total_dist;
+        }
     }
 
     setInitialPosition(lat, lon) {
@@ -276,6 +310,14 @@ export class MapController {
 
     renderRoute(geojson) {
         this.routeGeoJSON = geojson;
+
+        const points = geojson.features.map(f => ({
+            lat: f.geometry.coordinates[0][1],
+            lon: f.geometry.coordinates[0][0],
+            distance: 0,
+            grade: f.properties.grade || 0
+        }));
+
         if (this.map.isStyleLoaded()) {
             this.addRouteLayer();
         }

@@ -54,6 +54,11 @@ type UserProfile struct {
 	MaxHR      int       `json:"max_hr"`
 	Theme      string    `json:"theme"` // "dark", "light", etc.
 	Units      string    `json:"units"` // "metric", "imperial"
+
+	Level       int   `json:"level"`
+	CurrentXP   int64 `json:"current_xp"`
+	TotalCoins  int   `json:"total_coins"`
+
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }

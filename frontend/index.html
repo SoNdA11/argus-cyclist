@@ -31,13 +31,30 @@
 
             <div id="tab-profile" class="tab-pane active">
                 <div class="settings-grid compact-profile">
-
                     <div class="profile-left">
                         <div class="profile-avatar-container" onclick="window.ui.selectProfileImage()">
                             <img id="profileImage" src="src/assets/images/logo-universal.png" alt="Profile">
                             <div class="avatar-overlay">📷 Change</div>
                         </div>
-                        <h3 id="profileNameDisplay" style="margin-top:10px; color:var(--text-main)">Cyclist</h3>
+
+                        <h3 id="profileNameDisplay" style="margin-top:15px; margin-bottom: 5px; color:var(--text-main)">
+                            Cyclist</h3>
+
+                        <div class="player-progression">
+
+                            <div class="level-row">
+                                <div class="level-pill">LVL <span id="level-val">1</span></div>
+
+                                <div class="xp-container-inline">
+                                    <div class="xp-bar-bg">
+                                        <div id="xp-fill" class="xp-bar-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="badges-row">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="profile-right">
@@ -48,6 +65,8 @@
                                     <label>Name</label>
                                     <input type="text" id="inputName" placeholder="Name">
                                 </div>
+
+
                                 <div class="input-group">
                                     <label>Units</label>
                                     <select id="selectUnits">
