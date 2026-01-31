@@ -17,6 +17,7 @@ const chart = new ElevationChart('elevationCanvas');
 // Global state
 let totalRouteDistance = 0;
 let isRecording = false;
+let isFinishTriggered = false;
 
 // Initialize the map
 mapCtrl.init('map-container');
@@ -178,12 +179,20 @@ document.getElementById('btnImport').addEventListener('click', async () => {
 // ==================
 
 document.getElementById('btnAction').addEventListener('click', async () => {
-    if (!isRecording) {
-        try {
-            await window.go.main.App.ToggleSession();
-        } catch (e) { alert("Error: " + e); }
-    } else {
+    try {
+        if (!isRecording) {
+            isFinishTriggered = false;
+
+            console.log("Starting a new activity...");
+        }
+        else {
+            console.log("Pausing activity...");
+        }
         await window.go.main.App.ToggleSession();
+
+    } catch (e) {
+        console.error("Error switching session:", e);
+        alert("Error: " + e);
     }
 });
 
@@ -265,9 +274,27 @@ if (window.runtime) {
             isRecording = false;
         }
     });
-    
+
     window.runtime.EventsOn("telemetry_update", (data) => {
         ui.updateTelemetry(data, totalRouteDistance);
         mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+
+        if (isRecording && totalRouteDistance > 0 && !isFinishTriggered) {
+            if (data.total_dist >= totalRouteDistance - 20) {
+                finishWorkout();
+            }
+        }
     });
+
+    async function finishWorkout() {
+        isFinishTriggered = true;
+        isRecording = false;
+        try {
+            await window.go.main.App.FinishSession();
+            ui.showFinishModal();
+        } catch (e) {
+            console.error("Error saving workout:", e);
+            alert("Error when saving: " + e);
+        }
+    }
 }

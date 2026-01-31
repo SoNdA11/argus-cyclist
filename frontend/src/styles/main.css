@@ -1185,3 +1185,48 @@ footer {
     gap: 5px;
     height: 20px;
 }
+
+/* --- FINISH MODAL --- */
+.finish-content {
+    text-align: center;
+    border-top: 5px solid #fbbf24;
+}
+
+.finish-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    animation: bounce 1s infinite alternate;
+}
+
+.finish-status {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    font-weight: bold;
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+
+.modal-actions.centered {
+    justify-content: center;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
