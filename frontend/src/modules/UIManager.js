@@ -514,14 +514,10 @@ export class UIManager {
         const name = document.getElementById('editorRouteName').value.trim();
 
         try {
-            // Chama o Backend para salvar
             const result = await window.go.main.App.SaveGeneratedGPX(name, points);
-            alert(result); // Mostra "Saved: ..."
+            alert(result);
 
-            this.cancelRoute(); // Fecha editor
-
-            // Opcional: Recarregar lista de rotas se você tiver uma
-
+            this.cancelRoute();
         } catch (e) {
             alert("Error saving: " + e);
         }
@@ -589,16 +585,13 @@ export class UIManager {
         }
     }
 
-    // Método Novo
     addXP(amount) {
         this.xp += amount;
 
-        // Verifica Level Up
         if (this.xp >= this.nextLevelXp) {
             this.levelUp();
         }
 
-        // Atualiza UI (usando Math.floor para visualização, mas mantendo a precisão interna)
         this.updateXPBarUI();
     }
 
@@ -622,5 +615,18 @@ export class UIManager {
         if (bar) {
             bar.style.width = `${pct}%`;
         }
+    }
+
+    showFinishModal() {
+        const modal = document.getElementById('finishModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    closeFinishModal() {
+        const modal = document.getElementById('finishModal');
+        if (modal) modal.classList.remove('active');
+        this.setRecordingState('IDLE');
     }
 }
