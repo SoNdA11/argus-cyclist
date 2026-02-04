@@ -54,6 +54,10 @@ export function GetUserProfile() {
   return window['go']['main']['App']['GetUserProfile']();
 }
 
+export function LoadWorkout() {
+  return window['go']['main']['App']['LoadWorkout']();
+}
+
 export function OpenFileFolder(arg1) {
   return window['go']['main']['App']['OpenFileFolder'](arg1);
 }
@@ -78,12 +82,20 @@ export function SetTrainerMode(arg1) {
   return window['go']['main']['App']['SetTrainerMode'](arg1);
 }
 
+export function StartWorkout() {
+  return window['go']['main']['App']['StartWorkout']();
+}
+
 export function ToggleAlwaysOnTop(arg1) {
   return window['go']['main']['App']['ToggleAlwaysOnTop'](arg1);
 }
 
 export function ToggleSession() {
   return window['go']['main']['App']['ToggleSession']();
+}
+
+export function UnloadWorkout() {
+  return window['go']['main']['App']['UnloadWorkout']();
 }
 
 export function UpdateUserProfile(arg1) {

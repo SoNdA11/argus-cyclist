@@ -234,6 +234,7 @@
             <button id="btnOpenEditor" class="btn-import" onclick="window.ui.startRouteEditor()">
                 Create Route
             </button>
+            <button id="btnLoadWorkout" class="btn-import">Load Workout</button>
             <button id="btnImport" class="btn-import">Import GPX</button>
             <button id="btnAction" class="btn-action btn-start hidden">START RIDE</button>
         </div>
@@ -274,6 +275,46 @@
         </aside>
 
         <main id="map-container"></main>
+
+        <aside id="workout-panel" class="hud-sidebar right-panel hidden">
+
+            <div class="workout-fixed-top">
+                <div class="panel-header">
+                    <h3>WORKOUT PLAN</h3>
+                    <button class="btn-icon-small danger" onclick="window.closeWorkout()" title="Exit">✕</button>
+                </div>
+
+                <div class="current-segment-stats">
+                    <div class="stat-box">
+                        <span class="label">TARGET</span>
+                        <span class="value" id="wo-target">--</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="label">REMAINING</span>
+                        <span class="value" id="wo-timer">--:--</span>
+                    </div>
+                </div>
+
+                <div id="workout-graph-container">
+                    <canvas id="workout-canvas"></canvas>
+                </div>
+
+                <div class="workout-progress-info"
+                    style="display: flex; justify-content: space-around; padding: 5px 10px; background: rgba(0,0,0,0.2);">
+                    <span>Done: <strong id="wo-dist-done" style="color: #fff;">0.0 km</strong></span>
+                    <span>To Go: <strong id="wo-dist-rem" style="color: #fff;">--</strong></span>
+                </div>
+                <div class="workout-progress-info">
+                    <span>Progress: <strong id="wo-completion">0%</strong></span>
+                </div>
+
+                <div class="hud-message" id="wo-message">PREPARE</div>
+            </div>
+
+            <div id="workout-list" class="scroll-list">
+            </div>
+        </aside>
+
         <div id="routeEditorPanel" class="editor-panel" style="display: none;">
             <h3>🗺️ Route Creator</h3>
             <p class="editor-instr">Click 2 points on the map (Start & End)</p>

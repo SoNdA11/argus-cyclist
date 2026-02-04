@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,7 @@ import (
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/storage"
+	"argus-cyclist/internal/service/workout"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -30,6 +32,11 @@ type App struct {
 	physicsEngine  *sim.Engine
 	trainerService domain.TrainerService
 	storageService *storage.Service
+	workoutService *workout.Service
+	activeWorkout  *domain.ActiveWorkout
+
+	workoutStartTime time.Time
+	isInWorkout      bool
 
 	isRecording bool
 	isPaused    bool
@@ -47,7 +54,7 @@ type App struct {
 	sessionPowerSum  uint64    // Sum of power samples (for average power)
 	sessionTicks     int       // Number of power samples
 	sessionPowerData []int
-	simPower int16
+	simPower         int16
 }
 
 type ExportPoint struct {
@@ -60,17 +67,18 @@ type ExportPoint struct {
 func NewApp() *App {
 	// Initialize persistent storage (SQLite)
 	store := storage.NewService()
-	
+
 	// Load user profile to configure the physics engine
 	profile, _ := store.GetProfile()
 
 	return &App{
-		gpxService:     gpx.NewService(),
-		fitService:     fit.NewService(),
+		gpxService: gpx.NewService(),
+		fitService: fit.NewService(),
 		// Initialize physics engine using stored user data
-		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight), 
+		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight),
 		trainerService: ble.NewRealService(),
 		//trainerService: ble.NewMockService(),
+		workoutService: workout.NewService(),
 
 		storageService: store,
 		telemetryChan:  make(chan domain.Telemetry),
@@ -98,9 +106,9 @@ func (a *App) OpenFileFolder(filename string) {
 	dir := filepath.Dir(absPath)
 
 	var cmd *exec.Cmd
-	
+
 	// OS-specific file explorer handling
-	switch stdruntime.GOOS { 
+	switch stdruntime.GOOS {
 	case "windows":
 		cmd = exec.Command("explorer", "/select,", absPath)
 	case "darwin":
@@ -110,40 +118,39 @@ func (a *App) OpenFileFolder(filename string) {
 	default:
 		return
 	}
-	
+
 	cmd.Start()
 }
 
 // SelectProfileImage opens a dialog to select an image and returns it as Base64.
 func (a *App) SelectProfileImage() string {
-    selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-        Title: "Select Profile Picture",
-        Filters: []runtime.FileFilter{
-            {DisplayName: "Images", Pattern: "*.png;*.jpg;*.jpeg"},
-        },
-    })
+	selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select Profile Picture",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "Images", Pattern: "*.png;*.jpg;*.jpeg"},
+		},
+	})
 
-    if err != nil || selection == "" {
-        return ""
-    }
+	if err != nil || selection == "" {
+		return ""
+	}
 
-    // Read file
+	// Read file
 	bytes, err := os.ReadFile(selection)
 	if err != nil {
 		runtime.EventsEmit(a.ctx, "error", "Error reading image")
 		return ""
 	}
 
+	// Convert to Base64 string to display easily in Frontend
+	var base64Encoding string
+	mimeType := "image/png" // Default detection could be better but this works for basic img tags
+	if strings.HasSuffix(selection, ".jpg") || strings.HasSuffix(selection, ".jpeg") {
+		mimeType = "image/jpeg"
+	}
 
-    // Convert to Base64 string to display easily in Frontend
-    var base64Encoding string
-    mimeType := "image/png" // Default detection could be better but this works for basic img tags
-    if strings.HasSuffix(selection, ".jpg") || strings.HasSuffix(selection, ".jpeg") {
-        mimeType = "image/jpeg"
-    }
-    
-    base64Encoding = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(bytes))
-    return base64Encoding
+	base64Encoding = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(bytes))
+	return base64Encoding
 }
 
 // ====================
@@ -273,7 +280,7 @@ func (a *App) SaveGeneratedGPX(name string, points []ExportPoint) string {
 	// 3. Save the file.
 	filename := fmt.Sprintf("%s.gpx", name)
 	fullPath := filepath.Join(routesDir, filename)
-	
+
 	err := os.WriteFile(fullPath, []byte(sb.String()), 0644)
 	if err != nil {
 		return "Error saving file: " + err.Error()
@@ -350,12 +357,19 @@ func (a *App) startSession() string {
 		return "Error: Trainer Disconnected"
 	}
 
+	if a.activeWorkout != nil {
+		a.isInWorkout = true
+		runtime.EventsEmit(a.ctx, "log", "Workout Mode: ACTIVATED")
+	} else {
+		a.isInWorkout = false
+	}
+
 	a.sessionPowerData = []int{}
 	a.currentDist = 0
-    a.sessionStart = time.Now()
-    a.sessionPowerSum = 0
-    a.sessionTicks = 0
-	
+	a.sessionStart = time.Now()
+	a.sessionPowerSum = 0
+	a.sessionTicks = 0
+
 	a.isRecording = true
 	a.isPaused = false
 
@@ -420,7 +434,7 @@ func (a *App) FinishSession() string {
 	if a.sessionTicks > 0 {
 		avgPower = int(a.sessionPowerSum) / a.sessionTicks
 	}
-	
+
 	// Average power calculation (protected)
 	var avgSpeed float64 = 0.0
 	if durationSec > 0 {
@@ -434,23 +448,25 @@ func (a *App) FinishSession() string {
 	}
 
 	userWeight := a.GetUserProfile().Weight
-	if userWeight == 0 { userWeight = 75 } // Fallback
+	if userWeight == 0 {
+		userWeight = 75
+	} // Fallback
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
-	
+
 	for _, duration := range intervals {
 		bestWatts := a.calculateMMP(a.sessionPowerData, duration)
-		
+
 		if bestWatts > 0 {
 			wkg := float64(bestWatts) / userWeight
-			
+
 			record := storage.PowerRecord{
 				Duration: duration,
 				Watts:    bestWatts,
 				Wkg:      wkg,
 				Date:     time.Now(),
 			}
-			
+
 			a.storageService.CheckAndUpdateRecord(record)
 		}
 	}
@@ -461,15 +477,15 @@ func (a *App) FinishSession() string {
 
 	// 4. Create activity record for the database
 	activity := domain.Activity{
-		RouteName:      routeName,
-		Filename:       fullPath,
-		TotalDistance:  a.currentDist,
-		Duration:       int64(durationSec),
-		AvgPower:       avgPower,
-		AvgSpeed:       avgSpeed,
-		CreatedAt:      time.Now(),
+		RouteName:     routeName,
+		Filename:      fullPath,
+		TotalDistance: a.currentDist,
+		Duration:      int64(durationSec),
+		AvgPower:      avgPower,
+		AvgSpeed:      avgSpeed,
+		CreatedAt:     time.Now(),
 	}
-	
+
 	if err := a.storageService.SaveActivity(activity); err != nil {
 		fmt.Println("Database save error:", err)
 	}
@@ -502,8 +518,11 @@ func (a *App) DiscardSession() string {
 		a.isPaused = false
 	}
 
+	a.UnloadWorkout()
+
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
-	runtime.EventsEmit(a.ctx, "log", "Workout discarded. Devices kept connected.")
+	runtime.EventsEmit(a.ctx, "workout_finished", true) // Avisa front para esconder HUD
+	//runtime.EventsEmit(a.ctx, "log", "Workout discarded. Devices kept connected.")
 	return "Discarded"
 }
 
@@ -541,10 +560,13 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 	sensorTimeout := 5 * time.Second
 	totalRouteDistance := a.gpxService.GetTotalDistance()
 
+	lastSentPower := -1
+	lastSentGrade := -999.0
+	currentMode := ""
+
 	for {
 		select {
 		case <-ctx.Done():
-			// Session stopped or application closing
 			return
 		case rawData := <-input:
 			if rawData.Power != -1 {
@@ -560,6 +582,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			currentPower += a.simPower
 
 			now := time.Now()
+
 			if a.isPaused {
 				lastUpdate = now
 				runtime.EventsEmit(a.ctx, "telemetry_update", domain.Telemetry{
@@ -569,18 +592,15 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				continue
 			}
 
-			// Delta time calculation
 			dt := now.Sub(lastUpdate).Seconds()
 			lastUpdate = now
 
 			if a.isRecording {
 				a.sessionPowerSum += uint64(currentPower)
 				a.sessionTicks++
-				
 				a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
 			}
 
-			// Sensor timeout handling
 			if now.Sub(lastPowerTime) > sensorTimeout {
 				currentPower = 0
 				currentCadence = 0
@@ -589,12 +609,115 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				currentHR = 0
 			}
 
-			// Physics & route simulation
+			// ===================================
+			// Training Control Logic (ERG vs SIM)
+			// ===================================
+
+			// We obtain the current point of the route to determine the slope and coordinates.
 			routePoint := a.gpxService.GetPointAtDistance(a.currentDist)
+
+			// Variables for the workout state
+			targetWatts := 0
+			remainingSegmentTime := 0
+			currentSegmentIdx := -1
+			nextTarget := 0
+			workoutName := ""
+			completionPct := 0.0
+
+			if a.isInWorkout && a.activeWorkout != nil {
+				// --- ERG MODE (WORKOUT ACTIVE) ---
+
+				// Ensure the trainer is in ERG mode.
+				if currentMode != "ERG" {
+					a.trainerService.SetTrainerMode("ERG")
+					currentMode = "ERG"
+				}
+
+				elapsed := time.Since(a.sessionStart).Seconds()
+				timeAccumulator := 0.0
+
+				// Discover which segment we are in.
+				foundSegment := false
+				for i, seg := range a.activeWorkout.Segments {
+					segDur := float64(seg.DurationSeconds)
+
+					// Check if the elapsed time falls within this segment.
+					if elapsed >= timeAccumulator && elapsed < (timeAccumulator+segDur) {
+						foundSegment = true
+						currentSegmentIdx = seg.Index
+						workoutName = a.activeWorkout.Metadata.Name
+
+						// Time calculations
+						segmentElapsed := elapsed - timeAccumulator
+						remainingSegmentTime = int(segDur - segmentElapsed)
+
+						// Linear Power Interpolation (Supports Ramps and Steady)
+						progress := segmentElapsed / segDur
+						targetFactor := seg.StartFactor + (seg.EndFactor-seg.StartFactor)*progress
+
+						userFTP := float64(a.GetUserProfile().FTP)
+						if userFTP == 0 {
+							userFTP = 200
+						} // Safe fallback
+
+						targetWatts = int(targetFactor * userFTP)
+
+						// Next interval forecast for the UI
+						if i+1 < len(a.activeWorkout.Segments) {
+							nextTarget = int(a.activeWorkout.Segments[i+1].StartFactor * userFTP)
+						}
+
+						// Send command to Roll (only if significantly changed so as not to flood BLE)
+						if targetWatts != lastSentPower {
+							a.trainerService.SetPower(float64(targetWatts))
+							lastSentPower = targetWatts
+						}
+
+						break
+					}
+					timeAccumulator += segDur
+				}
+
+				// Global progress calculation
+				if a.activeWorkout.TotalDuration > 0 {
+					completionPct = (elapsed / float64(a.activeWorkout.TotalDuration)) * 100
+				}
+
+				// If the time exceeds the total, end the training session.
+				if !foundSegment && elapsed > float64(a.activeWorkout.TotalDuration) {
+					a.isInWorkout = false
+					runtime.EventsEmit(a.ctx, "workout_finished", true)
+					a.FinishSession() // Optional: Or just switch back to SIM mode.
+					return
+				}
+
+			} else {
+				// --- SIM MODE (FREE ROUTES/GPX) ---
+
+				//Ensure the trainer is in SIM mode.
+				if currentMode != "SIM" {
+					a.trainerService.SetTrainerMode("SIM")
+					currentMode = "SIM"
+				}
+
+				// Applies the route slope (grid) to the roller
+				// Optimization: Only sends if changes exceed 0.1%
+				if math.Abs(routePoint.Grade-lastSentGrade) > 0.1 {
+					a.trainerService.SetGrade(routePoint.Grade)
+					lastSentGrade = routePoint.Grade
+				}
+			}
+
+			// ========================
+			// PHYSICS and STATE UPDATE
+			// ========================
+
+			// Physics always uses the REAL power generated by the cyclist (currentPower),
+			// regardless of whether we are in ERG (the trainer forces the power) or SIM (the trainer forces the grid).
 			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
 			a.currentDist += speedMs * dt
 
-			// End of route handling
+			// End of Route Check (only if a route is loaded)
 			if totalRouteDistance > 0 && a.currentDist >= totalRouteDistance {
 				a.currentDist = totalRouteDistance
 				a.FinishSession()
@@ -602,21 +725,32 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				return
 			}
 
-				// Apply grade to smart trainer (only if not in ERG mode)
-				// Note: In a real app, we'd check a flag here. 
-				// For now, we'll let the backend handle it or assume SIM mode by default.
-				a.trainerService.SetGrade(routePoint.Grade)
+			// ==============================
+			// NOTIFICATIONS FOR THE FRONTEND
+			// ==============================
 
-			// Build telemetry packet
+			// 1. Telemetry Package (Speedometer, Map, Graph)
 			fullTelemetry := domain.Telemetry{
 				Timestamp: now, Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
 			}
-
-			// Persist FIT record and notify frontend
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
+
+			// 2. Training State Package (Only if you are training)
+			if a.isInWorkout {
+				workoutState := domain.WorkoutState{
+					IsActive:          true,
+					WorkoutName:       workoutName,
+					CurrentSegmentIdx: currentSegmentIdx,
+					SegmentTimeRemain: remainingSegmentTime,
+					TargetPower:       targetWatts,
+					NextTargetPower:   nextTarget,
+					CompletionPercent: completionPct,
+				}
+				runtime.EventsEmit(a.ctx, "workout_status", workoutState)
+			}
 		}
 	}
 }
@@ -638,7 +772,7 @@ func (a *App) SetTrainerMode(mode string) {
 // ChangePowerSimulation is a placeholder for manual power simulation.
 func (a *App) ChangePowerSimulation(delta int) int {
 	a.simPower += int16(delta)
-	
+
 	if a.simPower < -500 {
 		a.simPower = -500
 	}
@@ -650,7 +784,7 @@ func (a *App) calculateMMP(data []int, window int) int {
 	if len(data) < window {
 		return 0
 	}
-	
+
 	maxSum := 0
 	currentSum := 0
 
@@ -667,4 +801,41 @@ func (a *App) calculateMMP(data []int, window int) int {
 	}
 
 	return maxSum / window
+}
+
+// LoadWorkout loads a ZWO and prepares the system.
+func (a *App) LoadWorkout() string {
+	selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select Workout", Filters: []runtime.FileFilter{{DisplayName: "ZWO Files", Pattern: "*.zwo"}},
+	})
+	if err != nil || selection == "" {
+		return ""
+	}
+
+	wo, err := a.workoutService.LoadZWO(selection)
+	if err != nil {
+		runtime.EventsEmit(a.ctx, "error", err.Error())
+		return ""
+	}
+
+	a.activeWorkout = wo
+	// Sends the complete structure to the frontend to draw the graph.
+	runtime.EventsEmit(a.ctx, "workout_loaded", wo)
+	return "Workout Loaded"
+}
+
+// StartWorkout specifically initiates workout mode.
+func (a *App) StartWorkout() {
+	if a.activeWorkout == nil {
+		return
+	}
+	a.isInWorkout = true
+	a.ToggleSession() // Reuses the login logic
+}
+
+func (a *App) UnloadWorkout() {
+	a.activeWorkout = nil
+	a.isInWorkout = false
+	a.trainerService.SetTrainerMode("SIM")
+	runtime.EventsEmit(a.ctx, "log", "Workout Unloaded")
 }
