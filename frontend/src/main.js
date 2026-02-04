@@ -3,6 +3,7 @@ import { CONFIG } from './config.js';
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
+import { WorkoutController } from './modules/WorkoutController.js';
 
 // ==========================
 // APPLICATION INITIALIZATION
@@ -12,12 +13,26 @@ import { ElevationChart } from './modules/ElevationChart.js';
 const mapCtrl = new MapController();
 window.mapController = mapCtrl;
 const ui = new UIManager();
+
 const chart = new ElevationChart('elevationCanvas');
+window.chart = chart;
+
+const workoutCtrl = new WorkoutController();
 
 // Global state
-let totalRouteDistance = 0;
+window.totalRouteDistance = 0;
 let isRecording = false;
 let isFinishTriggered = false;
+
+window.closeWorkout = () => {
+    if (isRecording) {
+        if (confirm("Stop current workout?")) {
+            window.go.main.App.DiscardSession();
+        }
+    } else {
+        workoutCtrl.close();
+    }
+};
 
 // Initialize the map
 mapCtrl.init('map-container');
@@ -138,6 +153,8 @@ document.getElementById('btnImport').addEventListener('click', async () => {
             const routePoints = await window.go.main.App.GetRoutePath();
 
             if (routePoints.length > 1) {
+                window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
+
                 // Build GeoJSON from route segments
                 const features = [];
                 for (let i = 0; i < routePoints.length - 1; i++) {
@@ -164,13 +181,26 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 // Load elevation profile
                 const elevations = await window.go.main.App.GetElevationProfile();
                 chart.setData(elevations);
-
-                // Cache total route distance (meters)
-                totalRouteDistance = routePoints[routePoints.length - 1].distance;
             }
         }
     } catch (e) {
         alert("Error importing GPX: " + e);
+    }
+});
+
+// ==================
+// WORKOUT IMPORT
+// ==================
+
+document.getElementById('btnLoadWorkout').addEventListener('click', async () => {
+    try {
+        const result = await window.go.main.App.LoadWorkout();
+        if (result) {
+            console.log("Workout loaded:", result);
+            ui.els.btnAction.classList.remove('hidden');
+        }
+    } catch (e) {
+        alert("Error loading workout: " + e);
     }
 });
 

@@ -30,6 +30,8 @@ export function GetTotalStats():Promise<Record<string, number>>;
 
 export function GetUserProfile():Promise<domain.UserProfile>;
 
+export function LoadWorkout():Promise<string>;
+
 export function OpenFileFolder(arg1:string):Promise<void>;
 
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
@@ -42,8 +44,12 @@ export function SetPowerTarget(arg1:number):Promise<void>;
 
 export function SetTrainerMode(arg1:string):Promise<void>;
 
+export function StartWorkout():Promise<void>;
+
 export function ToggleAlwaysOnTop(arg1:boolean):Promise<void>;
 
 export function ToggleSession():Promise<string>;
+
+export function UnloadWorkout():Promise<void>;
 
 export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;
