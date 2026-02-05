@@ -11,6 +11,9 @@ export class WorkoutController {
         this.elDistDone = document.getElementById('wo-dist-done');
         this.elDistRem = document.getElementById('wo-dist-rem');
 
+        this.elIntensity = document.getElementById('wo-intensity');
+        window.workoutCtrl = this;
+
         this.activeWorkout = null;
         this.currentSegIdx = -1;
 
@@ -100,6 +103,11 @@ export class WorkoutController {
         const segDuration = this.getProp(state, ['segment_duration', 'SegmentDuration']);
 
         this.elTarget.innerText = `${targetPower}w`;
+
+        const intensityPct = this.getProp(state, ['intensity_pct', 'IntensityPct']);
+        if (intensityPct && this.elIntensity) {
+            this.elIntensity.innerText = `${intensityPct}%`;
+        }
 
         const m = Math.floor(timeRemain / 60);
         const s = timeRemain % 60;
@@ -293,5 +301,18 @@ export class WorkoutController {
                 toast.classList.add('hidden');
             }, 500);
         }, duration);
+    }
+
+    async adjustIntensity(delta) {
+        if (!this.activeWorkout) return;
+
+        try {
+            const newPct = await window.go.main.App.ChangeWorkoutIntensity(delta);
+
+            if (this.elIntensity) this.elIntensity.innerText = `${newPct}%`;
+
+        } catch (err) {
+            console.error("Error adjusting intensity:", err);
+        }
     }
 }

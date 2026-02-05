@@ -61,4 +61,5 @@ type WorkoutState struct {
 	TargetPower       int     `json:"target_power"`
 	NextTargetPower   int     `json:"next_target_power"`
 	CompletionPercent float64 `json:"completion_percent"`
+	IntensityPct      int     `json:"intensity_pct"`
 }

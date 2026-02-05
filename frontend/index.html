@@ -295,6 +295,15 @@
                     </div>
                 </div>
 
+                <div class="intensity-control-row">
+                    <span class="label">INTENSITY</span>
+                    <div class="intensity-actions">
+                        <button class="btn-intensity" onclick="window.workoutCtrl.adjustIntensity(-5)">-</button>
+                        <span class="value" id="wo-intensity">100%</span>
+                        <button class="btn-intensity" onclick="window.workoutCtrl.adjustIntensity(5)">+</button>
+                    </div>
+                </div>
+
                 <div id="workout-graph-container">
                     <canvas id="workout-canvas"></canvas>
                 </div>

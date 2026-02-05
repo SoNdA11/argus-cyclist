@@ -1555,3 +1555,70 @@ html[data-theme="light"] .workout-segment.active {
 .toast.hidden {
     display: none;
 }
+
+.intensity-control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px 10px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.intensity-control-row .label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.intensity-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.intensity-actions .value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    width: 50px;
+    text-align: center;
+}
+
+.btn-intensity {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-intensity:hover {
+    background: var(--power-color);
+    border-color: var(--power-color);
+    color: #000;
+}
+
+html[data-theme="light"] .intensity-control-row .label {
+    color: #64748b;
+}
+html[data-theme="light"] .intensity-actions .value {
+    color: #1e293b;
+}
+html[data-theme="light"] .btn-intensity {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+html[data-theme="light"] .btn-intensity:hover {
+    background: var(--power-color);
+    color: #fff;
+}

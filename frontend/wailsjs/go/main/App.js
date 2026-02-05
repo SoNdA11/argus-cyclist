@@ -6,6 +6,10 @@ export function ChangePowerSimulation(arg1) {
   return window['go']['main']['App']['ChangePowerSimulation'](arg1);
 }
 
+export function ChangeWorkoutIntensity(arg1) {
+  return window['go']['main']['App']['ChangeWorkoutIntensity'](arg1);
+}
+
 export function ConnectHeartRate() {
   return window['go']['main']['App']['ConnectHeartRate']();
 }
