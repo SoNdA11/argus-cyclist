@@ -6,6 +6,8 @@ import {main} from '../models';
 
 export function ChangePowerSimulation(arg1:number):Promise<number>;
 
+export function ChangeWorkoutIntensity(arg1:number):Promise<number>;
+
 export function ConnectHeartRate():Promise<string>;
 
 export function ConnectTrainer():Promise<string>;

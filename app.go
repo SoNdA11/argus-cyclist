@@ -26,14 +26,15 @@ import (
 // App is the main application struct exposed to Wails.
 // It orchestrates services, session lifecycle, and runtime events.
 type App struct {
-	ctx            context.Context
-	gpxService     *gpx.Service
-	fitService     *fit.Service
-	physicsEngine  *sim.Engine
-	trainerService domain.TrainerService
-	storageService *storage.Service
-	workoutService *workout.Service
-	activeWorkout  *domain.ActiveWorkout
+	ctx              context.Context
+	gpxService       *gpx.Service
+	fitService       *fit.Service
+	physicsEngine    *sim.Engine
+	trainerService   domain.TrainerService
+	storageService   *storage.Service
+	workoutService   *workout.Service
+	activeWorkout    *domain.ActiveWorkout
+	workoutIntensity float64
 
 	workoutStartTime time.Time
 	isInWorkout      bool
@@ -369,6 +370,7 @@ func (a *App) startSession() string {
 	a.sessionStart = time.Now()
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
+	a.workoutIntensity = 1.0
 
 	a.isRecording = true
 	a.isPaused = false
@@ -521,7 +523,7 @@ func (a *App) DiscardSession() string {
 	a.UnloadWorkout()
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
-	runtime.EventsEmit(a.ctx, "workout_finished", "canceled") 
+	runtime.EventsEmit(a.ctx, "workout_finished", "canceled")
 
 	return "Discarded"
 }
@@ -660,7 +662,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 							userFTP = 200
 						} // Safe fallback
 
-						targetWatts = int(targetFactor * userFTP)
+						targetWatts = int(targetFactor * userFTP * a.workoutIntensity)
 
 						// Next interval forecast for the UI
 						if i+1 < len(a.activeWorkout.Segments) {
@@ -750,6 +752,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 					TargetPower:       targetWatts,
 					NextTargetPower:   nextTarget,
 					CompletionPercent: completionPct,
+					IntensityPct:      int(a.workoutIntensity * 100),
 				}
 				runtime.EventsEmit(a.ctx, "workout_status", workoutState)
 			}
@@ -840,4 +843,29 @@ func (a *App) UnloadWorkout() {
 	a.isInWorkout = false
 	a.trainerService.SetTrainerMode("SIM")
 	runtime.EventsEmit(a.ctx, "log", "Workout Unloaded")
+}
+
+// ChangeWorkoutIntensity adjusts the global workout intensity.
+// delta: value to add or subtract (e.g., +5 or -5).
+func (a *App) ChangeWorkoutIntensity(delta int) int {
+	currentPct := int(math.Round(a.workoutIntensity * 100))
+	newPct := currentPct + delta
+
+	// Safety limits (e.g., min 50%, max 150%)
+	if newPct < 50 {
+		newPct = 50
+	}
+	if newPct > 150 {
+		newPct = 150
+	}
+
+	a.workoutIntensity = float64(newPct) / 100.0
+
+	// Forces immediate target update if in ERG mode
+	if a.isInWorkout && a.trainerService != nil {
+		// The next gameLoop cycle will pick up the new value,
+		// but we can log or emit an event if needed.
+	}
+
+	return newPct
 }
