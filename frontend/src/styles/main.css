@@ -1510,3 +1510,48 @@ html[data-theme="light"] .workout-segment.active {
     z-index: 5;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* =========================
+   TOAST NOTIFICATION
+   ========================= */
+.toast {
+    position: fixed;
+    top: 80px;
+    /* Distance from the top */
+    left: 55%;
+    transform: translateX(-50%);
+    /* Centers horizontally */
+    background-color: rgba(15, 23, 42, 0.95);
+    /* Almost opaque dark background */
+    color: #fff;
+    border: 6px solid var(--power-color);
+    /* Border in theme color (blue/green) */
+    border-left: 6px solid var(--power-color);
+    /* Side detail */
+
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+    z-index: 9999;
+    /* Stays above everything */
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    /* Allows clicking through it */
+}
+
+/* When active */
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10px);
+    /* Small entry movement */
+}
+
+/* Completely hides when not used */
+.toast.hidden {
+    display: none;
+}

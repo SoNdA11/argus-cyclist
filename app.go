@@ -75,7 +75,7 @@ func NewApp() *App {
 		gpxService: gpx.NewService(),
 		fitService: fit.NewService(),
 		// Initialize physics engine using stored user data
-		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight),
+		physicsEngine: sim.NewEngine(profile.Weight, profile.BikeWeight),
 		trainerService: ble.NewRealService(),
 		//trainerService: ble.NewMockService(),
 		workoutService: workout.NewService(),
@@ -521,8 +521,8 @@ func (a *App) DiscardSession() string {
 	a.UnloadWorkout()
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
-	runtime.EventsEmit(a.ctx, "workout_finished", true) // Avisa front para esconder HUD
-	//runtime.EventsEmit(a.ctx, "log", "Workout discarded. Devices kept connected.")
+	runtime.EventsEmit(a.ctx, "workout_finished", "canceled") 
+
 	return "Discarded"
 }
 
@@ -683,12 +683,14 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 					completionPct = (elapsed / float64(a.activeWorkout.TotalDuration)) * 100
 				}
 
-				// If the time exceeds the total, end the training session.
+				// If the time exceeds the total, exit workout mode but CONTINUE the session in SIM mode.
 				if !foundSegment && elapsed > float64(a.activeWorkout.TotalDuration) {
 					a.isInWorkout = false
-					runtime.EventsEmit(a.ctx, "workout_finished", true)
-					a.FinishSession() // Optional: Or just switch back to SIM mode.
-					return
+					a.activeWorkout = nil
+
+					runtime.EventsEmit(a.ctx, "workout_finished", "completed")
+
+					continue
 				}
 
 			} else {

@@ -22,7 +22,12 @@ export class WorkoutController {
         if (window.runtime) {
             window.runtime.EventsOn("workout_loaded", (wo) => this.loadWorkout(wo));
             window.runtime.EventsOn("workout_status", (state) => this.updateStatus(state));
-            window.runtime.EventsOn("workout_finished", () => this.hide());
+            window.runtime.EventsOn("workout_finished", (status) => {
+                this.hide();
+                if (status === "completed") {
+                    this.showToast("Workout completed!\n\nSwitched to Free Ride (SIM).\nKeep pedaling to continue, or stop to finish the workout.", 5000);
+                }
+            });
             window.runtime.EventsOn("telemetry_update", (data) => this.updateTelemetry(data));
         }
 
@@ -264,5 +269,29 @@ export class WorkoutController {
             `;
             this.list.appendChild(div);
         });
+    }
+
+    // Helper method to display a temporary notification
+    showToast(message, duration = 5000) {
+        const toast = document.getElementById('toast-notification');
+        if (!toast) return;
+
+        toast.innerText = message;
+        toast.classList.remove('hidden');
+
+        // Small delay to allow the CSS transition to work
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Removes the message after the defined time (default 5 seconds)
+        setTimeout(() => {
+            toast.classList.remove('show');
+
+            // Waits for the fade-out animation to finish before hiding the element
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 500);
+        }, duration);
     }
 }
