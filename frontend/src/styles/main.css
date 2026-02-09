@@ -46,21 +46,6 @@ body {
     --marker-glow: rgba(0, 229, 255, 0.6);
 }
 
-/* LIGHT THEME */
-:root[data-theme="light"] {
-    --bg-app: #f0f2f5;
-    --panel-bg: rgba(255, 255, 255, 0.85);
-    --text-main: #1a202c;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --power-color: #2563eb;
-    --chart-bg: #cbd5e1;
-    --chart-fill: #94a3b8;
-    --chart-cursor: #dc2626;
-    --marker-bg: #1e40af;
-    --marker-border: #ffffff;
-    --marker-glow: rgba(30, 64, 175, 0.4);
-}
 
 /* SATELLITE THEME (High Performance Mode) */
 :root[data-theme="satellite"] {
@@ -338,15 +323,35 @@ html:not([data-theme="satellite"]) footer {
     z-index: 1;
 }
 
+/*
+   ==========
+   MAP MARKER
+   ==========
+ */
 .cyclist-marker {
-    width: 24px;
-    height: 24px;
-    background-color: var(--marker-bg);
-    border: 3px solid var(--marker-border);
-    border-radius: 50%;
-    box-shadow: 0 0 15px var(--marker-glow);
-    transform-origin: center center;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    pointer-events: none;
     z-index: 500;
+
+    filter: drop-shadow(0 0 10px var(--power-color));
+    transition: filter 0.3s ease;
+}
+
+.arrow-shape {
+    fill: var(--power-color);
+    stroke: #ffffff;
+    stroke-width: 25px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    transition: all 0.3s ease;
 }
 
 .mapboxgl-ctrl-group {
@@ -356,10 +361,6 @@ html:not([data-theme="satellite"]) footer {
 
 .mapboxgl-ctrl-icon {
     filter: invert(1);
-}
-
-html[data-theme="light"] .mapboxgl-ctrl-icon {
-    filter: none;
 }
 
 /* --- Footer / Charts --- */
@@ -952,43 +953,16 @@ footer {
     --marker-glow: rgba(56, 189, 248, 0.8);
 }
 
-/* TRON THEME (The Grid) */
-:root[data-theme="tron"] {
-    --bg-app: #050505;
-    --panel-bg: rgba(5, 5, 5, 0.85);
-    --text-main: #00ffff;
-    --text-muted: #008f8f;
-    --border-color: #00ffff;
-    --power-color: #00ffff;
-    --chart-bg: #000000;
-    --chart-fill: rgba(0, 255, 255, 0.1);
-    --chart-cursor: #00ffff;
-    --marker-bg: #000000;
-    --marker-border: #00ffff;
-    --marker-glow: rgba(0, 255, 255, 1.0);
-}
-
 :root[data-theme="day"] {
-    --bg-app: #f0f2f5;
-    --panel-bg: rgba(255, 255, 255, 0.85);
-    --text-main: #1a202c;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --power-color: #2563eb;
-    --marker-bg: #1e40af;
-    --marker-border: #fff;
-}
-
-:root[data-theme="dusk"],
-:root[data-theme="night"] {
-    --bg-app: #0f1115;
-    --panel-bg: rgba(20, 24, 30, 0.85);
-    --text-main: #e0e6ed;
-    --text-muted: #94a3b8;
-    --border-color: #1e293b;
+    --bg-app: #000000;
+    --panel-bg: rgba(0, 0, 0, 0.6);
+    --text-main: #ffffff;
+    --text-muted: #e2e8f0;
+    --border-color: rgba(255, 255, 255, 0.3);
     --power-color: #38bdf8;
-    --marker-bg: #00e5ff;
-    --marker-border: #fff;
+    --marker-bg: #38bdf8;
+    --marker-border: #ffffff;
+    --marker-glow: rgba(56, 189, 248, 0.8);
 }
 
 .compact-profile {
@@ -1440,77 +1414,6 @@ footer {
     border-left-color: #e74c3c;
 }
 
-/* =================================================
-   LIGHT THEME OVERRIDES (RIGHT PANEL) - CLEAN WHITE
-   ================================================= */
-
-html[data-theme="light"] .workout-fixed-top {
-    background: #ffffff;
-    /* Quase opaco */
-    border-bottom: 1px solid #e2e8f0;
-}
-
-html[data-theme="light"] .panel-header h3 {
-    color: #1e293b;
-    font-weight: 800;
-}
-
-html[data-theme="light"] .stat-box {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-}
-
-html[data-theme="light"] .stat-box .label {
-    color: var(--text-muted);
-}
-
-html[data-theme="light"] .stat-box .value {
-    color: #1a202c;
-}
-
-html[data-theme="light"] #workout-graph-container {
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-html[data-theme="light"] .workout-progress-info strong {
-    color: #1a202c !important;
-}
-
-html[data-theme="light"] .workout-progress-info span {
-    color: var(--text-muted);
-}
-
-html[data-theme="light"] .hud-message {
-    color: var(--power-color);
-}
-
-html[data-theme="light"] .workout-segment {
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 0;
-}
-
-html[data-theme="light"] .segment-info,
-html[data-theme="light"] .segment-duration {
-    text-shadow: none;
-    color: #334155;
-    font-weight: 600;
-}
-
-html[data-theme="light"] .segment-progress-fill {
-    background: rgba(0, 0, 0, 0.04);
-}
-
-html[data-theme="light"] .workout-segment.active {
-    background: #ffffff;
-    border: 2px solid var(--power-color);
-    z-index: 5;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
 /* =========================
    TOAST NOTIFICATION
    ========================= */
@@ -1561,7 +1464,7 @@ html[data-theme="light"] .workout-segment.active {
     justify-content: space-between;
     align-items: center;
     padding: 0 15px 10px 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .intensity-control-row .label {
@@ -1605,20 +1508,4 @@ html[data-theme="light"] .workout-segment.active {
     background: var(--power-color);
     border-color: var(--power-color);
     color: #000;
-}
-
-html[data-theme="light"] .intensity-control-row .label {
-    color: #64748b;
-}
-html[data-theme="light"] .intensity-actions .value {
-    color: #1e293b;
-}
-html[data-theme="light"] .btn-intensity {
-    background: #e2e8f0;
-    border-color: #cbd5e1;
-    color: #1e293b;
-}
-html[data-theme="light"] .btn-intensity:hover {
-    background: var(--power-color);
-    color: #fff;
 }

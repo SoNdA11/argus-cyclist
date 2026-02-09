@@ -236,7 +236,7 @@ func (s *RealService) SubscribeStats(dataChan chan domain.Telemetry) error {
 }
 
 func (s *RealService) initializeFEC() {
-	fmt.Println("[BLE] Initializing FEC Protocol (Auuki Style)...")
+	fmt.Println("[BLE] Initializing FEC Protocol...")
 	
 	// 1. User Configuration (Página 55)
 	time.Sleep(1000 * time.Millisecond)
