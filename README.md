@@ -1,10 +1,18 @@
 # Argus Cyclist Simulator
 
-**Argus Cyclist** is an open-source cycling simulator built with **Go (Wails)** and **Mapbox GL JS**. It allows you to connect Smart Trainers via Bluetooth (BLE) and simulate rides in realistic 3D environments based on real GPS data.
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![Go](https://img.shields.io/badge/Backend-Go-00ADD8?logo=go&logoColor=white)
+![Wails](https://img.shields.io/badge/Framework-Wails-red?logo=wails&logoColor=white)
+![JavaScript](https://img.shields.io/badge/Frontend-JavaScript-F7DF1E?logo=javascript&logoColor=black)
+![MapLibre](https://img.shields.io/badge/Map-MapLibre-brightgreen)
+![Node.js](https://img.shields.io/badge/Runtime-Node.js-339933?logo=nodedotjs&logoColor=white)
 
-![Descrição da Imagem](./frontend/screenshots/print-profile.png)
-![Descrição da Imagem](./frontend/screenshots/print-history.png)
-![Descrição da Imagem](./frontend/screenshots/print-2-femmes.png)
+**Argus Cyclist** is a cross-platform open-source software for indoor cycling simulation, offering real-time communication with smart trainers, 3D map visualization, and support for multiple training modes such as free ride and structured workouts.
+
+![Settings](./frontend/screenshots/print3-argus.png)
+![History](./frontend/screenshots/print4-argus.png)
+![Map](./frontend/screenshots/print2-argus.png)
+![Map](./frontend/screenshots/print-argus.png)
 
 ## Simulation & Connectivity
 
@@ -12,7 +20,7 @@
 * **Physics Engine:** Real-time speed calculation based on power (Watts), rider weight, bike weight, rolling resistance, and aerodynamic drag.
 * **Grade Simulation:** The trainer automatically adjusts resistance based on the virtual terrain slope.
 
-### Gamification & Progression (NEW)
+### Gamification & Progression
 
 * **Leveling System:** Earn **XP (Experience Points)** passively by riding.
 * **Dynamic Rewards:** Gain more XP for climbing and covering long distances.
@@ -21,7 +29,7 @@
 
 ### Immersive 3D Map
 
-* **Mapbox Integration:** Uses Mapbox Standard (v3) for realistic terrain and lighting (Dawn, Day, Dusk, Night).
+* **MapLibre Integration:** Powered by MapLibre GL JS with 3D Terrain-RGB for realistic topography. Features a 3D Globe projection with atmospheric fog and high-fidelity Satellite (Esri) or Vector (Day) themes.
 * **Smart Route Rendering:** Route lines change color dynamically based on gradient (Green = Flat/Descent, Red = Steep Climb).
 * **Occlusion System:** The route renders correctly behind 3D buildings for better depth perception.
 * **Smooth Animation:** Interpolated cyclist movement at 60fps, eliminating GPS "jumping".
@@ -36,8 +44,9 @@
 ## Technologies
 
 * **Backend:** Go (Golang)
-* **Frontend:** JavaScript (ES6+), Mapbox GL JS
+* **Frontend:** JavaScript (ES6+), MapLibre GL JS + OSRM
 * **Framework:** Wails (to create the native desktop application)
+* **Database:** SQLite (for local user data)
 
 ## Prerequisites
 
@@ -68,24 +77,18 @@ Before starting, ensure you have installed:
     cd ..
     ```
 
-3. **Token Configuration (Important):**
-    The project uses Mapbox for 3D rendering. You need a free API key.
-
-    * Go to the `frontend/src/` folder.
-    * Duplicate the `config.example.js` file.
-    * Rename the copy to `config.js`.
-    * Edit `config.js` and paste your Mapbox token:
-
-        ```javascript
-        export const CONFIG = {
-            MAPBOX_TOKEN: 'pk.ey...', // Paste your token here
-            // ...
-        }
-        ```
-
 ## How to Run
 
 To start the application in development mode (with Hot Reload):
 
 ```bash
 wails dev
+```
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
