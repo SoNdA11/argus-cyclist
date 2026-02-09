@@ -40,10 +40,6 @@ mapCtrl.init('map-container');
 // Open Settings
 ui.toggleSettings(true);
 
-// Validate Mapbox token
-if (!CONFIG.MAPBOX_TOKEN || !CONFIG.MAPBOX_TOKEN.startsWith('pk.')) {
-    ui.showTokenWarning();
-}
 
 // ==================
 // UI EVENT LISTENERS
