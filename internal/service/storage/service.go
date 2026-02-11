@@ -119,9 +119,15 @@ func (s *Service) SaveActivity(a domain.Activity) error {
 // GetRecentActivities returns the most recent activities,
 // ordered by creation date (descending).
 func (s *Service) GetRecentActivities(limit int) ([]domain.Activity, error) {
-	var activities []domain.Activity
-	result := s.db.Order("created_at desc").Limit(limit).Find(&activities)
-	return activities, result.Error
+    var activities []domain.Activity
+    query := s.db.Order("created_at desc")
+
+    if limit > 0 {
+        query = query.Limit(limit)
+    }
+
+    result := query.Find(&activities)
+    return activities, result.Error
 }
 
 // GetTotalDistance returns the total distance accumulated

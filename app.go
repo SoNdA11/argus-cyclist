@@ -93,8 +93,8 @@ func NewApp() *App {
 		fitService: fit.NewService(),
 		// Initialize physics engine using stored user data
 		physicsEngine: sim.NewEngine(profile.Weight, profile.BikeWeight),
-		trainerService: ble.NewRealService(),
-		//trainerService: ble.NewMockService(),
+		//trainerService: ble.NewRealService(),
+		trainerService: ble.NewMockService(),
 		workoutService: workout.NewService(),
 
 		storageService: store,
@@ -195,8 +195,13 @@ func (a *App) UpdateUserProfile(u domain.UserProfile) string {
 
 // GetActivities returns recent recorded activities.
 func (a *App) GetActivities() []domain.Activity {
-	acts, _ := a.storageService.GetRecentActivities(50)
-	return acts
+    // Passa -1 ou 0 para indicar "sem limite"
+    activities, err := a.storageService.GetRecentActivities(-1) 
+
+    if err != nil {
+        return []domain.Activity{}
+    }
+    return activities
 }
 
 // GetTotalStats returns aggregated statistics.
