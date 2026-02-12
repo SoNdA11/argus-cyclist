@@ -93,8 +93,8 @@ func NewApp() *App {
 		fitService: fit.NewService(),
 		// Initialize physics engine using stored user data
 		physicsEngine: sim.NewEngine(profile.Weight, profile.BikeWeight),
-		//trainerService: ble.NewRealService(),
-		trainerService: ble.NewMockService(),
+		trainerService: ble.NewRealService(),
+		//trainerService: ble.NewMockService(),
 		workoutService: workout.NewService(),
 
 		storageService: store,
