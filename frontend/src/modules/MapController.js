@@ -203,9 +203,9 @@ export class MapController {
     // ROUTE RENDERING
     // ===============
 
-addRouteLayer() {
+    addRouteLayer() {
         if (!this.routeGeoJSON || !this.map) return;
-        
+
         const sourceId = 'route';
         const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
 
@@ -223,10 +223,10 @@ addRouteLayer() {
         if (this.map.getSource(sourceId)) {
             this.map.getSource(sourceId).setData(this.routeGeoJSON);
         } else {
-            this.map.addSource(sourceId, { 
-                type: 'geojson', 
+            this.map.addSource(sourceId, {
+                type: 'geojson',
                 data: this.routeGeoJSON,
-                lineMetrics: true 
+                lineMetrics: true
             });
         }
 
@@ -252,12 +252,12 @@ addRouteLayer() {
         const gradientExpression = [
             'interpolate', ['linear'], ['get', 'grade'],
             -10, '#2ecc71',
-            0,   '#2ecc71',
-            3,   '#f1c40f',
-            6,   '#e67e22',
-            9,   '#e74c3c',
-            12,  '#8e44ad',
-            15,  wallColor
+            0, '#2ecc71',
+            3, '#f1c40f',
+            6, '#e67e22',
+            9, '#e74c3c',
+            12, '#8e44ad',
+            15, wallColor
         ];
 
         if (this.map.getLayer('route')) {
@@ -275,7 +275,7 @@ addRouteLayer() {
                 }
             });
         }
-        
+
         const labels = this.map.getStyle().layers.find(l => l.type === 'symbol');
         if (labels) {
             if (this.map.getLayer('route-outline')) this.map.moveLayer('route-outline', labels.id);
@@ -346,6 +346,28 @@ addRouteLayer() {
         }
     }
 
+    /**
+     * Safely fetches the elevation, avoiding the "RangeError".
+     */
+    getSafeElevation(lng, lat) {
+        // 1. Basic validations
+        if (!this.map || !this.map.getSource('terrain-source')) return 0;
+        if (isNaN(lng) || isNaN(lat)) return 0;
+
+        // 2. Protection against map bounds
+        if (lng < -180 || lng > 180 || lat < -85 || lat > 85) return 0;
+
+        try {
+            // 3. Tries to fetch the elevation
+            const ele = this.map.queryTerrainElevation({ lng, lat });
+            return ele || 0;
+        } catch (e) {
+            // 4. If an error occurs (like RangeError), just warn in the console and return 0
+            console.warn(`Terrain lookup failed for [${lng}, ${lat}]:`, e);
+            return 0;
+        }
+    }
+
     // ============
     // EDITOR LOGIC
     // ============
@@ -361,7 +383,7 @@ addRouteLayer() {
         this.map.getCanvas().style.cursor = '';
     }
 
-   async calculateRouteOSRM(start, end) {
+    async calculateRouteOSRM(start, end) {
         const sLng = parseFloat(start.lng).toFixed(6);
         const sLat = parseFloat(start.lat).toFixed(6);
         const eLng = parseFloat(end.lng).toFixed(6);
@@ -390,13 +412,13 @@ addRouteLayer() {
             const coordinates = route.geometry.coordinates;
 
             console.log("Route found! Points:", coordinates.length);
-            
+
             const enrichedPoints = coordinates.map(coord => {
-                const elevation = this.map.queryTerrainElevation({ lng: coord[0], lat: coord[1] }) || 0;
-                return { 
-                    lat: coord[1], 
-                    lon: coord[0], 
-                    ele: elevation 
+                const elevation = this.getSafeElevation(coord[0], coord[1]);
+                return {
+                    lat: coord[1],
+                    lon: coord[0],
+                    ele: elevation
                 };
             });
 
