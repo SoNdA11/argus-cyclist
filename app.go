@@ -393,6 +393,11 @@ func (a *App) startSession() string {
 	a.sessionTicks = 0
 	a.workoutIntensity = 1.0
 
+	// Clear the .FIT file array from memory to avoid altering routes.
+	if a.fitService != nil {
+		a.fitService.StartSession(a.sessionStart)
+	}
+
 	a.isRecording = true
 	a.isPaused = false
 
@@ -525,6 +530,7 @@ func (a *App) FinishSession() string {
 	// 6. Final cleanup
 	a.isRecording = false
 	a.isPaused = false
+	a.currentDist = 0
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 	return "Finished"
@@ -540,6 +546,8 @@ func (a *App) DiscardSession() string {
 		a.isRecording = false
 		a.isPaused = false
 	}
+
+	a.currentDist = 0
 
 	a.UnloadWorkout()
 
