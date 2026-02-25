@@ -283,8 +283,17 @@ export class MapController {
         }
     }
 
+    resetState() {
+        this.prevLngLat = null;
+        this.lastXPDist = 0;
+        this.followCyclist = true;
+    }
+
     renderRoute(geojson) {
         this.routeGeoJSON = geojson;
+
+        this.resetState();
+        
         if (this.map.loaded()) {
             this.addRouteLayer();
         }
