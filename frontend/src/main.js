@@ -169,6 +169,8 @@ document.getElementById('btnImport').addEventListener('click', async () => {
             if (routePoints.length > 1) {
                 window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
 
+                ui.showRoutePreview(window.totalRouteDistance);
+
                 // Build GeoJSON from route segments
                 const features = [];
                 for (let i = 0; i < routePoints.length - 1; i++) {

@@ -177,6 +177,47 @@ export class UIManager {
         this.els.filename.innerText = "| " + name;
     }
 
+    // =================
+    // ROUTE PREVIEW
+    // =================
+
+    /**
+     * Display route statistics before the ride starts.
+     * @param {number} totalDistance - Total route distance in meters
+     * @param {number} totalElevation - Total elevation gain in meters (optional)
+     */
+    showRoutePreview(totalDistance, totalElevation = 0) {
+        // Reset telemetry values to zero/dash
+        this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
+        this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
+        this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`; // Or miles based on preference
+        this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+
+        // Reset Timer
+        this.els.time.innerText = `00:00:00`;
+
+        // Set the Total Distance
+        const distObj = this.formatDist(totalDistance);
+        this.els.dist.innerHTML = `0.0<span class="data-unit">${distObj.unit}</span>`; // Start at 0
+
+        // Set the Remaining Distance to the Total Distance
+        const remObj = this.formatDist(totalDistance);
+        this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit}</span>`;
+
+        // If you have a specific UI element for Elevation, update it here.
+        // For example, if you added: this.els.elevation = document.getElementById('total-elevation');
+        // if (this.els.elevation) {
+        //     this.els.elevation.innerHTML = `${totalElevation.toFixed(0)}<span class="data-unit">m</span>`;
+        // }
+
+        // Reset Cursor
+        if (this.els.cursor) {
+            this.els.cursor.style.left = '0%';
+        }
+    }
+
     // ===========
     // TIMER LOGIC
     // ===========
