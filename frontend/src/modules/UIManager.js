@@ -36,6 +36,7 @@ export class UIManager {
             hr: document.getElementById('hr'),
             rpm: document.getElementById('rpm'),
             grade: document.getElementById('grade'),
+            elevation: document.getElementById('elevation'),
             dist: document.getElementById('dist'),
             speed: document.getElementById('speed'),
             time: document.getElementById('time'),
@@ -153,6 +154,16 @@ export class UIManager {
         const distObj = this.formatDist(data.total_dist);
         this.els.dist.innerHTML = `${distObj.val}<span class="data-unit">${distObj.unit}</span>`;
 
+        // Elevation Gain (unit-aware and NaN-safe)
+        if (this.els.elevation) {
+            const accumulatedGain = data.elevation_gain || 0;
+            const isImperial = this.units === 'imperial';
+            const eleVal = isImperial ? (accumulatedGain * 3.28084) : accumulatedGain;
+            const eleUnit = isImperial ? 'ft' : 'm';
+
+            this.els.elevation.innerHTML = `${Math.round(eleVal)}<span class="data-unit">${eleUnit}</span>`;
+        }
+
         // Watts per kilogram
         const totalWeight = this.riderWeight;
         const wkgVal = (data.power / totalWeight).toFixed(2);
@@ -192,6 +203,12 @@ export class UIManager {
         this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
         this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
         this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
+
+        if (this.els.elevation) {
+            const eleUnit = this.units === 'imperial' ? 'ft' : 'm';
+            this.els.elevation.innerHTML = `0<span class="data-unit">${eleUnit}</span>`;
+        }
+
         this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`; // Or miles based on preference
         this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
 
