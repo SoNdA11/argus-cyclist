@@ -68,6 +68,7 @@ type App struct {
 	// Session metadata
 	currentRouteName string    // Selected GPX route name
 	sessionStart     time.Time // Session start time (for duration calculation)
+	sessionActiveTime float64
 	sessionPowerSum  uint64    // Sum of power samples (for average power)
 	sessionTicks     int       // Number of power samples
 	sessionPowerData []int
@@ -389,6 +390,7 @@ func (a *App) startSession() string {
 	a.sessionPowerData = []int{}
 	a.currentDist = 0
 	a.sessionStart = time.Now()
+	a.sessionActiveTime = 0
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.workoutIntensity = 1.0
@@ -455,8 +457,7 @@ func (a *App) FinishSession() string {
 	}
 
 	// 2. Calculate session statistics (with safety checks)
-	duration := time.Since(a.sessionStart)
-	durationSec := duration.Seconds()
+	durationSec := a.sessionActiveTime
 
 	avgPower := 0
 	if a.sessionTicks > 0 {
@@ -626,6 +627,8 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			dt := now.Sub(lastUpdate).Seconds()
 			lastUpdate = now
 
+			a.sessionActiveTime += dt
+
 			if a.isRecording {
 				a.sessionPowerSum += uint64(currentPower)
 				a.sessionTicks++
@@ -664,7 +667,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 					currentMode = "ERG"
 				}
 
-				elapsed := time.Since(a.sessionStart).Seconds()
+				elapsed := a.sessionActiveTime
 				timeAccumulator := 0.0
 
 				// Discover which segment we are in.
