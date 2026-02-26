@@ -66,13 +66,15 @@ type App struct {
 	cancelSim     context.CancelFunc
 
 	// Session metadata
-	currentRouteName string    // Selected GPX route name
-	sessionStart     time.Time // Session start time (for duration calculation)
-	sessionActiveTime float64
-	sessionPowerSum  uint64    // Sum of power samples (for average power)
-	sessionTicks     int       // Number of power samples
-	sessionPowerData []int
-	simPower         int16
+	currentRouteName     string    // Selected GPX route name
+	sessionStart         time.Time // Session start time (for duration calculation)
+	sessionActiveTime    float64
+	sessionPowerSum      uint64 // Sum of power samples (for average power)
+	sessionTicks         int    // Number of power samples
+	sessionPowerData     []int
+	simPower             int16
+	sessionElevationGain float64
+	lastAltitude         float64
 }
 
 type ExportPoint struct {
@@ -196,13 +198,12 @@ func (a *App) UpdateUserProfile(u domain.UserProfile) string {
 
 // GetActivities returns recent recorded activities.
 func (a *App) GetActivities() []domain.Activity {
-    // Passa -1 ou 0 para indicar "sem limite"
-    activities, err := a.storageService.GetRecentActivities(-1) 
+	activities, err := a.storageService.GetRecentActivities(-1)
 
-    if err != nil {
-        return []domain.Activity{}
-    }
-    return activities
+	if err != nil {
+		return []domain.Activity{}
+	}
+	return activities
 }
 
 // GetTotalStats returns aggregated statistics.
@@ -394,6 +395,8 @@ func (a *App) startSession() string {
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.workoutIntensity = 1.0
+	a.sessionElevationGain = 0.0
+	a.lastAltitude = -9999.0
 
 	// Clear the .FIT file array from memory to avoid altering routes.
 	if a.fitService != nil {
@@ -753,6 +756,11 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
 			a.currentDist += speedMs * dt
 
+			if a.lastAltitude != -9999.0 && routePoint.Elevation > a.lastAltitude {
+				a.sessionElevationGain += (routePoint.Elevation - a.lastAltitude)
+			}
+			a.lastAltitude = routePoint.Elevation
+
 			// End of Route Check (only if a route is loaded)
 			if totalRouteDistance > 0 && a.currentDist >= totalRouteDistance {
 				a.currentDist = totalRouteDistance
@@ -770,6 +778,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				Timestamp: now, Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
+				ElevationGain: a.sessionElevationGain,
 			}
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
