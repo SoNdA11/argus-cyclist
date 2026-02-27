@@ -703,7 +703,7 @@ footer {
 .history-header {
     font-weight: bold;
     color: var(--argus-text-dim);
-    background-color: #3b2e1e;
+    background-color: #1e293b;
     z-index: 10;
     border-bottom: 2px solid var(--border-color);
     position: sticky;
