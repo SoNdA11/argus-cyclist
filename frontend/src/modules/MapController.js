@@ -209,6 +209,7 @@ export class MapController {
         const sourceId = 'route';
         const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
 
+        const istactical = currentTheme === 'tactical';
         const isSatellite = currentTheme === 'satellite';
 
         const outlineColor = isSatellite ? '#ffffff' : '#000000';
@@ -230,6 +231,19 @@ export class MapController {
             });
         }
 
+        const gradientExpression = [
+            'interpolate', ['linear'], ['get', 'grade'],
+            -10, '#2ecc71',
+            0, '#2ecc71',
+            3, '#f1c40f',
+            6, '#e67e22',
+            9, '#e74c3c',
+            12, '#8e44ad',
+            15, wallColor
+        ];
+
+        const routeColor = gradientExpression;
+
         if (this.map.getLayer('route-outline')) {
             this.map.setPaintProperty('route-outline', 'line-color', outlineColor);
             this.map.setPaintProperty('route-outline', 'line-opacity', outlineOpacity);
@@ -249,28 +263,21 @@ export class MapController {
             });
         }
 
-        const gradientExpression = [
-            'interpolate', ['linear'], ['get', 'grade'],
-            -10, '#2ecc71',
-            0, '#2ecc71',
-            3, '#f1c40f',
-            6, '#e67e22',
-            9, '#e74c3c',
-            12, '#8e44ad',
-            15, wallColor
-        ];
-
         if (this.map.getLayer('route')) {
-            this.map.setPaintProperty('route', 'line-color', gradientExpression);
+            this.map.setPaintProperty('route', 'line-color', routeColor);
+            this.map.setPaintProperty('route', 'line-width', istactical ? 8 : 6);
         } else {
             this.map.addLayer({
                 id: 'route',
                 type: 'line',
                 source: sourceId,
-                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                layout: {
+                    'line-join': istactical ? 'miter' : 'round',
+                    'line-cap': istactical ? 'square' : 'round'
+                },
                 paint: {
-                    'line-width': 6,
-                    'line-color': gradientExpression,
+                    'line-width': istactical ? 8 : 6,
+                    'line-color': routeColor,
                     'line-opacity': 1.0
                 }
             });
@@ -293,7 +300,7 @@ export class MapController {
         this.routeGeoJSON = geojson;
 
         this.resetState();
-        
+
         if (this.map.loaded()) {
             this.addRouteLayer();
         }

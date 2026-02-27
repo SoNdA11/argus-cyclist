@@ -47,21 +47,22 @@ body {
 }
 
 
-/* SATELLITE THEME (High Performance Mode) */
+/* ================
+   THEME: SATELLITE
+   ================ */
 :root[data-theme="satellite"] {
-    --bg-app: #000000;
-    --panel-bg: rgba(10, 10, 10, 0.9);
-    /* Solid (NO BLUR) */
-    --text-main: #ffffff;
-    --text-muted: #cccccc;
-    --border-color: rgba(255, 255, 255, 0.2);
-    --power-color: #00e5ff;
-    --chart-bg: rgba(0, 0, 0, 0.5);
-    --chart-fill: rgba(255, 255, 255, 0.2);
-    --chart-cursor: #ff0000;
-    --marker-bg: #00e5ff;
+    --bg-app: #0f1115;
+    --panel-bg: rgba(20, 24, 30, 0.85);
+    --text-main: #e0e6ed;
+    --text-muted: #94a3b8;
+    --border-color: #1e293b;
+    --power-color: #38bdf8;
+    --chart-bg: #1e293b;
+    --chart-fill: rgba(56, 189, 248, 0.15);
+    --chart-cursor: #ef4444;
+    --marker-bg: #38bdf8;
     --marker-border: #ffffff;
-    --marker-glow: rgba(0, 229, 255, 0.8);
+    --marker-glow: rgba(56, 189, 248, 0.8);
 }
 
 /* GLOBAL CONSTANTS */
@@ -427,10 +428,6 @@ footer {
    4. UTILITIES
    ========================================= */
 
-.hidden {
-    display: none !important;
-}
-
 .mt-auto {
     margin-top: auto;
 }
@@ -544,6 +541,7 @@ footer {
 .modal-actions {
     display: flex;
     justify-content: flex-end;
+    margin-top: 20px;
 }
 
 /* Confirmation Modal */
@@ -671,21 +669,26 @@ footer {
     height: 250px;
     max-height: 35vh;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    background: var(--panel-bg);
+    border-radius: 12px;
     padding: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
 }
 
 .history-item {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 40px;
-    padding: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 14px;
     font-size: 0.9rem;
     align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s ease;
+}
+
+.history-item:hover {
+    background: #f1f5f9;
 }
 
 .history-header.history-item {
@@ -700,7 +703,7 @@ footer {
 .history-header {
     font-weight: bold;
     color: var(--argus-text-dim);
-    background-color: #1e293b;
+    background-color: #3b2e1e;
     z-index: 10;
     border-bottom: 2px solid var(--border-color);
     position: sticky;
@@ -726,6 +729,39 @@ footer {
 
 .stat-box strong {
     font-size: 1.4rem;
+    color: var(--argus-safe);
+}
+
+.stat-summary {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    transition: all 0.2s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.stat-box small {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-box strong {
+    font-size: 1.8rem;
     color: var(--argus-safe);
 }
 
@@ -940,29 +976,53 @@ footer {
     border-radius: 4px;
 }
 
-/* SATELLITE THEME */
-:root[data-theme="satellite"] {
-    --bg-app: #000000;
-    --panel-bg: rgba(0, 0, 0, 0.6);
-    --text-main: #ffffff;
-    --text-muted: #e2e8f0;
-    --border-color: rgba(255, 255, 255, 0.3);
+/* ==========
+   THEME: DAY
+   ========== */
+:root[data-theme="day"] {
+    --bg-app: #f8fafc;
+    --panel-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+
     --power-color: #38bdf8;
+
+    --chart-bg: #f1f5f9;
+    --chart-fill: #cbd5e1;
+    --chart-cursor: #ef4444;
+
     --marker-bg: #38bdf8;
     --marker-border: #ffffff;
-    --marker-glow: rgba(56, 189, 248, 0.8);
+    --marker-glow: rgba(22, 163, 74, 0.3);
+
+    --argus-safe: #22c55e;
+    --argus-alert: #dc2626;
+    --grade-color: #f59e0b;
+    --hr-color: #e11d48;
 }
 
-:root[data-theme="day"] {
-    --bg-app: #000000;
-    --panel-bg: rgba(0, 0, 0, 0.6);
-    --text-main: #ffffff;
-    --text-muted: #e2e8f0;
-    --border-color: rgba(255, 255, 255, 0.3);
-    --power-color: #38bdf8;
-    --marker-bg: #38bdf8;
-    --marker-border: #ffffff;
-    --marker-glow: rgba(56, 189, 248, 0.8);
+html[data-theme="day"] .hud-sidebar,
+html[data-theme="day"] header,
+html[data-theme="day"] footer {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-theme="day"] .history-list {
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+html[data-theme="day"] .history-header {
+    background-color: transparent;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border-color);
+}
+
+html[data-theme="day"] .history-item {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
 }
 
 .compact-profile {
@@ -1508,4 +1568,33 @@ footer {
     background: var(--power-color);
     border-color: var(--power-color);
     color: #000;
+}
+
+/* 
+=============
+TACTICAL BLUE
+=============
+*/
+
+:root[data-theme="tactical"] {
+    --bg-app: #0f1115;
+    --panel-bg: rgba(20, 24, 30, 0.85);
+    --text-main: #e0e6ed;
+    --text-muted: #94a3b8;
+    --border-color: #1a1a1a;
+
+    --power-color: #38bdf8; 
+
+    --chart-bg: #000000;
+    --chart-fill: rgba(0, 136, 255, 0.15);
+    --chart-cursor: #ef4444;
+
+    --marker-bg: #38bdf8;
+    --marker-border: #000000;
+    --marker-glow: rgba(0, 136, 255, 0.4);
+
+    --argus-safe: #22c55e;
+    --argus-alert: #ff003c;
+    --grade-color: #fbbf24;
+    --hr-color: #f472b6;
 }
