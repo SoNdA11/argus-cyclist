@@ -44,11 +44,13 @@ export const CONFIG = {
     STYLES: [
         ESRI_SATELLITE_STYLE,
         'https://tiles.openfreemap.org/styles/liberty',
+        'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json'
     ],
 
     THEMES: [
         'satellite',
         'day',
+        'tactical',
     ],
 
     TERRAIN_SOURCE: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json'
