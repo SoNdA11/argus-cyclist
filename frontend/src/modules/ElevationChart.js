@@ -51,12 +51,12 @@ export class ElevationChart {
     }
 
     draw() {
-        if (this.isPaused || !this.data || this.data.length === 0) return;
-
         const w = this.canvas.width = this.canvas.parentElement.offsetWidth;
         const h = this.canvas.height = this.canvas.parentElement.offsetHeight;
 
         this.ctx.clearRect(0, 0, w, h);
+
+        if (this.isPaused || !this.data || this.data.length === 0) return;
 
         const maxEle = Math.max(...this.data);
         const minEle = Math.min(...this.data);
