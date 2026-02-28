@@ -61,11 +61,21 @@ export class MapController {
             this.addRouteLayer();
 
             if (this.editorMode) this.setupEditorLayers();
+
+            // Adiciona o efeito visual de passar o mouse sobre a linha no modo editor
+            this.map.on('mouseenter', 'editor-route', () => { if (this.editorMode) this.map.getCanvas().style.cursor = 'copy'; });
+            this.map.on('mouseleave', 'editor-route', () => { if (this.editorMode) this.map.getCanvas().style.cursor = 'crosshair'; });
         });
 
         this.map.on('style.load', () => {
             this.setup3DEnvironment();
             this.addRouteLayer();
+            // === NOVO: Restaura a linha vermelha do Editor ===
+            if (this.editorMode && this.generatedRouteData && this.generatedRouteData.length > 0) {
+                // Converte os dados salvos de volta para o formato [lng, lat] que o mapa exige
+                const coords = this.generatedRouteData.map(p => [p.lon, p.lat]);
+                this.drawEditorRoute(coords);
+            }
         });
 
         this.map.on('click', (e) => {
@@ -366,19 +376,15 @@ export class MapController {
      * Safely fetches the elevation, avoiding the "RangeError".
      */
     getSafeElevation(lng, lat) {
-        // 1. Basic validations
         if (!this.map || !this.map.getSource('terrain-source')) return 0;
         if (isNaN(lng) || isNaN(lat)) return 0;
-
-        // 2. Protection against map bounds
         if (lng < -180 || lng > 180 || lat < -85 || lat > 85) return 0;
 
         try {
-            // 3. Tries to fetch the elevation
-            const ele = this.map.queryTerrainElevation({ lng, lat });
+            // MapLibre handles the Array [lng, lat] format best for querying the 3D mesh.
+            const ele = this.map.queryTerrainElevation([lng, lat]);
             return ele || 0;
         } catch (e) {
-            // 4. If an error occurs (like RangeError), just warn in the console and return 0
             console.warn(`Terrain lookup failed for [${lng}, ${lat}]:`, e);
             return 0;
         }
@@ -397,58 +403,178 @@ export class MapController {
     disableEditorMode() {
         this.editorMode = false;
         this.map.getCanvas().style.cursor = '';
+
+        // 1. Clears screen markers
+        this.editorMarkers.forEach(m => m.remove());
+        this.editorMarkers = [];
+        this.editorPoints = [];
+
+        // 2. Temporarily clears saved data.
+        this.generatedRouteData = null;
+
+        // 3. Delete the red line from the map by injecting an empty GeoJSON.
+        if (this.map.getSource('editor-route')) {
+            this.map.getSource('editor-route').setData({
+                type: 'FeatureCollection',
+                features: []
+            });
+        }
+
+        // LIMPA O GRÁFICO AO CANCELAR
+        if (window.chart) {
+            window.chart.setData([]);
+        }
     }
 
-    async calculateRouteOSRM(start, end) {
-        const sLng = parseFloat(start.lng).toFixed(6);
-        const sLat = parseFloat(start.lat).toFixed(6);
-        const eLng = parseFloat(end.lng).toFixed(6);
-        const eLat = parseFloat(end.lat).toFixed(6);
+    // Returns the data with the calculated elevation so the UIManager can save it.
+    getGeneratedRoute() {
+        return this.generatedRouteData || [];
+    }
 
-        const url = `https://router.project-osrm.org/route/v1/driving/${sLng},${sLat};${eLng},${eLat}?overview=full&geometries=geojson`;
-
-        console.log("Trying to connect to:", url);
+async calculateRouteOSRM(pointsArray) {
+        const coordsString = pointsArray.map(p => `${parseFloat(p.lng).toFixed(6)},${parseFloat(p.lat).toFixed(6)}`).join(';');
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
 
         try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
-            }
+            const response = await fetch(osrmUrl);
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
             const data = await response.json();
-
             if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-                console.warn("Invalid OSRM response:", data);
-                alert("Route not found. Try points closer to a road.");
+                console.warn("Route not found.");
                 return;
             }
 
             const route = data.routes[0];
             const coordinates = route.geometry.coordinates;
 
-            console.log("Route found! Points:", coordinates.length);
+            const elevationLocations = coordinates.map(c => ({ latitude: c[1], longitude: c[0] }));
 
-            const enrichedPoints = coordinates.map(coord => {
-                const elevation = this.getSafeElevation(coord[0], coord[1]);
-                return {
-                    lat: coord[1],
-                    lon: coord[0],
-                    ele: elevation
-                };
+            let elevationData = null;
+            try {
+                const elevResponse = await fetch('https://api.open-elevation.com/api/v1/lookup', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ locations: elevationLocations })
+                });
+
+                if (elevResponse.ok) {
+                    const elevResult = await elevResponse.json();
+                    elevationData = elevResult.results;
+                }
+            } catch (elevError) {
+                console.warn("External lift API failed.", elevError);
+            }
+
+            const rawPoints = coordinates.map((coord, index) => {
+                let currentElevation = 0;
+                if (elevationData && elevationData[index]) {
+                    currentElevation = elevationData[index].elevation;
+                } else {
+                    currentElevation = this.map.queryTerrainElevation([coord[0], coord[1]]) || 0;
+                }
+                return { lat: coord[1], lon: coord[0], ele: currentElevation };
             });
 
-            this.generatedRouteData = enrichedPoints;
+            const smoothedPoints = rawPoints.map((p, i, arr) => {
+                let start = Math.max(0, i - 2);
+                let end = Math.min(arr.length - 1, i + 2);
+                let sum = 0;
+                for (let j = start; j <= end; j++) {
+                    sum += arr[j].ele;
+                }
+                return { ...p, ele: sum / (end - start + 1) };
+            });
+
+            let totalElevationGain = 0;
+            let previousElevation = null;
+
+            smoothedPoints.forEach(p => {
+                if (previousElevation !== null) {
+                    const diff = p.ele - previousElevation;
+                    if (diff > 0.2) totalElevationGain += diff;
+                }
+                previousElevation = p.ele;
+            });
+
+            this.generatedRouteData = smoothedPoints;
 
             if (document.getElementById('editorDist')) {
                 document.getElementById('editorDist').innerText = (route.distance / 1000).toFixed(2) + " km";
+            }
+            if (document.getElementById('editorElev')) {
+                document.getElementById('editorElev').innerText = totalElevationGain.toFixed(0) + " m";
+            }
+
+            if (window.chart) {
+                const elevationsOnly = smoothedPoints.map(p => p.ele);
+                window.chart.setData(elevationsOnly);
             }
 
             this.drawEditorRoute(coordinates);
 
         } catch (e) {
-            console.error("OSRM ERROR DETAILS:", e);
-            alert(`Error plotting route: ${e.message}. Check the Console (F12) for details.`);
+            console.error("OSRM ERROR:", e);
+        }
+    }
+
+    async handleEditorClick(e) {
+        if (!this.editorMode) return;
+
+        const coord = e.lngLat;
+        const features = this.map.queryRenderedFeatures(e.point, { layers: ['editor-route'] });
+        const clickedOnLine = features.length > 0;
+
+        const isFirst = this.editorPoints.length === 0;
+        const color = isFirst ? '#00ff00' : '#ff0000';
+
+        const el = document.createElement('div');
+        el.className = 'editor-marker';
+        el.style.backgroundColor = color;
+        el.style.width = '16px';
+        el.style.height = '16px';
+        el.style.borderRadius = '50%';
+        el.style.border = '3px solid white';
+        el.style.boxShadow = '0 0 8px rgba(0,0,0,0.6)';
+        el.style.cursor = 'grab';
+
+        const marker = new maplibregl.Marker({ element: el, draggable: true })
+            .setLngLat(coord)
+            .addTo(this.map);
+
+        marker.on('dragend', async () => {
+            this.editorPoints = this.editorMarkers.map(m => m.getLngLat());
+            if (this.editorPoints.length >= 2) await this.calculateRouteOSRM(this.editorPoints);
+        });
+
+        // === NOVO: LÓGICA DE INSERÇÃO INTELIGENTE ===
+        if (clickedOnLine && this.editorPoints.length >= 2) {
+            // Se clicou na linha, encontra o segmento mais próximo para inserir o ponto no meio do array
+            let bestIndex = 1;
+            let minIncrease = Infinity;
+            const distance = (p1, p2) => Math.hypot(p1.lng - p2.lng, p1.lat - p2.lat);
+
+            for (let i = 0; i < this.editorPoints.length - 1; i++) {
+                const p1 = this.editorPoints[i];
+                const p2 = this.editorPoints[i + 1];
+                // Compara a distância direta vs distância passando pelo novo ponto
+                const increase = distance(p1, coord) + distance(coord, p2) - distance(p1, p2);
+
+                if (increase < minIncrease) {
+                    minIncrease = increase;
+                    bestIndex = i + 1; // O índice exato para "partir" a linha
+                }
+            }
+            // Insere o novo ponto e marcador na posição correta do array
+            this.editorPoints.splice(bestIndex, 0, coord);
+            this.editorMarkers.splice(bestIndex, 0, marker);
+        } else {
+            this.editorPoints.push(coord);
+            this.editorMarkers.push(marker);
+        }
+
+        if (this.editorPoints.length >= 2) {
+            await this.calculateRouteOSRM(this.editorPoints);
         }
     }
 
@@ -478,42 +604,6 @@ export class MapController {
                     'line-width': 4
                 }
             });
-        }
-    }
-
-    async handleEditorClick(e) {
-        if (!this.editorMode) return;
-
-        if (this.editorPoints.length >= 2) {
-            this.editorPoints = [];
-            this.editorMarkers.forEach(m => m.remove());
-            this.editorMarkers = [];
-            if (this.map.getSource('editor-route')) {
-                this.map.getSource('editor-route').setData({ type: 'FeatureCollection', features: [] });
-            }
-        }
-
-        const coord = e.lngLat;
-        this.editorPoints.push(coord);
-
-        const color = this.editorPoints.length === 1 ? '#00ff00' : '#ff0000';
-        const el = document.createElement('div');
-        el.className = 'editor-marker';
-        el.style.backgroundColor = color;
-        el.style.width = '15px';
-        el.style.height = '15px';
-        el.style.borderRadius = '50%';
-        el.style.border = '2px solid white';
-        el.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
-
-        const marker = new maplibregl.Marker({ element: el })
-            .setLngLat(coord)
-            .addTo(this.map);
-
-        this.editorMarkers.push(marker);
-
-        if (this.editorPoints.length === 2) {
-            await this.calculateRouteOSRM(this.editorPoints[0], this.editorPoints[1]);
         }
     }
 }
