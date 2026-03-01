@@ -9,10 +9,15 @@
 
 **Argus Cyclist** is a cross-platform open-source software for indoor cycling simulation, offering real-time communication with smart trainers, 3D map visualization, and support for multiple training modes such as free ride and structured workouts.
 
-![Settings](./frontend/screenshots/print3-argus.png)
-![History](./frontend/screenshots/print4-argus.png)
-![Map](./frontend/screenshots/print2-argus.png)
-![Map](./frontend/screenshots/print-argus.png)
+## Screenshots
+
+| Virtual Ride & HUD | Profile and Devices |
+| :---: | :---: |
+| <img src="./frontend/screenshots/print-5-argus-cyclist.png" width="400" alt="Dashboard"/> | <img src="./frontend/screenshots/pr-2-argus-cyclist.png" width="400" alt="Profile"/> |
+| **History and Stats** | **Dark Theme** |
+| <img src="./frontend/screenshots/pr-3-argus-cyclist.png" width="400" alt="History"/> | <img src="./frontend/screenshots/pr-4-argus-cyclist.png" width="400" alt="Dark Theme"/> |
+| **Workout Plan** | **Route Creator** |
+| <img src="./frontend/screenshots/pr-6-argus-cyclist.png" width="400" alt="Workout"/> | <img src="./frontend/screenshots/pr-7-argus-cyclist.png" width="400" alt="Route Creator"/> |
 
 ## Simulation & Connectivity
 
