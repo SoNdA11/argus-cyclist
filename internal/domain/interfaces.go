@@ -27,6 +27,9 @@ type TrainerService interface {
 	// ConnectHR connects ONLY to the Heart Rate Monitor
 	ConnectHR(onStatus func(string, string)) error
 
+	// Disconnect only the HR at the hardware level
+	DisconnectHR()
+
 	// SubscribeStats starts reading data from connected devices
 	SubscribeStats(dataChan chan Telemetry) error
 

@@ -95,7 +95,7 @@ func NewApp() *App {
 		gpxService: gpx.NewService(),
 		fitService: fit.NewService(),
 		// Initialize physics engine using stored user data
-		physicsEngine: sim.NewEngine(profile.Weight, profile.BikeWeight),
+		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight),
 		trainerService: ble.NewRealService(),
 		//trainerService: ble.NewMockService(),
 		workoutService: workout.NewService(),
@@ -322,11 +322,13 @@ func (a *App) ToggleAlwaysOnTop(on bool) {
 	runtime.WindowSetAlwaysOnTop(a.ctx, on)
 }
 
-// ConnectTrainer connects to the smart trainer via BLE.
+// ConnectTrainer connects to the smart trainer via real BLE hardware.
 func (a *App) ConnectTrainer() (string, error) {
-	if a.isTrainerConnected {
-		return "Trainer Already Connected", nil
+	if a.isTrainerConnected && a.trainerService != nil {
+		a.trainerService.Disconnect() 
 	}
+
+	a.trainerService = ble.NewRealService()
 
 	statusCallback := func(stage string, data string) {
 		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
@@ -338,6 +340,39 @@ func (a *App) ConnectTrainer() (string, error) {
 
 	a.isTrainerConnected = true
 	return "Trainer Connected", nil
+}
+
+// ConnectVirtualTrainer overrides the real BLE service with a mock generator
+// to allow software testing and presentation without physical hardware.
+func (a *App) ConnectVirtualTrainer() (string, error) {
+	if a.isTrainerConnected {
+		// If something is already connected (real or another mock), disconnect it first.
+		a.trainerService.Disconnect()
+	}
+
+	// // Injects the Mock (Virtual Trainer) dependency.
+	a.trainerService = ble.NewMockService()
+
+	statusCallback := func(stage string, data string) {
+		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
+	}
+
+	if err := a.trainerService.ConnectTrainer(statusCallback); err != nil {
+		return "Simulator Error", err
+	}
+
+	a.isTrainerConnected = true
+	return "Simulator Active", nil
+}
+
+// DisconnectTrainer explicitly disconnects the active trainer (real or virtual)
+// allowing the user to switch between simulation and real hardware.
+func (a *App) DisconnectTrainer() string {
+	if a.isTrainerConnected && a.trainerService != nil {
+		a.trainerService.Disconnect()
+		a.isTrainerConnected = false
+	}
+	return "Disconnected"
 }
 
 // ConnectHeartRate connects to a heart rate monitor.
@@ -356,6 +391,16 @@ func (a *App) ConnectHeartRate() (string, error) {
 
 	a.isHRConnected = true
 	return "HR Monitor Connected", nil
+}
+
+// DisconnectHeartRate explicitly disconnects the HR monitor at the hardware level.
+func (a *App) DisconnectHeartRate() string {
+	if a.isHRConnected && a.trainerService != nil {
+		// Agora sim, manda a antena Bluetooth cortar a conexão!
+		a.trainerService.DisconnectHR() 
+		a.isHRConnected = false
+	}
+	return "Disconnected"
 }
 
 // =================

@@ -386,3 +386,12 @@ func parseHR(buf []byte) uint8 {
 	if buf[0]&0x01 == 0 { return buf[1] }
 	return buf[1]
 }
+
+// DisconnectHR explicitly drops the Bluetooth connection with the HR monitor
+func (s *RealService) DisconnectHR() {
+	if s.hrDevice != nil {
+		s.hrDevice.Disconnect()
+		s.hrDevice = nil
+		fmt.Println("[BLE] HR Device Disconnected")
+	}
+}
