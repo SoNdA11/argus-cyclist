@@ -18,12 +18,24 @@ export function ConnectTrainer() {
   return window['go']['main']['App']['ConnectTrainer']();
 }
 
+export function ConnectVirtualTrainer() {
+  return window['go']['main']['App']['ConnectVirtualTrainer']();
+}
+
 export function DiscardSession() {
   return window['go']['main']['App']['DiscardSession']();
 }
 
 export function DisconnectDevice() {
   return window['go']['main']['App']['DisconnectDevice']();
+}
+
+export function DisconnectHeartRate() {
+  return window['go']['main']['App']['DisconnectHeartRate']();
+}
+
+export function DisconnectTrainer() {
+  return window['go']['main']['App']['DisconnectTrainer']();
 }
 
 export function FinishSession() {

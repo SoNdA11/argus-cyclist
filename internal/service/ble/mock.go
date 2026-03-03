@@ -98,3 +98,7 @@ func (m *MockService) SubscribeStats(ch chan domain.Telemetry) error {
 	}()
 	return nil
 }
+
+func (m *MockService) DisconnectHR() {
+	m.currentHR = 0
+}

@@ -12,9 +12,15 @@ export function ConnectHeartRate():Promise<string>;
 
 export function ConnectTrainer():Promise<string>;
 
+export function ConnectVirtualTrainer():Promise<string>;
+
 export function DiscardSession():Promise<string>;
 
 export function DisconnectDevice():Promise<string>;
+
+export function DisconnectHeartRate():Promise<string>;
+
+export function DisconnectTrainer():Promise<string>;
 
 export function FinishSession():Promise<string>;
 
