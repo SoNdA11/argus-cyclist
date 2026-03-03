@@ -298,6 +298,19 @@ document.getElementById('btnLoadWorkout').addEventListener('click', async () => 
 // RECORDING CONTROLS
 // ==================
 
+// Isolated function to centralize the session finish logic
+async function finishWorkout() {
+    isFinishTriggered = true;
+    isRecording = false;
+    try {
+        await window.go.main.App.FinishSession();
+        ui.showFinishModal();
+    } catch (e) {
+        console.error("Error saving workout:", e);
+        alert("Error when saving: " + e);
+    }
+}
+
 document.getElementById('btnAction').addEventListener('click', async () => {
     try {
         if (!isRecording) {
@@ -321,9 +334,7 @@ document.getElementById('btnResume').addEventListener('click', async () => {
 });
 
 document.getElementById('btnFinishSave').addEventListener('click', async () => {
-    await window.go.main.App.FinishSession();
-    ui.setRecordingState('IDLE');
-    isRecording = false;
+    await finishWorkout();
 });
 
 document.getElementById('btnDiscard').addEventListener('click', async () => {
@@ -405,16 +416,4 @@ if (window.runtime) {
             }
         }
     });
-
-    async function finishWorkout() {
-        isFinishTriggered = true;
-        isRecording = false;
-        try {
-            await window.go.main.App.FinishSession();
-            ui.showFinishModal();
-        } catch (e) {
-            console.error("Error saving workout:", e);
-            alert("Error when saving: " + e);
-        }
-    }
 }
