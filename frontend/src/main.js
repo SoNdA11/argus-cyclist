@@ -411,7 +411,7 @@ if (window.runtime) {
         mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
 
         if (isRecording && totalRouteDistance > 0 && !isFinishTriggered) {
-            if (data.total_dist >= totalRouteDistance - 20) {
+            if (data.total_dist >= totalRouteDistance) {
                 finishWorkout();
             }
         }
