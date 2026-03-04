@@ -42,13 +42,21 @@ window.totalRouteDistance = 0;
 let isRecording = false;
 let isFinishTriggered = false;
 
-window.closeWorkout = () => {
-    if (isRecording) {
-        if (confirm("Stop current workout?")) {
-            window.go.main.App.DiscardSession();
+window.closeWorkout = async () => {
+    if (confirm("Stop the structured workout and return to Free Ride?")) {
+        
+        if (typeof workoutCtrl !== 'undefined') {
+            workoutCtrl.hide();
         }
-    } else {
-        workoutCtrl.close();
+
+        // Notify the backend to stop ERG Mode and return to normal simulation (SIM)
+        if (window.go && window.go.main && window.go.main.App) {
+            try {
+                await window.go.main.App.SetTrainerMode('SIM');
+            } catch (e) {
+                console.error("Error returning to SIM mode:", e);
+            }
+        }
     }
 };
 
