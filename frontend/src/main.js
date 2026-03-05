@@ -109,69 +109,135 @@ document.getElementById('btnOpenSettings').addEventListener('click', () => {
 // DEVICE CONNECTIONS
 // ==================
 
-// REAL TRAINER CONNECTION
+// ---------------------------
+// SMART TRAINER (REAL)
+// ---------------------------
+
+// 1. SCAN TRAINERS
+document.getElementById('btnScanTrainer').addEventListener('click', async () => {
+    const btnScan = document.getElementById('btnScanTrainer');
+    const btnConn = document.getElementById('btnConnTrainer');
+    const list = document.getElementById('trainerList');
+    const status = document.getElementById('statusTrainer');
+
+    btnScan.innerText = "⏳";
+    btnScan.disabled = true;
+    status.innerText = "Scanning...";
+
+    try {
+        const devices = await window.go.main.App.ScanTrainers();
+        
+        list.innerHTML = '<option value="">Select device...</option>';
+        
+        if (devices && devices.length > 0) {
+            devices.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.address; // MAC Address
+                opt.text = d.name;     // Nome
+                list.appendChild(opt);
+            });
+            list.classList.remove('hidden');
+            btnConn.classList.remove('hidden');
+            btnScan.classList.add('hidden');
+            status.innerText = "Select a device";
+        } else {
+            status.innerText = "No devices found";
+            btnScan.innerText = "🔍";
+            btnScan.disabled = false;
+        }
+    } catch (err) {
+        status.innerText = "Scan error";
+        btnScan.innerText = "🔍";
+        btnScan.disabled = false;
+    }
+});
+
+// 2. CONNECT TRAINER
 document.getElementById('btnConnTrainer').addEventListener('click', async () => {
     const btnVirtual = document.getElementById('btnConnVirtual');
     const btnReal = document.getElementById('btnConnTrainer');
+    const btnScan = document.getElementById('btnScanTrainer');
+    const list = document.getElementById('trainerList');
     const status = document.getElementById('statusTrainer');
 
-    // If already connected (Real), clicking will disconnect
     if (status.innerText === "Trainer Connected") {
         await window.go.main.App.DisconnectTrainer();
         status.innerText = "Disconnected";
-        status.style.color = "";  // Remove color (revert to CSS default)
-        btnReal.innerText = "🔗"; // Restore original icon
-        btnVirtual.disabled = false; // Re-enable Virtual button
+        status.style.color = "";  
+        
+        btnReal.innerText = "🔗"; 
+        btnReal.classList.add('hidden');
+        list.classList.add('hidden');
+        list.disabled = false;
+        btnScan.classList.remove('hidden');
+        btnScan.innerText = "🔍";
+        btnScan.disabled = false;
+        btnVirtual.disabled = false; 
+        return;
+    }
+
+    const selectedMac = list.value;
+    if (!selectedMac) {
+        alert("Please select a trainer from the list.");
         return;
     }
 
     btnReal.innerText = "⏳";
     btnReal.disabled = true;
-    btnVirtual.disabled = true; // Disable Virtual while attempting Real connection
+    btnVirtual.disabled = true;
+    list.disabled = true;
 
     try {
-        const result = await window.go.main.App.ConnectTrainer();
-        status.innerText = result; // Example: "Trainer Connected"
+        const result = await window.go.main.App.ConnectTrainer(selectedMac);
+        status.innerText = result; 
         status.style.color = "var(--argus-safe)";
-        btnReal.innerText = "❌";  // Change icon to suggest "Disconnect"
+        btnReal.innerText = "❌";
         btnReal.disabled = false;
     } catch (err) {
-        status.innerText = "Error: " + err;
+        status.innerText = "Error connecting";
         status.style.color = "var(--argus-alert)";
-        btnReal.innerText = "Retry";
+        btnReal.innerText = "🔗";
         btnReal.disabled = false;
         btnVirtual.disabled = false;
+        list.disabled = false;
     }
 });
 
-// SIMULATOR (VIRTUAL) CONNECTION
+// ---------------------------
+// SIMULATOR (VIRTUAL TRAINER)
+// ---------------------------
 document.getElementById('btnConnVirtual').addEventListener('click', async () => {
     const btnVirtual = document.getElementById('btnConnVirtual');
     const btnReal = document.getElementById('btnConnTrainer');
+    const btnScan = document.getElementById('btnScanTrainer');
+    const list = document.getElementById('trainerList');
     const status = document.getElementById('statusTrainer');
 
-    // If already connected (Virtual), clicking will disconnect
     if (status.innerText === "Simulator Active") {
         await window.go.main.App.DisconnectTrainer();
         status.innerText = "Disconnected";
-        status.style.color = "";  // Remove color
-        btnVirtual.innerText = "💻"; // Restore original icon
-        btnReal.disabled = false; // Re-enable Real button
+        status.style.color = "";  
+        btnVirtual.innerText = "💻"; 
+        btnScan.disabled = false;
         return;
     }
 
     btnVirtual.innerText = "⏳";
     btnVirtual.disabled = true;
-    btnReal.disabled = true; // Change icon to suggest "Disconnect"
+    btnScan.disabled = true; 
+    if(!btnReal.classList.contains('hidden')) btnReal.disabled = true;
 
     try {
         const result = await window.go.main.App.ConnectVirtualTrainer();
-        status.innerText = result; // Example: "Simulator Active"
+        status.innerText = result; 
         status.style.color = "#00ADD8";
-        btnVirtual.innerText = "❌"; // Change icon to suggest "Disconnect"
+        btnVirtual.innerText = "❌"; 
         btnVirtual.disabled = false;
 
-        // Visual Feedback
+        list.classList.add('hidden');
+        btnReal.classList.add('hidden');
+        btnScan.classList.remove('hidden');
+
         const toast = document.getElementById('toast-notification');
         if (toast) {
             toast.innerText = "💻 Virtual Trainer Mode Activated!";
@@ -188,37 +254,97 @@ document.getElementById('btnConnVirtual').addEventListener('click', async () => 
         status.style.color = "var(--argus-alert)";
         btnVirtual.innerText = "💻";
         btnVirtual.disabled = false;
-        btnReal.disabled = false;
+        btnScan.disabled = false;
     }
 });
 
-document.getElementById('btnConnHR').addEventListener('click', async () => {
-    const btn = document.getElementById('btnConnHR');
+// ---------------------------
+// HEART RATE MONITOR
+// ---------------------------
+
+// 1. SCAN HR
+document.getElementById('btnScanHR').addEventListener('click', async () => {
+    const btnScan = document.getElementById('btnScanHR');
+    const btnConn = document.getElementById('btnConnHR');
+    const list = document.getElementById('hrList');
     const status = document.getElementById('statusHR');
 
-    // If already connected, clicking will disconnect
+    btnScan.innerText = "⏳";
+    btnScan.disabled = true;
+    status.innerText = "Scanning...";
+
+    try {
+        const devices = await window.go.main.App.ScanHeartRate();
+        
+        list.innerHTML = '<option value="">Select device...</option>';
+        
+        if (devices && devices.length > 0) {
+            devices.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.address;
+                opt.text = d.name;
+                list.appendChild(opt);
+            });
+            list.classList.remove('hidden');
+            btnConn.classList.remove('hidden');
+            btnScan.classList.add('hidden');
+            status.innerText = "Select a device";
+        } else {
+            status.innerText = "No devices found";
+            btnScan.innerText = "🔍";
+            btnScan.disabled = false;
+        }
+    } catch (err) {
+        status.innerText = "Scan error";
+        btnScan.innerText = "🔍";
+        btnScan.disabled = false;
+    }
+});
+
+// 2. CONNECT HR
+document.getElementById('btnConnHR').addEventListener('click', async () => {
+    const btnReal = document.getElementById('btnConnHR');
+    const btnScan = document.getElementById('btnScanHR');
+    const list = document.getElementById('hrList');
+    const status = document.getElementById('statusHR');
+
     if (status.innerText === "HR Monitor Connected" || status.innerText === "Connected") {
         await window.go.main.App.DisconnectHeartRate();
         status.innerText = "Disconnected";
-        status.style.color = ""; // Remove color (revert to CSS default)
-        btn.innerText = "🔗";   // Restore original icon
+        status.style.color = ""; 
+        
+        btnReal.innerText = "🔗";   
+        btnReal.classList.add('hidden');
+        list.classList.add('hidden');
+        list.disabled = false;
+        btnScan.classList.remove('hidden');
+        btnScan.innerText = "🔍";
+        btnScan.disabled = false;
         return;
     }
 
-    btn.innerText = "⏳";
-    btn.disabled = true;
+    const selectedMac = list.value;
+    if (!selectedMac) {
+        alert("Please select a HR monitor from the list.");
+        return;
+    }
+
+    btnReal.innerText = "⏳";
+    btnReal.disabled = true;
+    list.disabled = true;
 
     try {
-        const result = await window.go.main.App.ConnectHeartRate();
-        status.innerText = result; // Example: "HR Monitor Connected"
+        const result = await window.go.main.App.ConnectHeartRate(selectedMac);
+        status.innerText = result; 
         status.style.color = "var(--argus-safe)";
-        btn.innerText = "❌"; // Change icon to suggest "Disconnect"
-        btn.disabled = false;
+        btnReal.innerText = "❌"; 
+        btnReal.disabled = false;
     } catch (err) {
         status.innerText = "Error";
         status.style.color = "var(--argus-alert)";
-        btn.innerText = "Retry";
-        btn.disabled = false;
+        btnReal.innerText = "🔗";
+        btnReal.disabled = false;
+        list.disabled = false;
     }
 });
 

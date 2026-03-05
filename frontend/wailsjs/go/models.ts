@@ -49,6 +49,20 @@ export namespace domain {
 		    return a;
 		}
 	}
+	export class BLEDevice {
+	    name: string;
+	    address: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new BLEDevice(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.address = source["address"];
+	    }
+	}
 	export class RoutePoint {
 	    lat: number;
 	    lon: number;

@@ -322,8 +322,8 @@ func (a *App) ToggleAlwaysOnTop(on bool) {
 	runtime.WindowSetAlwaysOnTop(a.ctx, on)
 }
 
-// ConnectTrainer connects to the smart trainer via real BLE hardware.
-func (a *App) ConnectTrainer() (string, error) {
+// ConnectTrainer connects to the training roller using the MAC address selected by the user.
+func (a *App) ConnectTrainer(macAddress string) (string, error) {
 	if a.isTrainerConnected && a.trainerService != nil {
 		a.trainerService.Disconnect()
 	}
@@ -336,7 +336,7 @@ func (a *App) ConnectTrainer() (string, error) {
 		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
 	}
 
-	if err := a.trainerService.ConnectTrainer(statusCallback); err != nil {
+	if err := a.trainerService.ConnectTrainer(macAddress, statusCallback); err != nil {
 		return "Trainer Error", err
 	}
 
@@ -352,14 +352,14 @@ func (a *App) ConnectVirtualTrainer() (string, error) {
 		a.trainerService.Disconnect()
 	}
 
-	// // Injects the Mock (Virtual Trainer) dependency.
+	// Injects the Mock (Virtual Trainer) dependency.
 	a.trainerService = ble.NewMockService()
 
 	statusCallback := func(stage string, data string) {
 		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
 	}
 
-	if err := a.trainerService.ConnectTrainer(statusCallback); err != nil {
+	if err := a.trainerService.ConnectTrainer("", statusCallback); err != nil {
 		return "Simulator Error", err
 	}
 
@@ -377,8 +377,8 @@ func (a *App) DisconnectTrainer() string {
 	return "Disconnected"
 }
 
-// ConnectHeartRate connects to a heart rate monitor.
-func (a *App) ConnectHeartRate() (string, error) {
+// ConnectHeartRate connects to a heart rate monitor using the MAC address.
+func (a *App) ConnectHeartRate(macAddress string) (string, error) {
 	if a.isHRConnected {
 		return "HR Already Connected", nil
 	}
@@ -387,7 +387,7 @@ func (a *App) ConnectHeartRate() (string, error) {
 		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
 	}
 
-	if err := a.trainerService.ConnectHR(statusCallback); err != nil {
+	if err := a.trainerService.ConnectHR(macAddress, statusCallback); err != nil {
 		return "HR Error", err
 	}
 
@@ -646,6 +646,9 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 	lastSentPower := -1
 	lastSentGrade := -999.0
 	currentMode := ""
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
 	for {
 		select {
@@ -957,4 +960,40 @@ func (a *App) ChangeWorkoutIntensity(delta int) int {
 	}
 
 	return newPct
+}
+
+// ScanTrainers is called by the frontend to search for devices.
+func (a *App) ScanTrainers() []domain.BLEDevice {
+	if _, isReal := a.trainerService.(*ble.RealService); !isReal {
+		a.trainerService = ble.NewRealService()
+	}
+
+	if realSvc, ok := a.trainerService.(*ble.RealService); ok {
+		devices, err := realSvc.ScanForTrainers()
+		if err != nil {
+			runtime.EventsEmit(a.ctx, "error", err.Error())
+			return []domain.BLEDevice{}
+		}
+		return devices
+	}
+
+	return []domain.BLEDevice{}
+}
+
+// ScanHeartRate is called by the frontend to search for heart rate monitors.
+func (a *App) ScanHeartRate() []domain.BLEDevice {
+	if _, isReal := a.trainerService.(*ble.RealService); !isReal {
+		a.trainerService = ble.NewRealService()
+	}
+
+	if realSvc, ok := a.trainerService.(*ble.RealService); ok {
+		devices, err := realSvc.ScanForHR()
+		if err != nil {
+			runtime.EventsEmit(a.ctx, "error", err.Error())
+			return []domain.BLEDevice{}
+		}
+		return devices
+	}
+
+	return []domain.BLEDevice{}
 }

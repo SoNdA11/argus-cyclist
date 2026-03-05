@@ -93,21 +93,42 @@
 
                         <section class="settings-section">
                             <h3>📡 Connections</h3>
+
                             <div class="device-row compact">
                                 <span>Trainer</span>
                                 <div>
                                     <span id="statusTrainer" class="status-indicator">Disconnected</span>
+
+                                    <select id="trainerList" class="hidden"
+                                        style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
+                                        <option value="">Select device...</option>
+                                    </select>
+
                                     <button id="btnConnVirtual" class="btn-icon-small" title="Use Simulator"
                                         style="margin-right: 5px;">💻</button>
-                                    <button id="btnConnTrainer" class="btn-icon-small"
-                                        title="Connect Real Hardware">🔗</button>
+
+                                    <button id="btnScanTrainer" class="btn-icon-small" title="Search Real Hardware"
+                                        style="margin-right: 5px;">🔍</button>
+
+                                    <button id="btnConnTrainer" class="btn-icon-small hidden"
+                                        title="Connect">🔗</button>
                                 </div>
                             </div>
+
                             <div class="device-row compact">
                                 <span>Heart Rate</span>
                                 <div>
                                     <span id="statusHR" class="status-indicator">Disconnected</span>
-                                    <button id="btnConnHR" class="btn-icon-small" title="Connect">🔗</button>
+
+                                    <select id="hrList" class="hidden"
+                                        style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
+                                        <option value="">Select device...</option>
+                                    </select>
+
+                                    <button id="btnScanHR" class="btn-icon-small" title="Search HR Monitors"
+                                        style="margin-right: 5px;">🔍</button>
+
+                                    <button id="btnConnHR" class="btn-icon-small hidden" title="Connect">🔗</button>
                                 </div>
                             </div>
                         </section>

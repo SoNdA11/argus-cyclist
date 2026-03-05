@@ -22,10 +22,10 @@ import "time"
 // Decoupled: It doesn't matter if it's BLE, ANT+, or Simulation.
 type TrainerService interface {
 	// ConnectTrainer connects ONLY to the Smart Trainer (FTMS/Cycling Power)
-	ConnectTrainer(onStatus func(string, string)) error
+	ConnectTrainer(macAddress string, onStatus func(string, string)) error
 
 	// ConnectHR connects ONLY to the Heart Rate Monitor
-	ConnectHR(onStatus func(string, string)) error
+	ConnectHR(macAddress string, onStatus func(string, string)) error
 
 	// Disconnect only the HR at the hardware level
 	DisconnectHR()
