@@ -92,3 +92,9 @@ type Activity struct {
 	Calories       int       `json:"calories"`        // Estimated calories burned
 	CreatedAt      time.Time `json:"created_at"`      // Activity date
 }
+
+// BLEDevice represents a Bluetooth device found during the scan.
+type BLEDevice struct {
+	Name    string `json:"name"`
+	Address string `json:"address"` //MAC address
+}

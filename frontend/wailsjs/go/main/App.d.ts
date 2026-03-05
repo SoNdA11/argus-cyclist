@@ -8,9 +8,9 @@ export function ChangePowerSimulation(arg1:number):Promise<number>;
 
 export function ChangeWorkoutIntensity(arg1:number):Promise<number>;
 
-export function ConnectHeartRate():Promise<string>;
+export function ConnectHeartRate(arg1:string):Promise<string>;
 
-export function ConnectTrainer():Promise<string>;
+export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;
 
@@ -43,6 +43,10 @@ export function LoadWorkout():Promise<string>;
 export function OpenFileFolder(arg1:string):Promise<void>;
 
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
+
+export function ScanHeartRate():Promise<Array<domain.BLEDevice>>;
+
+export function ScanTrainers():Promise<Array<domain.BLEDevice>>;
 
 export function SelectGPX():Promise<string>;
 

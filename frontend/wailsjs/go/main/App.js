@@ -10,12 +10,12 @@ export function ChangeWorkoutIntensity(arg1) {
   return window['go']['main']['App']['ChangeWorkoutIntensity'](arg1);
 }
 
-export function ConnectHeartRate() {
-  return window['go']['main']['App']['ConnectHeartRate']();
+export function ConnectHeartRate(arg1) {
+  return window['go']['main']['App']['ConnectHeartRate'](arg1);
 }
 
-export function ConnectTrainer() {
-  return window['go']['main']['App']['ConnectTrainer']();
+export function ConnectTrainer(arg1) {
+  return window['go']['main']['App']['ConnectTrainer'](arg1);
 }
 
 export function ConnectVirtualTrainer() {
@@ -80,6 +80,14 @@ export function OpenFileFolder(arg1) {
 
 export function SaveGeneratedGPX(arg1, arg2) {
   return window['go']['main']['App']['SaveGeneratedGPX'](arg1, arg2);
+}
+
+export function ScanHeartRate() {
+  return window['go']['main']['App']['ScanHeartRate']();
+}
+
+export function ScanTrainers() {
+  return window['go']['main']['App']['ScanTrainers']();
 }
 
 export function SelectGPX() {

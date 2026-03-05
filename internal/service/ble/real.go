@@ -85,29 +85,24 @@ func NewRealService() domain.TrainerService {
 		stopControl:    make(chan struct{}),
 	}
 }
-
-func (s *RealService) ConnectTrainer(onStatus func(string, string)) error {
+func (s *RealService) ConnectTrainer(macAddress string, onStatus func(string, string)) error {
 	if err := s.adapter.Enable(); err != nil {
 		return fmt.Errorf("bluetooth error: %w", err)
 	}
 
-	onStatus("SCAN_TRAINER", "Searching for Trainer (FTMS/FEC)...")
-	fmt.Println("[BLE] Starting Trainer Scan...")
+	onStatus("SCAN_TRAINER", "Searching for selected Trainer...")
+	fmt.Printf("Looking for the device: %s\n", macAddress)
 
-	ch := make(chan bluetooth.ScanResult)
+	ch := make(chan bluetooth.ScanResult, 1)
 
 	go func() {
 		err := s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-			if result.LocalName() == "" {
-				return
-			}
-			if result.HasServiceUUID(ServiceCyclingPower) ||
-				result.HasServiceUUID(ServiceFitnessMach) ||
-				result.HasServiceUUID(ServiceFEC) ||
-				result.HasServiceUUID(ServiceFEC128) {
-				fmt.Printf("[BLE] Trainer Found: %s (%s)\n", result.LocalName(), result.Address.String())
+			if result.Address.String() == macAddress {
 				adapter.StopScan()
-				ch <- result
+				select {
+				case ch <- result:
+				default:
+				}
 			}
 		})
 		if err != nil {
@@ -135,31 +130,30 @@ func (s *RealService) ConnectTrainer(onStatus func(string, string)) error {
 
 	case <-time.After(15 * time.Second):
 		s.adapter.StopScan()
-		return fmt.Errorf("trainer timeout")
+		return fmt.Errorf("Timeout: trainer not found in the area")
 	}
 }
 
-func (s *RealService) ConnectHR(onStatus func(string, string)) error {
+func (s *RealService) ConnectHR(macAddress string, onStatus func(string, string)) error {
 	err := s.adapter.Enable()
 	if err != nil {
 		return fmt.Errorf("bluetooth error: %w", err)
 	}
 
-	onStatus("SCAN_HR", "Searching for HR...")
-	fmt.Println("[BLE] Starting HR Scan...")
+	onStatus("SCAN_HR", "Searching for selected HR...")
+	fmt.Printf("Looking for the HR: %s\n", macAddress)
 
 	ch := make(chan bluetooth.ScanResult)
 
 	go func() {
 		err := s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-			if result.HasServiceUUID(ServiceHeartRate) {
-				fmt.Printf("[BLE] HR Found: %s\n", result.LocalName())
+			if result.Address.String() == macAddress {
 				adapter.StopScan()
 				ch <- result
 			}
 		})
 		if err != nil {
-			fmt.Println("Erro scan HR:", err)
+			fmt.Println("HR scan error:", err)
 		}
 	}()
 
@@ -182,7 +176,7 @@ func (s *RealService) ConnectHR(onStatus func(string, string)) error {
 
 	case <-time.After(15 * time.Second):
 		s.adapter.StopScan()
-		return fmt.Errorf("HR timeout")
+		return fmt.Errorf("Timeout: HR not found in the area.")
 	}
 }
 
@@ -366,7 +360,7 @@ func (s *RealService) Disconnect() {
 	if s.hrDevice != nil {
 		s.hrDevice.Disconnect()
 	}
-	
+
 	s.trainerSubscribed = false
 	s.hrSubscribed = false
 	fmt.Println("[BLE] Devices Disconnected")
@@ -435,4 +429,82 @@ func (s *RealService) DisconnectHR() {
 		s.hrSubscribed = false // Resets the flag when disconnected
 		fmt.Println("[BLE] HR Device Disconnected")
 	}
+}
+
+// ScanForTrainers connects the antenna, searches for compatible reels for 5 seconds, and returns the list.
+func (s *RealService) ScanForTrainers() ([]domain.BLEDevice, error) {
+	if err := s.adapter.Enable(); err != nil {
+		return nil, fmt.Errorf("Bluetooth error: %w", err)
+	}
+
+	var foundDevices []domain.BLEDevice
+	// I a map to avoid adding the same device twice (the radio picks up the same signal multiple times).
+	seen := make(map[string]bool)
+
+	fmt.Println("[BLE] Starting 5 second scan by Smart Trainers...")
+
+	go func() {
+		s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+			if result.LocalName() == "" {
+				return
+			}
+			// Checks if it is a Trainer (FTMS or FE-C)
+			if result.HasServiceUUID(ServiceCyclingPower) ||
+				result.HasServiceUUID(ServiceFitnessMach) ||
+				result.HasServiceUUID(ServiceFEC) ||
+				result.HasServiceUUID(ServiceFEC128) {
+
+				mac := result.Address.String()
+				if !seen[mac] {
+					seen[mac] = true
+					foundDevices = append(foundDevices, domain.BLEDevice{
+						Name:    result.LocalName(),
+						Address: mac,
+					})
+					fmt.Printf("[BLE] Found: %s (%s)\n", result.LocalName(), mac)
+				}
+			}
+		})
+	}()
+
+	time.Sleep(5 * time.Second)
+	s.adapter.StopScan()
+
+	return foundDevices, nil
+}
+
+// ScanForHR activates the antenna, searches for heart rate monitors for 5 seconds, and returns the list.
+func (s *RealService) ScanForHR() ([]domain.BLEDevice, error) {
+	if err := s.adapter.Enable(); err != nil {
+		return nil, fmt.Errorf("Bluetooth error: %w", err)
+	}
+
+	var foundDevices []domain.BLEDevice
+	seen := make(map[string]bool)
+
+	fmt.Println("[BLE] Starting 5 second scan by HR Monitors...")
+
+	go func() {
+		s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+			if result.LocalName() == "" {
+				return
+			}
+			if result.HasServiceUUID(ServiceHeartRate) {
+				mac := result.Address.String()
+				if !seen[mac] {
+					seen[mac] = true
+					foundDevices = append(foundDevices, domain.BLEDevice{
+						Name:    result.LocalName(),
+						Address: mac,
+					})
+					fmt.Printf("[BLE] HR Found: %s (%s)\n", result.LocalName(), mac)
+				}
+			}
+		})
+	}()
+
+	time.Sleep(5 * time.Second)
+	s.adapter.StopScan()
+
+	return foundDevices, nil
 }

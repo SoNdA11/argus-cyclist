@@ -38,32 +38,35 @@ func NewMockService() domain.TrainerService {
 	}
 }
 
-func (m *MockService) ConnectTrainer(onStatus func(string, string)) error {
-    onStatus("SCAN_TRAINER", "Scanning for simulated devices...")
-    time.Sleep(1 * time.Second)
-    onStatus("TRAINER_CONNECTED", "Argus X1 Simulator Connected")
-    return nil
+func (s *MockService) ConnectTrainer(macAddress string, onStatus func(string, string)) error {
+	onStatus("CONNECTING_TRAINER", "Connecting to Virtual Trainer...")
+
+	time.Sleep(1 * time.Second)
+
+	onStatus("TRAINER_CONNECTED", "Virtual Trainer Connected")
+	return nil
 }
 
-func (m *MockService) ConnectHR(onStatus func(string, string)) error {
-    onStatus("SCAN_HR", "Scanning for simulated HR...")
-    time.Sleep(500 * time.Millisecond)
-    onStatus("HR_CONNECTED", "Simulated HR Connected")
-    return nil
+func (s *MockService) ConnectHR(macAddress string, onStatus func(string, string)) error {
+	onStatus("CONNECTING_HR", "Connecting to Virtual HR...")
+	time.Sleep(1 * time.Second)
+
+	onStatus("HR_CONNECTED", "Virtual HR Connected")
+	return nil
 }
 
 func (m *MockService) Disconnect() {
-    // Checks if the channel is already closed to avoid panic
-    select {
-    case <-m.stopChan:
-        return
-    default:
-        close(m.stopChan)
-    }
+	// Checks if the channel is already closed to avoid panic
+	select {
+	case <-m.stopChan:
+		return
+	default:
+		close(m.stopChan)
+	}
 }
 
 func (m *MockService) SetGrade(grade float64) error {
-    return nil
+	return nil
 }
 
 func (m *MockService) SetPower(watts float64) error {
