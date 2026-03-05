@@ -392,14 +392,18 @@ func (a *App) ConnectHeartRate() (string, error) {
 	}
 
 	a.isHRConnected = true
+
+	if a.isRecording {
+		a.trainerService.SubscribeStats(a.telemetryChan)
+	}
+
 	return "HR Monitor Connected", nil
 }
 
 // DisconnectHeartRate explicitly disconnects the HR monitor at the hardware level.
 func (a *App) DisconnectHeartRate() string {
 	if a.isHRConnected && a.trainerService != nil {
-		// Agora sim, manda a antena Bluetooth cortar a conexão!
-		a.trainerService.DisconnectHR() 
+		a.trainerService.DisconnectHR()
 		a.isHRConnected = false
 	}
 	return "Disconnected"
@@ -456,15 +460,12 @@ func (a *App) startSession() string {
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancelSim = cancel
 
-	dataChan := make(chan domain.Telemetry)
-
-	// Starts reading data stats
-	if err := a.trainerService.SubscribeStats(dataChan); err != nil {
+	if err := a.trainerService.SubscribeStats(a.telemetryChan); err != nil {
 		cancel()
 		return fmt.Sprintf("Erro Subscribe: %v", err)
 	}
 
-	go a.gameLoop(ctx, dataChan)
+	go a.gameLoop(ctx, a.telemetryChan)
 
 	runtime.EventsEmit(a.ctx, "status_change", "RECORDING")
 	return "Started"
