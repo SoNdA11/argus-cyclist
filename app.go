@@ -325,10 +325,12 @@ func (a *App) ToggleAlwaysOnTop(on bool) {
 // ConnectTrainer connects to the smart trainer via real BLE hardware.
 func (a *App) ConnectTrainer() (string, error) {
 	if a.isTrainerConnected && a.trainerService != nil {
-		a.trainerService.Disconnect() 
+		a.trainerService.Disconnect()
 	}
 
-	a.trainerService = ble.NewRealService()
+	if _, isReal := a.trainerService.(*ble.RealService); !isReal {
+		a.trainerService = ble.NewRealService()
+	}
 
 	statusCallback := func(stage string, data string) {
 		runtime.EventsEmit(a.ctx, "ble_connection_status", map[string]string{"stage": stage, "msg": data})
