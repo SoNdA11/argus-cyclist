@@ -15,6 +15,8 @@ export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;
 
+export function DeleteActivityHistory(arg1:number):Promise<void>;
+
 export function DiscardSession():Promise<string>;
 
 export function DisconnectDevice():Promise<string>;

@@ -196,3 +196,16 @@ func (s *Service) GetPowerRecords() ([]PowerRecord, error) {
 	err := s.db.Order("duration asc").Find(&records).Error
 	return records, err
 }
+
+// GetActivityByID returns a specific activity by its ID.
+func (s *Service) GetActivityByID(id uint) (domain.Activity, error) {
+	var activity domain.Activity
+	err := s.db.First(&activity, id).Error
+	return activity, err
+}
+
+// DeleteActivity removes the activity record from the database.
+func (s *Service) DeleteActivity(id uint) error {
+	// GORM needs to know which model to use to delete the correct row
+	return s.db.Delete(&domain.Activity{}, id).Error
+}

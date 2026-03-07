@@ -630,8 +630,9 @@ footer {
 
 /* --- DASHBOARD & HISTORY --- */
 .settings-content {
-    max-width: 800px;
     width: 90%;
+    max-width: 1000px;
+    padding: 25px 30px;
 }
 
 .tabs {
@@ -678,13 +679,12 @@ footer {
 }
 
 .history-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 40px;
-    padding: 12px 14px;
-    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border-color);
-    transition: background 0.2s ease;
+    transition: background-color 0.2s;
 }
 
 .history-item:hover {
@@ -1583,7 +1583,7 @@ TACTICAL BLUE
     --text-muted: #94a3b8;
     --border-color: #1a1a1a;
 
-    --power-color: #38bdf8; 
+    --power-color: #38bdf8;
 
     --chart-bg: #000000;
     --chart-fill: rgba(0, 136, 255, 0.15);
@@ -1604,12 +1604,18 @@ TACTICAL BLUE
    ========================================= */
 
 :root {
-    --zone-1: #7f8c8d; /* Active Recovery */
-    --zone-2: #3498db; /* Endurance */
-    --zone-3: #2ecc71; /* Tempo */
-    --zone-4: #f1c40f; /* Threshold */
-    --zone-5: #e67e22; /* VO2 Max */
-    --zone-6: #e74c3c; /* Anaerobic */
+    --zone-1: #7f8c8d;
+    /* Active Recovery */
+    --zone-2: #3498db;
+    /* Endurance */
+    --zone-3: #2ecc71;
+    /* Tempo */
+    --zone-4: #f1c40f;
+    /* Threshold */
+    --zone-5: #e67e22;
+    /* VO2 Max */
+    --zone-6: #e74c3c;
+    /* Anaerobic */
 }
 
 .finish-stats-grid {
