@@ -170,14 +170,17 @@ export class UIManager {
         const wkgVal = (data.power / totalWeight).toFixed(2);
         this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;
 
-        // Remaining distance and route progress cursor
+        // Remaining distance and route progress cursor (Laps Support)
         if (totalRouteDistance > 0) {
-            const remainingMeters = Math.max(0, totalRouteDistance - data.total_dist);
+            const lapDist = data.total_dist % totalRouteDistance;
+            const remainingMeters = Math.max(0, totalRouteDistance - lapDist);
             const remObj = this.formatDist(remainingMeters);
-            this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit}</span>`;
+            
+            const currentLap = Math.floor(data.total_dist / totalRouteDistance) + 1;
 
-            // Cursor
-            const pct = Math.min((data.total_dist / totalRouteDistance) * 100, 100);
+            this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit} (L${currentLap})</span>`;
+
+            const pct = Math.min((lapDist / totalRouteDistance) * 100, 100);
             this.els.cursor.style.left = pct + '%';
         }
     }
