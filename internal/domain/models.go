@@ -90,6 +90,10 @@ type Activity struct {
 	AvgSpeed       float64   `json:"avg_speed"`       // Average speed (km/h)
 	Duration       int64     `json:"duration"`        // Duration in seconds
 	Calories       int       `json:"calories"`        // Estimated calories burned
+	NormalizedPower int     `json:"normalized_power"`
+	TSS             float64 `json:"tss"`
+	IntensityFactor float64 `json:"intensity_factor"`
+	ElevationGain   float64 `json:"elevation_gain"`
 	CreatedAt      time.Time `json:"created_at"`      // Activity date
 }
 

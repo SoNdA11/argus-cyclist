@@ -18,14 +18,17 @@ package fit
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
 	"argus-cyclist/internal/domain"
 
+	"github.com/muktihari/fit/decoder"
 	"github.com/muktihari/fit/encoder"
 	"github.com/muktihari/fit/profile/mesgdef"
 	"github.com/muktihari/fit/profile/typedef"
+	"github.com/muktihari/fit/profile/untyped/mesgnum"
 	"github.com/muktihari/fit/proto"
 )
 
@@ -35,6 +38,15 @@ const degreesToSemicircles = 2147483648.0 / 180.0
 type Service struct {
 	records   []*mesgdef.Record
 	startTime time.Time
+}
+
+type ActivityDetails struct {
+	Time      []string  `json:"time"`
+	Power     []int     `json:"power"`
+	HeartRate []int     `json:"hr"`
+	Cadence   []int     `json:"cadence"`
+	Distance  []float64 `json:"distance"`
+	Elevation []float64 `json:"elevation"`
 }
 
 func NewService() *Service {
@@ -63,8 +75,8 @@ func (s *Service) AddRecord(t domain.Telemetry) {
 	scaledDist := uint32(t.TotalDistance * 100)
 
 	// 4. Altitude: Meters -> (Meters + 500) * 5 (Scale 5, Offset 500)
-    // NOW WE USE THE REAL ALTITUDE FROM TELEMETRY
-    // The 500m offset allows for negative values (e.g., geographic depression) without breaking uint32
+	// NOW WE USE THE REAL ALTITUDE FROM TELEMETRY
+	// The 500m offset allows for negative values (e.g., geographic depression) without breaking uint32
 	scaledAlt := uint32((t.Altitude + 500.0) * 5.0)
 
 	record := &mesgdef.Record{
@@ -186,4 +198,62 @@ func getLastDistance(records []*mesgdef.Record) uint32 {
 // Validate implements the interface needed for some consumers (boilerplate)
 func (s *Service) Validate(ctx context.Context) error {
 	return nil
+}
+
+func (s *Service) ParseActivity(filePath string) (ActivityDetails, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return ActivityDetails{}, err
+	}
+	defer file.Close()
+
+	dec := decoder.New(file)
+	fitFile, err := dec.Decode()
+	if err != nil {
+		return ActivityDetails{}, err
+	}
+
+	details := ActivityDetails{
+		Time:      []string{},
+		Power:     []int{},
+		HeartRate: []int{},
+		Cadence:   []int{},
+		Distance:  []float64{},
+		Elevation: []float64{},
+	}
+
+	var startTime time.Time
+
+	for _, msg := range fitFile.Messages {
+		if msg.Num == mesgnum.Record {
+			record := mesgdef.NewRecord(&msg)
+
+			if startTime.IsZero() {
+				startTime = record.Timestamp
+			}
+			elapsed := record.Timestamp.Sub(startTime)
+			totalSecs := int(elapsed.Seconds())
+
+			m := totalSecs / 60
+			s := totalSecs % 60
+			details.Time = append(details.Time, fmt.Sprintf("%02d:%02d", m, s))
+
+			details.Power = append(details.Power, int(record.Power))
+			details.HeartRate = append(details.HeartRate, int(record.HeartRate))
+			details.Cadence = append(details.Cadence, int(record.Cadence))
+
+			distMeters := float64(record.Distance) / 100.0
+			details.Distance = append(details.Distance, distMeters)
+
+			altMeters := 0.0
+			if record.EnhancedAltitude != 4294967295 && record.EnhancedAltitude > 0 {
+				altMeters = (float64(record.EnhancedAltitude) / 5.0) - 500.0
+			} else if record.Altitude != 65535 && record.Altitude > 0 {
+				altMeters = (float64(record.Altitude) / 5.0) - 500.0
+			}
+			details.Elevation = append(details.Elevation, altMeters)
+		}
+	}
+
+	return details, nil
 }

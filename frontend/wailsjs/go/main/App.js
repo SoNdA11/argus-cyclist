@@ -46,6 +46,14 @@ export function GetActivities() {
   return window['go']['main']['App']['GetActivities']();
 }
 
+export function GetActivityDetails(arg1) {
+  return window['go']['main']['App']['GetActivityDetails'](arg1);
+}
+
+export function GetCareerDashboard() {
+  return window['go']['main']['App']['GetCareerDashboard']();
+}
+
 export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }

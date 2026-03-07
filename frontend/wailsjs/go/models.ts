@@ -10,6 +10,10 @@ export namespace domain {
 	    avg_speed: number;
 	    duration: number;
 	    calories: number;
+	    normalized_power: number;
+	    tss: number;
+	    intensity_factor: number;
+	    elevation_gain: number;
 	    // Go type: time
 	    created_at: any;
 	
@@ -28,6 +32,10 @@ export namespace domain {
 	        this.avg_speed = source["avg_speed"];
 	        this.duration = source["duration"];
 	        this.calories = source["calories"];
+	        this.normalized_power = source["normalized_power"];
+	        this.tss = source["tss"];
+	        this.intensity_factor = source["intensity_factor"];
+	        this.elevation_gain = source["elevation_gain"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	    }
 	
@@ -144,8 +152,109 @@ export namespace domain {
 
 }
 
+export namespace fit {
+	
+	export class ActivityDetails {
+	    time: string[];
+	    power: number[];
+	    hr: number[];
+	    cadence: number[];
+	    distance: number[];
+	    elevation: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ActivityDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.time = source["time"];
+	        this.power = source["power"];
+	        this.hr = source["hr"];
+	        this.cadence = source["cadence"];
+	        this.distance = source["distance"];
+	        this.elevation = source["elevation"];
+	    }
+	}
+	export class PMCDay {
+	    date: string;
+	    tss: number;
+	    ctl: number;
+	    atl: number;
+	    tsb: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PMCDay(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.tss = source["tss"];
+	        this.ctl = source["ctl"];
+	        this.atl = source["atl"];
+	        this.tsb = source["tsb"];
+	    }
+	}
+	export class TimeInZones {
+	    z1_time: number;
+	    z2_time: number;
+	    z3_time: number;
+	    z4_time: number;
+	    z5_time: number;
+	    z6_time: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TimeInZones(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.z1_time = source["z1_time"];
+	        this.z2_time = source["z2_time"];
+	        this.z3_time = source["z3_time"];
+	        this.z4_time = source["z4_time"];
+	        this.z5_time = source["z5_time"];
+	        this.z6_time = source["z6_time"];
+	    }
+	}
+
+}
+
 export namespace main {
 	
+	export class CareerDashboard {
+	    pmc: fit.PMCDay[];
+	    mmp: storage.PowerRecord[];
+	
+	    static createFrom(source: any = {}) {
+	        return new CareerDashboard(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.pmc = this.convertValues(source["pmc"], fit.PMCDay);
+	        this.mmp = this.convertValues(source["mmp"], storage.PowerRecord);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ExportPoint {
 	    lat: number;
 	    lon: number;
@@ -161,6 +270,38 @@ export namespace main {
 	        this.lon = source["lon"];
 	        this.ele = source["ele"];
 	    }
+	}
+	export class SessionSummary {
+	    activity: domain.Activity;
+	    zones: fit.TimeInZones;
+	
+	    static createFrom(source: any = {}) {
+	        return new SessionSummary(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.activity = this.convertValues(source["activity"], domain.Activity);
+	        this.zones = this.convertValues(source["zones"], fit.TimeInZones);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

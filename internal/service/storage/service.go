@@ -43,7 +43,7 @@ func NewService() *Service {
 	// Database file path.
 	// For development, the database is stored locally in the project root.
 	dbPath := "argus_data.db"
-	
+
 	// In production, the recommended approach is to store the database
 	// in the user's application data directory:
 	//
@@ -104,7 +104,7 @@ func (s *Service) GetProfile() (domain.UserProfile, error) {
 // UpdateProfile updates the existing user profile.
 // The ID is forced to 1 to ensure the same record is updated.
 func (s *Service) UpdateProfile(u domain.UserProfile) error {
-	u.ID = 1 
+	u.ID = 1
 	return s.db.Save(&u).Error
 }
 
@@ -119,15 +119,15 @@ func (s *Service) SaveActivity(a domain.Activity) error {
 // GetRecentActivities returns the most recent activities,
 // ordered by creation date (descending).
 func (s *Service) GetRecentActivities(limit int) ([]domain.Activity, error) {
-    var activities []domain.Activity
-    query := s.db.Order("created_at desc")
+	var activities []domain.Activity
+	query := s.db.Order("created_at desc")
 
-    if limit > 0 {
-        query = query.Limit(limit)
-    }
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
 
-    result := query.Find(&activities)
-    return activities, result.Error
+	result := query.Find(&activities)
+	return activities, result.Error
 }
 
 // GetTotalDistance returns the total distance accumulated
@@ -135,9 +135,9 @@ func (s *Service) GetRecentActivities(limit int) ([]domain.Activity, error) {
 func (s *Service) GetTotalDistance() float64 {
 	// A pointer is used to handle NULL values returned by SQL aggregation.
 	var total *float64
-	
+
 	result := s.db.Model(&domain.Activity{}).Select("sum(total_distance)").Scan(&total)
-	
+
 	if result.Error != nil {
 		return 0
 	}
@@ -180,4 +180,19 @@ func (s *Service) CheckAndUpdateRecord(newRec PowerRecord) bool {
 		return true
 	}
 	return false
+}
+
+// GetAllActivities returns all recorded activities.
+// It is essential for PMC calculation, ordered from oldest to newest.
+func (s *Service) GetAllActivities() ([]domain.Activity, error) {
+	var activities []domain.Activity
+	err := s.db.Order("created_at asc").Find(&activities).Error
+	return activities, err
+}
+
+// GetPowerRecords returns the historical power records (MMP).
+func (s *Service) GetPowerRecords() ([]PowerRecord, error) {
+	var records []PowerRecord
+	err := s.db.Order("duration asc").Find(&records).Error
+	return records, err
 }
