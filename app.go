@@ -1049,3 +1049,26 @@ func (a *App) GetCareerDashboard() (CareerDashboard, error) {
 		MMP: mmpData,
 	}, nil
 }
+
+// DeleteActivityHistory deletes the workout from the database and removes the .fit file from disk
+func (a *App) DeleteActivityHistory(activityID uint) error {
+	// 1. Fetch the activity to discover the associated .fit filename
+	activity, err := a.storageService.GetActivityByID(activityID)
+	if err != nil {
+		return fmt.Errorf("activity not found: %v", err)
+	}
+
+	// 2. Delete the record from the SQLite database
+	err = a.storageService.DeleteActivity(activityID)
+	if err != nil {
+		return fmt.Errorf("error deleting from database: %v", err)
+	}
+
+	// 3. Delete the physical .fit file from the user's disk
+	// If the file does not exist (e.g., manually deleted), the function ignores the error
+	if activity.Filename != "" {
+		_ = os.Remove(activity.Filename)
+	}
+
+	return nil
+}

@@ -175,7 +175,7 @@ export class UIManager {
             const lapDist = data.total_dist % totalRouteDistance;
             const remainingMeters = Math.max(0, totalRouteDistance - lapDist);
             const remObj = this.formatDist(remainingMeters);
-            
+
             const currentLap = Math.floor(data.total_dist / totalRouteDistance) + 1;
 
             this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit} (L${currentLap})</span>`;
@@ -485,18 +485,38 @@ export class UIManager {
                 this.openActivityDetail(act);
             };
 
+            // We add a flex container for the folder icon and the trash icon
             div.innerHTML = `
-                <span style="flex: 2;">${date} - <small style="color: #aaa;">${name}</small></span>
-                <span style="flex: 1;">${dist}</span>
-                <span style="flex: 1; color: var(--power-color, #f1c40f); font-weight: bold;">${pwr}w</span>
-                <span 
-                    title="Abrir Pasta" 
-                    style="width: 40px; text-align: center; font-size: 1.2rem; cursor: pointer;"
-                    onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
-                >
-                    📂
-                </span>
-            `;
+    <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
+    
+    <span style="flex: 1; text-align: center;">${dist}</span>
+    
+    <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
+    
+    <div style="display: flex; gap: 15px; width: 80px; justify-content: center; align-items: center;">
+        <span 
+            title="Open Folder" 
+            style="font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.2)'"
+            onmouseout="this.style.transform='scale(1)'"
+            onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
+        >📂</span>
+        
+        <span 
+            title="Delete Workout" 
+            style="font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;"
+            onmouseover="this.style.transform='scale(1.2)'"
+            onmouseout="this.style.transform='scale(1)'"
+            onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
+                const targetId = ${act.ID ? act.ID : act.id};
+                window.go.main.App.DeleteActivityHistory(targetId).then(() => {
+                    window.ui.toggleSettings(true);
+                    window.ui.loadCareerDashboard(); 
+                }).catch(err => alert('Error deleting: ' + err)); 
+            }"
+        >🗑️</span>
+    </div>
+`;
 
             this.els.historyContainer.appendChild(div);
         });
