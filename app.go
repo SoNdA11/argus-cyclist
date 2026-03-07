@@ -83,6 +83,25 @@ type ExportPoint struct {
 	Ele float64 `json:"ele"`
 }
 
+type SessionSummary struct {
+	Activity domain.Activity `json:"activity"`
+	Zones    fit.TimeInZones `json:"zones"`
+}
+
+// ActivityDetails contains the time-series data for the charts
+type ActivityDetails struct {
+	Power     []int     `json:"power"`
+	HeartRate []int     `json:"hr"`
+	Cadence   []int     `json:"cadence"`
+	Distance  []float64 `json:"distance"`
+}
+
+// CareerDashboard groups the data required for the Career tab
+type CareerDashboard struct {
+	PMC []fit.PMCDay          `json:"pmc"`
+	MMP []storage.PowerRecord `json:"mmp"`
+}
+
 // NewApp initializes all core services and dependencies.
 func NewApp() *App {
 	// Initialize persistent storage (SQLite)
@@ -488,104 +507,108 @@ func (a *App) resumeSession() string {
 // FinishSession finalizes the current training session.
 // It calculates statistics, saves the activity to the database,
 // exports the FIT file, and resets the application state.
-func (a *App) FinishSession() string {
+func (a *App) FinishSession() (SessionSummary, error) {
 	if !a.isRecording {
-		return "Not recording"
+		return SessionSummary{}, fmt.Errorf("not recording")
 	}
 
-	// Stop simulation/game loop
 	if a.cancelSim != nil {
 		a.cancelSim()
 	}
 
-	// 1. Define and create the workouts directory
 	workoutsDir := "workouts"
-
-	// Create directory if it does not exist
 	if err := os.MkdirAll(workoutsDir, 0755); err != nil {
 		runtime.EventsEmit(a.ctx, "error", "Error creating workouts directory")
-		workoutsDir = "." // Fallback to project root
+		workoutsDir = "."
 	}
 
-	// 2. Calculate session statistics (with safety checks)
 	durationSec := a.sessionActiveTime
-
 	avgPower := 0
 	if a.sessionTicks > 0 {
 		avgPower = int(a.sessionPowerSum) / a.sessionTicks
 	}
 
-	// Average power calculation (protected)
 	var avgSpeed float64 = 0.0
 	if durationSec > 0 {
 		avgSpeed = (a.currentDist / durationSec) * 3.6
 	}
 
-	// Route name fallback
 	routeName := a.currentRouteName
 	if routeName == "" {
-		routeName = "Treino Livre"
+		routeName = "Free Training"
 	}
 
-	userWeight := a.GetUserProfile().Weight
+	userProfile := a.GetUserProfile()
+	userWeight := userProfile.Weight
 	if userWeight == 0 {
 		userWeight = 75
-	} // Fallback
+	}
+	userFTP := userProfile.FTP
+	if userFTP == 0 {
+		userFTP = 200
+	}
+
+	np := fit.CalculateNormalizedPower(a.sessionPowerData)
+	intensityFactor := fit.CalculateIntensityFactor(np, userFTP)
+	tss := fit.CalculateTSS(int(durationSec), np, intensityFactor, userFTP)
+	calories := fit.CalculateCalories(avgPower, int(durationSec))
+	zones := fit.CalculatePowerZones(a.sessionPowerData, userFTP)
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
-
 	for _, duration := range intervals {
 		bestWatts := a.calculateMMP(a.sessionPowerData, duration)
-
 		if bestWatts > 0 {
 			wkg := float64(bestWatts) / userWeight
-
 			record := storage.PowerRecord{
 				Duration: duration,
 				Watts:    bestWatts,
 				Wkg:      wkg,
 				Date:     time.Now(),
 			}
-
 			a.storageService.CheckAndUpdateRecord(record)
 		}
 	}
 
-	// 3. Build FIT file path
 	fileName := fmt.Sprintf("workout_%s.fit", time.Now().Format("2006-01-02_15-04-05"))
 	fullPath := filepath.Join(workoutsDir, fileName)
 
-	// 4. Create activity record for the database
 	activity := domain.Activity{
-		RouteName:     routeName,
-		Filename:      fullPath,
-		TotalDistance: a.currentDist,
-		Duration:      int64(durationSec),
-		AvgPower:      avgPower,
-		AvgSpeed:      avgSpeed,
-		CreatedAt:     time.Now(),
+		RouteName:       routeName,
+		Filename:        fullPath,
+		TotalDistance:   a.currentDist,
+		Duration:        int64(durationSec),
+		AvgPower:        avgPower,
+		AvgSpeed:        avgSpeed,
+		ElevationGain:   a.sessionElevationGain,
+		NormalizedPower: np,
+		IntensityFactor: intensityFactor,
+		TSS:             tss,
+		Calories:        calories,
+		CreatedAt:       time.Now(),
 	}
 
 	if err := a.storageService.SaveActivity(activity); err != nil {
 		fmt.Println("Database save error:", err)
 	}
 
-	// 5. Save FIT file to disk
 	if err := a.fitService.Save(fullPath); err != nil {
 		runtime.EventsEmit(a.ctx, "error", "Error saving FIT file")
-		fmt.Println("FIT save error:", err)
 	} else {
 		absPath, _ := filepath.Abs(fullPath)
 		runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("Workout saved: %s", absPath))
 	}
 
-	// 6. Final cleanup
 	a.isRecording = false
 	a.isPaused = false
 	a.currentDist = 0
+	a.sessionPowerData = []int{}
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
-	return "Finished"
+
+	return SessionSummary{
+		Activity: activity,
+		Zones:    zones,
+	}, nil
 }
 
 // DiscardSession cancels the current session without saving any data.
@@ -996,4 +1019,33 @@ func (a *App) ScanHeartRate() []domain.BLEDevice {
 	}
 
 	return []domain.BLEDevice{}
+}
+
+func (a *App) GetActivityDetails(filePath string) (fit.ActivityDetails, error) {
+	details, err := a.fitService.ParseActivity(filePath)
+	if err != nil {
+		return fit.ActivityDetails{}, err
+	}
+	return details, nil
+}
+
+func (a *App) GetCareerDashboard() (CareerDashboard, error) {
+	activities, err := a.storageService.GetAllActivities()
+	if err != nil {
+		fmt.Println("Error retrieving history for PMC:", err)
+		activities = []domain.Activity{}
+	}
+
+	pmcData := fit.CalculatePMC(activities)
+
+	mmpData, err := a.storageService.GetPowerRecords()
+	if err != nil {
+		fmt.Println("Error when searching for power records.:", err)
+		mmpData = []storage.PowerRecord{}
+	}
+
+	return CareerDashboard{
+		PMC: pmcData,
+		MMP: mmpData,
+	}, nil
 }

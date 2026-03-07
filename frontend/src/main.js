@@ -31,6 +31,7 @@ import { WorkoutController } from './modules/WorkoutController.js';
 const mapCtrl = new MapController();
 window.mapController = mapCtrl;
 const ui = new UIManager();
+window.ui = ui;
 
 const chart = new ElevationChart('elevationCanvas');
 window.chart = chart;
@@ -44,7 +45,7 @@ let isFinishTriggered = false;
 
 window.closeWorkout = async () => {
     if (confirm("Stop the structured workout and return to Free Ride?")) {
-        
+
         if (typeof workoutCtrl !== 'undefined') {
             workoutCtrl.hide();
         }
@@ -126,9 +127,9 @@ document.getElementById('btnScanTrainer').addEventListener('click', async () => 
 
     try {
         const devices = await window.go.main.App.ScanTrainers();
-        
+
         list.innerHTML = '<option value="">Select device...</option>';
-        
+
         if (devices && devices.length > 0) {
             devices.forEach(d => {
                 const opt = document.createElement('option');
@@ -163,16 +164,16 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
     if (status.innerText === "Trainer Connected") {
         await window.go.main.App.DisconnectTrainer();
         status.innerText = "Disconnected";
-        status.style.color = "";  
-        
-        btnReal.innerText = "🔗"; 
+        status.style.color = "";
+
+        btnReal.innerText = "🔗";
         btnReal.classList.add('hidden');
         list.classList.add('hidden');
         list.disabled = false;
         btnScan.classList.remove('hidden');
         btnScan.innerText = "🔍";
         btnScan.disabled = false;
-        btnVirtual.disabled = false; 
+        btnVirtual.disabled = false;
         return;
     }
 
@@ -189,7 +190,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
 
     try {
         const result = await window.go.main.App.ConnectTrainer(selectedMac);
-        status.innerText = result; 
+        status.innerText = result;
         status.style.color = "var(--argus-safe)";
         btnReal.innerText = "❌";
         btnReal.disabled = false;
@@ -216,22 +217,22 @@ document.getElementById('btnConnVirtual').addEventListener('click', async () => 
     if (status.innerText === "Simulator Active") {
         await window.go.main.App.DisconnectTrainer();
         status.innerText = "Disconnected";
-        status.style.color = "";  
-        btnVirtual.innerText = "💻"; 
+        status.style.color = "";
+        btnVirtual.innerText = "💻";
         btnScan.disabled = false;
         return;
     }
 
     btnVirtual.innerText = "⏳";
     btnVirtual.disabled = true;
-    btnScan.disabled = true; 
-    if(!btnReal.classList.contains('hidden')) btnReal.disabled = true;
+    btnScan.disabled = true;
+    if (!btnReal.classList.contains('hidden')) btnReal.disabled = true;
 
     try {
         const result = await window.go.main.App.ConnectVirtualTrainer();
-        status.innerText = result; 
+        status.innerText = result;
         status.style.color = "#00ADD8";
-        btnVirtual.innerText = "❌"; 
+        btnVirtual.innerText = "❌";
         btnVirtual.disabled = false;
 
         list.classList.add('hidden');
@@ -275,9 +276,9 @@ document.getElementById('btnScanHR').addEventListener('click', async () => {
 
     try {
         const devices = await window.go.main.App.ScanHeartRate();
-        
+
         list.innerHTML = '<option value="">Select device...</option>';
-        
+
         if (devices && devices.length > 0) {
             devices.forEach(d => {
                 const opt = document.createElement('option');
@@ -311,9 +312,9 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
     if (status.innerText === "HR Monitor Connected" || status.innerText === "Connected") {
         await window.go.main.App.DisconnectHeartRate();
         status.innerText = "Disconnected";
-        status.style.color = ""; 
-        
-        btnReal.innerText = "🔗";   
+        status.style.color = "";
+
+        btnReal.innerText = "🔗";
         btnReal.classList.add('hidden');
         list.classList.add('hidden');
         list.disabled = false;
@@ -335,9 +336,9 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
 
     try {
         const result = await window.go.main.App.ConnectHeartRate(selectedMac);
-        status.innerText = result; 
+        status.innerText = result;
         status.style.color = "var(--argus-safe)";
-        btnReal.innerText = "❌"; 
+        btnReal.innerText = "❌";
         btnReal.disabled = false;
     } catch (err) {
         status.innerText = "Error";
@@ -437,8 +438,9 @@ async function finishWorkout() {
     isFinishTriggered = true;
     isRecording = false;
     try {
-        await window.go.main.App.FinishSession();
-        ui.showFinishModal();
+        // Agora recebe o SessionSummary diretamente do Go
+        const sessionSummary = await window.go.main.App.FinishSession();
+        ui.showFinishModal(sessionSummary);
     } catch (e) {
         console.error("Error saving workout:", e);
         alert("Error when saving: " + e);
@@ -509,6 +511,12 @@ function openTab(tabId, event) {
 
     document.getElementById(tabId).classList.add('active');
     event.currentTarget.classList.add('active');
+
+    if (tabId === 'tab-career') {
+        setTimeout(() => {
+            window.ui.loadCareerDashboard();
+        }, 50);
+    }
 }
 
 // Expose function to global scope (used by inline HTML handlers)

@@ -17,6 +17,7 @@
 */
 
 import { CONFIG } from '../config.js';
+import * as echarts from 'echarts';
 
 /**
  * UIManager
@@ -460,33 +461,40 @@ export class UIManager {
             this.els.historyContainer.innerHTML = "<div style='padding:1rem'>No activities.</div>";
             return;
         }
+
         activities.forEach(act => {
             const date = act.created_at ? new Date(act.created_at).toLocaleDateString() : "--/--";
-
-            const distVal = act.total_distance || 0;
-            const dist = (distVal / 1000).toFixed(1) + " km";
-            const name = act.route_name || "Treino Livre";
+            const dist = (act.total_distance / 1000).toFixed(1) + " km";
+            const name = act.route_name || "Free Training";
             const pwr = act.avg_power || 0;
 
-            // Escape Windows paths for JS strings
             const rawFilename = act.filename || "";
             const safeFilename = rawFilename.replace(/\\/g, '\\\\');
 
             const div = document.createElement('div');
             div.className = 'history-item';
+            div.style.cursor = 'pointer';
+
+            div.onmouseover = () => div.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            div.onmouseout = () => div.style.backgroundColor = 'transparent';
+
+            div.onclick = () => {
+                this.openActivityDetail(act);
+            };
 
             div.innerHTML = `
-                <span>${date} - <small>${name}</small></span>
-                <span>${dist}</span>
-                <span>${pwr}w</span>
+                <span style="flex: 2;">${date} - <small style="color: #aaa;">${name}</small></span>
+                <span style="flex: 1;">${dist}</span>
+                <span style="flex: 1; color: var(--power-color, #f1c40f); font-weight: bold;">${pwr}w</span>
                 <span 
-                    title="Abrir Pasta: ${rawFilename}" 
-                    style="cursor: pointer; text-align: center; font-size: 1.2rem;"
-                    onclick="window.go.main.App.OpenFileFolder('${safeFilename}')"
+                    title="Abrir Pasta" 
+                    style="width: 40px; text-align: center; font-size: 1.2rem; cursor: pointer;"
+                    onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
                 >
                     📂
                 </span>
             `;
+
             this.els.historyContainer.appendChild(div);
         });
     }
@@ -510,10 +518,8 @@ export class UIManager {
         const daysInMonth = new Date(year, month, 0).getDate();
         const today = new Date();
 
-        // Espaços vazios
         for (let i = 0; i < firstDay; i++) container.innerHTML += `<div></div>`;
 
-        // Dias
         for (let d = 1; d <= daysInMonth; d++) {
             const hasAct = actMap[d];
             const isToday = (d === today.getDate() && month - 1 === today.getMonth() && year === today.getFullYear());
@@ -555,11 +561,9 @@ export class UIManager {
 
             records.forEach(rec => {
                 const label = this.formatDurationLabel(rec.duration);
-                // Formata data: DD/MM/YYYY HH:MM
                 const dateObj = new Date(rec.date);
                 const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                // Se o watt for 0, mostra traço
                 if (rec.watts === 0) return;
 
                 const row = `
@@ -693,16 +697,374 @@ export class UIManager {
         }
     }
 
-    showFinishModal() {
+    showFinishModal(summary) {
         const modal = document.getElementById('finishModal');
-        if (modal) {
-            modal.classList.add('active');
+        if (!modal) return;
+
+        if (summary && summary.activity) {
+            document.getElementById('finish-np').innerText = summary.activity.normalized_power ? `${summary.activity.normalized_power} w` : '-- w';
+            document.getElementById('finish-if').innerText = summary.activity.intensity_factor ? summary.activity.intensity_factor.toFixed(2) : '--';
+            document.getElementById('finish-tss').innerText = summary.activity.tss ? summary.activity.tss.toFixed(1) : '--';
+            document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
+
+            if (summary.zones && summary.activity.duration > 0) {
+                this.renderZoneBar(summary.zones, summary.activity.duration);
+            }
         }
+
+        modal.classList.add('active');
+    }
+
+    renderZoneBar(zones, totalDurationSec) {
+        const bar = document.getElementById('finish-zones-bar');
+        if (!bar) return;
+
+        bar.innerHTML = '';
+
+        const zoneKeys = [
+            { key: 'z1_time', color: 'var(--zone-1)' },
+            { key: 'z2_time', color: 'var(--zone-2)' },
+            { key: 'z3_time', color: 'var(--zone-3)' },
+            { key: 'z4_time', color: 'var(--zone-4)' },
+            { key: 'z5_time', color: 'var(--zone-5)' },
+            { key: 'z6_time', color: 'var(--zone-6)' }
+        ];
+
+        zoneKeys.forEach(zone => {
+            const timeInSec = zones[zone.key] || 0;
+            if (timeInSec > 0) {
+                const pct = (timeInSec / totalDurationSec) * 100;
+                const segment = document.createElement('div');
+                segment.className = 'zone-segment';
+                segment.style.width = `${pct}%`;
+                segment.style.backgroundColor = zone.color;
+
+                const mins = Math.floor(timeInSec / 60);
+                segment.title = `${Math.round(pct)}% (${mins} min)`;
+
+                bar.appendChild(segment);
+            }
+        });
     }
 
     closeFinishModal() {
         const modal = document.getElementById('finishModal');
         if (modal) modal.classList.remove('active');
         this.setRecordingState('IDLE');
+    }
+
+    closeDetailModal() {
+        const modal = document.getElementById('activityDetailModal');
+        if (modal) modal.classList.remove('active');
+
+        if (this.masterChartInstance) {
+            this.masterChartInstance.dispose();
+            this.masterChartInstance = null;
+        }
+        if (this.mmpChartInstance) {
+            this.mmpChartInstance.dispose();
+            this.mmpChartInstance = null;
+        }
+    }
+
+    async openActivityDetail(activity) {
+        try {
+            const modal = document.getElementById('activityDetailModal');
+            document.getElementById('detail-route-name').innerText = activity.route_name || "Treino Livre";
+            document.getElementById('detail-metrics').innerHTML = "<p>Carregando dados do arquivo FIT...</p>";
+            modal.classList.add('active');
+
+            const rawFilename = activity.filename || "";
+            const safeFilename = rawFilename.replace(/\\/g, '\\\\');
+            const details = await window.go.main.App.GetActivityDetails(safeFilename);
+
+            if (!details || !details.power || details.power.length === 0) {
+                document.getElementById('detail-metrics').innerHTML = "<p>Sem dados de telemetria neste arquivo.</p>";
+                return;
+            }
+
+            const durationMin = Math.round(activity.duration / 60);
+            const distKm = (activity.total_distance / 1000).toFixed(2);
+
+            document.getElementById('detail-metrics').innerHTML = `
+                <div class="detail-metric-row"><span class="label">Tempo</span><span class="value">${durationMin} min</span></div>
+                <div class="detail-metric-row"><span class="label">Distância</span><span class="value">${distKm} km</span></div>
+                <div class="detail-metric-row"><span class="label">Potência Média</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
+                <div class="detail-metric-row"><span class="label">Potência Normalizada</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
+                <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
+                <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
+                <div class="detail-metric-row"><span class="label">Calorias</span><span class="value">${activity.calories || '--'} kcal</span></div>
+            `;
+
+            this.renderMasterChart(details);
+            this.renderMMPChart(details.power);
+
+        } catch (error) {
+            console.error("Erro ao carregar detalhes:", error);
+            document.getElementById('detail-metrics').innerHTML = `<p style="color:red">Erro: ${error}</p>`;
+        }
+    }
+
+    renderMasterChart(details) {
+        const chartDom = document.getElementById('masterChart');
+        this.masterChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+
+        const timeAxis = details.time || [];
+
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' }
+            },
+            legend: {
+                data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
+                textStyle: { color: '#ccc' },
+                selected: { 'Elevation': false }
+            },
+            grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+            dataZoom: [
+                { type: 'inside', start: 0, end: 100 },
+                { start: 0, end: 100 }
+            ],
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: timeAxis,
+                axisLabel: { color: '#888' }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Watts',
+                    position: 'left',
+                    splitLine: { lineStyle: { color: '#333' } }
+                },
+                {
+                    type: 'value',
+                    name: 'BPM / RPM',
+                    position: 'right',
+                    splitLine: { show: false }
+                },
+                {
+                    type: 'value',
+                    show: false,
+                    min: 'dataMin',
+                    max: function (value) {
+                        if (value.max === value.min) return value.max + 10;
+                        return value.max + (value.max - value.min) * 0.8;
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: 'Elevation',
+                    type: 'line',
+                    yAxisIndex: 2,
+                    symbol: 'none',
+                    itemStyle: { color: '#888888' },
+                    lineStyle: { width: 0 },
+                    areaStyle: {
+                        color: 'rgba(120, 120, 120, 0.25)'
+                    },
+                    data: details.elevation || []
+                },
+                {
+                    name: 'Power (w)',
+                    type: 'line',
+                    yAxisIndex: 0,
+                    symbol: 'none',
+                    itemStyle: { color: '#f1c40f' },
+                    lineStyle: { width: 1.5, color: '#f1c40f' },
+                    data: details.power
+                },
+                {
+                    name: 'Heart Rate (bpm)',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    symbol: 'none',
+                    itemStyle: { color: '#e74c3c' },
+                    lineStyle: { width: 1.5, color: '#e74c3c' },
+                    data: details.hr
+                },
+                {
+                    name: 'Cadence (rpm)',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    symbol: 'none',
+                    itemStyle: { color: '#3498db' },
+                    lineStyle: { width: 1, color: '#3498db' },
+                    data: details.cadence
+                }
+            ]
+        };
+
+        this.masterChartInstance.setOption(option);
+    }
+
+    renderMMPChart(powerData) {
+        const chartDom = document.getElementById('mmpChart');
+        this.mmpChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+
+        const intervals = [1, 5, 15, 30, 60, 300, 600, 1200];
+        const mmpValues = intervals.map(duration => {
+            if (powerData.length < duration) return 0;
+            let maxAvg = 0;
+            for (let i = 0; i <= powerData.length - duration; i++) {
+                let sum = 0;
+                for (let j = 0; j < duration; j++) sum += powerData[i + j];
+                let avg = sum / duration;
+                if (avg > maxAvg) maxAvg = avg;
+            }
+            return Math.round(maxAvg);
+        });
+
+        const labels = ['1s', '5s', '15s', '30s', '1m', '5m', '10m', '20m'];
+
+        const option = {
+            title: { text: 'Power Curve (MMP)', textStyle: { fontSize: 12, color: '#aaa' } },
+            tooltip: { trigger: 'axis' },
+            grid: { left: '10%', right: '5%', bottom: '15%', top: '20%' },
+            xAxis: {
+                type: 'category',
+                data: labels,
+                axisLabel: { color: '#888' }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: '#333' } }
+            },
+            series: [{
+                data: mmpValues,
+                type: 'bar',
+                itemStyle: { color: '#e67e22', borderRadius: [4, 4, 0, 0] },
+                label: { show: true, position: 'top', color: '#fff' }
+            }]
+        };
+
+        this.mmpChartInstance.setOption(option);
+    }
+
+    async loadCareerDashboard() {
+        try {
+            const dashboardData = await window.go.main.App.GetCareerDashboard();
+            if (dashboardData) {
+                this.renderPMCChart(dashboardData.pmc || []);
+                this.renderCareerMMPChart(dashboardData.mmp || []);
+            }
+        } catch (error) {
+            console.error("Error loading Career Dashboard:", error);
+        }
+    }
+
+    renderPMCChart(pmcData) {
+        const chartDom = document.getElementById('pmcChart');
+        if (!chartDom) return;
+
+        if (this.pmcChartInstance) {
+            this.pmcChartInstance.dispose();
+        }
+        this.pmcChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+
+        const dates = pmcData.map(d => d.date);
+        const ctl = pmcData.map(d => d.ctl);
+        const atl = pmcData.map(d => d.atl);
+        const tsb = pmcData.map(d => d.tsb);
+
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' }
+            },
+            legend: {
+                data: ['CTL (Fitness)', 'ATL (Fatigue)', 'TSB (Form)'],
+                textStyle: { color: '#ccc' }
+            },
+            grid: { left: '5%', right: '5%', bottom: '15%', containLabel: true },
+            dataZoom: [
+                { type: 'inside', start: pmcData.length > 90 ? 70 : 0, end: 100 },
+                { start: pmcData.length > 90 ? 70 : 0, end: 100 }
+            ],
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: dates,
+                axisLabel: { color: '#888' }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: '#333' } }
+            },
+            series: [
+                {
+                    name: 'TSB (Form)',
+                    type: 'bar',
+                    itemStyle: { color: '#3498db' },
+                    data: tsb
+                },
+                {
+                    name: 'ATL (Fatigue)',
+                    type: 'line',
+                    symbol: 'none',
+                    itemStyle: { color: '#e056fd' },
+                    lineStyle: { width: 2, color: '#e056fd' },
+                    data: atl
+                },
+                {
+                    name: 'CTL (Fitness)',
+                    type: 'line',
+                    symbol: 'none',
+                    itemStyle: { color: '#f1c40f' },
+                    lineStyle: { width: 3, color: '#f1c40f' },
+                    areaStyle: { color: 'rgba(241, 196, 15, 0.2)' },
+                    data: ctl
+                }
+            ]
+        };
+
+        this.pmcChartInstance.setOption(option);
+    }
+
+    renderCareerMMPChart(mmpData) {
+        const chartDom = document.getElementById('careerMmpChart');
+        if (!chartDom) return;
+
+        if (this.careerMmpChartInstance) {
+            this.careerMmpChartInstance.dispose();
+        }
+        this.careerMmpChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+
+        mmpData.sort((a, b) => a.duration - b.duration);
+
+        const formatDuration = (secs) => {
+            if (secs < 60) return secs + 's';
+            return Math.floor(secs / 60) + 'm';
+        };
+
+        const labels = mmpData.map(d => formatDuration(d.duration));
+        const watts = mmpData.map(d => d.watts);
+
+        const option = {
+            tooltip: { trigger: 'axis' },
+            grid: { left: '5%', right: '5%', bottom: '15%', top: '15%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: labels,
+                axisLabel: { color: '#888' }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Watts',
+                splitLine: { lineStyle: { color: '#333' } }
+            },
+            series: [{
+                name: 'Max Power All-Time',
+                data: watts,
+                type: 'bar',
+                itemStyle: { color: '#f39c12', borderRadius: [4, 4, 0, 0] },
+                label: { show: true, position: 'top', color: '#fff' }
+            }]
+        };
+
+        this.careerMmpChartInstance.setOption(option);
     }
 }
