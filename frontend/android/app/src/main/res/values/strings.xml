@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Argus Cyclist</string>
+    <string name="title_activity_main">Argus Cyclist</string>
+    <string name="package_name">com.argus.cyclist</string>
+    <string name="custom_url_scheme">com.argus.cyclist</string>
+</resources>
