@@ -5,11 +5,14 @@
 ![Wails](https://img.shields.io/badge/Framework-Wails-red?logo=wails&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/Frontend-JavaScript-F7DF1E?logo=javascript&logoColor=black)
 ![MapLibre](https://img.shields.io/badge/Map-MapLibre-brightgreen)
+![Capacitor](https://img.shields.io/badge/Mobile-Capacitor-119EFF?logo=capacitor&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Runtime-Node.js-339933?logo=nodedotjs&logoColor=white)
 
-**Argus Cyclist** is a cross-platform open-source software for indoor cycling simulation, offering real-time communication with smart trainers, 3D map visualization, and support for multiple training modes such as free ride and structured workouts.
+**Argus Cyclist** is a cross-platform open-source software for indoor cycling simulation, offering real-time communication with smart trainers, 3D map visualization, and support for multiple training modes such as free ride and structured workouts. Now available for both Desktop and Mobile!
 
 ## Screenshots
+
+### Desktop Experience
 
 | Virtual Ride & HUD | Profile and Devices |
 | :---: | :---: |
@@ -18,6 +21,23 @@
 | <img src="./frontend/screenshots/pr-3-argus-cyclist.png" width="400" alt="History"/> | <img src="./frontend/screenshots/pr-4-argus-cyclist.png" width="400" alt="Dark Theme"/> |
 | **Workout Plan** | **Route Creator** |
 | <img src="./frontend/screenshots/pr-6-argus-cyclist.png" width="400" alt="Workout"/> | <img src="./frontend/screenshots/pr-7-argus-cyclist.png" width="400" alt="Route Creator"/> |
+| **Post-Ride Summary** | **Workout Graphical Analysis** |
+| <img src="./frontend/screenshots/post-workout-summary.png" width="400" alt="Workout"/> | <img src="./frontend/screenshots/post-workout-charts.png" width="400" alt="Route Creator"/> |
+
+### Mobile App (Android)
+
+| Mobile Gaming HUD |
+| :---: |
+| <img src="./frontend/screenshots/mobile-landscape-hud.jpg" width="800" alt="Mobile landscape view showing 3D map, telemetry data, and elevation profile"/> |
+
+## Cross-Platform: Now on Mobile (Android)
+
+Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the simulator now runs natively on Android devices, transforming your smartphone into a high-end cycling head unit.
+
+* **Immersive Mobile HUD:** A fully responsive, landscape-forced "gaming mode" UI featuring glassmorphism elements to maximize 3D map visibility.
+* **Native Bluetooth LE:** Direct connection to smart trainers and heart rate monitors using the mobile device's built-in Bluetooth antenna.
+* **JS Physics Engine:** A dedicated JavaScript physics engine ensures accurate speed calculations (accounting for drag, rolling resistance, and gravity) directly on the mobile device, without requiring the Go backend.
+* **Local File Parsing:** Import `.GPX` routes and `.ZWO` workout plans natively from your phone's storage.
 
 ## Simulation & Connectivity
 
@@ -41,6 +61,7 @@
 
 ### Tools & Data
 
+* **Post-Ride Analysis:** Comprehensive end-of-workout summaries featuring detailed performance statistics and graphical charts (Power, Heart Rate, Elevation) immediately after finishing a session.
 * **Route Editor:** Create custom routes directly inside the app by clicking points on the map.
 * **GPX Import:** Ride any real-world route by importing standard `.GPX` files.
 * **Activity History:** Calendar view, monthly stats, and "Power Curve" analysis.
@@ -50,7 +71,7 @@
 
 * **Backend:** Go (Golang)
 * **Frontend:** JavaScript (ES6+), MapLibre GL JS + OSRM
-* **Framework:** Wails (to create the native desktop application)
+* **Native Wrappers:** Wails (Desktop) & Capacitor (Android)
 * **Database:** SQLite (for local user data)
 
 ## Prerequisites
@@ -60,6 +81,7 @@ Before starting, ensure you have installed:
 * [Go](https://go.dev/) (v1.20+)
 * [Node.js](https://nodejs.org/) & npm
 * [Wails CLI](https://wails.io/) (`go install github.com/wailsapp/wails/v2/cmd/wails@latest`)
+* [Android Studio](https://developer.android.com/studio) (for mobile compilation)
 
 ## Installation and Setup
 
@@ -88,6 +110,15 @@ To start the application in development mode (with Hot Reload):
 
 ```bash
 wails dev
+```
+
+### For Android (Capacitor)
+
+```bash
+cd frontend
+npm run build
+npx cap sync android
+npx cap open android
 ```
 
 ## Contributing
