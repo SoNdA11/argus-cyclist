@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { Capacitor } from '@capacitor/core';
+
 export class WorkoutController {
     constructor() {
         this.panel = document.getElementById('workout-panel');
@@ -40,7 +42,15 @@ export class WorkoutController {
 
         this.lastWidth = 0;
 
-        if (window.runtime) {
+        // Mobile (Capacitor) State
+        this.mobileInterval = null;
+        this.mobileElapsedTime = 0;
+        this.intensityPct = 100;
+
+        // --- BINDING EVENTS ---
+
+        // 1. Desktop Mode (Wails)
+        if (window.runtime && !Capacitor.isNativePlatform()) {
             window.runtime.EventsOn("workout_loaded", (wo) => this.loadWorkout(wo));
             window.runtime.EventsOn("workout_status", (state) => this.updateStatus(state));
             window.runtime.EventsOn("workout_finished", (status) => {
@@ -68,6 +78,9 @@ export class WorkoutController {
         return undefined;
     }
 
+    /**
+     * Loads the workout. Called by Wails on Desktop, or manually on Mobile via WASM.
+     */
     loadWorkout(workout) {
         console.log("WORKOUT: Loading...", workout);
         this.activeWorkout = workout;
@@ -76,11 +89,17 @@ export class WorkoutController {
         this.renderList();
 
         requestAnimationFrame(() => this.renderGraph(0));
+
+        // --- MOBILE ONLY: Start Local Timer ---
+        if (Capacitor.isNativePlatform()) {
+            this.startMobileWorkoutLoop();
+        }
     }
 
     hide() {
         this.panel.classList.add('hidden');
         this.activeWorkout = null;
+        this.stopMobileWorkoutLoop();
 
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
@@ -92,12 +111,102 @@ export class WorkoutController {
         }, 50);
     }
 
+    // =================================
+    // MOBILE (CAPACITOR) WORKOUT ENGINE
+    // =================================
+
+    startMobileWorkoutLoop() {
+        this.stopMobileWorkoutLoop();
+        this.mobileElapsedTime = 0;
+        this.currentSegIdx = -1;
+        
+        const segments = this.getProp(this.activeWorkout, ['segments', 'Segments']) || [];
+        const totalDuration = this.getProp(this.activeWorkout, ['total_duration', 'TotalDuration']) || 
+                              segments.reduce((acc, s) => acc + (this.getProp(s, ['duration', 'DurationSeconds']) || 0), 0);
+        
+        if (totalDuration === 0) return;
+
+        this.mobileInterval = setInterval(() => {
+            if (!window.isRecording) return; // Only count time if session is active
+
+            this.mobileElapsedTime++;
+            let accumulatedTime = 0;
+            let currentSegment = null;
+            let segmentElapsed = 0;
+
+            // Find current segment
+            for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                const dur = this.getProp(seg, ['duration', 'DurationSeconds']);
+                
+                if (this.mobileElapsedTime <= accumulatedTime + dur) {
+                    currentSegment = seg;
+                    segmentElapsed = this.mobileElapsedTime - accumulatedTime;
+                    break;
+                }
+                accumulatedTime += dur;
+            }
+
+            if (!currentSegment) {
+                // Workout Finished
+                this.hide();
+                this.showToast("Workout completed!\nSwitched to Free Ride.", 5000);
+                if (window.mobileBLE) window.mobileBLE.setERGMode(false); // Return to SIM
+                return;
+            }
+
+            const ftp = window.ui ? window.ui.inputFTP.value : 200;
+            const startFactor = this.getProp(currentSegment, ['start_factor', 'StartFactor']) || 0;
+            const endFactor = this.getProp(currentSegment, ['end_factor', 'EndFactor']) || startFactor;
+            const dur = this.getProp(currentSegment, ['duration', 'DurationSeconds']);
+            
+            // Calculate interpolated target power (for Ramps)
+            const progress = segmentElapsed / dur;
+            const currentFactor = startFactor + (endFactor - startFactor) * progress;
+            const targetWatts = Math.round(ftp * currentFactor * (this.intensityPct / 100));
+
+            const completionPct = (this.mobileElapsedTime / totalDuration) * 100;
+            const timeRemain = dur - segmentElapsed;
+
+            // Update UI State object matching Go backend structure
+            const state = {
+                is_active: true,
+                completion_percent: completionPct,
+                target_power: targetWatts,
+                segment_time_remain: timeRemain,
+                current_segment_index: this.getProp(currentSegment, ['index', 'Index']),
+                segment_duration: dur,
+                intensity_pct: this.intensityPct
+            };
+
+            this.updateStatus(state);
+
+            // SEND ERG COMMAND TO TRAINER (Only if changed to avoid flooding)
+            if (window.mobileBLE && targetWatts !== this.lastTargetWatts) {
+                window.mobileBLE.sendTargetPower(targetWatts);
+                this.lastTargetWatts = targetWatts;
+            }
+
+        }, 1000);
+    }
+
+    stopMobileWorkoutLoop() {
+        if (this.mobileInterval) {
+            clearInterval(this.mobileInterval);
+            this.mobileInterval = null;
+        }
+        this.lastTargetWatts = -1;
+    }
+
+    // =========================================
+    // UI UPDATES (Shared by Desktop and Mobile)
+    // =========================================
+
     updateTelemetry(data) {
         if (!this.activeWorkout) return;
 
         const totalDist = this.getProp(data, ['total_dist', 'TotalDistance']);
         const distKm = (totalDist / 1000).toFixed(1);
-
         if (this.elDistDone) this.elDistDone.innerText = `${distKm} km`;
 
         if (window.totalRouteDistance && window.totalRouteDistance > 0) {
@@ -130,7 +239,6 @@ export class WorkoutController {
         const m = Math.floor(timeRemain / 60);
         const s = timeRemain % 60;
         this.elTimer.innerText = `${m}:${s.toString().padStart(2, '0')}`;
-
         this.elCompletion.innerText = Math.floor(completionPct) + "%";
 
         if (this.currentSegIdx !== currentIdx) {
@@ -324,11 +432,21 @@ export class WorkoutController {
     async adjustIntensity(delta) {
         if (!this.activeWorkout) return;
 
+        // Mobile Logic
+        if (Capacitor.isNativePlatform()) {
+            this.intensityPct += delta;
+            if (this.intensityPct < 50) this.intensityPct = 50;
+            if (this.intensityPct > 150) this.intensityPct = 150;
+            if (this.elIntensity) this.elIntensity.innerText = `${this.intensityPct}%`;
+            return;
+        }
+
+        // Desktop Logic
         try {
-            const newPct = await window.go.main.App.ChangeWorkoutIntensity(delta);
-
-            if (this.elIntensity) this.elIntensity.innerText = `${newPct}%`;
-
+            if (window.go && window.go.main) {
+                const newPct = await window.go.main.App.ChangeWorkoutIntensity(delta);
+                if (this.elIntensity) this.elIntensity.innerText = `${newPct}%`;
+            }
         } catch (err) {
             console.error("Error adjusting intensity:", err);
         }

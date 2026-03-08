@@ -10,3 +10,9 @@ routes/
 argus_data.db
 
 frontend/package.json.md5
+
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/Captures/
+frontend/android/.idea/
