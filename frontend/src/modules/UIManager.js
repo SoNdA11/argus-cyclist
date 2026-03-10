@@ -105,6 +105,10 @@ export class UIManager {
         this.bikeWeight = CONFIG.DEFAULT_BIKE_WEIGHT;
         this.units = CONFIG.DEFAULT_UNITS; // 'metric' or 'imperial'
 
+        // Form & Zones Thresholds
+        this.ftp = 200; // Default FTP fallback
+        this.maxHr = 190; // Default Max HR fallback for zones
+
         // --- CHART & CALENDAR STATE ---
         this.currentDate = new Date();
         window.changeMonth = (d) => this.changeMonth(d);
@@ -154,7 +158,7 @@ export class UIManager {
             this.els.dashboardView.classList.remove('hidden');
             this.els.mapContainer.style.display = 'none';
             this.els.hudSidebar.style.display = 'none';
-            
+
             // --- NEW: Initialize and resize chart ---
             this.initLiveChart();
             if (this.liveChartInstance) {
@@ -275,6 +279,31 @@ export class UIManager {
     }
 
     // =================
+    // TELEMETRY ZONES
+    // =================
+
+    getPowerZoneColor(power) {
+        if (!power || power === 0) return ''; // Fallback to CSS default when coasting
+        const pct = power / this.ftp;
+        if (pct < 0.55) return 'var(--zone-1)'; // Recovery
+        if (pct < 0.75) return 'var(--zone-2)'; // Endurance
+        if (pct < 0.90) return 'var(--zone-3)'; // Tempo
+        if (pct < 1.05) return 'var(--zone-4)'; // Threshold
+        if (pct < 1.20) return 'var(--zone-5)'; // VO2 Max
+        return 'var(--zone-6)';                 // Anaerobic
+    }
+
+    getHeartRateZoneColor(hr) {
+        if (!hr || hr === 0) return ''; // Fallback to CSS default
+        const pct = hr / this.maxHr;
+        if (pct < 0.60) return 'var(--zone-1)';
+        if (pct < 0.70) return 'var(--zone-2)';
+        if (pct < 0.80) return 'var(--zone-3)';
+        if (pct < 0.90) return 'var(--zone-4)';
+        return 'var(--zone-6)'; // Red for zone 5+ HR
+    }
+
+    // =================
     // TELEMETRY UPDATES
     // =================
 
@@ -284,10 +313,19 @@ export class UIManager {
      * @param {number} totalRouteDistance - Total route distance in meters
      */
     updateTelemetry(data, totalRouteDistance = 0) {
+        // Evaluate dynamic zone colors
+        const powerColor = this.getPowerZoneColor(data.power);
+        const hrColor = this.getHeartRateZoneColor(data.heart_rate);
+
         // Raw telemetry values
         this.els.watts.innerHTML = `${data.power}<span class="data-unit">w</span>`;
+        this.els.watts.style.color = powerColor;
+
         this.els.rpm.innerHTML = `${data.cadence}<span class="data-unit">rpm</span>`;
+
         this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">❤</span>`;
+        this.els.hr.style.color = hrColor;
+
         this.els.grade.innerHTML = `${data.grade.toFixed(1)}<span class="data-unit">%</span>`;
 
         // Speed (unit-aware)
@@ -330,41 +368,42 @@ export class UIManager {
         // --- NEW: Update Dashboard Mode Data & Chart ---
         if (this.isDashboardMode) {
             this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">w</span>`;
+            this.els.dashPower.style.color = powerColor;
+
             this.els.dashWkg.innerText = `${wkgVal} w/kg`;
+
             this.els.dashHr.innerHTML = `${data.heart_rate}<span class="dash-unit">bpm</span>`;
+            this.els.dashHr.style.color = hrColor;
+
             this.els.dashRpm.innerHTML = `${data.cadence}<span class="dash-unit">rpm</span>`;
             this.els.dashSpeed.innerHTML = `${speedObj.val}<span class="dash-unit">${speedObj.unit}</span>`;
             this.els.dashDist.innerHTML = `${distObj.val}<span class="dash-unit">${distObj.unit}</span>`;
-            
+
             // Keep chart data array length to max 60 seconds (or points) so it scrolls horizontally
-            // Mantém o tamanho do array no máximo em 60 pontos
             if (this.livePowerData.length > 60) {
                 this.livePowerData.shift();
                 this.liveHrData.shift();
-                this.liveCadenceData.shift(); // <-- ADICIONE AQUI
+                this.liveCadenceData.shift();
                 this.liveTimeData.shift();
             }
 
-            // Calcula o tempo real da sessão
             const h = Math.floor((this.secondsElapsed || 0) / 3600).toString().padStart(2, '0');
             const m = Math.floor(((this.secondsElapsed || 0) % 3600) / 60).toString().padStart(2, '0');
             const s = ((this.secondsElapsed || 0) % 60).toString().padStart(2, '0');
             const timeStr = `${h}:${m}:${s}`;
-            
-            // Empurra os novos pontos
+
             this.liveTimeData.push(timeStr);
             this.livePowerData.push(data.power);
             this.liveHrData.push(data.heart_rate);
-            this.liveCadenceData.push(data.cadence); // <-- ADICIONE AQUI
+            this.liveCadenceData.push(data.cadence);
 
-            // Diz ao ECharts para redesenhar as 3 linhas
             if (this.liveChartInstance) {
                 this.liveChartInstance.setOption({
                     xAxis: { data: this.liveTimeData },
-                    series: [ 
-                        { data: this.livePowerData }, 
+                    series: [
+                        { data: this.livePowerData },
                         { data: this.liveHrData },
-                        { data: this.liveCadenceData } // <-- ADICIONE AQUI
+                        { data: this.liveCadenceData }
                     ]
                 });
             }
@@ -386,32 +425,44 @@ export class UIManager {
         this.secondsElapsed = 0;
         this.updateTimerDisplay();
 
-        if (this.els.dashPower) this.els.dashPower.innerHTML = `0<span class="dash-unit">w</span>`;
+        if (this.els.dashPower) {
+            this.els.dashPower.innerHTML = `0<span class="dash-unit">w</span>`;
+            this.els.dashPower.style.color = '';
+        }
         if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 w/kg`;
-        if (this.els.dashHr) this.els.dashHr.innerHTML = `--<span class="dash-unit">bpm</span>`;
+        if (this.els.dashHr) {
+            this.els.dashHr.innerHTML = `--<span class="dash-unit">bpm</span>`;
+            this.els.dashHr.style.color = '';
+        }
         if (this.els.dashRpm) this.els.dashRpm.innerHTML = `0<span class="dash-unit">rpm</span>`;
         if (this.els.dashSpeed) this.els.dashSpeed.innerHTML = `0.0<span class="dash-unit">km/h</span>`;
         if (this.els.dashDist) this.els.dashDist.innerHTML = `0.00<span class="dash-unit">km</span>`;
 
-        if (this.els.watts) this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        if (this.els.watts) {
+            this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+            this.els.watts.style.color = '';
+        }
         if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
-        if (this.els.hr) this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        if (this.els.hr) {
+            this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+            this.els.hr.style.color = '';
+        }
         if (this.els.rpm) this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
         if (this.els.speed) this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`;
         if (this.els.dist) this.els.dist.innerHTML = `0.0<span class="data-unit">km</span>`;
-        
+
         this.liveTimeData = [];
         this.livePowerData = [];
         this.liveHrData = [];
         this.liveCadenceData = [];
-        
+
         if (this.liveChartInstance) {
             this.liveChartInstance.setOption({
                 xAxis: { data: this.liveTimeData },
-                series: [ 
-                    { data: this.livePowerData }, 
+                series: [
+                    { data: this.livePowerData },
                     { data: this.liveHrData },
-                    { data: this.liveCadenceData } 
+                    { data: this.liveCadenceData }
                 ]
             });
         }
@@ -429,8 +480,13 @@ export class UIManager {
     showRoutePreview(totalDistance, totalElevation = 0) {
         // Reset telemetry values to zero/dash
         this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        this.els.watts.style.color = '';
+
         this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
+
         this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        this.els.hr.style.color = '';
+
         this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
 
         if (this.els.elevation) {
@@ -503,14 +559,14 @@ export class UIManager {
     /**
      * Update HH:MM:SS timer display.
      */
- updateTimerDisplay() {
+    updateTimerDisplay() {
         const h = Math.floor(this.secondsElapsed / 3600).toString().padStart(2, '0');
         const m = Math.floor((this.secondsElapsed % 3600) / 60).toString().padStart(2, '0');
         const s = (this.secondsElapsed % 60).toString().padStart(2, '0');
         const timeStr = `${h}:${m}:${s}`;
-        
+
         this.els.time.innerText = timeStr;
-        
+
         // --- Update Dashboard Time ---
         if (this.els.dashTime) {
             this.els.dashTime.innerText = timeStr;
@@ -595,12 +651,25 @@ export class UIManager {
             this.els.selectUnits.value = profile.units || "metric";
             this.units = this.els.selectUnits.value;
 
+            // Sync logic states for dynamic zones
+            this.ftp = profile.ftp || 200;
+            this.maxHr = profile.max_hr || 190;
+
             this.level = profile.level || 1;
             this.xp = profile.current_xp || 0;
 
             const lvlLabel = document.getElementById('level-val');
             if (lvlLabel) lvlLabel.innerText = this.level;
             this.updateXPBarUI();
+
+            // Set Photo Details Update if on main view
+            if (document.getElementById('profileNameDisplay')) {
+                document.getElementById('profileNameDisplay').innerText = profile.name || "Cyclist";
+            }
+            if (profile.photo && profile.photo.length > 10 && document.getElementById('profileImage')) {
+                document.getElementById('profileImage').src = profile.photo;
+                this.currentPhotoData = profile.photo;
+            }
 
             console.log("Profile Loaded:", profile);
         } catch (e) {
@@ -653,6 +722,11 @@ export class UIManager {
             this.riderWeight = profile.weight;
             this.bikeWeight = profile.bike_weight;
             this.units = profile.units;
+            this.ftp = profile.ftp;
+
+            if (document.getElementById('profileNameDisplay')) {
+                document.getElementById('profileNameDisplay').innerText = profile.name;
+            }
             console.log("Profile Saved");
         } catch (e) {
             alert("Error saving profile: " + e);
@@ -861,56 +935,6 @@ export class UIManager {
             }
         } catch (e) {
             console.error(e);
-        }
-    }
-
-    async loadUserProfile() {
-        try {
-            const profile = await window.go.main.App.GetUserProfile();
-
-            this.els.inputName.value = profile.name || "";
-
-            document.getElementById('profileNameDisplay').innerText = profile.name || "Cyclist";
-
-            this.els.inputRiderWeight.value = profile.weight || 75;
-            this.els.inputBikeWeight.value = profile.bike_weight || 9;
-            this.els.inputFTP.value = profile.ftp || 200;
-            this.els.selectUnits.value = profile.units || "metric";
-
-            this.level = profile.level || 1;
-            this.xp = profile.current_xp || 0;
-            const lvlLabel = document.getElementById('level-val');
-            if (lvlLabel) lvlLabel.innerText = this.level;
-            this.updateXPBarUI();
-
-            if (profile.photo && profile.photo.length > 10) {
-                document.getElementById('profileImage').src = profile.photo;
-                this.currentPhotoData = profile.photo;
-            }
-
-        } catch (e) {
-            console.error("Error loading profile:", e);
-        }
-    }
-
-    async saveUserProfile() {
-        const profile = {
-            name: this.els.inputName.value,
-            photo: this.currentPhotoData,
-            weight: parseFloat(this.els.inputRiderWeight.value),
-            bike_weight: parseFloat(this.els.inputBikeWeight.value),
-            ftp: parseInt(this.els.inputFTP.value),
-            units: this.els.selectUnits.value,
-            level: this.level,
-            current_xp: parseInt(this.xp)
-        };
-
-        try {
-            await window.go.main.App.UpdateUserProfile(profile);
-            document.getElementById('profileNameDisplay').innerText = profile.name;
-
-        } catch (e) {
-            alert("Error saving profile: " + e);
         }
     }
 
