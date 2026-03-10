@@ -1278,6 +1278,7 @@ html[data-theme="day"] .history-item {
 
 /* Mirrored Positioning Relative to the Left Sidebar */
 .hud-sidebar.right-panel {
+    margin-left: auto;
     right: 20px;
     left: auto;
     display: flex;
@@ -1986,4 +1987,106 @@ TACTICAL BLUE
         font-size: 1.2rem;
         margin-top: 20px;
     }
+}
+/* ======================================
+   OFFLINE DASHBOARD MODE (STUDIO LAYOUT)
+   ====================================== */
+.dashboard-container {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-main);
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    transition: right 0.3s ease-in-out;
+}
+
+.dashboard-container.hidden {
+    display: none !important;
+}
+
+.dash-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1400px;
+    height: 100%;
+    gap: 20px;
+}
+
+/* --- TOP ROW (METRICS) --- */
+.dash-metrics-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 15px;
+    flex-shrink: 0;
+}
+
+.dash-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.dash-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.dash-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    line-height: 1;
+}
+
+.dash-unit {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-left: 5px;
+}
+
+.dash-sub {
+    margin-top: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* --- BOTTOM ROW (LIVE CHART) --- */
+.dash-chart-section {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dash-chart-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.dash-chart-body {
+    flex: 1;
+    position: relative;
+    padding: 10px;
 }

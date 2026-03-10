@@ -15,7 +15,7 @@ import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
 
-// Importações do Capacitor para a versão Mobile
+// Capacitor imports for the Mobile version
 import { Capacitor } from '@capacitor/core';
 import { CapacitorBluetoothService } from './modules/CapacitorBluetoothService.js';
 
@@ -26,14 +26,14 @@ if (typeof window.go === 'undefined') {
     window.go = {
         main: {
             App: new Proxy({}, {
-                get: function(target, prop) {
+                get: function (target, prop) {
                     if (prop === 'GetUserProfile') return async () => ({ name: "Mobile", weight: 75, bike_weight: 9, ftp: 200, units: "metric" });
                     if (prop === 'GetTotalStats') return async () => ({ total_km: 0, total_time: 0 });
                     if (prop === 'GetActivities') return async () => [];
                     if (prop === 'GetMonthlyActivities') return async () => [];
                     if (prop === 'GetPowerCurve') return async () => [];
                     if (prop === 'GetCareerDashboard') return async () => ({ pmc: [], mmp: [] });
-                    
+
                     return async () => { console.log("Mocked Go App call:", prop); return null; };
                 }
             })
@@ -45,7 +45,7 @@ if (typeof window.go === 'undefined') {
 // MOBILE PHYSICS POLYFILL
 // =======================
 if (typeof window.WasmCalculateSpeed === 'undefined') {
-    window.WasmCalculateSpeed = function(watts, gradePct, riderWeight, bikeWeight) {
+    window.WasmCalculateSpeed = function (watts, gradePct, riderWeight, bikeWeight) {
         if (watts <= 0) {
             if (gradePct < -2.0) return Math.sqrt(-gradePct / 100 * 9.81 * 2);
             return 0;
@@ -57,27 +57,27 @@ if (typeof window.WasmCalculateSpeed === 'undefined') {
         const cdA = 0.32; // Aerodynamic Coefficient
         const rho = 1.225; // Air Density
         const gradeDecimal = gradePct / 100.0;
-        
+
         // Transmission losses (3%)
         const powerToWheel = watts * 0.97;
 
         let v = 5.0; // Initial starting point (m/s)
-        
+
         // Newton-Raphson method for finding the exact speed.
         for (let i = 0; i < 10; i++) {
             const F_grav = g * m * Math.sin(Math.atan(gradeDecimal));
             const F_roll = g * m * Math.cos(Math.atan(gradeDecimal)) * crr;
             const F_aero = 0.5 * cdA * rho * v * v;
-            
+
             const P_total = (F_grav + F_roll + F_aero) * v;
             const P_diff = P_total - powerToWheel;
-            
+
             const dP_dv = F_grav + F_roll + 1.5 * cdA * rho * v * v;
-            
+
             v = v - (P_diff / dP_dv);
             if (v < 0) return 0;
         }
-        
+
         return v;
     };
 }
@@ -85,7 +85,7 @@ if (typeof window.WasmCalculateSpeed === 'undefined') {
 if (typeof window.runtime === 'undefined') {
     window.runtime = {
         EventsOn: (event, cb) => console.log("Mocked Wails Event:", event),
-        EventsEmit: () => {}
+        EventsEmit: () => { }
     };
 }
 // ==========================
@@ -115,11 +115,11 @@ if (Capacitor.isNativePlatform()) {
     mobileBLE = new CapacitorBluetoothService();
     window.mobileBLE = mobileBLE;
     console.log("Native Mobile Mode Detected (Capacitor)");
-    
+
     document.getElementById('btnScanTrainer').classList.add('hidden');
     document.getElementById('trainerList').classList.add('hidden');
     document.getElementById('btnConnTrainer').classList.remove('hidden');
-    
+
     document.getElementById('btnScanHR').classList.add('hidden');
     document.getElementById('hrList').classList.add('hidden');
     document.getElementById('btnConnHR').classList.remove('hidden');
@@ -132,10 +132,10 @@ window.closeWorkout = async () => {
         if (Capacitor.isNativePlatform()) {
             console.log("Mobile: Returned to SIM mode.");
         } else if (window.go && window.go.main && window.go.main.App) {
-            try { 
-                await window.go.main.App.SetTrainerMode('SIM'); 
-            } catch (e) { 
-                console.error("Error returning to SIM mode:", e); 
+            try {
+                await window.go.main.App.SetTrainerMode('SIM');
+            } catch (e) {
+                console.error("Error returning to SIM mode:", e);
             }
         }
     }
@@ -163,7 +163,7 @@ document.getElementById('selectTrainerMode').addEventListener('change', async (e
 
 document.getElementById('btnSetPower').addEventListener('click', async () => {
     const watts = parseFloat(document.getElementById('inputTargetPower').value);
-    
+
     if (Capacitor.isNativePlatform() && window.mobileBLE) {
         window.mobileBLE.sendTargetPower(watts);
     } else if (!Capacitor.isNativePlatform() && window.go && window.go.main && window.go.main.App) {
@@ -174,21 +174,33 @@ document.getElementById('btnSetPower').addEventListener('click', async () => {
 document.getElementById('btnCloseSettings').addEventListener('click', () => ui.toggleSettings(false));
 document.getElementById('btnOpenSettings').addEventListener('click', () => ui.toggleSettings(true));
 
+// --- Dashboard Toggle Event ---
+document.getElementById('btnToggleView').addEventListener('click', () => {
+    window.ui.toggleDashboardMode();
+});
 
 // ==================
 // DEVICE CONNECTIONS
 // ==================
 
+const svgIcons = {
+    scan: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
+    bt: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline></svg>`,
+    virtual: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>`,
+    disconnect: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+    wait: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22"></path><path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2"></path></svg>`
+};
+
 // 1. SCAN TRAINERS (Desktop only)
 document.getElementById('btnScanTrainer').addEventListener('click', async () => {
-    if (Capacitor.isNativePlatform()) return; 
-    
+    if (Capacitor.isNativePlatform()) return;
+
     const btnScan = document.getElementById('btnScanTrainer');
     const btnConn = document.getElementById('btnConnTrainer');
     const list = document.getElementById('trainerList');
     const status = document.getElementById('statusTrainer');
 
-    btnScan.innerText = "⏳";
+    btnScan.innerHTML = svgIcons.wait;
     btnScan.disabled = true;
     status.innerText = "Scanning...";
 
@@ -208,10 +220,10 @@ document.getElementById('btnScanTrainer').addEventListener('click', async () => 
             status.innerText = "Select a device";
         } else {
             status.innerText = "No devices found";
-            btnScan.innerText = "🔍"; btnScan.disabled = false;
+            btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
         }
     } catch (err) {
-        status.innerText = "Scan error"; btnScan.innerText = "🔍"; btnScan.disabled = false;
+        status.innerText = "Scan error"; btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
     }
 });
 
@@ -229,22 +241,22 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
             await mobileBLE.disconnectTrainer();
             status.innerText = "Disconnected";
             status.style.color = "";
-            btnReal.innerText = "🔗";
+            btnReal.innerHTML = svgIcons.bt;
             return;
         }
 
-        btnReal.innerText = "⏳";
+        btnReal.innerHTML = svgIcons.wait;
         const success = await mobileBLE.connectTrainer(
-            (msg) => { 
+            (msg) => {
                 status.innerText = msg;
                 if (msg === "Trainer Connected") status.style.color = "var(--argus-safe)";
             },
-            (data) => { 
-                ui.updateTelemetry(data, window.totalRouteDistance); 
+            (data) => {
+                ui.updateTelemetry(data, window.totalRouteDistance);
                 if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
             }
         );
-        btnReal.innerText = success ? "❌" : "🔗";
+        btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
         return;
     }
 
@@ -253,9 +265,9 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
         if (status.innerText === "Trainer Connected") {
             await window.go.main.App.DisconnectTrainer();
             status.innerText = "Disconnected"; status.style.color = "";
-            btnReal.innerText = "🔗"; btnReal.classList.add('hidden');
+            btnReal.innerHTML = svgIcons.bt; btnReal.classList.add('hidden');
             list.classList.add('hidden'); list.disabled = false;
-            btnScan.classList.remove('hidden'); btnScan.innerText = "🔍"; btnScan.disabled = false;
+            btnScan.classList.remove('hidden'); btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
             btnVirtual.disabled = false;
             return;
         }
@@ -263,15 +275,15 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
         const selectedMac = list.value;
         if (!selectedMac) { alert("Please select a trainer from the list."); return; }
 
-        btnReal.innerText = "⏳"; btnReal.disabled = true; btnVirtual.disabled = true; list.disabled = true;
+        btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; btnVirtual.disabled = true; list.disabled = true;
 
         try {
             const result = await window.go.main.App.ConnectTrainer(selectedMac);
             status.innerText = result; status.style.color = "var(--argus-safe)";
-            btnReal.innerText = "❌"; btnReal.disabled = false;
+            btnReal.innerHTML = svgIcons.disconnect; btnReal.disabled = false;
         } catch (err) {
             status.innerText = "Error connecting"; status.style.color = "var(--argus-alert)";
-            btnReal.innerText = "🔗"; btnReal.disabled = false; btnVirtual.disabled = false; list.disabled = false;
+            btnReal.innerHTML = svgIcons.bt; btnReal.disabled = false; btnVirtual.disabled = false; list.disabled = false;
         }
     }
 });
@@ -282,7 +294,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
 
 document.getElementById('btnConnVirtual').addEventListener('click', async () => {
     if (Capacitor.isNativePlatform()) { alert("Virtual Simulator not available on mobile yet."); return; }
-    
+
     const btnVirtual = document.getElementById('btnConnVirtual');
     const btnReal = document.getElementById('btnConnTrainer');
     const btnScan = document.getElementById('btnScanTrainer');
@@ -292,34 +304,35 @@ document.getElementById('btnConnVirtual').addEventListener('click', async () => 
     if (status.innerText === "Simulator Active") {
         await window.go.main.App.DisconnectTrainer();
         status.innerText = "Disconnected"; status.style.color = "";
-        btnVirtual.innerText = "💻"; btnScan.disabled = false;
+        btnVirtual.innerHTML = svgIcons.virtual; btnScan.disabled = false;
         return;
     }
 
-    btnVirtual.innerText = "⏳"; btnVirtual.disabled = true; btnScan.disabled = true;
+    btnVirtual.innerHTML = svgIcons.wait; btnVirtual.disabled = true; btnScan.disabled = true;
     if (!btnReal.classList.contains('hidden')) btnReal.disabled = true;
 
     try {
         const result = await window.go.main.App.ConnectVirtualTrainer();
         status.innerText = result; status.style.color = "#00ADD8";
-        btnVirtual.innerText = "❌"; btnVirtual.disabled = false;
+        // Usa um X vermelho elegante quando conectado (para poder desconectar)
+        btnVirtual.innerHTML = svgIcons.disconnect; btnVirtual.disabled = false;
         list.classList.add('hidden'); btnReal.classList.add('hidden'); btnScan.classList.remove('hidden');
     } catch (err) {
         status.innerText = "Error: " + err; status.style.color = "var(--argus-alert)";
-        btnVirtual.innerText = "💻"; btnVirtual.disabled = false; btnScan.disabled = false;
+        btnVirtual.innerHTML = svgIcons.virtual; btnVirtual.disabled = false; btnScan.disabled = false;
     }
 });
 
 // 1. SCAN HR (Desktop only)
 document.getElementById('btnScanHR').addEventListener('click', async () => {
     if (Capacitor.isNativePlatform()) return;
-    
+
     const btnScan = document.getElementById('btnScanHR');
     const btnConn = document.getElementById('btnConnHR');
     const list = document.getElementById('hrList');
     const status = document.getElementById('statusHR');
 
-    btnScan.innerText = "⏳"; btnScan.disabled = true; status.innerText = "Scanning...";
+    btnScan.innerHTML = svgIcons.wait; btnScan.disabled = true; status.innerText = "Scanning...";
 
     try {
         const devices = await window.go.main.App.ScanHeartRate();
@@ -333,9 +346,9 @@ document.getElementById('btnScanHR').addEventListener('click', async () => {
             list.classList.remove('hidden'); btnConn.classList.remove('hidden'); btnScan.classList.add('hidden');
             status.innerText = "Select a device";
         } else {
-            status.innerText = "No devices found"; btnScan.innerText = "🔍"; btnScan.disabled = false;
+            status.innerText = "No devices found"; btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
         }
-    } catch (err) { status.innerText = "Scan error"; btnScan.innerText = "🔍"; btnScan.disabled = false; }
+    } catch (err) { status.innerText = "Scan error"; btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false; }
 });
 
 // 2. CONNECT HR (Dual Mode)
@@ -349,16 +362,16 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
     if (Capacitor.isNativePlatform()) {
         if (status.innerText === "HR Connected") {
             await mobileBLE.disconnectHeartRate();
-            status.innerText = "Disconnected"; status.style.color = ""; btnReal.innerText = "🔗";
+            status.innerText = "Disconnected"; status.style.color = ""; btnReal.innerHTML = svgIcons.bt;
             return;
         }
 
-        btnReal.innerText = "⏳";
-        const success = await mobileBLE.connectHeartRate((msg) => { 
+        btnReal.innerHTML = svgIcons.wait;
+        const success = await mobileBLE.connectHeartRate((msg) => {
             status.innerText = msg;
             if (msg === "HR Connected") status.style.color = "var(--argus-safe)";
         });
-        btnReal.innerText = success ? "❌" : "🔗";
+        btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
         return;
     }
 
@@ -367,24 +380,24 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
         if (status.innerText === "HR Monitor Connected" || status.innerText === "Connected") {
             await window.go.main.App.DisconnectHeartRate();
             status.innerText = "Disconnected"; status.style.color = "";
-            btnReal.innerText = "🔗"; btnReal.classList.add('hidden');
+            btnReal.innerHTML = svgIcons.bt; btnReal.classList.add('hidden');
             list.classList.add('hidden'); list.disabled = false;
-            btnScan.classList.remove('hidden'); btnScan.innerText = "🔍"; btnScan.disabled = false;
+            btnScan.classList.remove('hidden'); btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
             return;
         }
 
         const selectedMac = list.value;
         if (!selectedMac) { alert("Please select a HR monitor from the list."); return; }
 
-        btnReal.innerText = "⏳"; btnReal.disabled = true; list.disabled = true;
+        btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; list.disabled = true;
 
         try {
             const result = await window.go.main.App.ConnectHeartRate(selectedMac);
             status.innerText = result; status.style.color = "var(--argus-safe)";
-            btnReal.innerText = "❌"; btnReal.disabled = false;
+            btnReal.innerHTML = svgIcons.disconnect; btnReal.disabled = false;
         } catch (err) {
             status.innerText = "Error"; status.style.color = "var(--argus-alert)";
-            btnReal.innerText = "🔗"; btnReal.disabled = false; list.disabled = false;
+            btnReal.innerHTML = svgIcons.bt; btnReal.disabled = false; list.disabled = false;
         }
     }
 });
@@ -448,7 +461,7 @@ document.getElementById('btnImport').addEventListener('click', async () => {
 
                 mapCtrl.renderRoute({ type: 'FeatureCollection', features: features });
                 mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
-                
+
                 const elevations = await window.go.main.App.GetElevationProfile();
                 chart.setData(elevations);
             }
@@ -461,17 +474,17 @@ function parseGPXForMobile(gpxText, filename) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(gpxText, "text/xml");
     const trkpts = xmlDoc.getElementsByTagName("trkpt");
-    
+
     if (trkpts.length === 0) { alert("No route points found in GPX"); return; }
 
     const points = [];
     let totalDist = 0;
-    
+
     const calcDist = (lat1, lon1, lat2, lon2) => {
-        const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
-        const dp = (lat2-lat1) * Math.PI/180; const dl = (lon2-lon1) * Math.PI/180;
-        const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        const R = 6371e3; const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
+        const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     };
 
     for (let i = 0; i < trkpts.length; i++) {
@@ -479,27 +492,27 @@ function parseGPXForMobile(gpxText, filename) {
         const lon = parseFloat(trkpts[i].getAttribute("lon"));
         const eleNode = trkpts[i].getElementsByTagName("ele")[0];
         const ele = eleNode ? parseFloat(eleNode.textContent) : 0;
-        
-        if (i > 0) totalDist += calcDist(points[i-1].lat, points[i-1].lon, lat, lon);
+
+        if (i > 0) totalDist += calcDist(points[i - 1].lat, points[i - 1].lon, lat, lon);
         points.push({ lat, lon, ele, distance: totalDist, grade: 0 });
     }
 
     for (let i = 1; i < points.length; i++) {
-        const p1 = points[i-1]; const p2 = points[i];
+        const p1 = points[i - 1]; const p2 = points[i];
         const dDist = p2.distance - p1.distance;
         p2.grade = dDist > 0 ? ((p2.ele - p1.ele) / dDist) * 100 : p1.grade;
     }
-    
+
     const smoothedPoints = points.map((p, i, arr) => {
-        let start = Math.max(0, i-2), end = Math.min(arr.length-1, i+2), sumGrade = 0;
-        for(let j=start; j<=end; j++) sumGrade += arr[j].grade;
+        let start = Math.max(0, i - 2), end = Math.min(arr.length - 1, i + 2), sumGrade = 0;
+        for (let j = start; j <= end; j++) sumGrade += arr[j].grade;
         return { ...p, grade: sumGrade / (end - start + 1) };
     });
 
     window.mobileRoutePoints = smoothedPoints;
     window.totalRouteDistance = totalDist;
 
-    window.WasmGetRoutePoint = function(dist) {
+    window.WasmGetRoutePoint = function (dist) {
         const pts = window.mobileRoutePoints;
         if (!pts || pts.length === 0) return null;
         const safeDist = dist % window.totalRouteDistance;
@@ -516,10 +529,10 @@ function parseGPXForMobile(gpxText, filename) {
     for (let i = 0; i < smoothedPoints.length - 1; i++) {
         features.push({
             type: 'Feature', properties: { grade: smoothedPoints[i].grade },
-            geometry: { type: 'LineString', coordinates: [[smoothedPoints[i].lon, smoothedPoints[i].lat], [smoothedPoints[i+1].lon, smoothedPoints[i+1].lat]] }
+            geometry: { type: 'LineString', coordinates: [[smoothedPoints[i].lon, smoothedPoints[i].lat], [smoothedPoints[i + 1].lon, smoothedPoints[i + 1].lat]] }
         });
     }
-    
+
     window.mapController.renderRoute({ type: 'FeatureCollection', features: features });
     window.mapController.setInitialPosition(smoothedPoints[0].lat, smoothedPoints[0].lon);
     window.chart.setData(smoothedPoints.map(p => p.ele));
@@ -561,12 +574,12 @@ document.getElementById('btnLoadWorkout').addEventListener('click', async () => 
 function parseZWOForMobile(xmlString) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-    
+
     const workoutObj = { Segments: [], TotalDuration: 0 };
     const workoutNodes = xmlDoc.getElementsByTagName("workout");
-    
+
     if (workoutNodes.length === 0) { alert("Invalid ZWO file."); return; }
-    
+
     const elements = workoutNodes[0].children;
     let idx = 0;
 
@@ -574,7 +587,7 @@ function parseZWOForMobile(xmlString) {
         const el = elements[i];
         const type = el.tagName;
         const dur = parseInt(el.getAttribute("Duration")) || 0;
-        
+
         if (type === "SteadyState" || type === "FreeRide") {
             const pwr = parseFloat(el.getAttribute("Power")) || 0;
             workoutObj.Segments.push({ Index: idx++, Type: "STEADY", DurationSeconds: dur, StartFactor: pwr, EndFactor: pwr });
@@ -611,7 +624,7 @@ function parseZWOForMobile(xmlString) {
 async function finishWorkout() {
     isFinishTriggered = true;
     window.isRecording = false;
-    
+
     // --- MOBILE MODE (Capacitor) ---
     if (Capacitor.isNativePlatform()) {
         ui.setRecordingState('IDLE');
@@ -701,14 +714,30 @@ function openTab(tabId, event) {
 window.openTab = openTab;
 
 if (window.runtime && !Capacitor.isNativePlatform()) {
+
     window.runtime.EventsOn("ble_connection_status", (data) => {
-        if (data.stage === "READY") mapCtrl.followCyclist = true;
+        if (data.stage === "READY") {
+            mapCtrl.followCyclist = true;
+        }
     });
 
     window.runtime.EventsOn("status_change", (status) => {
-        if (status === "RECORDING") { ui.setRecordingState('RECORDING'); window.isRecording = true; }
-        else if (status === "PAUSED") { ui.setRecordingState('PAUSED'); window.isRecording = true; }
-        else { ui.setRecordingState('IDLE'); window.isRecording = false; }
+        if (status === "RECORDING") {
+            ui.setRecordingState('RECORDING');
+            window.isRecording = true;
+        }
+        else if (status === "PAUSED") {
+            ui.setRecordingState('PAUSED');
+            window.isRecording = true;
+        }
+        else {
+            ui.setRecordingState('IDLE');
+            window.isRecording = false;
+
+            if (window.ui) {
+                window.ui.resetDashboardData();
+            }
+        }
     });
 
     window.runtime.EventsOn("telemetry_update", (data) => {

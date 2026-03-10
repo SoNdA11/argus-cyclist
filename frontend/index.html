@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <title>Argus Cyclist</title>
 </head>
 
@@ -100,17 +101,37 @@
                                     </select>
 
                                     <button id="btnConnVirtual" class="btn-icon-small" title="Use Simulator"
-                                        style="margin-right: 5px;">💻</button>
+                                        style="margin-right: 5px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                            <line x1="2" y1="20" x2="22" y2="20"></line>
+                                        </svg>
+                                    </button>
 
                                     <button id="btnScanTrainer" class="btn-icon-small" title="Search Real Hardware"
-                                        style="margin-right: 5px;">🔍</button>
+                                        style="margin-right: 5px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    </button>
 
-                                    <button id="btnConnTrainer" class="btn-icon-small hidden"
-                                        title="Connect">🔗</button>
+                                    <button id="btnConnTrainer" class="btn-icon-small hidden" title="Connect">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
+                                            </polyline>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="device-row compact">
+                           <div class="device-row compact">
                                 <span>Heart Rate</span>
                                 <div>
                                     <span id="statusHR" class="status-indicator">Disconnected</span>
@@ -121,9 +142,36 @@
                                     </select>
 
                                     <button id="btnScanHR" class="btn-icon-small" title="Search HR Monitors"
-                                        style="margin-right: 5px;">🔍</button>
+                                        style="margin-right: 5px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                            stroke-linejoin="round">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    </button>
 
-                                    <button id="btnConnHR" class="btn-icon-small hidden" title="Connect">🔗</button>
+                                    <button id="btnConnHR" class="btn-icon-small hidden" title="Connect"
+                                        style="margin-right: 5px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
+                                            </polyline>
+                                        </svg>
+                                    </button>
+
+                                    <button id="btnWaitHR" class="btn-icon-small hidden" title="Waiting..." 
+                                        style="margin-right: 5px; opacity: 0.5; cursor: wait;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                            stroke-linejoin="round">
+                                            <path d="M5 22h14"></path>
+                                            <path d="M5 2h14"></path>
+                                            <path d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22"></path>
+                                            <path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         </section>
@@ -253,6 +301,12 @@
     <header>
         <div class="brand">ARGUS<span>CYCLIST</span> <span id="filename" class="filename-display"></span></div>
         <div class="header-controls">
+            <button class="btn-icon" id="btnToggleView" title="Toggle Dashboard View">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </button>
             <button class="btn-icon" id="btnOpenSettings" title="Settings">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -324,6 +378,51 @@
         </aside>
 
         <main id="map-container"></main>
+
+        <div id="dashboard-view" class="dashboard-container hidden">
+            <div class="dash-layout">
+
+                <div class="dash-metrics-row">
+                    <div class="dash-card power-card">
+                        <span class="dash-label">POWER</span>
+                        <div class="dash-value" id="dash-power">0<span class="dash-unit">w</span></div>
+                        <div class="dash-sub" id="dash-wkg" style="color: var(--power-color)">0.0 w/kg</div>
+                    </div>
+                    <div class="dash-card hr-card">
+                        <span class="dash-label">HEART RATE</span>
+                        <div class="dash-value" id="dash-hr">--<span class="dash-unit">bpm</span></div>
+                    </div>
+                    <div class="dash-card">
+                        <span class="dash-label">CADENCE</span>
+                        <div class="dash-value" id="dash-rpm">0<span class="dash-unit">rpm</span></div>
+                    </div>
+                    <div class="dash-card">
+                        <span class="dash-label">SPEED</span>
+                        <div class="dash-value" id="dash-speed">0.0<span class="dash-unit">km/h</span></div>
+                    </div>
+                    <div class="dash-card">
+                        <span class="dash-label">DISTANCE</span>
+                        <div class="dash-value" id="dash-dist">0.0<span class="dash-unit">km</span></div>
+                    </div>
+                    <div class="dash-card">
+                        <span class="dash-label">TIME</span>
+                        <div class="dash-value" id="dash-time">00:00:00</div>
+                    </div>
+                </div>
+
+                <div class="dash-chart-section">
+                    <div class="dash-chart-header">
+                        <h3
+                            style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Live Telemetry</h3>
+                    </div>
+                    <div class="dash-chart-body">
+                        <div id="liveDashboardChart" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
         <aside id="workout-panel" class="hud-sidebar right-panel hidden">
 
