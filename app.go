@@ -681,7 +681,15 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 		case rawData := <-input:
 			if rawData.Power != -1 {
 				currentPower = rawData.Power
-				currentCadence = rawData.Cadence
+				
+				// FILTER: Ignores Cadence = 0 if it's just an empty BLE data page.
+				// It only drops to 0 if the cyclist actually stops pedaling (Power == 0).
+				if rawData.Cadence > 0 {
+					currentCadence = rawData.Cadence
+				} else if currentPower == 0 {
+					currentCadence = 0
+				}
+				
 				lastPowerTime = time.Now()
 			}
 			if rawData.HeartRate > 0 {

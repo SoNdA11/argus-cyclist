@@ -74,11 +74,27 @@ export class UIManager {
             // History & statistics
             historyContainer: document.getElementById('historyContainer'),
             statTotalDist: document.getElementById('statTotalDist'),
-            statTotalActivities: document.getElementById('statTotalActivities')
+            statTotalActivities: document.getElementById('statTotalActivities'),
+
+            // --- Dashboard Elements ---
+            btnToggleView: document.getElementById('btnToggleView'),
+            dashboardView: document.getElementById('dashboard-view'),
+            mapContainer: document.getElementById('map-container'),
+            hudSidebar: document.querySelector('.hud-sidebar'),
+            dashPower: document.getElementById('dash-power'),
+            dashWkg: document.getElementById('dash-wkg'),
+            dashHr: document.getElementById('dash-hr'),
+            dashRpm: document.getElementById('dash-rpm'),
+            dashSpeed: document.getElementById('dash-speed'),
+            dashDist: document.getElementById('dash-dist'),
+            dashTime: document.getElementById('dash-time'),
         };
 
         // --- GLOBAL ACCESS ---
         window.ui = this;
+
+        // --- VIEW STATE ---
+        this.isDashboardMode = false; // Tracks if map is hidden
 
         // --- TIMER STATE ---
         this.timerInterval = null;
@@ -99,6 +115,133 @@ export class UIManager {
         this.level = 1;
         this.xp = 0;
         this.nextLevelXp = 500;
+
+        // --- Live Chart Data Arrays ---
+        this.liveChartInstance = null;
+        this.liveTimeData = [];
+        this.livePowerData = [];
+        this.liveHrData = [];
+        this.liveCadenceData = [];
+
+        const workoutPanel = document.getElementById('workout-panel');
+        if (workoutPanel && this.els.dashboardView) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        const isOpen = !workoutPanel.classList.contains('hidden');
+                        this.els.dashboardView.style.right = isOpen ? '340px' : '0px';
+                        if (this.liveChartInstance) {
+                            setTimeout(() => this.liveChartInstance.resize(), 300);
+                        }
+                    }
+                });
+            });
+            observer.observe(workoutPanel, { attributes: true });
+        }
+    }
+
+    // ===========
+    // VIEW TOGGLE
+    // ===========
+
+    /**
+     * Toggles the application between Map View and Offline Dashboard View
+     */
+    toggleDashboardMode() {
+        this.isDashboardMode = !this.isDashboardMode;
+
+        if (this.isDashboardMode) {
+            this.els.dashboardView.classList.remove('hidden');
+            this.els.mapContainer.style.display = 'none';
+            this.els.hudSidebar.style.display = 'none';
+            
+            // --- NEW: Initialize and resize chart ---
+            this.initLiveChart();
+            if (this.liveChartInstance) {
+                setTimeout(() => this.liveChartInstance.resize(), 100);
+            }
+        } else {
+            this.els.dashboardView.classList.add('hidden');
+            this.els.mapContainer.style.display = 'block';
+            this.els.hudSidebar.style.display = 'flex';
+        }
+    }
+
+    // ====================
+    // LIVE DASHBOARD CHART
+    // ====================
+
+    initLiveChart() {
+        const chartDom = document.getElementById('liveDashboardChart');
+        if (!chartDom) return;
+
+        // Initialize ECharts instance if it doesn't exist
+        if (!this.liveChartInstance) {
+            this.liveChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+        }
+
+        const option = {
+            animation: false,
+            tooltip: { trigger: 'axis' },
+            legend: {
+                data: ['Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
+                textStyle: { color: '#ccc' },
+                top: 0
+            },
+            grid: { left: '3%', right: '3%', bottom: '5%', top: 40, containLabel: true },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: this.liveTimeData,
+                axisLabel: { color: '#888' },
+                splitLine: { show: false }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Watts',
+                    position: 'left',
+                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                },
+                {
+                    type: 'value',
+                    name: 'BPM / RPM',
+                    position: 'right',
+                    splitLine: { show: false }
+                }
+            ],
+            series: [
+                {
+                    name: 'Power (w)',
+                    type: 'line',
+                    yAxisIndex: 0,
+                    symbol: 'none',
+                    itemStyle: { color: '#f1c40f' },
+                    areaStyle: { color: 'rgba(241, 196, 15, 0.1)' },
+                    data: this.livePowerData
+                },
+                {
+                    name: 'Heart Rate (bpm)',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    symbol: 'none',
+                    itemStyle: { color: '#e74c3c' },
+                    smooth: true,
+                    data: this.liveHrData
+                },
+                {
+                    name: 'Cadence (rpm)',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    symbol: 'none',
+                    itemStyle: { color: '#3498db' },
+                    smooth: true,
+                    data: this.liveCadenceData
+                }
+            ]
+        };
+
+        this.liveChartInstance.setOption(option);
     }
 
     // =========================
@@ -183,6 +326,49 @@ export class UIManager {
             const pct = Math.min((lapDist / totalRouteDistance) * 100, 100);
             this.els.cursor.style.left = pct + '%';
         }
+
+        // --- NEW: Update Dashboard Mode Data & Chart ---
+        if (this.isDashboardMode) {
+            this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">w</span>`;
+            this.els.dashWkg.innerText = `${wkgVal} w/kg`;
+            this.els.dashHr.innerHTML = `${data.heart_rate}<span class="dash-unit">bpm</span>`;
+            this.els.dashRpm.innerHTML = `${data.cadence}<span class="dash-unit">rpm</span>`;
+            this.els.dashSpeed.innerHTML = `${speedObj.val}<span class="dash-unit">${speedObj.unit}</span>`;
+            this.els.dashDist.innerHTML = `${distObj.val}<span class="dash-unit">${distObj.unit}</span>`;
+            
+            // Keep chart data array length to max 60 seconds (or points) so it scrolls horizontally
+            // Mantém o tamanho do array no máximo em 60 pontos
+            if (this.livePowerData.length > 60) {
+                this.livePowerData.shift();
+                this.liveHrData.shift();
+                this.liveCadenceData.shift(); // <-- ADICIONE AQUI
+                this.liveTimeData.shift();
+            }
+
+            // Calcula o tempo real da sessão
+            const h = Math.floor((this.secondsElapsed || 0) / 3600).toString().padStart(2, '0');
+            const m = Math.floor(((this.secondsElapsed || 0) % 3600) / 60).toString().padStart(2, '0');
+            const s = ((this.secondsElapsed || 0) % 60).toString().padStart(2, '0');
+            const timeStr = `${h}:${m}:${s}`;
+            
+            // Empurra os novos pontos
+            this.liveTimeData.push(timeStr);
+            this.livePowerData.push(data.power);
+            this.liveHrData.push(data.heart_rate);
+            this.liveCadenceData.push(data.cadence); // <-- ADICIONE AQUI
+
+            // Diz ao ECharts para redesenhar as 3 linhas
+            if (this.liveChartInstance) {
+                this.liveChartInstance.setOption({
+                    xAxis: { data: this.liveTimeData },
+                    series: [ 
+                        { data: this.livePowerData }, 
+                        { data: this.liveHrData },
+                        { data: this.liveCadenceData } // <-- ADICIONE AQUI
+                    ]
+                });
+            }
+        }
     }
 
     /**
@@ -192,9 +378,48 @@ export class UIManager {
         this.els.filename.innerText = "| " + name;
     }
 
-    // =================
+    // ===============
+    // RESET TELEMETRY
+    // ===============
+
+    resetDashboardData() {
+        this.secondsElapsed = 0;
+        this.updateTimerDisplay();
+
+        if (this.els.dashPower) this.els.dashPower.innerHTML = `0<span class="dash-unit">w</span>`;
+        if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 w/kg`;
+        if (this.els.dashHr) this.els.dashHr.innerHTML = `--<span class="dash-unit">bpm</span>`;
+        if (this.els.dashRpm) this.els.dashRpm.innerHTML = `0<span class="dash-unit">rpm</span>`;
+        if (this.els.dashSpeed) this.els.dashSpeed.innerHTML = `0.0<span class="dash-unit">km/h</span>`;
+        if (this.els.dashDist) this.els.dashDist.innerHTML = `0.00<span class="dash-unit">km</span>`;
+
+        if (this.els.watts) this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+        if (this.els.hr) this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        if (this.els.rpm) this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
+        if (this.els.speed) this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`;
+        if (this.els.dist) this.els.dist.innerHTML = `0.0<span class="data-unit">km</span>`;
+        
+        this.liveTimeData = [];
+        this.livePowerData = [];
+        this.liveHrData = [];
+        this.liveCadenceData = [];
+        
+        if (this.liveChartInstance) {
+            this.liveChartInstance.setOption({
+                xAxis: { data: this.liveTimeData },
+                series: [ 
+                    { data: this.livePowerData }, 
+                    { data: this.liveHrData },
+                    { data: this.liveCadenceData } 
+                ]
+            });
+        }
+    }
+
+    // =============
     // ROUTE PREVIEW
-    // =================
+    // =============
 
     /**
      * Display route statistics before the ride starts.
@@ -226,12 +451,6 @@ export class UIManager {
         // Set the Remaining Distance to the Total Distance
         const remObj = this.formatDist(totalDistance);
         this.els.distRem.innerHTML = `${remObj.val}<span class="data-unit">${remObj.unit}</span>`;
-
-        // If you have a specific UI element for Elevation, update it here.
-        // For example, if you added: this.els.elevation = document.getElementById('total-elevation');
-        // if (this.els.elevation) {
-        //     this.els.elevation.innerHTML = `${totalElevation.toFixed(0)}<span class="data-unit">m</span>`;
-        // }
 
         // Reset Cursor
         if (this.els.cursor) {
@@ -284,11 +503,18 @@ export class UIManager {
     /**
      * Update HH:MM:SS timer display.
      */
-    updateTimerDisplay() {
+ updateTimerDisplay() {
         const h = Math.floor(this.secondsElapsed / 3600).toString().padStart(2, '0');
         const m = Math.floor((this.secondsElapsed % 3600) / 60).toString().padStart(2, '0');
         const s = (this.secondsElapsed % 60).toString().padStart(2, '0');
-        this.els.time.innerText = `${h}:${m}:${s}`;
+        const timeStr = `${h}:${m}:${s}`;
+        
+        this.els.time.innerText = timeStr;
+        
+        // --- Update Dashboard Time ---
+        if (this.els.dashTime) {
+            this.els.dashTime.innerText = timeStr;
+        }
     }
 
     // ===================
@@ -1090,4 +1316,5 @@ export class UIManager {
 
         this.careerMmpChartInstance.setOption(option);
     }
+
 }
