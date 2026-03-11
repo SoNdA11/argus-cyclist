@@ -179,6 +179,46 @@ document.getElementById('btnToggleView').addEventListener('click', () => {
     window.ui.toggleDashboardMode();
 });
 
+// ====================
+// STRAVA INTEGRATION
+// ====================
+
+document.getElementById('btnConnectStrava').addEventListener('click', async () => {
+    // Mobile check: OAuth flow relies on local web server, only for desktop right now
+    if (Capacitor && Capacitor.isNativePlatform()) {
+        alert("Strava OAuth is currently only supported on the Desktop version.");
+        return;
+    }
+
+    const btn = document.getElementById('btnConnectStrava');
+    const status = document.getElementById('statusStrava');
+
+    // Set UI to loading state
+    btn.disabled = true;
+    btn.innerHTML = "Waiting for browser...";
+    status.innerText = "Check the opened tab to authorize.";
+    status.style.color = "var(--text-muted)";
+
+    try {
+        // Trigger the Go backend OAuth2 flow
+        const result = await window.go.main.App.ConnectStrava();
+        
+        if (result === "ok") {
+            btn.innerHTML = "✓ Strava Connected";
+            status.innerText = "Ready to auto-upload";
+            status.style.color = "var(--argus-safe)";
+            // Keep button disabled to prevent re-triggering unnecessarily
+        }
+    } catch (err) {
+        console.error("Strava Connection Error:", err);
+        btn.disabled = false;
+        btn.innerHTML = "Connect with Strava";
+        status.innerText = "Connection failed or timed out.";
+        status.style.color = "var(--argus-alert)";
+        alert("Error connecting to Strava: " + err);
+    }
+});
+
 // ==================
 // DEVICE CONNECTIONS
 // ==================

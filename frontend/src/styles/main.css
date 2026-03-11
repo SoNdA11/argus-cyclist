@@ -2273,3 +2273,34 @@ TACTICAL BLUE
     margin-bottom: 10px;
     font-size: 1rem;
 }
+
+/* =====================
+   STRAVA INTEGRATION UI
+   ===================== */
+
+.btn-strava {
+    background-color: #FC4C02; /* Official Strava Orange */
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-strava:hover {
+    background-color: #e34402;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(252, 76, 2, 0.3);
+}
+
+.btn-strava:disabled {
+    background-color: #fb9a73;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
+}
