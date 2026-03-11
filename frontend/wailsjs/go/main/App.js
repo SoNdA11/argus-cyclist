@@ -22,6 +22,10 @@ export function ConnectVirtualTrainer() {
   return window['go']['main']['App']['ConnectVirtualTrainer']();
 }
 
+export function CreateLocalAccount(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CreateLocalAccount'](arg1, arg2, arg3, arg4);
+}
+
 export function DeleteActivityHistory(arg1) {
   return window['go']['main']['App']['DeleteActivityHistory'](arg1);
 }
@@ -62,6 +66,10 @@ export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }
 
+export function GetLocalAccounts() {
+  return window['go']['main']['App']['GetLocalAccounts']();
+}
+
 export function GetMonthlyActivities(arg1, arg2) {
   return window['go']['main']['App']['GetMonthlyActivities'](arg1, arg2);
 }
@@ -90,6 +98,10 @@ export function OpenFileFolder(arg1) {
   return window['go']['main']['App']['OpenFileFolder'](arg1);
 }
 
+export function ResetAppState() {
+  return window['go']['main']['App']['ResetAppState']();
+}
+
 export function SaveGeneratedGPX(arg1, arg2) {
   return window['go']['main']['App']['SaveGeneratedGPX'](arg1, arg2);
 }
@@ -104,6 +116,10 @@ export function ScanTrainers() {
 
 export function SelectGPX() {
   return window['go']['main']['App']['SelectGPX']();
+}
+
+export function SelectLocalAccount(arg1) {
+  return window['go']['main']['App']['SelectLocalAccount'](arg1);
 }
 
 export function SelectProfileImage() {

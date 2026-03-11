@@ -345,6 +345,28 @@ export namespace storage {
 		    return a;
 		}
 	}
+	export class ProfileSummary {
+	    id: string;
+	    name: string;
+	    avatar: string;
+	    level: number;
+	    total_km: number;
+	    total_time: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProfileSummary(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.avatar = source["avatar"];
+	        this.level = source["level"];
+	        this.total_km = source["total_km"];
+	        this.total_time = source["total_time"];
+	    }
+	}
 
 }
 

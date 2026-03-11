@@ -745,3 +745,193 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
         mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
     });
 }
+
+// =====================================
+// HOME SCREEN & PROFILE SELECTION LOGIC
+// =====================================
+
+let newAvatarBase64 = "";
+
+window.toggleCreateForm = (show) => {
+    const grid = document.getElementById('profileGrid');
+    const form = document.getElementById('createProfileForm');
+    const subtitle = document.getElementById('homeSubtitle');
+
+    if (show) {
+        grid.style.display = 'none';
+        form.classList.remove('hidden');
+        form.style.display = 'block';
+        if (subtitle) subtitle.innerText = "Create a new rider profile";
+    } else {
+        grid.style.display = 'flex';
+        form.classList.add('hidden');
+        form.style.display = 'none';
+        if (subtitle) subtitle.innerText = "Welcome back! Select your rider profile.";
+    }
+};
+
+window.selectAvatar = async () => {
+    try {
+        const base64 = await window.go.main.App.SelectProfileImage();
+        if (base64) {
+            document.getElementById('newAvatarPreview').src = base64;
+            newAvatarBase64 = base64;
+        }
+    } catch (err) { console.error(err); }
+};
+
+window.createProfile = async () => {
+    const nameInput = document.getElementById('newRiderName').value;
+    const weightInput = parseFloat(document.getElementById('newRiderWeight').value) || 75.0;
+    const ftpInput = parseFloat(document.getElementById('newRiderFTP').value) || 200.0;
+
+    if (!nameInput.trim()) {
+        alert("Please provide the cyclist's name.");
+        return;
+    }
+
+    try {
+        console.log("Sending data to Go...", { nameInput, weightInput, ftpInput });
+
+        const id = await window.go.main.App.CreateLocalAccount(nameInput, newAvatarBase64, weightInput, ftpInput);
+
+        console.log("Success! Account ID created:", id);
+
+        if (id) {
+            await window.loginProfile(id);
+        }
+    } catch (err) {
+        console.error("Backend error:", err);
+        alert("Error creating account: " + err);
+    }
+};
+
+window.loginProfile = async (id) => {
+    try {
+        await window.go.main.App.SelectLocalAccount(id);
+        document.getElementById('homeScreen').classList.remove('active');
+
+        if (window.ui) {
+            window.ui.loadUserProfile();
+            window.ui.loadHistory();
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert("Error logging in: " + err);
+    }
+};
+
+window.logoutProfile = async () => {
+    // 1. Avoid switching accounts mid-workout
+    if (window.isRecording || (document.getElementById('btnAction') && document.getElementById('btnAction').innerText === "STOP")) {
+        alert("Please finish and save your current workout before switching profiles.");
+        return;
+    }
+
+    // 2. Disconnect the sensors and RESET THE BACKEND MEMORY
+    if (window.go && window.go.main && window.go.main.App) {
+        try {
+            await window.go.main.App.DisconnectTrainer();
+            await window.go.main.App.DisconnectHeartRate();
+            if (window.go.main.App.ResetAppState) {
+                await window.go.main.App.ResetAppState();
+            }
+        } catch (err) {
+            console.log("No devices to disconnect or error resetting state.");
+        }
+    }
+
+    // 3. Close the settings and clear the HUD
+    if (window.ui) {
+        window.ui.toggleSettings(false);
+        window.ui.resetDashboardData();
+        window.ui.showRoutePreview(0); // Reset the distances
+
+        // Clears the filename in the header and hides the Start button
+        if (window.ui.els.filename) window.ui.els.filename.innerText = "";
+        if (window.ui.els.btnAction) window.ui.els.btnAction.classList.add('hidden');
+    }
+
+    // 4. Clear the map and charts
+    window.totalRouteDistance = 0;
+
+    if (window.mapController && window.mapController.map) {
+        const source = window.mapController.map.getSource('route');
+        if (source) {
+            source.setData({ type: 'FeatureCollection', features: [] });
+        }
+    }
+
+    if (window.chart) {
+        window.chart.setData([]);
+    }
+
+    if (window.workoutCtrl) {
+        window.workoutCtrl.hide();
+    }
+
+    // 5. Displays the home screen again
+    const homeScreen = document.getElementById('homeScreen');
+    if (homeScreen) {
+        homeScreen.classList.add('active');
+    }
+
+    initHomeScreen();
+};
+
+function formatHomeTime(seconds) {
+    if (!seconds) return "0h 0m";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
+
+async function initHomeScreen() {
+    const grid = document.getElementById('profileGrid');
+    grid.innerHTML = "";
+
+    try {
+        const accounts = await window.go.main.App.GetLocalAccounts();
+
+        // Renders existing accounts
+        if (accounts && accounts.length > 0) {
+            accounts.forEach(acc => {
+                const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : "src/assets/images/argus-cyclist.png";
+                const km = (acc.total_km || 0).toFixed(1);
+                const time = formatHomeTime(acc.total_time);
+                const lvl = acc.level || 1;
+
+                grid.innerHTML += `
+                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')">
+                        <img src="${photo}" alt="Avatar">
+                        <h4 style="margin-bottom: 5px; font-size: 1.2rem;">${acc.name}</h4>
+                        <div class="profile-stats">
+                            <span>📈 Level ${lvl}</span>
+                            <span>🚴🏼 ${km} km</span>
+                            <span>⏱️ ${time}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // "New Account" Card
+        grid.innerHTML += `
+            <div class="profile-card profile-card-new" onclick="window.toggleCreateForm(true)">
+                <div class="plus-icon">+</div>
+                <h4>New Rider</h4>
+            </div>
+        `;
+    } catch (err) {
+        console.error("Error loading accounts:", err);
+    }
+}
+
+// Call this explicitly when Wails finishes mounting the runtime
+document.addEventListener("DOMContentLoaded", () => {
+    // We wait 300ms to guarantee window.go.main is ready
+    setTimeout(() => {
+        initHomeScreen();
+    }, 300);
+});
