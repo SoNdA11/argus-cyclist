@@ -94,6 +94,10 @@ export function GetUserProfile() {
   return window['go']['main']['App']['GetUserProfile']();
 }
 
+export function IsStravaConnected() {
+  return window['go']['main']['App']['IsStravaConnected']();
+}
+
 export function LoadWorkout() {
   return window['go']['main']['App']['LoadWorkout']();
 }
@@ -156,4 +160,8 @@ export function UnloadWorkout() {
 
 export function UpdateUserProfile(arg1) {
   return window['go']['main']['App']['UpdateUserProfile'](arg1);
+}
+
+export function UploadLastWorkoutToStrava() {
+  return window['go']['main']['App']['UploadLastWorkoutToStrava']();
 }

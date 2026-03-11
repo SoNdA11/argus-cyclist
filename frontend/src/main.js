@@ -172,7 +172,12 @@ document.getElementById('btnSetPower').addEventListener('click', async () => {
 });
 
 document.getElementById('btnCloseSettings').addEventListener('click', () => ui.toggleSettings(false));
-document.getElementById('btnOpenSettings').addEventListener('click', () => ui.toggleSettings(true));
+
+// Procura o evento do btnOpenSettings e deixa ele enxuto assim:
+document.getElementById('btnOpenSettings').addEventListener('click', async () => {
+    ui.toggleSettings(true);
+    await window.checkStravaStatus();
+});
 
 // --- Dashboard Toggle Event ---
 document.getElementById('btnToggleView').addEventListener('click', () => {
@@ -202,7 +207,7 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
     try {
         // Trigger the Go backend OAuth2 flow
         const result = await window.go.main.App.ConnectStrava();
-        
+
         if (result === "ok") {
             btn.innerHTML = "✓ Strava Connected";
             status.innerText = "Ready to auto-upload";
@@ -665,7 +670,6 @@ async function finishWorkout() {
     isFinishTriggered = true;
     window.isRecording = false;
 
-    // --- MOBILE MODE (Capacitor) ---
     if (Capacitor.isNativePlatform()) {
         ui.setRecordingState('IDLE');
         ui.showFinishModal({ distance: window.totalRouteDistance, duration: window.workoutCtrl ? window.workoutCtrl.mobileElapsedTime : 0 });
@@ -673,13 +677,54 @@ async function finishWorkout() {
         return;
     }
 
-    // --- DESKTOP MODE (Wails) ---
     try {
         if (!window.go || !window.go.main) return;
         const sessionSummary = await window.go.main.App.FinishSession();
         ui.showFinishModal(sessionSummary);
+
+        // Verifica inteligentemente se mostra o botão do Strava
+        try {
+            if (window.go.main.App.IsStravaConnected) {
+                const isConnected = await window.go.main.App.IsStravaConnected();
+                const btnStrava = document.getElementById('btnUploadStrava');
+
+                if (isConnected) {
+                    btnStrava.classList.remove('hidden');
+                    btnStrava.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg> Upload to Strava`;
+                    btnStrava.disabled = false;
+                    btnStrava.style.backgroundColor = "#FC4C02";
+                } else {
+                    btnStrava.classList.add('hidden');
+                }
+            }
+        } catch (e) {
+            console.log("Strava validation skipped", e);
+        }
     } catch (e) { alert("Error when saving: " + e); }
 }
+
+window.uploadToStrava = async () => {
+    const btn = document.getElementById('btnUploadStrava');
+    btn.innerHTML = "Uploading...";
+    btn.disabled = true;
+
+    try {
+        await window.go.main.App.UploadLastWorkoutToStrava();
+        btn.innerHTML = "✓ Uploaded";
+        btn.style.backgroundColor = "var(--argus-safe)";
+        alert("Workout successfully uploaded to Strava!");
+    } catch (err) {
+        console.error("Upload error:", err);
+        btn.innerHTML = "Upload Failed";
+        btn.style.backgroundColor = "var(--argus-alert)";
+        alert("Failed to upload: " + err);
+        btn.disabled = false;
+    }
+};
 
 document.getElementById('btnAction').addEventListener('click', async () => {
     try {
@@ -846,6 +891,36 @@ window.createProfile = async () => {
     }
 };
 
+// Função global para atualizar o visual do botão do Strava
+window.checkStravaStatus = async () => {
+    if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
+        try {
+            const isConn = await window.go.main.App.IsStravaConnected();
+            const btn = document.getElementById('btnConnectStrava');
+            const status = document.getElementById('statusStrava');
+            
+            if (isConn) {
+                btn.innerHTML = "✓ Strava Connected";
+                btn.disabled = true; 
+                status.innerText = "Ready to auto-upload";
+                status.style.color = "var(--argus-safe)";
+            } else {
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Connect with Strava`;
+                btn.disabled = false;
+                status.innerText = "Not connected";
+                status.style.color = "var(--text-muted)";
+            }
+        } catch (e) {
+            console.error("Falha ao checar status do Strava", e);
+        }
+    }
+};
+
 window.loginProfile = async (id) => {
     try {
         await window.go.main.App.SelectLocalAccount(id);
@@ -855,6 +930,10 @@ window.loginProfile = async (id) => {
             window.ui.loadUserProfile();
             window.ui.loadHistory();
         }
+        
+        // NOVO: Verifica e atualiza o botão do Strava assim que entra na conta!
+        await window.checkStravaStatus();
+
     } catch (err) {
         console.error("Login Error:", err);
         alert("Error logging in: " + err);

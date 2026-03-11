@@ -51,6 +51,8 @@ export function GetTotalStats():Promise<Record<string, number>>;
 
 export function GetUserProfile():Promise<domain.UserProfile>;
 
+export function IsStravaConnected():Promise<boolean>;
+
 export function LoadWorkout():Promise<string>;
 
 export function OpenFileFolder(arg1:string):Promise<void>;
@@ -82,3 +84,5 @@ export function ToggleSession():Promise<string>;
 export function UnloadWorkout():Promise<void>;
 
 export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;
+
+export function UploadLastWorkoutToStrava():Promise<string>;

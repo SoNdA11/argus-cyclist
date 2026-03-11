@@ -1187,7 +1187,7 @@ func (a *App) ConnectStrava() (string, error) {
 		code := r.URL.Query().Get("code")
 		if code == "" {
 			errChan <- fmt.Errorf("no authorization code returned from Strava")
-			fmt.Fprint(w, "<h2>Error: No code returned. You can close this window.</h2>")
+			fmt.Fprint(w, "<h2 style='color: red; text-align: center; font-family: sans-serif; margin-top: 50px;'>Error: No code returned. You can close this window.</h2>")
 			return
 		}
 
@@ -1195,13 +1195,41 @@ func (a *App) ConnectStrava() (string, error) {
 		tokenResp, err := strava.ExchangeToken(code)
 		if err != nil {
 			errChan <- err
-			fmt.Fprint(w, "<h2>Error exchanging token. You can close this window.</h2>")
+			fmt.Fprint(w, "<h2 style='color: red; text-align: center; font-family: sans-serif; margin-top: 50px;'>Error exchanging token. You can close this window.</h2>")
 			return
 		}
 
+		// TELA DE SUCESSO PROFISSIONAL
+		htmlSuccess := `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>Argus Cyclist - Strava</title>
+			<style>
+				body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+				.container { text-align: center; background: #1e1e1e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; border-top: 5px solid #FC4C02; }
+				.icon { font-size: 60px; margin-bottom: 20px; }
+				h2 { color: #FC4C02; margin: 0 0 15px 0; font-size: 28px; }
+				p { color: #aaaaaa; line-height: 1.5; margin-bottom: 20px; font-size: 16px; }
+				.btn-close { display: inline-block; background-color: #333; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="icon">🏆</div>
+				<h2>Strava Connected!</h2>
+				<p>Argus Cyclist has successfully linked to your Strava account.</p>
+				<p>You can now safely close this browser tab and return to the app to upload your workouts.</p>
+			</div>
+		</body>
+		</html>
+		`
+		
 		// Success! Send token to the main thread and update the browser window
 		tokenChan <- tokenResp
-		fmt.Fprint(w, "<h2 style='color: #FC4C02;'>Success! Strava is connected.</h2><p>You can safely close this window and return to Argus Cyclist.</p>")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, htmlSuccess)
 	})
 
 	// Start the server in the background
@@ -1249,4 +1277,60 @@ func (a *App) ConnectStrava() (string, error) {
 		srv.Shutdown(context.Background())
 		return "", fmt.Errorf("timeout: waiting for Strava authorization took too long")
 	}
+}
+
+// IsStravaConnected returns true if the current active profile has a Strava token
+func (a *App) IsStravaConnected() bool {
+    profile, err := a.storageService.GetProfile()
+    if err != nil {
+        return false
+    }
+    return profile.StravaAccessToken != ""
+}
+
+// UploadLastWorkoutToStrava finds the most recently generated .fit file 
+// and uploads it using the active user's Strava token.
+func (a *App) UploadLastWorkoutToStrava() (string, error) {
+    // 1. Check if user is connected
+    profile, err := a.storageService.GetProfile()
+    if err != nil || profile.StravaAccessToken == "" {
+        return "", fmt.Errorf("strava account is not connected")
+    }
+
+    // 2. Aponta para a pasta correta onde os treinos são salvos
+    workoutsDir := "workouts"
+    files, err := os.ReadDir(workoutsDir)
+    if err != nil {
+        return "", fmt.Errorf("failed to read workouts directory: %v", err)
+    }
+
+    var latestFitFilePath string
+    var lastModTime int64 = 0
+
+    // 3. Procura o arquivo mais recente dentro da pasta
+    for _, file := range files {
+        if filepath.Ext(file.Name()) == ".fit" {
+            info, err := file.Info()
+            if err != nil {
+                continue
+            }
+            if info.ModTime().Unix() > lastModTime {
+                lastModTime = info.ModTime().Unix()
+                // Guarda o caminho completo (ex: "workouts/workout_2026-03-11.fit")
+                latestFitFilePath = filepath.Join(workoutsDir, file.Name()) 
+            }
+        }
+    }
+
+    if latestFitFilePath == "" {
+        return "", fmt.Errorf("no recent .fit file found to upload")
+    }
+
+    // 4. Faz o upload para o Strava
+    err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
+    if err != nil {
+        return "", err
+    }
+
+    return "Upload successful", nil
 }

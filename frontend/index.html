@@ -28,8 +28,8 @@
                     <div class="avatar-overlay">📷 Photo</div>
                 </div>
                 <input type="text" id="newRiderName" placeholder="Rider Name" class="home-input">
-                <input type="number" id="newRiderWeight" placeholder="Weight (kg)" class="home-input" value="75 ">
-                <input type="number" id="newRiderFTP" placeholder="FTP (Watts)" class="home-input" value="200 ">
+                <input type="number" id="newRiderWeight" placeholder="Weight (kg)" class="home-input" value="75">
+                <input type="number" id="newRiderFTP" placeholder="FTP (Watts)" class="home-input" value="200">
 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button class="btn-secondary" onclick="window.toggleCreateForm(false)"
@@ -39,6 +39,7 @@
             </div>
         </div>
     </div>
+    
     <div id="settingsModal" class="modal-overlay">
         <div class="settings-content">
             <div class="tabs">
@@ -329,6 +330,7 @@
                     <div id="careerMmpChart" style="width: 100%; height: 250px;"></div>
                 </div>
             </div>
+            
             <div class="modal-actions" style="justify-content: space-between;">
                 <button id="btnLogout" class="btn-danger" onclick="window.logoutProfile()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -584,7 +586,14 @@
                 </div>
             </div>
 
-            <div class="modal-actions centered" style="margin-top: 25px;">
+            <div class="modal-actions centered" style="margin-top: 25px; gap: 15px;">
+                <button id="btnUploadStrava" class="btn-strava hidden" onclick="window.uploadToStrava()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Upload to Strava
+                </button>
                 <button class="btn-primary" onclick="window.ui.closeFinishModal()">Awesome!</button>
             </div>
         </div>
