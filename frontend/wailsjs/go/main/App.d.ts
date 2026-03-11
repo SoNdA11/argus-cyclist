@@ -15,6 +15,8 @@ export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;
 
+export function CreateLocalAccount(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
+
 export function DeleteActivityHistory(arg1:number):Promise<void>;
 
 export function DiscardSession():Promise<string>;
@@ -35,6 +37,8 @@ export function GetCareerDashboard():Promise<main.CareerDashboard>;
 
 export function GetElevationProfile():Promise<Array<number>>;
 
+export function GetLocalAccounts():Promise<Array<storage.ProfileSummary>>;
+
 export function GetMonthlyActivities(arg1:number,arg2:number):Promise<Array<domain.Activity>>;
 
 export function GetPowerCurve():Promise<Array<storage.PowerRecord>>;
@@ -49,6 +53,8 @@ export function LoadWorkout():Promise<string>;
 
 export function OpenFileFolder(arg1:string):Promise<void>;
 
+export function ResetAppState():Promise<void>;
+
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
 
 export function ScanHeartRate():Promise<Array<domain.BLEDevice>>;
@@ -56,6 +62,8 @@ export function ScanHeartRate():Promise<Array<domain.BLEDevice>>;
 export function ScanTrainers():Promise<Array<domain.BLEDevice>>;
 
 export function SelectGPX():Promise<string>;
+
+export function SelectLocalAccount(arg1:string):Promise<string>;
 
 export function SelectProfileImage():Promise<string>;
 

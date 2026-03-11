@@ -8,6 +8,8 @@ workouts/
 routes/
 
 argus_data.db
+argus_master.db
+users_data
 
 frontend/package.json.md5
 

@@ -104,19 +104,18 @@ type CareerDashboard struct {
 
 // NewApp initializes all core services and dependencies.
 func NewApp() *App {
-	// Initialize persistent storage (SQLite)
+	// Initialize persistent storage (Master DB only at startup)
 	store := storage.NewService()
 
-	// Load user profile to configure the physics engine
-	profile, _ := store.GetProfile()
+	// Provide default fallback weights since the profile is loaded later
+	defaultRiderWeight := 75.0
+	defaultBikeWeight := 9.0
 
 	return &App{
-		gpxService: gpx.NewService(),
-		fitService: fit.NewService(),
-		// Initialize physics engine using stored user data
-		physicsEngine:  sim.NewEngine(profile.Weight, profile.BikeWeight),
+		gpxService:     gpx.NewService(),
+		fitService:     fit.NewService(),
+		physicsEngine:  sim.NewEngine(defaultRiderWeight, defaultBikeWeight),
 		trainerService: ble.NewRealService(),
-		//trainerService: ble.NewMockService(),
 		workoutService: workout.NewService(),
 
 		storageService: store,
@@ -190,6 +189,69 @@ func (a *App) SelectProfileImage() string {
 
 	base64Encoding = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(bytes))
 	return base64Encoding
+}
+
+// =====================
+// LOCAL ACCOUNTS (HOME)
+// =====================
+
+// GetLocalAccounts fetches all registered profiles for the Home Screen.
+func (a *App) GetLocalAccounts() []storage.ProfileSummary {
+	return a.storageService.GetProfilesSummary()
+}
+
+// CreateLocalAccount generates a new isolated profile.
+func (a *App) CreateLocalAccount(name string, avatar string, weight float64, ftp float64) (string, error) {
+	id := fmt.Sprintf("%d", time.Now().UnixNano())
+
+	acc := storage.LocalAccount{
+		ID:        id,
+		Name:      name,
+		Avatar:    avatar,
+		CreatedAt: time.Now(),
+	}
+
+	// Register in Master DB
+	if err := a.storageService.CreateLocalAccount(acc); err != nil {
+		return "", fmt.Errorf("Error in master db: %v", err)
+	}
+
+	// Initialize the isolated user DB
+	if err := a.storageService.LoadUserDatabase(id); err != nil {
+		return "", fmt.Errorf("Error loading user database: %v", err)
+	}
+
+	// Save settings into the new isolated DB
+	defaultProfile := domain.UserProfile{
+		Name:       name,
+		Weight:     weight,
+		BikeWeight: 9.0,
+		FTP:        int(ftp),
+		Units:      "metric",
+		Photo:      avatar,
+		Level:      1,
+		CurrentXP:  0,
+	}
+
+	if err := a.storageService.UpdateProfile(defaultProfile); err != nil {
+		return "", fmt.Errorf("Error when updating profile: %v", err)
+	}
+
+	return id, nil
+}
+
+// SelectLocalAccount is called when a user clicks their profile on the Home Screen.
+func (a *App) SelectLocalAccount(id string) (string, error) {
+	err := a.storageService.LoadUserDatabase(id)
+	if err != nil {
+		return "", err
+	}
+
+	profile, _ := a.storageService.GetProfile()
+	a.physicsEngine.UserWeight = profile.Weight
+	a.physicsEngine.BikeWeight = profile.BikeWeight
+
+	return "ok", nil
 }
 
 // ====================
@@ -681,7 +743,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 		case rawData := <-input:
 			if rawData.Power != -1 {
 				currentPower = rawData.Power
-				
+
 				// FILTER: Ignores Cadence = 0 if it's just an empty BLE data page.
 				// It only drops to 0 if the cyclist actually stops pedaling (Power == 0).
 				if rawData.Cadence > 0 {
@@ -689,7 +751,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				} else if currentPower == 0 {
 					currentCadence = 0
 				}
-				
+
 				lastPowerTime = time.Now()
 			}
 			if rawData.HeartRate > 0 {
@@ -1079,4 +1141,19 @@ func (a *App) DeleteActivityHistory(activityID uint) error {
 	}
 
 	return nil
+}
+
+// ResetAppState clears any route (GPX) or structured training (ZWO)
+// that is loaded into memory, ensuring a blank slate
+// when the user switches profiles.
+func (a *App) ResetAppState() {
+	a.gpxService = gpx.NewService()
+	a.workoutService = workout.NewService()
+
+	// Resets the physics engine to remove any remaining rotational tilt
+	if profile, err := a.storageService.GetProfile(); err == nil {
+		a.physicsEngine = sim.NewEngine(profile.Weight, profile.BikeWeight)
+	} else {
+		a.physicsEngine = sim.NewEngine(75.0, 9.0)
+	}
 }
