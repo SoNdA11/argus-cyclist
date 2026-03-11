@@ -11,6 +11,8 @@ export function ChangeWorkoutIntensity(arg1:number):Promise<number>;
 
 export function ConnectHeartRate(arg1:string):Promise<string>;
 
+export function ConnectStrava():Promise<string>;
+
 export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;

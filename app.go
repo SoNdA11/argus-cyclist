@@ -27,6 +27,7 @@ import (
 	stdruntime "runtime"
 	"strings"
 	"time"
+	"net/http"
 
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble"
@@ -35,7 +36,9 @@ import (
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/storage"
 	"argus-cyclist/internal/service/workout"
-
+	"argus-cyclist/internal/service/strava"
+	
+	"github.com/joho/godotenv"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -1155,5 +1158,95 @@ func (a *App) ResetAppState() {
 		a.physicsEngine = sim.NewEngine(profile.Weight, profile.BikeWeight)
 	} else {
 		a.physicsEngine = sim.NewEngine(75.0, 9.0)
+	}
+}
+
+// =========================
+// STRAVA OAUTH2 INTEGRATION
+// =========================
+
+// ConnectStrava starts a local HTTP server, opens the browser for authorization,
+// captures the callback, and saves the tokens to the active user's profile.
+func (a *App) ConnectStrava() (string, error) {
+	_ = godotenv.Load()
+	clientID := os.Getenv("STRAVA_CLIENT_ID")
+	if clientID == "" {
+		return "", fmt.Errorf("STRAVA_CLIENT_ID is missing in the .env file")
+	}
+
+	// Channels to handle the async web callback
+	tokenChan := make(chan *strava.TokenResponse)
+	errChan := make(chan error)
+
+	// Create an isolated HTTP router for this specific authorization process
+	mux := http.NewServeMux()
+	srv := &http.Server{Addr: ":8080", Handler: mux}
+
+	// Define the callback route
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			errChan <- fmt.Errorf("no authorization code returned from Strava")
+			fmt.Fprint(w, "<h2>Error: No code returned. You can close this window.</h2>")
+			return
+		}
+
+		// Exchange the code for the real tokens
+		tokenResp, err := strava.ExchangeToken(code)
+		if err != nil {
+			errChan <- err
+			fmt.Fprint(w, "<h2>Error exchanging token. You can close this window.</h2>")
+			return
+		}
+
+		// Success! Send token to the main thread and update the browser window
+		tokenChan <- tokenResp
+		fmt.Fprint(w, "<h2 style='color: #FC4C02;'>Success! Strava is connected.</h2><p>You can safely close this window and return to Argus Cyclist.</p>")
+	})
+
+	// Start the server in the background
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			errChan <- err
+		}
+	}()
+
+	// Build the Authorization URL asking for 'activity:write' permission
+	authURL := fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&response_type=code&redirect_uri=http://localhost:8080/callback&scope=activity:write,read", clientID)
+	
+	// Open the default OS browser
+	runtime.BrowserOpenURL(a.ctx, authURL)
+
+	// Wait for the user to complete the flow in the browser (Timeout after 3 minutes)
+	select {
+	case token := <-tokenChan:
+		// Retrieve current user profile
+		profile, err := a.storageService.GetProfile()
+		if err != nil {
+			srv.Shutdown(context.Background())
+			return "", fmt.Errorf("no active profile found to save tokens")
+		}
+
+		// Save tokens to the isolated SQLite DB
+		profile.StravaAccessToken = token.AccessToken
+		profile.StravaRefreshToken = token.RefreshToken
+		profile.StravaExpiresAt = token.ExpiresAt
+		
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			srv.Shutdown(context.Background())
+			return "", fmt.Errorf("failed to save tokens to database: %v", err)
+		}
+
+		// Gracefully shut down the temporary server
+		srv.Shutdown(context.Background())
+		return "ok", nil
+
+	case err := <-errChan:
+		srv.Shutdown(context.Background())
+		return "", err
+
+	case <-time.After(3 * time.Minute):
+		srv.Shutdown(context.Background())
+		return "", fmt.Errorf("timeout: waiting for Strava authorization took too long")
 	}
 }

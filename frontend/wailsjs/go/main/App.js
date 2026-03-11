@@ -14,6 +14,10 @@ export function ConnectHeartRate(arg1) {
   return window['go']['main']['App']['ConnectHeartRate'](arg1);
 }
 
+export function ConnectStrava() {
+  return window['go']['main']['App']['ConnectStrava']();
+}
+
 export function ConnectTrainer(arg1) {
   return window['go']['main']['App']['ConnectTrainer'](arg1);
 }

@@ -78,7 +78,7 @@ type UserProfile struct {
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 
-	StravaAcessToken	string	`json:"strava_access_token"`
+	StravaAccessToken	string	`json:"strava_access_token"`
 	StravaRefreshToken	string	`json:"strava_refresh_token"`
 	StravaExpiresAt		int64	`json:"strava_expires_at"`
 }
