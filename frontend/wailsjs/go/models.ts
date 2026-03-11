@@ -108,6 +108,9 @@ export namespace domain {
 	    created_at: any;
 	    // Go type: time
 	    updated_at: any;
+	    strava_access_token: string;
+	    strava_refresh_token: string;
+	    strava_expires_at: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new UserProfile(source);
@@ -129,6 +132,9 @@ export namespace domain {
 	        this.total_coins = source["total_coins"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.strava_access_token = source["strava_access_token"];
+	        this.strava_refresh_token = source["strava_refresh_token"];
+	        this.strava_expires_at = source["strava_expires_at"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
