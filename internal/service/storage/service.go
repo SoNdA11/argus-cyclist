@@ -157,24 +157,22 @@ func (s *Service) GetProfile() (domain.UserProfile, error) {
 
 // UpdateProfile updates the existing user profile in the isolated DB.
 func (s *Service) UpdateProfile(u domain.UserProfile) error {
-    if s.userDB == nil {
-        return fmt.Errorf("User database not loaded")
-    }
-    
-    // BLINDAGEM INTELIGENTE: Só restaura o token antigo se o novo estiver vazio
-    // (Isso protege quando o Frontend salva, mas permite que o ConnectStrava grave o token novo)
-    var existing domain.UserProfile
-    if err := s.userDB.First(&existing).Error; err == nil {
-        if u.StravaAccessToken == "" {
-            u.StravaAccessToken = existing.StravaAccessToken
-            u.StravaRefreshToken = existing.StravaRefreshToken
-            u.StravaExpiresAt = existing.StravaExpiresAt
-        }
-    }
+	if s.userDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
 
-    // Always enforce ID 1 since it's an isolated DB per user
-    u.ID = 1
-    return s.userDB.Save(&u).Error
+	var existing domain.UserProfile
+	if err := s.userDB.First(&existing).Error; err == nil {
+		if u.StravaAccessToken == "" {
+			u.StravaAccessToken = existing.StravaAccessToken
+			u.StravaRefreshToken = existing.StravaRefreshToken
+			u.StravaExpiresAt = existing.StravaExpiresAt
+		}
+	}
+
+	// Always enforce ID 1 since it's an isolated DB per user
+	u.ID = 1
+	return s.userDB.Save(&u).Error
 }
 
 // ==========
@@ -337,4 +335,19 @@ func (s *Service) GetProfilesSummary() []ProfileSummary {
 	}
 
 	return summaries
+}
+
+// ClearStravaTokens bypasses the standard UpdateProfile shield to force disconnect Strava
+func (s *Service) ClearStravaTokens() error {
+	if s.userDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+
+	err := s.userDB.Model(&domain.UserProfile{}).Where("id = ?", 1).Updates(map[string]interface{}{
+		"strava_access_token":  "",
+		"strava_refresh_token": "",
+		"strava_expires_at":    0,
+	}).Error
+
+	return err
 }

@@ -27,6 +27,8 @@ export function DisconnectDevice():Promise<string>;
 
 export function DisconnectHeartRate():Promise<string>;
 
+export function DisconnectStrava():Promise<void>;
+
 export function DisconnectTrainer():Promise<string>;
 
 export function FinishSession():Promise<main.SessionSummary>;

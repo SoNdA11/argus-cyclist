@@ -30,9 +30,9 @@ import (
 
 // TokenResponse maps the JSON returned by the Strava OAuth2 API
 type TokenResponse struct {
-	AccessToken		string  `json:"access_token"`
-	RefreshToken 	string	`json:"refresh_token"`
-	ExpiresAt       int64	`json:"expires_at"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 // ExchangeToken sends the authorization code to Strava in exchange for an Access Token
@@ -69,6 +69,37 @@ func ExchangeToken(code string) (*TokenResponse, error) {
 	var tokenResp TokenResponse
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("failed to parse strava response: %v", err)
+	}
+
+	return &tokenResp, nil
+}
+
+// RefreshToken sends the refresh_token to Strava in exchange for a fresh Access Token
+func RefreshToken(refreshToken string) (*TokenResponse, error) {
+	_ = godotenv.Load()
+	clientID := os.Getenv("STRAVA_CLIENT_ID")
+	clientSecret := os.Getenv("STRAVA_CLIENT_SECRET")
+
+	data := url.Values{}
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
+	data.Set("grant_type", "refresh_token")
+	data.Set("refresh_token", refreshToken)
+
+	resp, err := http.Post(
+		"https://www.strava.com/oauth/token",
+		"application/x-www-form-urlencoded",
+		strings.NewReader(data.Encode()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var tokenResp TokenResponse
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
+		return nil, fmt.Errorf("failed to parse strava refresh response: %v", err)
 	}
 
 	return &tokenResp, nil

@@ -1199,7 +1199,6 @@ func (a *App) ConnectStrava() (string, error) {
 			return
 		}
 
-		// TELA DE SUCESSO PROFISSIONAL
 		htmlSuccess := `
 		<!DOCTYPE html>
 		<html lang="en">
@@ -1291,46 +1290,69 @@ func (a *App) IsStravaConnected() bool {
 // UploadLastWorkoutToStrava finds the most recently generated .fit file 
 // and uploads it using the active user's Strava token.
 func (a *App) UploadLastWorkoutToStrava() (string, error) {
-    // 1. Check if user is connected
-    profile, err := a.storageService.GetProfile()
-    if err != nil || profile.StravaAccessToken == "" {
-        return "", fmt.Errorf("strava account is not connected")
-    }
+	profile, err := a.storageService.GetProfile()
+	if err != nil || profile.StravaAccessToken == "" {
+		return "", fmt.Errorf("strava account is not connected")
+	}
 
-    // 2. Aponta para a pasta correta onde os treinos são salvos
-    workoutsDir := "workouts"
-    files, err := os.ReadDir(workoutsDir)
-    if err != nil {
-        return "", fmt.Errorf("failed to read workouts directory: %v", err)
-    }
+	if time.Now().Unix() >= profile.StravaExpiresAt {
+		fmt.Println("[STRAVA] Token de Acesso Expirado. Renovando automaticamente...")
+		
+		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
+		}
 
-    var latestFitFilePath string
-    var lastModTime int64 = 0
+		profile.StravaAccessToken = newTokens.AccessToken
+		profile.StravaRefreshToken = newTokens.RefreshToken
+		profile.StravaExpiresAt = newTokens.ExpiresAt
 
-    // 3. Procura o arquivo mais recente dentro da pasta
-    for _, file := range files {
-        if filepath.Ext(file.Name()) == ".fit" {
-            info, err := file.Info()
-            if err != nil {
-                continue
-            }
-            if info.ModTime().Unix() > lastModTime {
-                lastModTime = info.ModTime().Unix()
-                // Guarda o caminho completo (ex: "workouts/workout_2026-03-11.fit")
-                latestFitFilePath = filepath.Join(workoutsDir, file.Name()) 
-            }
-        }
-    }
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			return "", fmt.Errorf("failed to save refreshed token: %v", err)
+		}
+		
+		fmt.Println("[STRAVA] Token renovado com sucesso!")
+	}
 
-    if latestFitFilePath == "" {
-        return "", fmt.Errorf("no recent .fit file found to upload")
-    }
+	workoutsDir := "workouts"
+	files, err := os.ReadDir(workoutsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to read workouts directory: %v", err)
+	}
 
-    // 4. Faz o upload para o Strava
-    err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
-    if err != nil {
-        return "", err
-    }
+	var latestFitFilePath string
+	var lastModTime int64 = 0
 
-    return "Upload successful", nil
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".fit" {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+			if info.ModTime().Unix() > lastModTime {
+				lastModTime = info.ModTime().Unix()
+				latestFitFilePath = filepath.Join(workoutsDir, file.Name()) 
+			}
+		}
+	}
+
+	if latestFitFilePath == "" {
+		return "", fmt.Errorf("no recent .fit file found to upload")
+	}
+
+	err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	return "Upload successful", nil
+}
+
+// DisconnectStrava clears the user's saved Strava tokens from the database
+func (a *App) DisconnectStrava() error {
+	err := a.storageService.ClearStravaTokens()
+	if err != nil {
+		return fmt.Errorf("failed to clear tokens: %v", err)
+	}
+	return nil
 }

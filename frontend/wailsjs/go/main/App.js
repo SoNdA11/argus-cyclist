@@ -46,6 +46,10 @@ export function DisconnectHeartRate() {
   return window['go']['main']['App']['DisconnectHeartRate']();
 }
 
+export function DisconnectStrava() {
+  return window['go']['main']['App']['DisconnectStrava']();
+}
+
 export function DisconnectTrainer() {
   return window['go']['main']['App']['DisconnectTrainer']();
 }

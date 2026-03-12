@@ -9,7 +9,6 @@
 */
 
 import './styles/main.css';
-import { CONFIG } from './config.js';
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
@@ -173,23 +172,20 @@ document.getElementById('btnSetPower').addEventListener('click', async () => {
 
 document.getElementById('btnCloseSettings').addEventListener('click', () => ui.toggleSettings(false));
 
-// Procura o evento do btnOpenSettings e deixa ele enxuto assim:
 document.getElementById('btnOpenSettings').addEventListener('click', async () => {
     ui.toggleSettings(true);
     await window.checkStravaStatus();
 });
 
-// --- Dashboard Toggle Event ---
 document.getElementById('btnToggleView').addEventListener('click', () => {
     window.ui.toggleDashboardMode();
 });
 
-// ====================
+// ==================
 // STRAVA INTEGRATION
-// ====================
+// ==================
 
 document.getElementById('btnConnectStrava').addEventListener('click', async () => {
-    // Mobile check: OAuth flow relies on local web server, only for desktop right now
     if (Capacitor && Capacitor.isNativePlatform()) {
         alert("Strava OAuth is currently only supported on the Desktop version.");
         return;
@@ -212,7 +208,6 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
             btn.innerHTML = "✓ Strava Connected";
             status.innerText = "Ready to auto-upload";
             status.style.color = "var(--argus-safe)";
-            // Keep button disabled to prevent re-triggering unnecessarily
         }
     } catch (err) {
         console.error("Strava Connection Error:", err);
@@ -359,7 +354,6 @@ document.getElementById('btnConnVirtual').addEventListener('click', async () => 
     try {
         const result = await window.go.main.App.ConnectVirtualTrainer();
         status.innerText = result; status.style.color = "#00ADD8";
-        // Usa um X vermelho elegante quando conectado (para poder desconectar)
         btnVirtual.innerHTML = svgIcons.disconnect; btnVirtual.disabled = false;
         list.classList.add('hidden'); btnReal.classList.add('hidden'); btnScan.classList.remove('hidden');
     } catch (err) {
@@ -682,7 +676,6 @@ async function finishWorkout() {
         const sessionSummary = await window.go.main.App.FinishSession();
         ui.showFinishModal(sessionSummary);
 
-        // Verifica inteligentemente se mostra o botão do Strava
         try {
             if (window.go.main.App.IsStravaConnected) {
                 const isConnected = await window.go.main.App.IsStravaConnected();
@@ -891,17 +884,18 @@ window.createProfile = async () => {
     }
 };
 
-// Função global para atualizar o visual do botão do Strava
 window.checkStravaStatus = async () => {
     if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
         try {
             const isConn = await window.go.main.App.IsStravaConnected();
             const btn = document.getElementById('btnConnectStrava');
+            const btnDisconnect = document.getElementById('btnDisconnectStrava');
             const status = document.getElementById('statusStrava');
-            
+
             if (isConn) {
                 btn.innerHTML = "✓ Strava Connected";
-                btn.disabled = true; 
+                btn.disabled = true;
+                btnDisconnect.classList.remove('hidden');
                 status.innerText = "Ready to auto-upload";
                 status.style.color = "var(--argus-safe)";
             } else {
@@ -909,17 +903,26 @@ window.checkStravaStatus = async () => {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    Connect with Strava`;
+                    </svg> Connect with Strava`;
                 btn.disabled = false;
+                btnDisconnect.classList.add('hidden');
                 status.innerText = "Not connected";
                 status.style.color = "var(--text-muted)";
             }
-        } catch (e) {
-            console.error("Falha ao checar status do Strava", e);
-        }
+        } catch (e) { console.error("Falha ao checar status do Strava", e); }
     }
 };
+
+document.getElementById('btnDisconnectStrava').addEventListener('click', async () => {
+    if (confirm("Disconnect Argus Cyclist from your Strava account?")) {
+        try {
+            await window.go.main.App.DisconnectStrava();
+            await window.checkStravaStatus();
+        } catch (err) {
+            console.error("Disconnect error:", err);
+        }
+    }
+});
 
 window.loginProfile = async (id) => {
     try {
@@ -930,8 +933,7 @@ window.loginProfile = async (id) => {
             window.ui.loadUserProfile();
             window.ui.loadHistory();
         }
-        
-        // NOVO: Verifica e atualiza o botão do Strava assim que entra na conta!
+
         await window.checkStravaStatus();
 
     } catch (err) {
