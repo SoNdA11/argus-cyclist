@@ -18,3 +18,5 @@ frontend/android/.gradle/
 frontend/android/local.properties
 frontend/android/Captures/
 frontend/android/.idea/
+
+.env

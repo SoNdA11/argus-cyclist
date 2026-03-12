@@ -11,6 +11,8 @@ export function ChangeWorkoutIntensity(arg1:number):Promise<number>;
 
 export function ConnectHeartRate(arg1:string):Promise<string>;
 
+export function ConnectStrava():Promise<string>;
+
 export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;
@@ -24,6 +26,8 @@ export function DiscardSession():Promise<string>;
 export function DisconnectDevice():Promise<string>;
 
 export function DisconnectHeartRate():Promise<string>;
+
+export function DisconnectStrava():Promise<void>;
 
 export function DisconnectTrainer():Promise<string>;
 
@@ -48,6 +52,8 @@ export function GetRoutePath():Promise<Array<domain.RoutePoint>>;
 export function GetTotalStats():Promise<Record<string, number>>;
 
 export function GetUserProfile():Promise<domain.UserProfile>;
+
+export function IsStravaConnected():Promise<boolean>;
 
 export function LoadWorkout():Promise<string>;
 
@@ -80,3 +86,5 @@ export function ToggleSession():Promise<string>;
 export function UnloadWorkout():Promise<void>;
 
 export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;
+
+export function UploadLastWorkoutToStrava():Promise<string>;

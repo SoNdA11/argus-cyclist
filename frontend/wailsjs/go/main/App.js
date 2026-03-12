@@ -14,6 +14,10 @@ export function ConnectHeartRate(arg1) {
   return window['go']['main']['App']['ConnectHeartRate'](arg1);
 }
 
+export function ConnectStrava() {
+  return window['go']['main']['App']['ConnectStrava']();
+}
+
 export function ConnectTrainer(arg1) {
   return window['go']['main']['App']['ConnectTrainer'](arg1);
 }
@@ -40,6 +44,10 @@ export function DisconnectDevice() {
 
 export function DisconnectHeartRate() {
   return window['go']['main']['App']['DisconnectHeartRate']();
+}
+
+export function DisconnectStrava() {
+  return window['go']['main']['App']['DisconnectStrava']();
 }
 
 export function DisconnectTrainer() {
@@ -88,6 +96,10 @@ export function GetTotalStats() {
 
 export function GetUserProfile() {
   return window['go']['main']['App']['GetUserProfile']();
+}
+
+export function IsStravaConnected() {
+  return window['go']['main']['App']['IsStravaConnected']();
 }
 
 export function LoadWorkout() {
@@ -152,4 +164,8 @@ export function UnloadWorkout() {
 
 export function UpdateUserProfile(arg1) {
   return window['go']['main']['App']['UpdateUserProfile'](arg1);
+}
+
+export function UploadLastWorkoutToStrava() {
+  return window['go']['main']['App']['UploadLastWorkoutToStrava']();
 }

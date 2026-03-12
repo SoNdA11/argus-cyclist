@@ -77,6 +77,10 @@ type UserProfile struct {
 
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+
+	StravaAccessToken	string	`json:"strava_access_token"`
+	StravaRefreshToken	string	`json:"strava_refresh_token"`
+	StravaExpiresAt		int64	`json:"strava_expires_at"`
 }
 
 // Activity represents a completed training session.

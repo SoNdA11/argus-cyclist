@@ -27,6 +27,7 @@ import (
 	stdruntime "runtime"
 	"strings"
 	"time"
+	"net/http"
 
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble"
@@ -35,7 +36,9 @@ import (
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/storage"
 	"argus-cyclist/internal/service/workout"
-
+	"argus-cyclist/internal/service/strava"
+	
+	"github.com/joho/godotenv"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -1156,4 +1159,200 @@ func (a *App) ResetAppState() {
 	} else {
 		a.physicsEngine = sim.NewEngine(75.0, 9.0)
 	}
+}
+
+// =========================
+// STRAVA OAUTH2 INTEGRATION
+// =========================
+
+// ConnectStrava starts a local HTTP server, opens the browser for authorization,
+// captures the callback, and saves the tokens to the active user's profile.
+func (a *App) ConnectStrava() (string, error) {
+	_ = godotenv.Load()
+	clientID := os.Getenv("STRAVA_CLIENT_ID")
+	if clientID == "" {
+		return "", fmt.Errorf("STRAVA_CLIENT_ID is missing in the .env file")
+	}
+
+	// Channels to handle the async web callback
+	tokenChan := make(chan *strava.TokenResponse)
+	errChan := make(chan error)
+
+	// Create an isolated HTTP router for this specific authorization process
+	mux := http.NewServeMux()
+	srv := &http.Server{Addr: ":8080", Handler: mux}
+
+	// Define the callback route
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			errChan <- fmt.Errorf("no authorization code returned from Strava")
+			fmt.Fprint(w, "<h2 style='color: red; text-align: center; font-family: sans-serif; margin-top: 50px;'>Error: No code returned. You can close this window.</h2>")
+			return
+		}
+
+		// Exchange the code for the real tokens
+		tokenResp, err := strava.ExchangeToken(code)
+		if err != nil {
+			errChan <- err
+			fmt.Fprint(w, "<h2 style='color: red; text-align: center; font-family: sans-serif; margin-top: 50px;'>Error exchanging token. You can close this window.</h2>")
+			return
+		}
+
+		htmlSuccess := `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>Argus Cyclist - Strava</title>
+			<style>
+				body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+				.container { text-align: center; background: #1e1e1e; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; border-top: 5px solid #FC4C02; }
+				.icon { font-size: 60px; margin-bottom: 20px; }
+				h2 { color: #FC4C02; margin: 0 0 15px 0; font-size: 28px; }
+				p { color: #aaaaaa; line-height: 1.5; margin-bottom: 20px; font-size: 16px; }
+				.btn-close { display: inline-block; background-color: #333; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="icon">🏆</div>
+				<h2>Strava Connected!</h2>
+				<p>Argus Cyclist has successfully linked to your Strava account.</p>
+				<p>You can now safely close this browser tab and return to the app to upload your workouts.</p>
+			</div>
+		</body>
+		</html>
+		`
+		
+		// Success! Send token to the main thread and update the browser window
+		tokenChan <- tokenResp
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, htmlSuccess)
+	})
+
+	// Start the server in the background
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			errChan <- err
+		}
+	}()
+
+	// Build the Authorization URL asking for 'activity:write' permission
+	authURL := fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&response_type=code&redirect_uri=http://localhost:8080/callback&scope=activity:write,read", clientID)
+	
+	// Open the default OS browser
+	runtime.BrowserOpenURL(a.ctx, authURL)
+
+	// Wait for the user to complete the flow in the browser (Timeout after 3 minutes)
+	select {
+	case token := <-tokenChan:
+		// Retrieve current user profile
+		profile, err := a.storageService.GetProfile()
+		if err != nil {
+			srv.Shutdown(context.Background())
+			return "", fmt.Errorf("no active profile found to save tokens")
+		}
+
+		// Save tokens to the isolated SQLite DB
+		profile.StravaAccessToken = token.AccessToken
+		profile.StravaRefreshToken = token.RefreshToken
+		profile.StravaExpiresAt = token.ExpiresAt
+		
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			srv.Shutdown(context.Background())
+			return "", fmt.Errorf("failed to save tokens to database: %v", err)
+		}
+
+		// Gracefully shut down the temporary server
+		srv.Shutdown(context.Background())
+		return "ok", nil
+
+	case err := <-errChan:
+		srv.Shutdown(context.Background())
+		return "", err
+
+	case <-time.After(3 * time.Minute):
+		srv.Shutdown(context.Background())
+		return "", fmt.Errorf("timeout: waiting for Strava authorization took too long")
+	}
+}
+
+// IsStravaConnected returns true if the current active profile has a Strava token
+func (a *App) IsStravaConnected() bool {
+    profile, err := a.storageService.GetProfile()
+    if err != nil {
+        return false
+    }
+    return profile.StravaAccessToken != ""
+}
+
+// UploadLastWorkoutToStrava finds the most recently generated .fit file 
+// and uploads it using the active user's Strava token.
+func (a *App) UploadLastWorkoutToStrava() (string, error) {
+	profile, err := a.storageService.GetProfile()
+	if err != nil || profile.StravaAccessToken == "" {
+		return "", fmt.Errorf("strava account is not connected")
+	}
+
+	if time.Now().Unix() >= profile.StravaExpiresAt {
+		fmt.Println("[STRAVA] Token de Acesso Expirado. Renovando automaticamente...")
+		
+		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
+		}
+
+		profile.StravaAccessToken = newTokens.AccessToken
+		profile.StravaRefreshToken = newTokens.RefreshToken
+		profile.StravaExpiresAt = newTokens.ExpiresAt
+
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			return "", fmt.Errorf("failed to save refreshed token: %v", err)
+		}
+		
+		fmt.Println("[STRAVA] Token renovado com sucesso!")
+	}
+
+	workoutsDir := "workouts"
+	files, err := os.ReadDir(workoutsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to read workouts directory: %v", err)
+	}
+
+	var latestFitFilePath string
+	var lastModTime int64 = 0
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".fit" {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+			if info.ModTime().Unix() > lastModTime {
+				lastModTime = info.ModTime().Unix()
+				latestFitFilePath = filepath.Join(workoutsDir, file.Name()) 
+			}
+		}
+	}
+
+	if latestFitFilePath == "" {
+		return "", fmt.Errorf("no recent .fit file found to upload")
+	}
+
+	err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	return "Upload successful", nil
+}
+
+// DisconnectStrava clears the user's saved Strava tokens from the database
+func (a *App) DisconnectStrava() error {
+	err := a.storageService.ClearStravaTokens()
+	if err != nil {
+		return fmt.Errorf("failed to clear tokens: %v", err)
+	}
+	return nil
 }
