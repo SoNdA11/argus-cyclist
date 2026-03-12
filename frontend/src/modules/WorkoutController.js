@@ -86,6 +86,14 @@ export class WorkoutController {
         this.activeWorkout = workout;
         this.panel.classList.remove('hidden');
 
+        setTimeout(() => {
+            if (window.mapController && window.mapController.map) {
+                window.mapController.map.resize();
+            } else {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }, 50);
+
         this.renderList();
 
         requestAnimationFrame(() => this.renderGraph(0));
