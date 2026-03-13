@@ -32,6 +32,29 @@ if (typeof window.go === 'undefined') {
                     if (prop === 'GetMonthlyActivities') return async () => [];
                     if (prop === 'GetPowerCurve') return async () => [];
                     if (prop === 'GetCareerDashboard') return async () => ({ pmc: [], mmp: [] });
+                    
+                    if (prop === 'GetLocalAccounts') return async () => {
+                        const saved = localStorage.getItem('mobile_accounts');
+                        return saved ? JSON.parse(saved) : [];
+                    };
+                    
+                    if (prop === 'CreateLocalAccount') return async (name, avatar, weight, ftp) => {
+                        console.log("Mocked CreateLocalAccount:", name);
+                        const id = "mob_" + Date.now();
+                        const newAcc = { id, name, avatar, weight, ftp, total_km: 0, total_time: 0, level: 1 };
+                        
+                        const saved = localStorage.getItem('mobile_accounts');
+                        const accounts = saved ? JSON.parse(saved) : [];
+                        accounts.push(newAcc);
+                        localStorage.setItem('mobile_accounts', JSON.stringify(accounts));
+                        
+                        return id;
+                    };
+                    
+                    if (prop === 'SelectLocalAccount') return async (id) => {
+                        console.log("Mocked SelectLocalAccount:", id);
+                        return true;
+                    };
 
                     return async () => { console.log("Mocked Go App call:", prop); return null; };
                 }

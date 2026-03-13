@@ -23,6 +23,8 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
+    /* ADICIONE ESTA LINHA: */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* =========================================
@@ -479,7 +481,7 @@ footer {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 30px;
     margin-bottom: 30px;
 }
@@ -640,6 +642,10 @@ footer {
     gap: 1rem;
     margin-bottom: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
 }
 
 .tab-btn {
@@ -1026,10 +1032,18 @@ html[data-theme="day"] .history-item {
 }
 
 .compact-profile {
-    display: grid;
-    grid-template-columns: 140px 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 25px;
-    align-items: start;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .compact-profile {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        align-items: start;
+    }
 }
 
 .profile-right {
@@ -1995,11 +2009,17 @@ TACTICAL BLUE
     /* Removes strict height limits from settings window to prevent button clipping */
     .settings-content,
     .modal-content {
-        margin: 20px auto !important;
-        max-height: none !important;
-        height: auto !important;
-        overflow: visible !important;
-        width: 100% !important;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        width: 95%;
+        max-width: 1000px;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 20px auto;
     }
 
     /* Ensures "Save & Close" button is large and easy to hit with thumbs */
@@ -2128,8 +2148,11 @@ TACTICAL BLUE
     z-index: 9999;
     display: none;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; 
     flex-direction: column;
+    overflow-y: auto; 
+    padding: max(20px, env(safe-area-inset-top)) 10px max(40px, env(safe-area-inset-bottom)) 10px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .home-overlay.active {
@@ -2137,12 +2160,14 @@ TACTICAL BLUE
 }
 
 .home-container {
-    width: 90%;
+    width: 100%;
     max-width: 1000px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: auto 0; 
+    padding-bottom: 20px;
 }
 
 .home-header {
@@ -2258,6 +2283,7 @@ TACTICAL BLUE
     border: 1px solid var(--border-color);
     padding: 30px;
     border-radius: 12px;
+    width: 95%;
     max-width: 350px;
     margin: 0 auto;
     text-align: left;
@@ -2274,12 +2300,30 @@ TACTICAL BLUE
     font-size: 1rem;
 }
 
+@media (max-height: 600px) {
+    .home-header {
+        margin-bottom: 15px;
+        flex-direction: row;
+    }
+    .home-logo {
+        width: 60px;
+        height: 60px;
+    }
+    .home-brand {
+        font-size: 2rem;
+    }
+    .home-subtitle {
+        font-size: 1rem;
+    }
+}
+
 /* =====================
    STRAVA INTEGRATION UI
    ===================== */
 
 .btn-strava {
-    background-color: #FC4C02; /* Official Strava Orange */
+    background-color: #FC4C02;
+    /* Official Strava Orange */
     color: #fff;
     padding: 8px 16px;
     border: none;
@@ -2303,4 +2347,16 @@ TACTICAL BLUE
     cursor: wait;
     transform: none;
     box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions button {
+        width: 100%;
+        padding: 15px;
+    }
 }
