@@ -50,6 +50,14 @@ export class ElevationChart {
         if (!this.isPaused) this.draw();
     }
 
+    getGradientColor(deltaEle) {
+        if (deltaEle > 3.0) return "#e74c3c";
+        if (deltaEle > 1.5) return "#e67e22";
+        if (deltaEle > 0.5) return "#f1c40f";
+        if (deltaEle < -0.5) return "#3498db";
+        return "#2ecc71";
+    }
+
     draw() {
         const w = this.canvas.width = this.canvas.parentElement.offsetWidth;
         const h = this.canvas.height = this.canvas.parentElement.offsetHeight;
@@ -63,6 +71,10 @@ export class ElevationChart {
         const range = maxEle - minEle || 1;
         const stepX = w / (this.data.length - 1);
 
+        const fillGradient = this.ctx.createLinearGradient(0, h, 0, 0);
+        fillGradient.addColorStop(0, "rgba(44, 62, 80, 0.6)");
+        fillGradient.addColorStop(1, "rgba(231, 76, 60, 0.1)");
+
         this.ctx.beginPath();
         this.ctx.moveTo(0, h);
         this.data.forEach((ele, i) => {
@@ -70,17 +82,30 @@ export class ElevationChart {
             this.ctx.lineTo(i * stepX, y);
         });
         this.ctx.lineTo(w, h);
-        this.ctx.fillStyle = "rgba(100, 100, 100, 0.3)";
+        this.ctx.fillStyle = fillGradient;
         this.ctx.fill();
 
-        this.ctx.beginPath();
-        this.data.forEach((ele, i) => {
-            const y = h - ((ele - minEle) / range) * (h * 0.8) - (h * 0.1);
-            if (i === 0) this.ctx.moveTo(0, y);
-            else this.ctx.lineTo(i * stepX, y);
-        });
-        this.ctx.strokeStyle = "#888";
-        this.ctx.lineWidth = 1;
-        this.ctx.stroke();
+        this.ctx.lineWidth = 2.5;
+        this.ctx.lineCap = "round";
+        this.ctx.lineJoin = "round";
+
+        for (let i = 0; i < this.data.length - 1; i++) {
+            const ele1 = this.data[i];
+            const ele2 = this.data[i + 1];
+
+            const x1 = i * stepX;
+            const y1 = h - ((ele1 - minEle) / range) * (h * 0.8) - (h * 0.1);
+
+            const x2 = (i + 1) * stepX;
+            const y2 = h - ((ele2 - minEle) / range) * (h * 0.8) - (h * 0.1);
+
+            const deltaEle = ele2 - ele1;
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.strokeStyle = this.getGradientColor(deltaEle);
+            this.ctx.stroke();
+        }
     }
 }

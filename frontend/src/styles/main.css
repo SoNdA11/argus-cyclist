@@ -2360,3 +2360,19 @@ TACTICAL BLUE
         padding: 15px;
     }
 }
+
+.icon-minimal {
+    color: rgba(255, 253, 253, 0.456);
+    cursor: pointer;
+    display: flex;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-minimal:hover {
+    color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+}
+
+.icon-minimal.icon-minimal-danger:hover {
+    color: #ff4757;
+}
