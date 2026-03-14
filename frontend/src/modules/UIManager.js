@@ -785,7 +785,6 @@ export class UIManager {
                 this.openActivityDetail(act);
             };
 
-            // We add a flex container for the folder icon and the trash icon
             div.innerHTML = `
     <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
     
@@ -793,20 +792,21 @@ export class UIManager {
     
     <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
     
-    <div style="display: flex; gap: 15px; width: 80px; justify-content: center; align-items: center;">
+    <div style="display: flex; gap: 12px; width: 80px; justify-content: flex-end; align-items: center; padding-right: 10px;">
+        
         <span 
             title="Open Folder" 
-            style="font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;"
-            onmouseover="this.style.transform='scale(1.2)'"
-            onmouseout="this.style.transform='scale(1)'"
+            class="icon-minimal"
             onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
-        >📂</span>
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+            </svg>
+        </span>
         
         <span 
             title="Delete Workout" 
-            style="font-size: 1.2rem; cursor: pointer; transition: transform 0.2s;"
-            onmouseover="this.style.transform='scale(1.2)'"
-            onmouseout="this.style.transform='scale(1)'"
+            class="icon-minimal icon-minimal-danger"
             onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
                 const targetId = ${act.ID ? act.ID : act.id};
                 window.go.main.App.DeleteActivityHistory(targetId).then(() => {
@@ -814,7 +814,12 @@ export class UIManager {
                     window.ui.loadCareerDashboard(); 
                 }).catch(err => alert('Error deleting: ' + err)); 
             }"
-        >🗑️</span>
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+        </span>
+        
     </div>
 `;
 
