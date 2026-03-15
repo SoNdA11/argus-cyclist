@@ -532,6 +532,15 @@
 
             <div id="workout-list" class="scroll-list">
             </div>
+
+            <div id="workout-completion-actions" class="hidden"
+                style="padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-primary" onclick="window.go.main.App.RepeatWorkout()">Repeat Current Workout</button>
+                <button class="btn-secondary" onclick="window.go.main.App.LoadWorkout()">Import New Workout</button>
+                <button class="btn-danger"
+                    onclick="window.go.main.App.UnloadWorkout(); window.workoutCtrl.hide();">Close Panel</button>
+            </div>
+
         </aside>
 
         <div id="routeEditorPanel" class="editor-panel" style="display: none;">

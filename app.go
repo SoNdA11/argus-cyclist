@@ -21,13 +21,13 @@ import (
 	"encoding/base64"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	stdruntime "runtime"
 	"strings"
 	"time"
-	"net/http"
 
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble"
@@ -35,9 +35,9 @@ import (
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/storage"
-	"argus-cyclist/internal/service/workout"
 	"argus-cyclist/internal/service/strava"
-	
+	"argus-cyclist/internal/service/workout"
+
 	"github.com/joho/godotenv"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -45,15 +45,16 @@ import (
 // App is the main application struct exposed to Wails.
 // It orchestrates services, session lifecycle, and runtime events.
 type App struct {
-	ctx              context.Context
-	gpxService       *gpx.Service
-	fitService       *fit.Service
-	physicsEngine    *sim.Engine
-	trainerService   domain.TrainerService
-	storageService   *storage.Service
-	workoutService   *workout.Service
-	activeWorkout    *domain.ActiveWorkout
-	workoutIntensity float64
+	ctx                    context.Context
+	gpxService             *gpx.Service
+	fitService             *fit.Service
+	physicsEngine          *sim.Engine
+	trainerService         domain.TrainerService
+	storageService         *storage.Service
+	workoutService         *workout.Service
+	activeWorkout          *domain.ActiveWorkout
+	workoutIntensity       float64
+	workoutStartTimeOffset float64
 
 	workoutStartTime time.Time
 	isInWorkout      bool
@@ -527,6 +528,7 @@ func (a *App) startSession() string {
 	a.currentDist = 0
 	a.sessionStart = time.Now()
 	a.sessionActiveTime = 0
+	a.workoutStartTimeOffset = 0
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.workoutIntensity = 1.0
@@ -822,7 +824,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 					currentMode = "ERG"
 				}
 
-				elapsed := a.sessionActiveTime
+				elapsed := a.sessionActiveTime - a.workoutStartTimeOffset
 				timeAccumulator := 0.0
 
 				// Discover which segment we are in.
@@ -875,7 +877,6 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				// If the time exceeds the total, exit workout mode but CONTINUE the session in SIM mode.
 				if !foundSegment && elapsed > float64(a.activeWorkout.TotalDuration) {
 					a.isInWorkout = false
-					a.activeWorkout = nil
 
 					runtime.EventsEmit(a.ctx, "workout_finished", "completed")
 
@@ -1012,9 +1013,34 @@ func (a *App) LoadWorkout() string {
 	}
 
 	a.activeWorkout = wo
+
+	if a.isRecording {
+		a.workoutStartTimeOffset = a.sessionActiveTime
+		a.isInWorkout = true
+	} else {
+		a.workoutStartTimeOffset = 0
+	}
+
 	// Sends the complete structure to the frontend to draw the graph.
 	runtime.EventsEmit(a.ctx, "workout_loaded", wo)
 	return "Workout Loaded"
+}
+
+// RepeatWorkout allows restarting the currently loaded workout without stopping the session
+func (a *App) RepeatWorkout() string {
+	if a.activeWorkout == nil {
+		return "No workout loaded"
+	}
+
+	if a.isRecording {
+		a.workoutStartTimeOffset = a.sessionActiveTime
+	} else {
+		a.workoutStartTimeOffset = 0
+	}
+
+	a.isInWorkout = true
+	runtime.EventsEmit(a.ctx, "workout_loaded", a.activeWorkout)
+	return "Workout Repeated"
 }
 
 // StartWorkout specifically initiates workout mode.
@@ -1224,7 +1250,7 @@ func (a *App) ConnectStrava() (string, error) {
 		</body>
 		</html>
 		`
-		
+
 		// Success! Send token to the main thread and update the browser window
 		tokenChan <- tokenResp
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -1240,7 +1266,7 @@ func (a *App) ConnectStrava() (string, error) {
 
 	// Build the Authorization URL asking for 'activity:write' permission
 	authURL := fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&response_type=code&redirect_uri=http://localhost:8080/callback&scope=activity:write,read", clientID)
-	
+
 	// Open the default OS browser
 	runtime.BrowserOpenURL(a.ctx, authURL)
 
@@ -1258,7 +1284,7 @@ func (a *App) ConnectStrava() (string, error) {
 		profile.StravaAccessToken = token.AccessToken
 		profile.StravaRefreshToken = token.RefreshToken
 		profile.StravaExpiresAt = token.ExpiresAt
-		
+
 		if err := a.storageService.UpdateProfile(profile); err != nil {
 			srv.Shutdown(context.Background())
 			return "", fmt.Errorf("failed to save tokens to database: %v", err)
@@ -1280,14 +1306,14 @@ func (a *App) ConnectStrava() (string, error) {
 
 // IsStravaConnected returns true if the current active profile has a Strava token
 func (a *App) IsStravaConnected() bool {
-    profile, err := a.storageService.GetProfile()
-    if err != nil {
-        return false
-    }
-    return profile.StravaAccessToken != ""
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return false
+	}
+	return profile.StravaAccessToken != ""
 }
 
-// UploadLastWorkoutToStrava finds the most recently generated .fit file 
+// UploadLastWorkoutToStrava finds the most recently generated .fit file
 // and uploads it using the active user's Strava token.
 func (a *App) UploadLastWorkoutToStrava() (string, error) {
 	profile, err := a.storageService.GetProfile()
@@ -1297,7 +1323,7 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 
 	if time.Now().Unix() >= profile.StravaExpiresAt {
 		fmt.Println("[STRAVA] Token de Acesso Expirado. Renovando automaticamente...")
-		
+
 		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
 		if err != nil {
 			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
@@ -1310,7 +1336,7 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 		if err := a.storageService.UpdateProfile(profile); err != nil {
 			return "", fmt.Errorf("failed to save refreshed token: %v", err)
 		}
-		
+
 		fmt.Println("[STRAVA] Token renovado com sucesso!")
 	}
 
@@ -1331,7 +1357,7 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 			}
 			if info.ModTime().Unix() > lastModTime {
 				lastModTime = info.ModTime().Unix()
-				latestFitFilePath = filepath.Join(workoutsDir, file.Name()) 
+				latestFitFilePath = filepath.Join(workoutsDir, file.Name())
 			}
 		}
 	}
