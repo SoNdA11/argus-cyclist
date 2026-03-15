@@ -110,6 +110,10 @@ export function OpenFileFolder(arg1) {
   return window['go']['main']['App']['OpenFileFolder'](arg1);
 }
 
+export function RepeatWorkout() {
+  return window['go']['main']['App']['RepeatWorkout']();
+}
+
 export function ResetAppState() {
   return window['go']['main']['App']['ResetAppState']();
 }

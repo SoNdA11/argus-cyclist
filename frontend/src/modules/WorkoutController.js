@@ -54,9 +54,11 @@ export class WorkoutController {
             window.runtime.EventsOn("workout_loaded", (wo) => this.loadWorkout(wo));
             window.runtime.EventsOn("workout_status", (state) => this.updateStatus(state));
             window.runtime.EventsOn("workout_finished", (status) => {
-                this.hide();
                 if (status === "completed") {
-                    this.showToast("Workout completed!\n\nSwitched to Free Ride (SIM).\nKeep pedaling to continue, or stop to finish the workout.", 5000);
+                    this.showCompletionActions();
+                    this.showToast("Workout completed!\n\nSwitched to Free Ride (SIM).\nYou can repeat or load a new workout.", 5000);
+                } else {
+                    this.hide();
                 }
             });
             window.runtime.EventsOn("telemetry_update", (data) => this.updateTelemetry(data));
@@ -68,6 +70,16 @@ export class WorkoutController {
                 this.renderGraph(this.lastPct || 0);
             }
         });
+    }
+
+    showCompletionActions() {
+        if (this.list) this.list.classList.add('hidden');
+        const actions = document.getElementById('workout-completion-actions');
+        if (actions) actions.classList.remove('hidden');
+        
+        if (this.elMessage) this.elMessage.innerText = "WORKOUT COMPLETE";
+        if (this.elTarget) this.elTarget.innerText = "--";
+        if (this.elTimer) this.elTimer.innerText = "--:--";
     }
 
     getProp(obj, keys) {
@@ -85,6 +97,10 @@ export class WorkoutController {
         console.log("WORKOUT: Loading...", workout);
         this.activeWorkout = workout;
         this.panel.classList.remove('hidden');
+
+        if (this.list) this.list.classList.remove('hidden');
+        const actions = document.getElementById('workout-completion-actions');
+        if (actions) actions.classList.add('hidden');
 
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
@@ -127,11 +143,11 @@ export class WorkoutController {
         this.stopMobileWorkoutLoop();
         this.mobileElapsedTime = 0;
         this.currentSegIdx = -1;
-        
+
         const segments = this.getProp(this.activeWorkout, ['segments', 'Segments']) || [];
-        const totalDuration = this.getProp(this.activeWorkout, ['total_duration', 'TotalDuration']) || 
-                              segments.reduce((acc, s) => acc + (this.getProp(s, ['duration', 'DurationSeconds']) || 0), 0);
-        
+        const totalDuration = this.getProp(this.activeWorkout, ['total_duration', 'TotalDuration']) ||
+            segments.reduce((acc, s) => acc + (this.getProp(s, ['duration', 'DurationSeconds']) || 0), 0);
+
         if (totalDuration === 0) return;
 
         this.mobileInterval = setInterval(() => {
@@ -146,7 +162,7 @@ export class WorkoutController {
             for (let i = 0; i < segments.length; i++) {
                 const seg = segments[i];
                 const dur = this.getProp(seg, ['duration', 'DurationSeconds']);
-                
+
                 if (this.mobileElapsedTime <= accumulatedTime + dur) {
                     currentSegment = seg;
                     segmentElapsed = this.mobileElapsedTime - accumulatedTime;
@@ -167,7 +183,7 @@ export class WorkoutController {
             const startFactor = this.getProp(currentSegment, ['start_factor', 'StartFactor']) || 0;
             const endFactor = this.getProp(currentSegment, ['end_factor', 'EndFactor']) || startFactor;
             const dur = this.getProp(currentSegment, ['duration', 'DurationSeconds']);
-            
+
             // Calculate interpolated target power (for Ramps)
             const progress = segmentElapsed / dur;
             const currentFactor = startFactor + (endFactor - startFactor) * progress;

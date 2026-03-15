@@ -59,6 +59,8 @@ export function LoadWorkout():Promise<string>;
 
 export function OpenFileFolder(arg1:string):Promise<void>;
 
+export function RepeatWorkout():Promise<string>;
+
 export function ResetAppState():Promise<void>;
 
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
