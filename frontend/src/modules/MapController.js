@@ -431,7 +431,7 @@ export class MapController {
         return this.generatedRouteData || [];
     }
 
-async calculateRouteOSRM(pointsArray) {
+    async calculateRouteOSRM(pointsArray) {
         const coordsString = pointsArray.map(p => `${parseFloat(p.lng).toFixed(6)},${parseFloat(p.lat).toFixed(6)}`).join(';');
         const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
 
@@ -604,6 +604,16 @@ async calculateRouteOSRM(pointsArray) {
                     'line-width': 4
                 }
             });
+        }
+    }
+
+    // ========
+    // UI FIXES
+    // ========
+
+    forceResize() {
+        if (this.map) {
+            this.map.resize();
         }
     }
 }
