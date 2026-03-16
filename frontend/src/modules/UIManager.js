@@ -159,7 +159,7 @@ export class UIManager {
             this.els.mapContainer.style.display = 'none';
             this.els.hudSidebar.style.display = 'none';
 
-            // --- NEW: Initialize and resize chart ---
+            // --- Initialize and resize chart ---
             this.initLiveChart();
             if (this.liveChartInstance) {
                 setTimeout(() => this.liveChartInstance.resize(), 100);
@@ -168,6 +168,12 @@ export class UIManager {
             this.els.dashboardView.classList.add('hidden');
             this.els.mapContainer.style.display = 'block';
             this.els.hudSidebar.style.display = 'flex';
+
+            setTimeout(() => {
+                if (window.mapController) {
+                    window.mapController.forceResize();
+                }
+            }, 100);
         }
     }
 
