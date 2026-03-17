@@ -32,25 +32,25 @@ if (typeof window.go === 'undefined') {
                     if (prop === 'GetMonthlyActivities') return async () => [];
                     if (prop === 'GetPowerCurve') return async () => [];
                     if (prop === 'GetCareerDashboard') return async () => ({ pmc: [], mmp: [] });
-                    
+
                     if (prop === 'GetLocalAccounts') return async () => {
                         const saved = localStorage.getItem('mobile_accounts');
                         return saved ? JSON.parse(saved) : [];
                     };
-                    
+
                     if (prop === 'CreateLocalAccount') return async (name, avatar, weight, ftp) => {
                         console.log("Mocked CreateLocalAccount:", name);
                         const id = "mob_" + Date.now();
                         const newAcc = { id, name, avatar, weight, ftp, total_km: 0, total_time: 0, level: 1 };
-                        
+
                         const saved = localStorage.getItem('mobile_accounts');
                         const accounts = saved ? JSON.parse(saved) : [];
                         accounts.push(newAcc);
                         localStorage.setItem('mobile_accounts', JSON.stringify(accounts));
-                        
+
                         return id;
                     };
-                    
+
                     if (prop === 'SelectLocalAccount') return async (id) => {
                         console.log("Mocked SelectLocalAccount:", id);
                         return true;
@@ -947,6 +947,22 @@ document.getElementById('btnDisconnectStrava').addEventListener('click', async (
     }
 });
 
+window.deleteProfile = async (id, name, event) => {
+    // Stop event propagation so clicking the 'X' doesn't trigger loginProfile
+    event.stopPropagation();
+
+    if (confirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
+        try {
+            await window.go.main.App.DeleteLocalAccount(id);
+            // Refresh the grid immediately after successful deletion
+            initHomeScreen();
+        } catch (err) {
+            console.error("Error deleting profile:", err);
+            alert("Failed to delete profile: " + err);
+        }
+    }
+};
+
 window.loginProfile = async (id) => {
     try {
         await window.go.main.App.SelectLocalAccount(id);
@@ -1047,7 +1063,8 @@ async function initHomeScreen() {
                 const lvl = acc.level || 1;
 
                 grid.innerHTML += `
-                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')">
+                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')" style="position: relative;">
+                        <button class="btn-delete-profile" onclick="window.deleteProfile('${acc.id}', '${acc.name}', event)" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #ff4444; z-index: 10;">✖</button>
                         <img src="${photo}" alt="Avatar">
                         <h4 style="margin-bottom: 5px; font-size: 1.2rem;">${acc.name}</h4>
                         <div class="profile-stats">

@@ -34,6 +34,10 @@ export function DeleteActivityHistory(arg1) {
   return window['go']['main']['App']['DeleteActivityHistory'](arg1);
 }
 
+export function DeleteLocalAccount(arg1) {
+  return window['go']['main']['App']['DeleteLocalAccount'](arg1);
+}
+
 export function DiscardSession() {
   return window['go']['main']['App']['DiscardSession']();
 }

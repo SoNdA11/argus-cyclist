@@ -21,6 +21,8 @@ export function CreateLocalAccount(arg1:string,arg2:string,arg3:number,arg4:numb
 
 export function DeleteActivityHistory(arg1:number):Promise<void>;
 
+export function DeleteLocalAccount(arg1:string):Promise<void>;
+
 export function DiscardSession():Promise<string>;
 
 export function DisconnectDevice():Promise<string>;
