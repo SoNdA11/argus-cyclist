@@ -258,6 +258,11 @@ func (a *App) SelectLocalAccount(id string) (string, error) {
 	return "ok", nil
 }
 
+// DeleteLocalAccount removes a user profile and its associated data permanently.
+func (a *App) DeleteLocalAccount(id string) error {
+	return a.storageService.DeleteLocalAccount(id)
+}
+
 // ====================
 // USER PROFILE & STATS
 // ====================

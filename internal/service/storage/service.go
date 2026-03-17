@@ -140,6 +140,22 @@ func (s *Service) LoadUserDatabase(userID string) error {
 	return nil
 }
 
+// DeleteLocalAccount removes the profile from the master DB and deletes its isolated database file.
+func (s *Service) DeleteLocalAccount(id string) error {
+	// 1. Remove from Master DB
+	if err := s.masterDB.Where("id = ?", id).Delete(&LocalAccount{}).Error; err != nil {
+		return fmt.Errorf("failed to delete account from master db: %v", err)
+	}
+
+	// 2. Delete the physical isolated database file
+	dbPath := fmt.Sprintf("users_data/argus_data_%s.db", id)
+	if err := os.Remove(dbPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to delete database file: %v", err)
+	}
+
+	return nil
+}
+
 // ============
 // USER PROFILE
 // ============
