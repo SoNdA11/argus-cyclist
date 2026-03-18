@@ -1071,13 +1071,13 @@ export class UIManager {
             const distKm = (activity.total_distance / 1000).toFixed(2);
 
             document.getElementById('detail-metrics').innerHTML = `
-                <div class="detail-metric-row"><span class="label">Tempo</span><span class="value">${durationMin} min</span></div>
-                <div class="detail-metric-row"><span class="label">Distância</span><span class="value">${distKm} km</span></div>
-                <div class="detail-metric-row"><span class="label">Potência Média</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
-                <div class="detail-metric-row"><span class="label">Potência Normalizada</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
+                <div class="detail-metric-row"><span class="label">Duration</span><span class="value">${durationMin} min</span></div>
+                <div class="detail-metric-row"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
+                <div class="detail-metric-row"><span class="label">Average Power</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
+                <div class="detail-metric-row"><span class="label">Normalized Power</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
                 <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
                 <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
-                <div class="detail-metric-row"><span class="label">Calorias</span><span class="value">${activity.calories || '--'} kcal</span></div>
+                <div class="detail-metric-row"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
             `;
 
             this.renderMasterChart(details);
