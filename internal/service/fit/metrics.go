@@ -181,3 +181,45 @@ func CalculatePMC(activities []domain.Activity) []PMCDay {
 
 	return pmc
 }
+
+// CalculateHRZones calculates the total time (in seconds) spent in each Heart Rate zone.
+// It assumes telemetryHR contains one sample per second.
+// The calculation is based on standard % of Max HR zones.
+func CalculateHRZones(telemetryHR []int, maxHR int) map[string]int {
+	zones := map[string]int{
+		"Z1": 0, // Recovery (< 60% Max HR)
+		"Z2": 0, // Endurance (60% - 70% Max HR)
+		"Z3": 0, // Tempo (70% - 80% Max HR)
+		"Z4": 0, // Threshold (80% - 90% Max HR)
+		"Z5": 0, // VO2 Max (> 90% Max HR)
+	}
+
+	// Return empty zones if Max HR is not configured or invalid
+	if maxHR <= 0 {
+		return zones
+	}
+
+	for _, hr := range telemetryHR {
+		if hr == 0 {
+			continue
+		}
+
+		// Calculate the percentage of current HR compared to Max HR
+		percentage := (float64(hr) / float64(maxHR)) * 100.0
+
+		switch {
+		case percentage < 60.0:
+			zones["Z1"]++
+		case percentage >= 60.0 && percentage < 70.0:
+			zones["Z2"]++
+		case percentage >= 70.0 && percentage < 80.0:
+			zones["Z3"]++
+		case percentage >= 80.0 && percentage < 90.0:
+			zones["Z4"]++
+		default: // >= 90.0
+			zones["Z5"]++
+		}
+	}
+
+	return zones
+}

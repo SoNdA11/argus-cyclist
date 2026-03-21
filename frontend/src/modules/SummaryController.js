@@ -105,13 +105,42 @@ export class SummaryController {
         const container = document.getElementById('hrDistribution');
         if (!container) return;
 
-        const zones = [
-            { name: 'Z1 <115', color: '#7a9ab8', pct: 5 },
-            { name: 'Z2 <133', color: '#39e97b', pct: 15 },
-            { name: 'Z3 <152', color: '#ffd93d', pct: 38 },
-            { name: 'Z4 <166', color: '#ff6b2b', pct: 32 },
-            { name: 'Z5 185+', color: '#ff3d5a', pct: 10 }
-        ];
+        let zones = [];
+
+        // Check if the backend provided real HR zone data
+        if (this.currentActivity?.time_in_hr_zones && Object.keys(this.currentActivity.time_in_hr_zones).length > 0) {
+            const hrData = this.currentActivity.time_in_hr_zones;
+
+            // Calculate total time in zones to derive percentages
+            let totalTime = 0;
+            for (const zone in hrData) {
+                totalTime += hrData[zone];
+            }
+
+            // Create zones array based on real data
+            const zoneColors = { 'Z1': '#7a9ab8', 'Z2': '#39e97b', 'Z3': '#ffd93d', 'Z4': '#ff6b2b', 'Z5': '#ff3d5a' };
+
+            zones = ['Z1', 'Z2', 'Z3', 'Z4', 'Z5'].map(zoneKey => {
+                const timeInZone = hrData[zoneKey] || 0;
+                // Calculate percentage, default to 0 if totalTime is 0 to avoid NaN
+                const pct = totalTime > 0 ? Math.round((timeInZone / totalTime) * 100) : 0;
+                return {
+                    name: zoneKey,
+                    color: zoneColors[zoneKey],
+                    pct: pct
+                };
+            });
+
+        } else {
+            // Fallback to demo/mock data if real data is missing
+            zones = [
+                { name: 'Z1 <115', color: '#7a9ab8', pct: 5 },
+                { name: 'Z2 <133', color: '#39e97b', pct: 15 },
+                { name: 'Z3 <152', color: '#ffd93d', pct: 38 },
+                { name: 'Z4 <166', color: '#ff6b2b', pct: 32 },
+                { name: 'Z5 185+', color: '#ff3d5a', pct: 10 }
+            ];
+        }
 
         let html = '';
 

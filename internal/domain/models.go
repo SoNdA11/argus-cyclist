@@ -70,6 +70,7 @@ type UserProfile struct {
 	MaxHR      int       `json:"max_hr"`
 	Theme      string    `json:"theme"` // "dark", "light", etc.
 	Units      string    `json:"units"` // "metric", "imperial"
+	LTHR  int `json:"lthr"`   // Lactate Threshold Heart Rate (bpm)
 
 	Level       int   `json:"level"`
 	CurrentXP   int64 `json:"current_xp"`
@@ -99,6 +100,7 @@ type Activity struct {
 	IntensityFactor float64 `json:"intensity_factor"`
 	ElevationGain   float64 `json:"elevation_gain"`
 	CreatedAt      time.Time `json:"created_at"`      // Activity date
+	TimeInHRZones   map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
 }
 
 // BLEDevice represents a Bluetooth device found during the scan.

@@ -16,6 +16,7 @@ export namespace domain {
 	    elevation_gain: number;
 	    // Go type: time
 	    created_at: any;
+	    time_in_hr_zones: Record<string, number>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Activity(source);
@@ -37,6 +38,7 @@ export namespace domain {
 	        this.intensity_factor = source["intensity_factor"];
 	        this.elevation_gain = source["elevation_gain"];
 	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.time_in_hr_zones = source["time_in_hr_zones"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -101,6 +103,7 @@ export namespace domain {
 	    max_hr: number;
 	    theme: string;
 	    units: string;
+	    lthr: number;
 	    level: number;
 	    current_xp: number;
 	    total_coins: number;
@@ -127,6 +130,7 @@ export namespace domain {
 	        this.max_hr = source["max_hr"];
 	        this.theme = source["theme"];
 	        this.units = source["units"];
+	        this.lthr = source["lthr"];
 	        this.level = source["level"];
 	        this.current_xp = source["current_xp"];
 	        this.total_coins = source["total_coins"];

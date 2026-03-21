@@ -76,6 +76,7 @@ type App struct {
 	sessionPowerSum      uint64 // Sum of power samples (for average power)
 	sessionTicks         int    // Number of power samples
 	sessionPowerData     []int
+	sessionHRData          []int  // Array to store HR history second-by-second
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
@@ -530,6 +531,7 @@ func (a *App) startSession() string {
 	}
 
 	a.sessionPowerData = []int{}
+	a.sessionHRData = []int{}
 	a.currentDist = 0
 	a.sessionStart = time.Now()
 	a.sessionActiveTime = 0
@@ -620,11 +622,14 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		userFTP = 200
 	}
 
+	userMaxHR := userProfile.MaxHR
+
 	np := fit.CalculateNormalizedPower(a.sessionPowerData)
 	intensityFactor := fit.CalculateIntensityFactor(np, userFTP)
 	tss := fit.CalculateTSS(int(durationSec), np, intensityFactor, userFTP)
 	calories := fit.CalculateCalories(avgPower, int(durationSec))
 	zones := fit.CalculatePowerZones(a.sessionPowerData, userFTP)
+	hrZones := fit.CalculateHRZones(a.sessionHRData, userMaxHR)
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
 	for _, duration := range intervals {
@@ -657,6 +662,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		TSS:             tss,
 		Calories:        calories,
 		CreatedAt:       time.Now(),
+		TimeInHRZones:   hrZones,
 	}
 
 	if err := a.storageService.SaveActivity(activity); err != nil {
@@ -674,6 +680,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.isPaused = false
 	a.currentDist = 0
 	a.sessionPowerData = []int{}
+	a.sessionHRData = []int{}
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 
@@ -791,6 +798,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				a.sessionPowerSum += uint64(currentPower)
 				a.sessionTicks++
 				a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
+				a.sessionHRData = append(a.sessionHRData, int(currentHR))
 			}
 
 			if now.Sub(lastPowerTime) > sensorTimeout {

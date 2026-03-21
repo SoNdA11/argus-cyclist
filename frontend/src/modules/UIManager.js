@@ -70,6 +70,8 @@ export class UIManager {
             tokenWarning: document.getElementById('token-warning'),
             inputName: document.getElementById('inputName'),
             inputFTP: document.getElementById('inputFTP'),
+            inputMaxHR: document.getElementById('inputMaxHR'),
+            inputLTHR: document.getElementById('inputLTHR'),
 
             // History & statistics
             historyContainer: document.getElementById('historyContainer'),
@@ -651,6 +653,8 @@ export class UIManager {
             this.els.inputRiderWeight.value = profile.weight || 75;
             this.els.inputBikeWeight.value = profile.bike_weight || 9;
             this.els.inputFTP.value = profile.ftp || 200;
+            this.els.inputMaxHR.value = profile.max_hr || 190;
+            this.els.inputLTHR.value = profile.lthr || 170;
 
             this.riderWeight = profile.weight;
             this.bikeWeight = profile.bike_weight;
@@ -718,6 +722,9 @@ export class UIManager {
             weight: parseFloat(this.els.inputRiderWeight.value),
             bike_weight: parseFloat(this.els.inputBikeWeight.value),
             ftp: parseInt(this.els.inputFTP.value),
+            max_hr: parseInt(this.els.inputMaxHR.value) || 190,
+            lthr: parseInt(this.els.inputLTHR.value) || 170,
+            
             units: this.els.selectUnits.value,
             level: this.level,
             current_xp: parseInt(this.xp)
