@@ -223,3 +223,25 @@ func CalculateHRZones(telemetryHR []int, maxHR int) map[string]int {
 
 	return zones
 }
+
+// CalculateTRIMP calculates the Training Impulse using Banister's formula.
+// Formula: Duration (min) * HR Reserve Ratio * 0.64 * e^(1.92 * HR Reserve Ratio)
+func CalculateTRIMP(durationSec int, avgHR int, maxHR int, restingHR int) int {
+	// Guard clauses for invalid or missing data
+	if maxHR <= restingHR || avgHR <= restingHR || durationSec <= 0 {
+		return 0
+	}
+
+	// Calculate Heart Rate Reserve (HRr) ratio
+	hrReserve := float64(avgHR-restingHR) / float64(maxHR-restingHR)
+	if hrReserve < 0 {
+		hrReserve = 0
+	}
+
+	durationMin := float64(durationSec) / 60.0
+
+	// Banister TRIMP formula (using the standard coefficient for males as a generic baseline)
+	trimp := durationMin * hrReserve * 0.64 * math.Exp(1.92*hrReserve)
+
+	return int(math.Round(trimp))
+}
