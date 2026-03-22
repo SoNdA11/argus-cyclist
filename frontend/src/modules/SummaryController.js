@@ -42,7 +42,10 @@ export class SummaryController {
 
         document.getElementById('summaryAvgSpeed').innerText = (act.avg_speed || 0).toFixed(1);
         document.getElementById('summaryAvgHR').innerText = act.avg_hr || '--';
-        document.getElementById('summaryTSS').innerText = act.tss || 0;
+        document.getElementById('summaryTSS').innerText = act.tss ? act.tss.toFixed(1) : 0;
+
+        const finishTrimp = document.getElementById('finish-trimp');
+        if (finishTrimp) finishTrimp.innerText = act.trimp || 0;
 
         this.renderPowerDistribution();
         this.renderPowerChart();

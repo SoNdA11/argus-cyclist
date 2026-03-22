@@ -71,6 +71,7 @@ type UserProfile struct {
 	Theme      string    `json:"theme"` // "dark", "light", etc.
 	Units      string    `json:"units"` // "metric", "imperial"
 	LTHR  int `json:"lthr"`   // Lactate Threshold Heart Rate (bpm)
+	RestingHR int `json:"resting_hr"` // Resting Heart Rate for TRIMP
 
 	Level       int   `json:"level"`
 	CurrentXP   int64 `json:"current_xp"`
@@ -97,6 +98,9 @@ type Activity struct {
 	Calories       int       `json:"calories"`        // Estimated calories burned
 	NormalizedPower int     `json:"normalized_power"`
 	TSS             float64 `json:"tss"`
+	TRIMP           int       `json:"trimp"`  // Training Impulse
+    AvgHR           int       `json:"avg_hr"` // Average Heart Rate
+    MaxHR           int       `json:"max_hr"` // Max Heart Rate reached
 	IntensityFactor float64 `json:"intensity_factor"`
 	ElevationGain   float64 `json:"elevation_gain"`
 	CreatedAt      time.Time `json:"created_at"`      // Activity date

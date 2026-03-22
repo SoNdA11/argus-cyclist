@@ -12,6 +12,9 @@ export namespace domain {
 	    calories: number;
 	    normalized_power: number;
 	    tss: number;
+	    trimp: number;
+	    avg_hr: number;
+	    max_hr: number;
 	    intensity_factor: number;
 	    elevation_gain: number;
 	    // Go type: time
@@ -35,6 +38,9 @@ export namespace domain {
 	        this.calories = source["calories"];
 	        this.normalized_power = source["normalized_power"];
 	        this.tss = source["tss"];
+	        this.trimp = source["trimp"];
+	        this.avg_hr = source["avg_hr"];
+	        this.max_hr = source["max_hr"];
 	        this.intensity_factor = source["intensity_factor"];
 	        this.elevation_gain = source["elevation_gain"];
 	        this.created_at = this.convertValues(source["created_at"], null);
@@ -104,6 +110,7 @@ export namespace domain {
 	    theme: string;
 	    units: string;
 	    lthr: number;
+	    resting_hr: number;
 	    level: number;
 	    current_xp: number;
 	    total_coins: number;
@@ -131,6 +138,7 @@ export namespace domain {
 	        this.theme = source["theme"];
 	        this.units = source["units"];
 	        this.lthr = source["lthr"];
+	        this.resting_hr = source["resting_hr"];
 	        this.level = source["level"];
 	        this.current_xp = source["current_xp"];
 	        this.total_coins = source["total_coins"];

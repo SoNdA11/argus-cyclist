@@ -126,6 +126,10 @@
                                     <label>LTHR (bpm)</label>
                                     <input type="number" id="inputLTHR" placeholder="170" min="100" max="250">
                                 </div>
+                                <div class="input-group">
+                                    <label>Resting HR</label>
+                                    <input type="number" id="inputRestingHR" placeholder="60" min="30" max="120">
+                                </div>
                             </div>
                         </section>
 
@@ -311,12 +315,10 @@
                 <div class="history-list">
                     <div class="history-item history-header">
                         <span style="flex: 2;">Date / Route</span>
-
                         <span style="flex: 1; text-align: center;">Dist</span>
-
                         <span style="flex: 1; text-align: center;">Avg Pwr</span>
-
-                        <span style="width: 80px; text-align: center;">Actions</span>
+                        <span style="flex: 1; text-align: center;">TRIMP</span> <span
+                            style="width: 80px; text-align: center;">Actions</span>
                     </div>
                     <div id="historyContainer">
                         <div class="history-item"><span>Loading...</span></div>
@@ -588,6 +590,10 @@
                 <div class="stat-box-small">
                     <span class="label">TSS®</span>
                     <span class="value" id="finish-tss">--</span>
+                </div>
+                <div class="stat-box-small">
+                    <span class="label">TRIMP</span>
+                    <span class="value" id="finish-trimp">--</span>
                 </div>
                 <div class="stat-box-small">
                     <span class="label">Kcal</span>

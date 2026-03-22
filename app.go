@@ -623,6 +623,28 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	}
 
 	userMaxHR := userProfile.MaxHR
+	userRestingHR := userProfile.RestingHR
+    if userRestingHR <= 0 {
+        userRestingHR = 60 // Safety fallback
+    }
+
+	// Calculate Average and Max HR for the session
+    var hrSum int
+    var hrTicks int
+    var sessionMaxHR int
+    for _, hr := range a.sessionHRData {
+        if hr > 0 {
+            hrSum += hr
+            hrTicks++
+            if hr > sessionMaxHR {
+                sessionMaxHR = hr
+            }
+        }
+    }
+    avgHR := 0
+    if hrTicks > 0 {
+        avgHR = hrSum / hrTicks
+    }
 
 	np := fit.CalculateNormalizedPower(a.sessionPowerData)
 	intensityFactor := fit.CalculateIntensityFactor(np, userFTP)
@@ -630,6 +652,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	calories := fit.CalculateCalories(avgPower, int(durationSec))
 	zones := fit.CalculatePowerZones(a.sessionPowerData, userFTP)
 	hrZones := fit.CalculateHRZones(a.sessionHRData, userMaxHR)
+	trimpScore := fit.CalculateTRIMP(int(durationSec), avgHR, userMaxHR, userRestingHR)
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
 	for _, duration := range intervals {
@@ -660,6 +683,9 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		NormalizedPower: np,
 		IntensityFactor: intensityFactor,
 		TSS:             tss,
+		TRIMP:           trimpScore,
+        AvgHR:           avgHR,
+        MaxHR:           sessionMaxHR,
 		Calories:        calories,
 		CreatedAt:       time.Now(),
 		TimeInHRZones:   hrZones,

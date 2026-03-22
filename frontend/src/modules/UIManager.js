@@ -72,6 +72,7 @@ export class UIManager {
             inputFTP: document.getElementById('inputFTP'),
             inputMaxHR: document.getElementById('inputMaxHR'),
             inputLTHR: document.getElementById('inputLTHR'),
+            inputRestingHR: document.getElementById('inputRestingHR'),
 
             // History & statistics
             historyContainer: document.getElementById('historyContainer'),
@@ -655,6 +656,7 @@ export class UIManager {
             this.els.inputFTP.value = profile.ftp || 200;
             this.els.inputMaxHR.value = profile.max_hr || 190;
             this.els.inputLTHR.value = profile.lthr || 170;
+            this.els.inputRestingHR.value = profile.resting_hr || 60;
 
             this.riderWeight = profile.weight;
             this.bikeWeight = profile.bike_weight;
@@ -724,7 +726,8 @@ export class UIManager {
             ftp: parseInt(this.els.inputFTP.value),
             max_hr: parseInt(this.els.inputMaxHR.value) || 190,
             lthr: parseInt(this.els.inputLTHR.value) || 170,
-            
+            resting_hr: parseInt(this.els.inputRestingHR.value) || 60,
+
             units: this.els.selectUnits.value,
             level: this.level,
             current_xp: parseInt(this.xp)
@@ -783,6 +786,7 @@ export class UIManager {
             const dist = (act.total_distance / 1000).toFixed(1) + " km";
             const name = act.route_name || "Free Training";
             const pwr = act.avg_power || 0;
+            const trimp = act.trimp || 0;
 
             const rawFilename = act.filename || "";
             const safeFilename = rawFilename.replace(/\\/g, '\\\\');
@@ -804,6 +808,8 @@ export class UIManager {
     <span style="flex: 1; text-align: center;">${dist}</span>
     
     <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
+
+    <span style="flex: 1; text-align: center; color: #e74c3c; font-weight: bold;" title="TRIMP">${trimp}</span> <div style="display: flex; gap: 12px; width: 80px; justify-content: flex-end; align-items: center; padding-right: 10px;">
     
     <div style="display: flex; gap: 12px; width: 80px; justify-content: flex-end; align-items: center; padding-right: 10px;">
         
@@ -997,6 +1003,7 @@ export class UIManager {
             document.getElementById('finish-if').innerText = summary.activity.intensity_factor ? summary.activity.intensity_factor.toFixed(2) : '--';
             document.getElementById('finish-tss').innerText = summary.activity.tss ? summary.activity.tss.toFixed(1) : '--';
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
+            document.getElementById('finish-trimp').innerText = summary.activity.trimp || '--';
 
             if (summary.zones && summary.activity.duration > 0) {
                 this.renderZoneBar(summary.zones, summary.activity.duration);
