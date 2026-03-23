@@ -1266,7 +1266,7 @@ export class UIManager {
             const dashboardData = await window.go.main.App.GetCareerDashboard();
             if (dashboardData) {
                 this.renderPMCChart(dashboardData.pmc || []);
-                this.renderCareerMMPChart(dashboardData.mmp || []);
+                this.renderCareerDecouplingChart(dashboardData.decoupling || []);
             }
         } catch (error) {
             console.error("Error loading Career Dashboard:", error);
@@ -1341,27 +1341,26 @@ export class UIManager {
         this.pmcChartInstance.setOption(option);
     }
 
-    renderCareerMMPChart(mmpData) {
-        const chartDom = document.getElementById('careerMmpChart');
+    renderCareerDecouplingChart(decouplingData) {
+        const chartDom = document.getElementById('careerDecouplingChart');
         if (!chartDom) return;
 
-        if (this.careerMmpChartInstance) {
-            this.careerMmpChartInstance.dispose();
+        if (this.careerDecouplingChartInstance) {
+            this.careerDecouplingChartInstance.dispose();
         }
-        this.careerMmpChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+        this.careerDecouplingChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
 
-        mmpData.sort((a, b) => a.duration - b.duration);
+        // Sort data chronologically
+        decouplingData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        const formatDuration = (secs) => {
-            if (secs < 60) return secs + 's';
-            return Math.floor(secs / 60) + 'm';
-        };
-
-        const labels = mmpData.map(d => formatDuration(d.duration));
-        const watts = mmpData.map(d => d.watts);
+        const labels = decouplingData.map(d => d.date);
+        const drift = decouplingData.map(d => d.decoupling);
 
         const option = {
-            tooltip: { trigger: 'axis' },
+            tooltip: {
+                trigger: 'axis',
+                formatter: '{b}: {c}% Drift'
+            },
             grid: { left: '5%', right: '5%', bottom: '15%', top: '15%', containLabel: true },
             xAxis: {
                 type: 'category',
@@ -1370,19 +1369,34 @@ export class UIManager {
             },
             yAxis: {
                 type: 'value',
-                name: 'Watts',
+                name: 'Drift (%)',
                 splitLine: { lineStyle: { color: '#333' } }
             },
+            // Dynamically color the bars: Green if <= 5% (Good base), Red if > 5% (Needs work)
+            visualMap: {
+                show: false,
+                pieces: [
+                    { gt: -100, lte: 5, color: '#2ecc71' }, // Green
+                    { gt: 5, lte: 100, color: '#e74c3c' }   // Red
+                ]
+            },
             series: [{
-                name: 'Max Power All-Time',
-                data: watts,
+                name: 'Pw:HR Decoupling',
+                data: drift,
                 type: 'bar',
-                itemStyle: { color: '#f39c12', borderRadius: [4, 4, 0, 0] },
-                label: { show: true, position: 'top', color: '#fff' }
+                itemStyle: { borderRadius: [4, 4, 0, 0] },
+                label: { show: true, position: 'top', formatter: '{c}%', color: '#fff' },
+                markLine: {
+                    data: [
+                        { yAxis: 5, name: 'Threshold' }
+                    ],
+                    lineStyle: { color: '#f1c40f', type: 'dashed', width: 2 },
+                    label: { position: 'insideEndTop', formatter: '5% Target', color: '#f1c40f' }
+                }
             }]
         };
 
-        this.careerMmpChartInstance.setOption(option);
+        this.careerDecouplingChartInstance.setOption(option);
     }
 
 }

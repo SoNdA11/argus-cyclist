@@ -243,9 +243,23 @@ export namespace fit {
 
 export namespace main {
 	
+	export class DecouplingRecord {
+	    date: string;
+	    decoupling: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DecouplingRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.decoupling = source["decoupling"];
+	    }
+	}
 	export class CareerDashboard {
 	    pmc: fit.PMCDay[];
-	    mmp: storage.PowerRecord[];
+	    decoupling: DecouplingRecord[];
 	
 	    static createFrom(source: any = {}) {
 	        return new CareerDashboard(source);
@@ -254,7 +268,7 @@ export namespace main {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.pmc = this.convertValues(source["pmc"], fit.PMCDay);
-	        this.mmp = this.convertValues(source["mmp"], storage.PowerRecord);
+	        this.decoupling = this.convertValues(source["decoupling"], DecouplingRecord);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -275,6 +289,7 @@ export namespace main {
 		    return a;
 		}
 	}
+	
 	export class ExportPoint {
 	    lat: number;
 	    lon: number;
