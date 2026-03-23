@@ -76,7 +76,7 @@ type App struct {
 	sessionPowerSum      uint64 // Sum of power samples (for average power)
 	sessionTicks         int    // Number of power samples
 	sessionPowerData     []int
-	sessionHRData          []int  // Array to store HR history second-by-second
+	sessionHRData        []int // Array to store HR history second-by-second
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
@@ -101,10 +101,16 @@ type ActivityDetails struct {
 	Distance  []float64 `json:"distance"`
 }
 
+// DecouplingRecord represents a historical point for cardiovascular drift
+type DecouplingRecord struct {
+	Date       string  `json:"date"`
+	Decoupling float64 `json:"decoupling"`
+}
+
 // CareerDashboard groups the data required for the Career tab
 type CareerDashboard struct {
-	PMC []fit.PMCDay          `json:"pmc"`
-	MMP []storage.PowerRecord `json:"mmp"`
+	PMC        []fit.PMCDay       `json:"pmc"`
+	Decoupling []DecouplingRecord `json:"decoupling"` // Replaces MMP
 }
 
 // NewApp initializes all core services and dependencies.
@@ -624,27 +630,27 @@ func (a *App) FinishSession() (SessionSummary, error) {
 
 	userMaxHR := userProfile.MaxHR
 	userRestingHR := userProfile.RestingHR
-    if userRestingHR <= 0 {
-        userRestingHR = 60 // Safety fallback
-    }
+	if userRestingHR <= 0 {
+		userRestingHR = 60 // Safety fallback
+	}
 
 	// Calculate Average and Max HR for the session
-    var hrSum int
-    var hrTicks int
-    var sessionMaxHR int
-    for _, hr := range a.sessionHRData {
-        if hr > 0 {
-            hrSum += hr
-            hrTicks++
-            if hr > sessionMaxHR {
-                sessionMaxHR = hr
-            }
-        }
-    }
-    avgHR := 0
-    if hrTicks > 0 {
-        avgHR = hrSum / hrTicks
-    }
+	var hrSum int
+	var hrTicks int
+	var sessionMaxHR int
+	for _, hr := range a.sessionHRData {
+		if hr > 0 {
+			hrSum += hr
+			hrTicks++
+			if hr > sessionMaxHR {
+				sessionMaxHR = hr
+			}
+		}
+	}
+	avgHR := 0
+	if hrTicks > 0 {
+		avgHR = hrSum / hrTicks
+	}
 
 	np := fit.CalculateNormalizedPower(a.sessionPowerData)
 	intensityFactor := fit.CalculateIntensityFactor(np, userFTP)
@@ -653,6 +659,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	zones := fit.CalculatePowerZones(a.sessionPowerData, userFTP)
 	hrZones := fit.CalculateHRZones(a.sessionHRData, userMaxHR)
 	trimpScore := fit.CalculateTRIMP(int(durationSec), avgHR, userMaxHR, userRestingHR)
+	decoupling := fit.CalculateAerobicDecoupling(a.sessionPowerData, a.sessionHRData)
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
 	for _, duration := range intervals {
@@ -673,22 +680,23 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	fullPath := filepath.Join(workoutsDir, fileName)
 
 	activity := domain.Activity{
-		RouteName:       routeName,
-		Filename:        fullPath,
-		TotalDistance:   a.currentDist,
-		Duration:        int64(durationSec),
-		AvgPower:        avgPower,
-		AvgSpeed:        avgSpeed,
-		ElevationGain:   a.sessionElevationGain,
-		NormalizedPower: np,
-		IntensityFactor: intensityFactor,
-		TSS:             tss,
-		TRIMP:           trimpScore,
-        AvgHR:           avgHR,
-        MaxHR:           sessionMaxHR,
-		Calories:        calories,
-		CreatedAt:       time.Now(),
-		TimeInHRZones:   hrZones,
+		RouteName:         routeName,
+		Filename:          fullPath,
+		TotalDistance:     a.currentDist,
+		Duration:          int64(durationSec),
+		AvgPower:          avgPower,
+		AvgSpeed:          avgSpeed,
+		ElevationGain:     a.sessionElevationGain,
+		NormalizedPower:   np,
+		IntensityFactor:   intensityFactor,
+		TSS:               tss,
+		TRIMP:             trimpScore,
+		AerobicDecoupling: decoupling,
+		AvgHR:             avgHR,
+		MaxHR:             sessionMaxHR,
+		Calories:          calories,
+		CreatedAt:         time.Now(),
+		TimeInHRZones:     hrZones,
 	}
 
 	if err := a.storageService.SaveActivity(activity); err != nil {
@@ -1176,15 +1184,20 @@ func (a *App) GetCareerDashboard() (CareerDashboard, error) {
 
 	pmcData := fit.CalculatePMC(activities)
 
-	mmpData, err := a.storageService.GetPowerRecords()
-	if err != nil {
-		fmt.Println("Error when searching for power records.:", err)
-		mmpData = []storage.PowerRecord{}
+	// Build the Decoupling History (Only for rides longer than 1 hour with HR data)
+	var decouplingData []DecouplingRecord
+	for _, act := range activities {
+		if act.Duration >= 3600 && act.AvgHR > 0 {
+			decouplingData = append(decouplingData, DecouplingRecord{
+				Date:       act.CreatedAt.Format("2006-01-02"),
+				Decoupling: act.AerobicDecoupling,
+			})
+		}
 	}
 
 	return CareerDashboard{
-		PMC: pmcData,
-		MMP: mmpData,
+		PMC:        pmcData,
+		Decoupling: decouplingData,
 	}, nil
 }
 

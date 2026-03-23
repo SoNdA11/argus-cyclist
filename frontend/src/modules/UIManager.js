@@ -1005,6 +1005,21 @@ export class UIManager {
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
             document.getElementById('finish-trimp').innerText = summary.activity.trimp || '--';
 
+            const decouplingEl = document.getElementById('finish-decoupling');
+            if (decouplingEl) {
+                const durationSec = summary.activity.duration || 0;
+                const drift = summary.activity.aerobic_decoupling || 0;
+
+                // Only show valid decoupling for rides longer than 1 hour (3600s)
+                if (durationSec >= 3600) {
+                    // Display yellow warning emoji if drift > 5%
+                    const warning = drift > 5.0 ? `<span title="High Cardiovascular Drift! Indicates lack of base aerobic conditioning." style="color: #f1c40f; font-size: 1.1rem;">⚠️</span>` : '';
+                    decouplingEl.innerHTML = `${drift.toFixed(1)}% ${warning}`;
+                } else {
+                    decouplingEl.innerText = 'N/A (<1h)';
+                }
+            }
+
             if (summary.zones && summary.activity.duration > 0) {
                 this.renderZoneBar(summary.zones, summary.activity.duration);
             }
@@ -1091,6 +1106,10 @@ export class UIManager {
                 <div class="detail-metric-row"><span class="label">Normalized Power</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
                 <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
                 <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
+                <div class="detail-metric-row"><span class="label">TRIMP</span><span class="value">${activity.trimp || '--'}</span></div>
+                
+                <div class="detail-metric-row"><span class="label">Aerobic Decoupling (Pw:HR)</span><span class="value">${activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A (< 1h)'}</span></div>
+                
                 <div class="detail-metric-row"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
             `;
 
@@ -1247,7 +1266,7 @@ export class UIManager {
             const dashboardData = await window.go.main.App.GetCareerDashboard();
             if (dashboardData) {
                 this.renderPMCChart(dashboardData.pmc || []);
-                this.renderCareerMMPChart(dashboardData.mmp || []);
+                this.renderCareerDecouplingChart(dashboardData.decoupling || []);
             }
         } catch (error) {
             console.error("Error loading Career Dashboard:", error);
@@ -1322,27 +1341,26 @@ export class UIManager {
         this.pmcChartInstance.setOption(option);
     }
 
-    renderCareerMMPChart(mmpData) {
-        const chartDom = document.getElementById('careerMmpChart');
+    renderCareerDecouplingChart(decouplingData) {
+        const chartDom = document.getElementById('careerDecouplingChart');
         if (!chartDom) return;
 
-        if (this.careerMmpChartInstance) {
-            this.careerMmpChartInstance.dispose();
+        if (this.careerDecouplingChartInstance) {
+            this.careerDecouplingChartInstance.dispose();
         }
-        this.careerMmpChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
+        this.careerDecouplingChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
 
-        mmpData.sort((a, b) => a.duration - b.duration);
+        // Sort data chronologically
+        decouplingData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        const formatDuration = (secs) => {
-            if (secs < 60) return secs + 's';
-            return Math.floor(secs / 60) + 'm';
-        };
-
-        const labels = mmpData.map(d => formatDuration(d.duration));
-        const watts = mmpData.map(d => d.watts);
+        const labels = decouplingData.map(d => d.date);
+        const drift = decouplingData.map(d => d.decoupling);
 
         const option = {
-            tooltip: { trigger: 'axis' },
+            tooltip: {
+                trigger: 'axis',
+                formatter: '{b}: {c}% Drift'
+            },
             grid: { left: '5%', right: '5%', bottom: '15%', top: '15%', containLabel: true },
             xAxis: {
                 type: 'category',
@@ -1351,19 +1369,34 @@ export class UIManager {
             },
             yAxis: {
                 type: 'value',
-                name: 'Watts',
+                name: 'Drift (%)',
                 splitLine: { lineStyle: { color: '#333' } }
             },
+            // Dynamically color the bars: Green if <= 5% (Good base), Red if > 5% (Needs work)
+            visualMap: {
+                show: false,
+                pieces: [
+                    { gt: -100, lte: 5, color: '#2ecc71' }, // Green
+                    { gt: 5, lte: 100, color: '#e74c3c' }   // Red
+                ]
+            },
             series: [{
-                name: 'Max Power All-Time',
-                data: watts,
+                name: 'Pw:HR Decoupling',
+                data: drift,
                 type: 'bar',
-                itemStyle: { color: '#f39c12', borderRadius: [4, 4, 0, 0] },
-                label: { show: true, position: 'top', color: '#fff' }
+                itemStyle: { borderRadius: [4, 4, 0, 0] },
+                label: { show: true, position: 'top', formatter: '{c}%', color: '#fff' },
+                markLine: {
+                    data: [
+                        { yAxis: 5, name: 'Threshold' }
+                    ],
+                    lineStyle: { color: '#f1c40f', type: 'dashed', width: 2 },
+                    label: { position: 'insideEndTop', formatter: '5% Target', color: '#f1c40f' }
+                }
             }]
         };
 
-        this.careerMmpChartInstance.setOption(option);
+        this.careerDecouplingChartInstance.setOption(option);
     }
 
 }

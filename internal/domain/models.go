@@ -99,6 +99,7 @@ type Activity struct {
 	NormalizedPower int     `json:"normalized_power"`
 	TSS             float64 `json:"tss"`
 	TRIMP           int       `json:"trimp"`  // Training Impulse
+	AerobicDecoupling 	float64        `json:"aerobic_decoupling"`
     AvgHR           int       `json:"avg_hr"` // Average Heart Rate
     MaxHR           int       `json:"max_hr"` // Max Heart Rate reached
 	IntensityFactor float64 `json:"intensity_factor"`
