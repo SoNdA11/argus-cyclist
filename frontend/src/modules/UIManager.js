@@ -1005,6 +1005,21 @@ export class UIManager {
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
             document.getElementById('finish-trimp').innerText = summary.activity.trimp || '--';
 
+            const decouplingEl = document.getElementById('finish-decoupling');
+            if (decouplingEl) {
+                const durationSec = summary.activity.duration || 0;
+                const drift = summary.activity.aerobic_decoupling || 0;
+
+                // Only show valid decoupling for rides longer than 1 hour (3600s)
+                if (durationSec >= 3600) {
+                    // Display yellow warning emoji if drift > 5%
+                    const warning = drift > 5.0 ? `<span title="High Cardiovascular Drift! Indicates lack of base aerobic conditioning." style="color: #f1c40f; font-size: 1.1rem;">⚠️</span>` : '';
+                    decouplingEl.innerHTML = `${drift.toFixed(1)}% ${warning}`;
+                } else {
+                    decouplingEl.innerText = 'N/A (<1h)';
+                }
+            }
+
             if (summary.zones && summary.activity.duration > 0) {
                 this.renderZoneBar(summary.zones, summary.activity.duration);
             }
@@ -1091,6 +1106,10 @@ export class UIManager {
                 <div class="detail-metric-row"><span class="label">Normalized Power</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
                 <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
                 <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
+                <div class="detail-metric-row"><span class="label">TRIMP</span><span class="value">${activity.trimp || '--'}</span></div>
+                
+                <div class="detail-metric-row"><span class="label">Aerobic Decoupling (Pw:HR)</span><span class="value">${activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A (< 1h)'}</span></div>
+                
                 <div class="detail-metric-row"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
             `;
 

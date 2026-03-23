@@ -245,3 +245,64 @@ func CalculateTRIMP(durationSec int, avgHR int, maxHR int, restingHR int) int {
 
 	return int(math.Round(trimp))
 }
+
+// CalculateAerobicDecoupling evaluates cardiovascular drift (Pw:HR).
+// It requires at least 1 hour of data to provide a meaningful metric.
+// It discards the first 10 minutes (warm-up) and compares the Efficiency Factor (Power/HR) of the first half against the second half.
+func CalculateAerobicDecoupling(powerData []int, hrData []int) float64 {
+	// Require at least 1 hour (3600 seconds) of data
+	if len(powerData) < 3600 || len(hrData) < 3600 || len(powerData) != len(hrData) {
+		return 0.0
+	}
+
+	// Discard the first 10 minutes (600 seconds) as warm-up
+	warmupTicks := 600
+	validPower := powerData[warmupTicks:]
+	validHR := hrData[warmupTicks:]
+
+	half := len(validPower) / 2
+
+	// Calculate averages for Half 1
+	var p1Sum, hr1Sum, ticks1 int
+	for i := 0; i < half; i++ {
+		if validPower[i] > 0 && validHR[i] > 0 { // Ignore coasting or dropouts
+			p1Sum += validPower[i]
+			hr1Sum += validHR[i]
+			ticks1++
+		}
+	}
+
+	// Calculate averages for Half 2
+	var p2Sum, hr2Sum, ticks2 int
+	for i := half; i < len(validPower); i++ {
+		if validPower[i] > 0 && validHR[i] > 0 {
+			p2Sum += validPower[i]
+			hr2Sum += validHR[i]
+			ticks2++
+		}
+	}
+
+	// Safety check to avoid division by zero
+	if ticks1 == 0 || ticks2 == 0 || hr1Sum == 0 || hr2Sum == 0 {
+		return 0.0
+	}
+
+	avgP1 := float64(p1Sum) / float64(ticks1)
+	avgHR1 := float64(hr1Sum) / float64(ticks1)
+	ef1 := avgP1 / avgHR1 // Efficiency Factor 1
+
+	avgP2 := float64(p2Sum) / float64(ticks2)
+	avgHR2 := float64(hr2Sum) / float64(ticks2)
+	ef2 := avgP2 / avgHR2 // Efficiency Factor 2
+
+	if ef1 <= 0 {
+		return 0.0
+	}
+
+	// Decoupling formula: ((EF1 - EF2) / EF1) * 100
+	// A positive drift means HR went up for the same power output (EF dropped)
+	decoupling := ((ef1 - ef2) / ef1) * 100.0
+
+	// Round to 1 decimal place
+	return math.Round(decoupling*10) / 10
+}

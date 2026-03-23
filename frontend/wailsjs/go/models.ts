@@ -13,6 +13,7 @@ export namespace domain {
 	    normalized_power: number;
 	    tss: number;
 	    trimp: number;
+	    aerobic_decoupling: number;
 	    avg_hr: number;
 	    max_hr: number;
 	    intensity_factor: number;
@@ -39,6 +40,7 @@ export namespace domain {
 	        this.normalized_power = source["normalized_power"];
 	        this.tss = source["tss"];
 	        this.trimp = source["trimp"];
+	        this.aerobic_decoupling = source["aerobic_decoupling"];
 	        this.avg_hr = source["avg_hr"];
 	        this.max_hr = source["max_hr"];
 	        this.intensity_factor = source["intensity_factor"];

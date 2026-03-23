@@ -653,6 +653,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	zones := fit.CalculatePowerZones(a.sessionPowerData, userFTP)
 	hrZones := fit.CalculateHRZones(a.sessionHRData, userMaxHR)
 	trimpScore := fit.CalculateTRIMP(int(durationSec), avgHR, userMaxHR, userRestingHR)
+	decoupling := fit.CalculateAerobicDecoupling(a.sessionPowerData, a.sessionHRData)
 
 	intervals := []int{1, 5, 15, 30, 60, 300, 600, 1200}
 	for _, duration := range intervals {
@@ -684,6 +685,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		IntensityFactor: intensityFactor,
 		TSS:             tss,
 		TRIMP:           trimpScore,
+		AerobicDecoupling: decoupling,
         AvgHR:           avgHR,
         MaxHR:           sessionMaxHR,
 		Calories:        calories,
