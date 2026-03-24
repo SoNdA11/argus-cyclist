@@ -33,16 +33,16 @@ type RoutePoint struct {
 // - The Frontend (Wails)
 // - The .FIT activity file
 type Telemetry struct {
-	Timestamp     time.Time `json:"timestamp"`  // Time of the telemetry sample
-	Power         int16     `json:"power"`      // Power output in watts
-	Cadence       uint8     `json:"cadence"`    // Cadence in RPM
-	HeartRate     uint8     `json:"heart_rate"` // Heart rate in BPM
-	Speed         float64   `json:"speed"`      // Virtual speed in km/h
-	TotalDistance float64   `json:"total_dist"` // Total distance traveled (meters)
-	CurrentGrade  float64   `json:"grade"`      // Current Grade (%)
-	Latitude      float64   `json:"lat"`        // Current latitude
-	Longitude     float64   `json:"lon"`        // Current longitude
-	Altitude      float64   `json:"alt"`        //Current altitude in meters
+	Timestamp     time.Time `json:"timestamp"`      // Time of the telemetry sample
+	Power         int16     `json:"power"`          // Power output in watts
+	Cadence       uint8     `json:"cadence"`        // Cadence in RPM
+	HeartRate     uint8     `json:"heart_rate"`     // Heart rate in BPM
+	Speed         float64   `json:"speed"`          // Virtual speed in km/h
+	TotalDistance float64   `json:"total_dist"`     // Total distance traveled (meters)
+	CurrentGrade  float64   `json:"grade"`          // Current Grade (%)
+	Latitude      float64   `json:"lat"`            // Current latitude
+	Longitude     float64   `json:"lon"`            // Current longitude
+	Altitude      float64   `json:"alt"`            //Current altitude in meters
 	ElevationGain float64   `json:"elevation_gain"` //Cumulative elevation gain
 }
 
@@ -61,51 +61,52 @@ type AppState struct {
 
 // UserProfile stores the cyclist's physical data and preferences.
 type UserProfile struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
-	Name       string    `json:"name"`        // Rider name
-	Photo      string    `json:"photo"`       // Photo (Base64)
-	Weight     float64   `json:"weight"`      // Rider weight (kg)
-	BikeWeight float64   `json:"bike_weight"` // Bike weight (kg)
-	FTP        int       `json:"ftp"`         // Functional Threshold Power
-	MaxHR      int       `json:"max_hr"`
-	Theme      string    `json:"theme"` // "dark", "light", etc.
-	Units      string    `json:"units"` // "metric", "imperial"
-	LTHR  int `json:"lthr"`   // Lactate Threshold Heart Rate (bpm)
-	RestingHR int `json:"resting_hr"` // Resting Heart Rate for TRIMP
+	ID         uint    `json:"id" gorm:"primaryKey"`
+	Name       string  `json:"name"`        // Rider name
+	Photo      string  `json:"photo"`       // Photo (Base64)
+	Weight     float64 `json:"weight"`      // Rider weight (kg)
+	BikeWeight float64 `json:"bike_weight"` // Bike weight (kg)
+	FTP        int     `json:"ftp"`         // Functional Threshold Power
+	MaxHR      int     `json:"max_hr"`
+	Theme      string  `json:"theme"`      // "dark", "light", etc.
+	Units      string  `json:"units"`      // "metric", "imperial"
+	LTHR       int     `json:"lthr"`       // Lactate Threshold Heart Rate (bpm)
+	RestingHR  int     `json:"resting_hr"` // Resting Heart Rate for TRIMP
 
-	Level       int   `json:"level"`
-	CurrentXP   int64 `json:"current_xp"`
-	TotalCoins  int   `json:"total_coins"`
+	Level      int   `json:"level"`
+	CurrentXP  int64 `json:"current_xp"`
+	TotalCoins int   `json:"total_coins"`
 
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
-	StravaAccessToken	string	`json:"strava_access_token"`
-	StravaRefreshToken	string	`json:"strava_refresh_token"`
-	StravaExpiresAt		int64	`json:"strava_expires_at"`
+	StravaAccessToken  string `json:"strava_access_token"`
+	StravaRefreshToken string `json:"strava_refresh_token"`
+	StravaExpiresAt    int64  `json:"strava_expires_at"`
 }
 
 // Activity represents a completed training session.
 type Activity struct {
-	ID             uint      `json:"id" gorm:"primaryKey"`
-	RouteName      string    `json:"route_name"`      // Name of the GPX route
-	Filename       string    `json:"filename"`        // Generated .FIT filename
-	TotalDistance  float64   `json:"total_distance"`  // Total distance (meters)
-	TotalElevation float64   `json:"total_elevation"` // Elevation gain (meters)
-	AvgPower       int       `json:"avg_power"`       // Average power (watts)
-	AvgSpeed       float64   `json:"avg_speed"`       // Average speed (km/h)
-	Duration       int64     `json:"duration"`        // Duration in seconds
-	Calories       int       `json:"calories"`        // Estimated calories burned
-	NormalizedPower int     `json:"normalized_power"`
-	TSS             float64 `json:"tss"`
-	TRIMP           int       `json:"trimp"`  // Training Impulse
-	AerobicDecoupling 	float64        `json:"aerobic_decoupling"`
-    AvgHR           int       `json:"avg_hr"` // Average Heart Rate
-    MaxHR           int       `json:"max_hr"` // Max Heart Rate reached
-	IntensityFactor float64 `json:"intensity_factor"`
-	ElevationGain   float64 `json:"elevation_gain"`
-	CreatedAt      time.Time `json:"created_at"`      // Activity date
-	TimeInHRZones   map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
+	ID                uint           `json:"id" gorm:"primaryKey"`
+	RouteName         string         `json:"route_name"`      // Name of the GPX route
+	Filename          string         `json:"filename"`        // Generated .FIT filename
+	TotalDistance     float64        `json:"total_distance"`  // Total distance (meters)
+	TotalElevation    float64        `json:"total_elevation"` // Elevation gain (meters)
+	AvgPower          int            `json:"avg_power"`       // Average power (watts)
+	AvgSpeed          float64        `json:"avg_speed"`       // Average speed (km/h)
+	Duration          int64          `json:"duration"`        // Duration in seconds
+	Calories          int            `json:"calories"`        // Estimated calories burned
+	NormalizedPower   int            `json:"normalized_power"`
+	TSS               float64        `json:"tss"`
+	TRIMP             int            `json:"trimp"` // Training Impulse
+	AerobicDecoupling float64        `json:"aerobic_decoupling"`
+	AvgHR             int            `json:"avg_hr"` // Average Heart Rate
+	MaxHR             int            `json:"max_hr"` // Max Heart Rate reached
+	IntensityFactor   float64        `json:"intensity_factor"`
+	ElevationGain     float64        `json:"elevation_gain"`
+	CreatedAt         time.Time      `json:"created_at"` // Activity date
+	TimeInHRZones     map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
+	UploadedToStrava  bool           `json:"uploaded_to_strava"`
 }
 
 // BLEDevice represents a Bluetooth device found during the scan.

@@ -802,45 +802,61 @@ export class UIManager {
                 this.openActivityDetail(act);
             };
 
-            div.innerHTML = `
-    <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
-    
-    <span style="flex: 1; text-align: center;">${dist}</span>
-    
-    <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
+            // Define Strava Icon state based on DB flag
+            const isUploaded = act.uploaded_to_strava;
+            const stravaColor = isUploaded ? '#FC4C02' : 'var(--text-muted)';
+            const stravaTitle = isUploaded ? 'Already uploaded to Strava' : 'Upload to Strava';
+            const stravaAction = isUploaded ? '' : `onclick="event.stopPropagation(); window.uploadHistoricalToStrava(${act.id || act.ID}, event)"`;
+            const stravaCursor = isUploaded ? 'default' : 'pointer';
 
-    <span style="flex: 1; text-align: center; color: #e74c3c; font-weight: bold;" title="TRIMP">${trimp}</span> <div style="display: flex; gap: 12px; width: 80px; justify-content: flex-end; align-items: center; padding-right: 10px;">
-    
-    <div style="display: flex; gap: 12px; width: 80px; justify-content: flex-end; align-items: center; padding-right: 10px;">
-        
-        <span 
-            title="Open Folder" 
-            class="icon-minimal"
-            onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
-            </svg>
-        </span>
-        
-        <span 
-            title="Delete Workout" 
-            class="icon-minimal icon-minimal-danger"
-            onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
-                const targetId = ${act.ID ? act.ID : act.id};
-                window.go.main.App.DeleteActivityHistory(targetId).then(() => {
-                    window.ui.toggleSettings(true);
-                    window.ui.loadCareerDashboard(); 
-                }).catch(err => alert('Error deleting: ' + err)); 
-            }"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-            </svg>
-        </span>
-        
-    </div>
-`;
+            div.innerHTML = `
+                <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
+                <span style="flex: 1; text-align: center;">${dist}</span>
+                <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
+                <span style="flex: 1; text-align: center; color: #e74c3c; font-weight: bold;" title="TRIMP">${trimp}</span> 
+                
+                <div style="display: flex; gap: 12px; width: 100px; justify-content: flex-end; align-items: center; padding-right: 10px;">
+                    
+                    <span 
+                        title="${stravaTitle}" 
+                        class="icon-minimal"
+                        id="btn-strava-hist-${act.id || act.ID}"
+                        style="color: ${stravaColor}; cursor: ${stravaCursor};"
+                        ${stravaAction}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                    </span>
+
+                    <span 
+                        title="Open Folder" 
+                        class="icon-minimal"
+                        onclick="event.stopPropagation(); window.go.main.App.OpenFileFolder('${safeFilename}')"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                        </svg>
+                    </span>
+                    
+                    <span 
+                        title="Delete Workout" 
+                        class="icon-minimal icon-minimal-danger"
+                        onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
+                            const targetId = ${act.id || act.ID};
+                            window.go.main.App.DeleteActivityHistory(targetId).then(() => {
+                                window.ui.toggleSettings(true);
+                                window.ui.loadCareerDashboard(); 
+                            }).catch(err => alert('Error deleting: ' + err)); 
+                        }"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                    </span>
+                </div>
+            `;
 
             this.els.historyContainer.appendChild(div);
         });
@@ -1399,4 +1415,70 @@ export class UIManager {
         this.careerDecouplingChartInstance.setOption(option);
     }
 
+    showToast(message, duration = 5000) {
+        const toast = document.getElementById('toast-notification');
+        if (!toast) return;
+
+        toast.innerText = message;
+        toast.classList.remove('hidden');
+
+        // Small delay to allow the CSS transition to work
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Removes the message after the defined time (default 5 seconds)
+        setTimeout(() => {
+            toast.classList.remove('show');
+
+            // Waits for the fade-out animation to finish before hiding the element
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 500);
+        }, duration);
+    }
 }
+
+// Attach global function to handle historical Strava uploads
+window.uploadHistoricalToStrava = async (id, event) => {
+    event.stopPropagation();
+
+    const btn = document.getElementById(`btn-strava-hist-${id}`);
+    if (!btn) return;
+
+    // Prevent double-clicks and show loading state
+    btn.style.opacity = '0.5';
+    btn.style.pointerEvents = 'none';
+
+    try {
+        // Validate if user has connected Strava
+        const isConn = await window.go.main.App.IsStravaConnected();
+        if (!isConn) {
+            alert("Please connect your Strava account in Settings > Profile & Devices first.");
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+            return;
+        }
+
+        window.ui.showToast("Uploading activity to Strava...", 3000);
+
+        await window.go.main.App.UploadActivityToStrava(id);
+
+        window.ui.showToast("Successfully uploaded to Strava! 🏆", 5000);
+
+        // Update the UI icon visually to indicate success
+        btn.style.color = '#FC4C02'; // Strava Orange
+        btn.style.opacity = '1';
+        btn.title = "Already uploaded to Strava";
+        btn.onclick = null;
+        btn.style.cursor = 'default';
+
+    } catch (err) {
+        console.error("Upload error:", err);
+        alert("Failed to upload: " + err);
+
+        // Revert button state so user can try again
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+    }
+};

@@ -91,4 +91,6 @@ export function UnloadWorkout():Promise<void>;
 
 export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;
 
+export function UploadActivityToStrava(arg1:number):Promise<string>;
+
 export function UploadLastWorkoutToStrava():Promise<string>;

@@ -1423,6 +1423,64 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 		return "", err
 	}
 
+	// Mark the latest activity as uploaded in the database
+	latestActivities, err := a.storageService.GetRecentActivities(1)
+	if err == nil && len(latestActivities) > 0 {
+		a.storageService.UpdateActivityStatus(latestActivities[0].ID, true)
+	}
+
+	return "Upload successful", nil
+}
+
+// UploadActivityToStrava retrieves a specific historical activity by ID and uploads its .fit file to Strava.
+func (a *App) UploadActivityToStrava(activityID uint) (string, error) {
+	profile, err := a.storageService.GetProfile()
+	if err != nil || profile.StravaAccessToken == "" {
+		return "", fmt.Errorf("strava account is not connected")
+	}
+
+	// Handle expired tokens dynamically
+	if time.Now().Unix() >= profile.StravaExpiresAt {
+		fmt.Println("[STRAVA] Access Token Expired. Auto-refreshing...")
+		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
+		if err != nil {
+			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
+		}
+
+		profile.StravaAccessToken = newTokens.AccessToken
+		profile.StravaRefreshToken = newTokens.RefreshToken
+		profile.StravaExpiresAt = newTokens.ExpiresAt
+
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			return "", fmt.Errorf("failed to save refreshed token: %v", err)
+		}
+	}
+
+	// Retrieve the specific activity from the database
+	activity, err := a.storageService.GetActivityByID(activityID)
+	if err != nil {
+		return "", fmt.Errorf("activity not found: %v", err)
+	}
+
+	if activity.Filename == "" {
+		return "", fmt.Errorf("no .fit file associated with this activity")
+	}
+
+	if activity.UploadedToStrava {
+		return "", fmt.Errorf("activity already uploaded to Strava")
+	}
+
+	// Upload to Strava API
+	err = strava.UploadFitFile(profile.StravaAccessToken, activity.Filename)
+	if err != nil {
+		return "", err
+	}
+
+	// Mark as uploaded in the local database
+	if err := a.storageService.UpdateActivityStatus(activityID, true); err != nil {
+		fmt.Printf("Warning: Upload succeeded, but failed to update local status: %v\n", err)
+	}
+
 	return "Upload successful", nil
 }
 
