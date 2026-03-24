@@ -21,6 +21,7 @@ export namespace domain {
 	    // Go type: time
 	    created_at: any;
 	    time_in_hr_zones: Record<string, number>;
+	    uploaded_to_strava: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Activity(source);
@@ -47,6 +48,7 @@ export namespace domain {
 	        this.elevation_gain = source["elevation_gain"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.time_in_hr_zones = source["time_in_hr_zones"];
+	        this.uploaded_to_strava = source["uploaded_to_strava"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -174,6 +174,10 @@ export function UpdateUserProfile(arg1) {
   return window['go']['main']['App']['UpdateUserProfile'](arg1);
 }
 
+export function UploadActivityToStrava(arg1) {
+  return window['go']['main']['App']['UploadActivityToStrava'](arg1);
+}
+
 export function UploadLastWorkoutToStrava() {
   return window['go']['main']['App']['UploadLastWorkoutToStrava']();
 }

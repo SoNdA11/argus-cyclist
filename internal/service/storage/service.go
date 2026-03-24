@@ -367,3 +367,11 @@ func (s *Service) ClearStravaTokens() error {
 
 	return err
 }
+
+// UpdateActivityStatus marks an activity as successfully uploaded to an external service (e.g., Strava).
+func (s *Service) UpdateActivityStatus(id uint, uploaded bool) error {
+	if s.userDB == nil {
+		return fmt.Errorf("no user database loaded")
+	}
+	return s.userDB.Model(&domain.Activity{}).Where("id = ?", id).Update("uploaded_to_strava", uploaded).Error
+}
