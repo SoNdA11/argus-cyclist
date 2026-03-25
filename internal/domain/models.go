@@ -107,6 +107,9 @@ type Activity struct {
 	CreatedAt         time.Time      `json:"created_at"` // Activity date
 	TimeInHRZones     map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
 	UploadedToStrava  bool           `json:"uploaded_to_strava"`
+	PeakHR            int            `json:"peak_hr"`
+    HRR1              int            `json:"hrr_1"`
+    HRR2              int            `json:"hrr_2"`
 }
 
 // BLEDevice represents a Bluetooth device found during the scan.

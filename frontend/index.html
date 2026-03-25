@@ -373,7 +373,19 @@
             </div>
         </div>
     </div>
-
+    <div id="cooldownModal" class="modal-overlay hidden">
+        <div class="modal-content-small text-center" style="text-align: center;">
+            <h3 style="color: var(--zone-4);">Heart Rate Recovery 🫀</h3>
+            <p style="color: var(--text-muted); margin-top: 10px;">Stop pedaling or spin lightly. Measuring your heart's
+                ability to recover...</p>
+            <div style="font-size: 3.5rem; font-family: var(--metric-font); font-weight: bold; margin: 20px 0; color: var(--text-main);"
+                id="cooldownTimer">02:00</div>
+            <div style="font-size: 1.5rem; color: var(--zone-2);" id="cooldownHR">-- bpm</div>
+            <div class="action-buttons" style="justify-content: center; margin-top: 25px;">
+                <button id="btnSkipCooldown" class="btn-secondary">Skip & Save</button>
+            </div>
+        </div>
+    </div>
     <header>
         <div class="brand">ARGUS<span>CYCLIST</span> <span id="filename" class="filename-display"></span></div>
         <div class="header-controls">
@@ -604,6 +616,10 @@
                     <span class="label">Pw:HR Drift</span>
                     <span class="value" id="finish-decoupling"
                         style="display:flex; justify-content:center; align-items:center; gap:4px;">--</span>
+                </div>
+                <div class="stat-box-small">
+                    <span class="label">HRR (1m / 2m)</span>
+                    <span class="value" id="finish-hrr">-- / --</span>
                 </div>
             </div>
 

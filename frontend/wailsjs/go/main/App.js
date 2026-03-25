@@ -102,6 +102,10 @@ export function GetUserProfile() {
   return window['go']['main']['App']['GetUserProfile']();
 }
 
+export function InitiateCooldown() {
+  return window['go']['main']['App']['InitiateCooldown']();
+}
+
 export function IsStravaConnected() {
   return window['go']['main']['App']['IsStravaConnected']();
 }

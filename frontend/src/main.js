@@ -768,6 +768,22 @@ document.getElementById('btnResume').addEventListener('click', async () => {
 });
 
 document.getElementById('btnFinishSave').addEventListener('click', async () => {
+    try {
+        const res = await window.go.main.App.InitiateCooldown();
+
+        if (res === "SKIP") {
+            await finishWorkout();
+        } else {
+            document.getElementById('confirmModal').classList.remove('active');
+            document.getElementById('cooldownModal').classList.add('active');
+        }
+    } catch (e) {
+        await finishWorkout();
+    }
+});
+
+document.getElementById('btnSkipCooldown').addEventListener('click', async () => {
+    document.getElementById('cooldownModal').classList.remove('active');
     await finishWorkout();
 });
 
@@ -844,6 +860,23 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
     window.runtime.EventsOn("telemetry_update", (data) => {
         ui.updateTelemetry(data, totalRouteDistance);
         mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+    });
+
+    window.runtime.EventsOn("cooldown_update", (data) => {
+        const modal = document.getElementById('cooldownModal');
+        if (modal && modal.classList.contains('active')) {
+            const m = Math.floor(data.time_left / 60);
+            const s = data.time_left % 60;
+            document.getElementById('cooldownTimer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('cooldownHR').innerText = `${data.current_hr} bpm`;
+        }
+    });
+
+    window.runtime.EventsOn("cooldown_complete", (summary) => {
+        document.getElementById('cooldownModal').classList.remove('active');
+        if (window.ui) {
+            window.ui.showFinishModal(summary);
+        }
     });
 }
 

@@ -22,6 +22,9 @@ export namespace domain {
 	    created_at: any;
 	    time_in_hr_zones: Record<string, number>;
 	    uploaded_to_strava: boolean;
+	    peak_hr: number;
+	    hrr_1: number;
+	    hrr_2: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Activity(source);
@@ -49,6 +52,9 @@ export namespace domain {
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.time_in_hr_zones = source["time_in_hr_zones"];
 	        this.uploaded_to_strava = source["uploaded_to_strava"];
+	        this.peak_hr = source["peak_hr"];
+	        this.hrr_1 = source["hrr_1"];
+	        this.hrr_2 = source["hrr_2"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
