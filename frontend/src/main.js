@@ -872,10 +872,32 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
         }
     });
 
-    window.runtime.EventsOn("cooldown_complete", (summary) => {
+    window.runtime.EventsOn("cooldown_complete", async (summary) => {
         document.getElementById('cooldownModal').classList.remove('active');
         if (window.ui) {
             window.ui.showFinishModal(summary);
+        }
+        
+        try {
+            if (window.go && window.go.main && window.go.main.App.IsStravaConnected) {
+                const isConnected = await window.go.main.App.IsStravaConnected();
+                const btnStrava = document.getElementById('btnUploadStrava');
+
+                if (isConnected) {
+                    btnStrava.classList.remove('hidden');
+                    btnStrava.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg> Upload to Strava`;
+                    btnStrava.disabled = false;
+                    btnStrava.style.backgroundColor = "#FC4C02";
+                } else {
+                    btnStrava.classList.add('hidden');
+                }
+            }
+        } catch (e) {
+            console.log("Strava validation skipped", e);
         }
     });
 }
