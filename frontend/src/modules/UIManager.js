@@ -1020,6 +1020,7 @@ export class UIManager {
             document.getElementById('finish-tss').innerText = summary.activity.tss ? summary.activity.tss.toFixed(1) : '--';
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
             document.getElementById('finish-trimp').innerText = summary.activity.trimp || '--';
+            document.getElementById('finish-hrr').innerText = `${summary.activity.hrr_1 || 0} / ${summary.activity.hrr_2 || 0} bpm`;
 
             const decouplingEl = document.getElementById('finish-decoupling');
             if (decouplingEl) {
@@ -1123,9 +1124,8 @@ export class UIManager {
                 <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
                 <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
                 <div class="detail-metric-row"><span class="label">TRIMP</span><span class="value">${activity.trimp || '--'}</span></div>
-                
                 <div class="detail-metric-row"><span class="label">Aerobic Decoupling (Pw:HR)</span><span class="value">${activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A (< 1h)'}</span></div>
-                
+                <div class="detail-metric-row"><span class="label">HRR (1m / 2m)</span><span class="value">${activity.hrr_1 || 0} / ${activity.hrr_2 || 0} bpm</span></div>
                 <div class="detail-metric-row"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
             `;
 

@@ -80,6 +80,11 @@ type App struct {
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
+	isCooldown           bool
+	cooldownStart        time.Time
+	peakHR               int
+	hrAt1Min             int
+	hrAt2Min             int
 }
 
 type ExportPoint struct {
@@ -584,6 +589,24 @@ func (a *App) resumeSession() string {
 	return "Recording"
 }
 
+// InitiateCooldown begins the 2-minute Heart Rate Recovery tracking phase.
+func (a *App) InitiateCooldown() (string, error) {
+	a.isCooldown = true
+	a.isPaused = false
+	a.cooldownStart = time.Now()
+
+	a.peakHR = 0
+	if len(a.sessionHRData) > 0 {
+		a.peakHR = a.sessionHRData[len(a.sessionHRData)-1]
+	}
+
+	a.hrAt1Min = 0
+	a.hrAt2Min = 0
+
+	runtime.EventsEmit(a.ctx, "status_change", "COOLDOWN")
+	return "COOLDOWN", nil
+}
+
 // FinishSession finalizes the current training session.
 // It calculates statistics, saves the activity to the database,
 // exports the FIT file, and resets the application state.
@@ -679,6 +702,16 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	fileName := fmt.Sprintf("workout_%s.fit", time.Now().Format("2006-01-02_15-04-05"))
 	fullPath := filepath.Join(workoutsDir, fileName)
 
+	// Lógica para calcular a diferença (queda de bpm)
+	hrr1 := 0
+	if a.hrAt1Min > 0 && a.peakHR > 0 {
+		hrr1 = a.peakHR - a.hrAt1Min
+	}
+	hrr2 := 0
+	if a.hrAt2Min > 0 && a.peakHR > 0 {
+		hrr2 = a.peakHR - a.hrAt2Min
+	}
+
 	activity := domain.Activity{
 		RouteName:         routeName,
 		Filename:          fullPath,
@@ -697,6 +730,10 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		Calories:          calories,
 		CreatedAt:         time.Now(),
 		TimeInHRZones:     hrZones,
+		PeakHR:            a.peakHR,
+		HRR1:              hrr1,
+		HRR2:              hrr2,
+		UploadedToStrava:  false,
 	}
 
 	if err := a.storageService.SaveActivity(activity); err != nil {
@@ -715,6 +752,10 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.currentDist = 0
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
+	a.isCooldown = false
+	a.peakHR = 0
+	a.hrAt1Min = 0
+	a.hrAt2Min = 0
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 
@@ -813,6 +854,30 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			currentPower += a.simPower
 
 			now := time.Now()
+
+			if a.isCooldown {
+				lastUpdate = now
+				elapsed := now.Sub(a.cooldownStart).Seconds()
+				timeLeft := int(120.0 - elapsed)
+
+				if elapsed >= 60.0 && a.hrAt1Min == 0 {
+					a.hrAt1Min = int(currentHR)
+				}
+
+				if elapsed >= 120.0 && a.hrAt2Min == 0 {
+					a.hrAt2Min = int(currentHR)
+					a.isCooldown = false
+
+					summary, _ := a.FinishSession()
+					runtime.EventsEmit(a.ctx, "cooldown_complete", summary)
+				} else {
+					runtime.EventsEmit(a.ctx, "cooldown_update", map[string]interface{}{
+						"time_left":  timeLeft,
+						"current_hr": int(currentHR),
+					})
+				}
+				continue
+			}
 
 			if a.isPaused {
 				lastUpdate = now

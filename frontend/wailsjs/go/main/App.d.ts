@@ -55,6 +55,8 @@ export function GetTotalStats():Promise<Record<string, number>>;
 
 export function GetUserProfile():Promise<domain.UserProfile>;
 
+export function InitiateCooldown():Promise<string>;
+
 export function IsStravaConnected():Promise<boolean>;
 
 export function LoadWorkout():Promise<string>;
