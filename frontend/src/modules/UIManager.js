@@ -1100,8 +1100,9 @@ export class UIManager {
     async openActivityDetail(activity) {
         try {
             const modal = document.getElementById('activityDetailModal');
-            document.getElementById('detail-route-name').innerText = activity.route_name || "Treino Livre";
-            document.getElementById('detail-metrics').innerHTML = "<p>Carregando dados do arquivo FIT...</p>";
+            document.getElementById('detail-route-name').innerText = activity.route_name || "Free Ride";
+
+            document.getElementById('detail-metrics-grid').innerHTML = "<p style='grid-column: span 5; text-align: center; padding: 20px;'>Loading FIT file data...</p>";
             modal.classList.add('active');
 
             const rawFilename = activity.filename || "";
@@ -1109,32 +1110,34 @@ export class UIManager {
             const details = await window.go.main.App.GetActivityDetails(safeFilename);
 
             if (!details || !details.power || details.power.length === 0) {
-                document.getElementById('detail-metrics').innerHTML = "<p>Sem dados de telemetria neste arquivo.</p>";
+                document.getElementById('detail-metrics-grid').innerHTML = "<p style='grid-column: span 5; text-align: center; padding: 20px;'>No telemetry data in this file.</p>";
                 return;
             }
 
             const durationMin = Math.round(activity.duration / 60);
             const distKm = (activity.total_distance / 1000).toFixed(2);
+            const decoupling = activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A';
 
-            document.getElementById('detail-metrics').innerHTML = `
-                <div class="detail-metric-row"><span class="label">Duration</span><span class="value">${durationMin} min</span></div>
-                <div class="detail-metric-row"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
-                <div class="detail-metric-row"><span class="label">Average Power</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
-                <div class="detail-metric-row"><span class="label">Normalized Power</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
-                <div class="detail-metric-row"><span class="label">Intensity Factor (IF)</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
-                <div class="detail-metric-row"><span class="label">TSS</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
-                <div class="detail-metric-row"><span class="label">TRIMP</span><span class="value">${activity.trimp || '--'}</span></div>
-                <div class="detail-metric-row"><span class="label">Aerobic Decoupling (Pw:HR)</span><span class="value">${activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A (< 1h)'}</span></div>
-                <div class="detail-metric-row"><span class="label">HRR (1m / 2m)</span><span class="value">${activity.hrr_1 || 0} / ${activity.hrr_2 || 0} bpm</span></div>
-                <div class="detail-metric-row"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
+            document.getElementById('detail-metrics-grid').innerHTML = `
+                <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} m</span></div>
+                <div class="modern-stat-card"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
+                <div class="modern-stat-card"><span class="label">Avg Power</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
+                <div class="modern-stat-card"><span class="label">NP®</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
+                <div class="modern-stat-card"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
+                
+                <div class="modern-stat-card"><span class="label">IF®</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
+                <div class="modern-stat-card"><span class="label">TSS®</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
+                <div class="modern-stat-card"><span class="label">TRIMP</span><span class="value" style="color:#e74c3c">${activity.trimp || '--'}</span></div>
+                <div class="modern-stat-card"><span class="label">Pw:HR Drift</span><span class="value">${decoupling}</span></div>
+                <div class="modern-stat-card"><span class="label">HRR (1m/2m)</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
             `;
 
             this.renderMasterChart(details);
             this.renderMMPChart(details.power);
 
         } catch (error) {
-            console.error("Erro ao carregar detalhes:", error);
-            document.getElementById('detail-metrics').innerHTML = `<p style="color:red">Erro: ${error}</p>`;
+            console.error("Error loading details:", error);
+            document.getElementById('detail-metrics-grid').innerHTML = `<p style="grid-column: span 5; text-align: center; color: var(--argus-alert); padding: 20px;">Error: ${error}</p>`;
         }
     }
 
@@ -1152,12 +1155,13 @@ export class UIManager {
             legend: {
                 data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
                 textStyle: { color: '#ccc' },
-                selected: { 'Elevation': false }
+                selected: { 'Elevation': false },
+                top: 0
             },
-            grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+            grid: { left: '3%', right: '4%', bottom: '12%', top: '12%', containLabel: true },
             dataZoom: [
                 { type: 'inside', start: 0, end: 100 },
-                { start: 0, end: 100 }
+                { start: 0, end: 100, height: 20, bottom: 5 }
             ],
             xAxis: {
                 type: 'category',
@@ -1170,7 +1174,7 @@ export class UIManager {
                     type: 'value',
                     name: 'Watts',
                     position: 'left',
-                    splitLine: { lineStyle: { color: '#333' } }
+                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
                 },
                 {
                     type: 'value',
@@ -1196,9 +1200,7 @@ export class UIManager {
                     symbol: 'none',
                     itemStyle: { color: '#888888' },
                     lineStyle: { width: 0 },
-                    areaStyle: {
-                        color: 'rgba(120, 120, 120, 0.25)'
-                    },
+                    areaStyle: { color: 'rgba(120, 120, 120, 0.25)' },
                     data: details.elevation || []
                 },
                 {
@@ -1207,7 +1209,13 @@ export class UIManager {
                     yAxisIndex: 0,
                     symbol: 'none',
                     itemStyle: { color: '#f1c40f' },
-                    lineStyle: { width: 1.5, color: '#f1c40f' },
+                    lineStyle: { width: 2.5, color: '#f1c40f' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(241, 196, 15, 0.3)' },
+                            { offset: 1, color: 'rgba(241, 196, 15, 0.0)' }
+                        ])
+                    },
                     data: details.power
                 },
                 {
@@ -1216,7 +1224,13 @@ export class UIManager {
                     yAxisIndex: 1,
                     symbol: 'none',
                     itemStyle: { color: '#e74c3c' },
-                    lineStyle: { width: 1.5, color: '#e74c3c' },
+                    lineStyle: { width: 2.5, color: '#e74c3c' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(231, 76, 60, 0.25)' },
+                            { offset: 1, color: 'rgba(231, 76, 60, 0.0)' }
+                        ])
+                    },
                     data: details.hr
                 },
                 {
@@ -1225,7 +1239,8 @@ export class UIManager {
                     yAxisIndex: 1,
                     symbol: 'none',
                     itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 1, color: '#3498db' },
+                    lineStyle: { width: 1.5, color: '#3498db', type: 'solid' },
+                    smooth: true,
                     data: details.cadence
                 }
             ]
@@ -1254,9 +1269,8 @@ export class UIManager {
         const labels = ['1s', '5s', '15s', '30s', '1m', '5m', '10m', '20m'];
 
         const option = {
-            title: { text: 'Power Curve (MMP)', textStyle: { fontSize: 12, color: '#aaa' } },
             tooltip: { trigger: 'axis' },
-            grid: { left: '10%', right: '5%', bottom: '15%', top: '20%' },
+            grid: { left: '5%', right: '5%', bottom: '12%', top: '10%', containLabel: true },
             xAxis: {
                 type: 'category',
                 data: labels,
@@ -1264,13 +1278,25 @@ export class UIManager {
             },
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#333' } }
+                splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
             },
             series: [{
                 data: mmpValues,
                 type: 'bar',
-                itemStyle: { color: '#e67e22', borderRadius: [4, 4, 0, 0] },
-                label: { show: true, position: 'top', color: '#fff' }
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#f1c40f' },
+                        { offset: 1, color: '#e67e22' }
+                    ]),
+                    borderRadius: [6, 6, 0, 0]
+                },
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    fontSize: 13
+                }
             }]
         };
 

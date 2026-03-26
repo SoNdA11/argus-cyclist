@@ -652,17 +652,28 @@
     </div>
 
     <div id="activityDetailModal" class="modal-overlay">
-        <div class="modal-content wide-content">
+        <div class="modal-content wide-content modern-detail-modal">
             <div class="modal-header">
                 <h2 id="detail-route-name">Training Name</h2>
                 <button class="close-btn" onclick="ui.closeDetailModal()">×</button>
             </div>
             <div class="detail-body">
-                <div id="masterChart" style="width: 100%; height: 400px;"></div>
+                <div id="detail-metrics-grid" class="modern-stats-grid">
+                </div>
 
-                <div class="detail-grid">
-                    <div id="mmpChart" style="height: 250px;"></div>
-                    <div id="detail-metrics"></div>
+                <div class="charts-row">
+                    <div class="modern-chart-wrapper" style="flex: 2.2; display: flex; flex-direction: column;">
+                        <h4
+                            style="margin: 0 0 10px 5px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Live Telemetry</h4>
+                        <div id="masterChart" style="width: 100%; height: 380px;"></div>
+                    </div>
+                    <div class="modern-chart-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+                        <h4
+                            style="margin: 0 0 10px 5px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Power Curve (MMP)</h4>
+                        <div id="mmpChart" style="width: 100%; height: 380px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
