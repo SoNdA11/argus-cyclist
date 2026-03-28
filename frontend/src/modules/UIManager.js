@@ -802,7 +802,6 @@ export class UIManager {
                 this.openActivityDetail(act);
             };
 
-            // Define Strava Icon state based on DB flag
             const isUploaded = act.uploaded_to_strava;
             const stravaColor = isUploaded ? '#FC4C02' : 'var(--text-muted)';
             const stravaTitle = isUploaded ? 'Already uploaded to Strava' : 'Upload to Strava';
@@ -1151,10 +1150,13 @@ export class UIManager {
             }
 
             analysisBox.innerHTML = `
-                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin-right: 20px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 30px;">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-size: 0.95rem; font-weight: bold; white-space: nowrap;">
-                        <input type="checkbox" id="toggle-vt-lines" checked style="cursor: pointer; width: 18px; height: 18px; accent-color: #3498db;">
-                        Enable Analysis
+                <div style="display: flex; align-items: center; justify-content: center; padding-right: 25px; margin-right: 15px; border-right: 1px solid rgba(255,255,255,0.1);">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: #fff; font-size: 0.95rem; font-weight: bold; margin: 0; white-space: nowrap;">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-vt-lines" checked>
+                            <span class="slider"></span>
+                        </div>
+                        Show VT1 & VT2
                     </label>
                 </div>
                 
@@ -1164,7 +1166,7 @@ export class UIManager {
                     <div id="vt1-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
                 </div>
                 
-                <div style="width: 1px; background: rgba(255,255,255,0.1); height: 50px;"></div>
+                <div style="width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 10px;"></div>
                 
                 <div id="vt2-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
                     <h4 style="color: #9b59b6; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT2 / LT2 (Anaerobic)</h4>
@@ -1185,7 +1187,6 @@ export class UIManager {
     renderMasterChart(details) {
         const chartDom = document.getElementById('masterChart');
 
-        // Evita vazamento de memória destruindo a instância anterior se existir
         if (this.masterChartInstance) {
             this.masterChartInstance.dispose();
         }
@@ -1195,13 +1196,10 @@ export class UIManager {
         const timeAxis = details.time || [];
         const dataLength = timeAxis.length;
 
-        // Posições iniciais arbitrárias para as linhas (30% e 70% do gráfico)
         let vt1Index = Math.floor(dataLength * 0.3);
         let vt2Index = Math.floor(dataLength * 0.7);
 
-        // Função auxiliar para extrair e atualizar os dados no HTML baseado no índice X
         const updatePhysioBox = (type, dataIndex) => {
-            // Garante limites de segurança
             if (dataIndex < 0) dataIndex = 0;
             if (dataIndex >= dataLength) dataIndex = dataLength - 1;
 
@@ -1211,7 +1209,6 @@ export class UIManager {
             const el = document.getElementById(`${type}-data`);
             if (el) {
                 el.innerText = `${pwr} w | ${hr} bpm`;
-                // Pisca a cor para dar feedback visual que atualizou
                 el.style.color = '#fff';
                 setTimeout(() => el.style.color = '', 300);
             }
@@ -1317,13 +1314,9 @@ export class UIManager {
 
         this.masterChartInstance.setOption(option);
 
-        // A MÁGICA: Adicionando Linhas Verticais Arrastáveis após o gráfico carregar as coordenadas
         setTimeout(() => {
             const chart = this.masterChartInstance;
-
-            // Função que converte a posição do mouse (pixels) de volta para o Índice de dados (Eixo X)
             const updateLinePosition = (type, dx, dy) => {
-                // 'pointInPixel' converte a posição física da linha para coordenadas do gráfico
                 const pt = chart.convertFromPixel({ seriesIndex: 0 }, [dx, dy]);
                 if (pt) {
                     const dataIndex = Math.round(pt[0]);
@@ -1331,32 +1324,25 @@ export class UIManager {
                 }
             };
 
-            // Inicializa a UI com os dados dos pontos de partida arbitrários
             updatePhysioBox('vt1', vt1Index);
             updatePhysioBox('vt2', vt2Index);
 
-            // Obtém as coordenadas em Pixel dos pontos iniciais para desenhar as linhas
             const startPt1 = chart.convertToPixel({ seriesIndex: 0 }, [vt1Index, 0]);
             const startPt2 = chart.convertToPixel({ seriesIndex: 0 }, [vt2Index, 0]);
 
-            // Pega a altura útil do gráfico (para desenhar a linha do topo até a base)
             const gridRect = chart.getModel().getComponent('grid').coordinateSystem.getRect();
             const topY = gridRect.y;
             const bottomY = gridRect.y + gridRect.height;
 
-            // Injeta as linhas gráficas arrastáveis
             chart.setOption({
                 graphic: [
-                    // --- LINHA 1 (VT1 - VERDE) ---
                     {
                         type: 'group',
                         id: 'vt1-line',
-                        // Bounding box invisível larga para facilitar o clique com o mouse
                         bounding: 'raw',
                         position: [startPt1[0], topY],
-                        draggable: 'horizontal', // Só deixa arrastar pros lados
+                        draggable: 'horizontal',
                         ondrag: function (e) {
-                            // Limita o arrasto dentro do gráfico
                             if (this.x < gridRect.x) this.x = gridRect.x;
                             if (this.x > gridRect.x + gridRect.width) this.x = gridRect.x + gridRect.width;
                             updateLinePosition('vt1', this.x, bottomY);
@@ -1365,20 +1351,23 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                // 👇 ADICIONADO OPACITY 👇
                                 style: { stroke: '#2ecc71', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
-                                shape: { x: -15, y: -10, width: 30, height: 20, r: 4 },
-                                // 👇 ADICIONADO OPACITY 👇
-                                style: { fill: '#2ecc71', text: 'VT1', textFill: '#fff', fontSize: 10, opacity: 1 },
+                                shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
+                                style: { fill: '#2ecc71', opacity: 1 },
                                 z: 101
+                            },
+                            {
+                                type: 'text',
+                                x: -11, y: -5,
+                                style: { text: 'VT1', fill: '#fff', font: 'bold 11px sans-serif', opacity: 1 },
+                                z: 102
                             }
                         ]
                     },
-                    // --- LINHA 2 (VT2 - ROXA) ---
                     {
                         type: 'group',
                         id: 'vt2-line',
@@ -1394,23 +1383,26 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                // 👇 ADICIONADO OPACITY 👇
                                 style: { stroke: '#9b59b6', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
-                                shape: { x: -15, y: -10, width: 30, height: 20, r: 4 },
-                                // 👇 ADICIONADO OPACITY 👇
-                                style: { fill: '#9b59b6', text: 'VT2', textFill: '#fff', fontSize: 10, opacity: 1 },
+                                shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
+                                style: { fill: '#9b59b6', opacity: 1 },
                                 z: 101
+                            },
+                            {
+                                type: 'text',
+                                x: -11, y: -5,
+                                style: { text: 'VT2', fill: '#fff', font: 'bold 11px sans-serif', opacity: 1 },
+                                z: 102
                             }
                         ]
                     }
                 ]
             });
 
-            // 👇 Lógica definitiva do Checkbox para esconder as linhas 👇
             const toggleBtn = document.getElementById('toggle-vt-lines');
             const vt1Container = document.getElementById('vt1-container');
             const vt2Container = document.getElementById('vt2-container');
@@ -1418,42 +1410,37 @@ export class UIManager {
             if (toggleBtn) {
                 toggleBtn.onchange = (e) => {
                     const isVisible = e.target.checked;
-                    // Valor da opacidade: 1 para mostrar, 0 para ficar completamente invisível
-                    const graphicOpacity = isVisible ? 1 : 0; 
-                    
-                    // Em vez de 'invisible', forçamos a opacidade de todos os elementos filhos para zero
+                    const graphicOpacity = isVisible ? 1 : 0;
+
                     chart.setOption({
                         graphic: [
-                            { 
-                                id: 'vt1-line', 
+                            {
+                                id: 'vt1-line',
                                 children: [
-                                    { style: { opacity: graphicOpacity } }, // Apaga a linha tracejada
-                                    { style: { opacity: graphicOpacity } }  // Apaga a etiqueta (VT1)
-                                ] 
+                                    { style: { opacity: graphicOpacity } },
+                                    { style: { opacity: graphicOpacity } },
+                                    { style: { opacity: graphicOpacity } }
+                                ]
                             },
-                            { 
-                                id: 'vt2-line', 
+                            {
+                                id: 'vt2-line',
                                 children: [
-                                    { style: { opacity: graphicOpacity } }, // Apaga a linha tracejada
-                                    { style: { opacity: graphicOpacity } }  // Apaga a etiqueta (VT2)
-                                ] 
+                                    { style: { opacity: graphicOpacity } },
+                                    { style: { opacity: graphicOpacity } },
+                                    { style: { opacity: graphicOpacity } }
+                                ]
                             }
                         ]
                     });
-
-                    // Escurece os textos do painel
-                    if(vt1Container) vt1Container.style.opacity = isVisible ? '1' : '0.3';
-                    if(vt2Container) vt2Container.style.opacity = isVisible ? '1' : '0.3';
+                    if (vt1Container) vt1Container.style.opacity = isVisible ? '1' : '0.3';
+                    if (vt2Container) vt2Container.style.opacity = isVisible ? '1' : '0.3';
                 };
             }
 
-            // Re-renderiza as linhas se a janela for redimensionada ou der zoom
             chart.on('dataZoom', function () {
-                // (Opcional) Lógica complexa para atualizar posições no zoom pode ser adicionada aqui no futuro.
-                // Por agora as linhas ficam fixas na tela enquanto o zoom desliza, servindo como uma régua de mira.
             });
 
-        }, 100); // 100ms de delay para garantir que o Canvas do ECharts está renderizado
+        }, 100);
     }
 
     renderMMPChart(powerData) {
