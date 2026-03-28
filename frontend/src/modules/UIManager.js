@@ -1220,7 +1220,7 @@ export class UIManager {
                 axisPointer: { type: 'cross' }
             },
             legend: {
-                data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
+                data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)', 'VT1', 'VT2'],
                 textStyle: { color: '#ccc' },
                 selected: { 'Elevation': false },
                 top: 0
@@ -1308,6 +1308,22 @@ export class UIManager {
                     itemStyle: { color: '#3498db' },
                     lineStyle: { width: 1.5, color: '#3498db', type: 'dashed' },
                     data: details.cadence
+                },
+                {
+                    name: 'VT1',
+                    type: 'line',
+                    data: [],
+                    symbol: 'none',
+                    itemStyle: { color: '#2ecc71' },
+                    lineStyle: { width: 2, color: '#2ecc71', type: 'dashed' }
+                },
+                {
+                    name: 'VT2',
+                    type: 'line',
+                    data: [],
+                    symbol: 'none',
+                    itemStyle: { color: '#9b59b6' },
+                    lineStyle: { width: 2, color: '#9b59b6', type: 'dashed' }
                 }
             ]
         };
@@ -1412,32 +1428,66 @@ export class UIManager {
                     const isVisible = e.target.checked;
                     const graphicOpacity = isVisible ? 1 : 0;
 
+                    chart.dispatchAction({
+                        type: isVisible ? 'legendSelect' : 'legendUnSelect',
+                        name: 'VT1'
+                    });
+                    chart.dispatchAction({
+                        type: isVisible ? 'legendSelect' : 'legendUnSelect',
+                        name: 'VT2'
+                    });
+
                     chart.setOption({
                         graphic: [
                             {
                                 id: 'vt1-line',
-                                children: [
-                                    { style: { opacity: graphicOpacity } },
-                                    { style: { opacity: graphicOpacity } },
-                                    { style: { opacity: graphicOpacity } }
-                                ]
+                                children: [{ style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }]
                             },
                             {
                                 id: 'vt2-line',
-                                children: [
-                                    { style: { opacity: graphicOpacity } },
-                                    { style: { opacity: graphicOpacity } },
-                                    { style: { opacity: graphicOpacity } }
-                                ]
+                                children: [{ style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }]
                             }
                         ]
                     });
+
                     if (vt1Container) vt1Container.style.opacity = isVisible ? '1' : '0.3';
                     if (vt2Container) vt2Container.style.opacity = isVisible ? '1' : '0.3';
                 };
             }
 
-            chart.on('dataZoom', function () {
+            chart.on('legendselectchanged', function (params) {
+                if (params.name === 'VT1' || params.name === 'VT2') {
+                    const isVT1Visible = params.selected['VT1'];
+                    const isVT2Visible = params.selected['VT2'];
+
+                    chart.setOption({
+                        graphic: [
+                            {
+                                id: 'vt1-line',
+                                children: [
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } }
+                                ]
+                            },
+                            {
+                                id: 'vt2-line',
+                                children: [
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } }
+                                ]
+                            }
+                        ]
+                    });
+
+                    if (vt1Container) vt1Container.style.opacity = isVT1Visible ? '1' : '0.3';
+                    if (vt2Container) vt2Container.style.opacity = isVT2Visible ? '1' : '0.3';
+
+                    if (toggleBtn) {
+                        toggleBtn.checked = (isVT1Visible || isVT2Visible);
+                    }
+                }
             });
 
         }, 100);
