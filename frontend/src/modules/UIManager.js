@@ -1132,6 +1132,47 @@ export class UIManager {
                 <div class="modern-stat-card"><span class="label">HRR (1m/2m)</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
             `;
 
+            let analysisBox = document.getElementById('physiological-analysis-box');
+            if (!analysisBox) {
+                const chartsRow = document.querySelector('.charts-row');
+                analysisBox = document.createElement('div');
+                analysisBox.id = 'physiological-analysis-box';
+                analysisBox.style.cssText = `
+                    margin-top: 15px; 
+                    padding: 15px; 
+                    background: rgba(0,0,0,0.3); 
+                    border: 1px dashed rgba(255,255,255,0.2); 
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                `;
+                chartsRow.parentNode.insertBefore(analysisBox, chartsRow.nextSibling);
+            }
+
+            analysisBox.innerHTML = `
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin-right: 20px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 30px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-size: 0.95rem; font-weight: bold; white-space: nowrap;">
+                        <input type="checkbox" id="toggle-vt-lines" checked style="cursor: pointer; width: 18px; height: 18px; accent-color: #3498db;">
+                        Enable Analysis
+                    </label>
+                </div>
+                
+                <div id="vt1-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
+                    <h4 style="color: #2ecc71; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT1 / LT1 (Aerobic)</h4>
+                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#2ecc71">GREEN</strong> line</span>
+                    <div id="vt1-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                </div>
+                
+                <div style="width: 1px; background: rgba(255,255,255,0.1); height: 50px;"></div>
+                
+                <div id="vt2-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
+                    <h4 style="color: #9b59b6; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT2 / LT2 (Anaerobic)</h4>
+                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#9b59b6">PURPLE</strong> line</span>
+                    <div id="vt2-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                </div>
+            `;
+
             this.renderMasterChart(details);
             this.renderMMPChart(details.power);
 
@@ -1143,9 +1184,38 @@ export class UIManager {
 
     renderMasterChart(details) {
         const chartDom = document.getElementById('masterChart');
+
+        // Evita vazamento de memória destruindo a instância anterior se existir
+        if (this.masterChartInstance) {
+            this.masterChartInstance.dispose();
+        }
+
         this.masterChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
 
         const timeAxis = details.time || [];
+        const dataLength = timeAxis.length;
+
+        // Posições iniciais arbitrárias para as linhas (30% e 70% do gráfico)
+        let vt1Index = Math.floor(dataLength * 0.3);
+        let vt2Index = Math.floor(dataLength * 0.7);
+
+        // Função auxiliar para extrair e atualizar os dados no HTML baseado no índice X
+        const updatePhysioBox = (type, dataIndex) => {
+            // Garante limites de segurança
+            if (dataIndex < 0) dataIndex = 0;
+            if (dataIndex >= dataLength) dataIndex = dataLength - 1;
+
+            const pwr = details.power[dataIndex] || 0;
+            const hr = details.hr[dataIndex] || 0;
+
+            const el = document.getElementById(`${type}-data`);
+            if (el) {
+                el.innerText = `${pwr} w | ${hr} bpm`;
+                // Pisca a cor para dar feedback visual que atualizou
+                el.style.color = '#fff';
+                setTimeout(() => el.style.color = '', 300);
+            }
+        };
 
         const option = {
             tooltip: {
@@ -1239,14 +1309,151 @@ export class UIManager {
                     yAxisIndex: 1,
                     symbol: 'none',
                     itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 1.5, color: '#3498db', type: 'solid' },
-                    smooth: true,
+                    lineStyle: { width: 1.5, color: '#3498db', type: 'dashed' },
                     data: details.cadence
                 }
             ]
         };
 
         this.masterChartInstance.setOption(option);
+
+        // A MÁGICA: Adicionando Linhas Verticais Arrastáveis após o gráfico carregar as coordenadas
+        setTimeout(() => {
+            const chart = this.masterChartInstance;
+
+            // Função que converte a posição do mouse (pixels) de volta para o Índice de dados (Eixo X)
+            const updateLinePosition = (type, dx, dy) => {
+                // 'pointInPixel' converte a posição física da linha para coordenadas do gráfico
+                const pt = chart.convertFromPixel({ seriesIndex: 0 }, [dx, dy]);
+                if (pt) {
+                    const dataIndex = Math.round(pt[0]);
+                    updatePhysioBox(type, dataIndex);
+                }
+            };
+
+            // Inicializa a UI com os dados dos pontos de partida arbitrários
+            updatePhysioBox('vt1', vt1Index);
+            updatePhysioBox('vt2', vt2Index);
+
+            // Obtém as coordenadas em Pixel dos pontos iniciais para desenhar as linhas
+            const startPt1 = chart.convertToPixel({ seriesIndex: 0 }, [vt1Index, 0]);
+            const startPt2 = chart.convertToPixel({ seriesIndex: 0 }, [vt2Index, 0]);
+
+            // Pega a altura útil do gráfico (para desenhar a linha do topo até a base)
+            const gridRect = chart.getModel().getComponent('grid').coordinateSystem.getRect();
+            const topY = gridRect.y;
+            const bottomY = gridRect.y + gridRect.height;
+
+            // Injeta as linhas gráficas arrastáveis
+            chart.setOption({
+                graphic: [
+                    // --- LINHA 1 (VT1 - VERDE) ---
+                    {
+                        type: 'group',
+                        id: 'vt1-line',
+                        // Bounding box invisível larga para facilitar o clique com o mouse
+                        bounding: 'raw',
+                        position: [startPt1[0], topY],
+                        draggable: 'horizontal', // Só deixa arrastar pros lados
+                        ondrag: function (e) {
+                            // Limita o arrasto dentro do gráfico
+                            if (this.x < gridRect.x) this.x = gridRect.x;
+                            if (this.x > gridRect.x + gridRect.width) this.x = gridRect.x + gridRect.width;
+                            updateLinePosition('vt1', this.x, bottomY);
+                        },
+                        children: [
+                            {
+                                type: 'line',
+                                shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
+                                // 👇 ADICIONADO OPACITY 👇
+                                style: { stroke: '#2ecc71', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                z: 100
+                            },
+                            {
+                                type: 'rect',
+                                shape: { x: -15, y: -10, width: 30, height: 20, r: 4 },
+                                // 👇 ADICIONADO OPACITY 👇
+                                style: { fill: '#2ecc71', text: 'VT1', textFill: '#fff', fontSize: 10, opacity: 1 },
+                                z: 101
+                            }
+                        ]
+                    },
+                    // --- LINHA 2 (VT2 - ROXA) ---
+                    {
+                        type: 'group',
+                        id: 'vt2-line',
+                        bounding: 'raw',
+                        position: [startPt2[0], topY],
+                        draggable: 'horizontal',
+                        ondrag: function (e) {
+                            if (this.x < gridRect.x) this.x = gridRect.x;
+                            if (this.x > gridRect.x + gridRect.width) this.x = gridRect.x + gridRect.width;
+                            updateLinePosition('vt2', this.x, bottomY);
+                        },
+                        children: [
+                            {
+                                type: 'line',
+                                shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
+                                // 👇 ADICIONADO OPACITY 👇
+                                style: { stroke: '#9b59b6', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                z: 100
+                            },
+                            {
+                                type: 'rect',
+                                shape: { x: -15, y: -10, width: 30, height: 20, r: 4 },
+                                // 👇 ADICIONADO OPACITY 👇
+                                style: { fill: '#9b59b6', text: 'VT2', textFill: '#fff', fontSize: 10, opacity: 1 },
+                                z: 101
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            // 👇 Lógica definitiva do Checkbox para esconder as linhas 👇
+            const toggleBtn = document.getElementById('toggle-vt-lines');
+            const vt1Container = document.getElementById('vt1-container');
+            const vt2Container = document.getElementById('vt2-container');
+
+            if (toggleBtn) {
+                toggleBtn.onchange = (e) => {
+                    const isVisible = e.target.checked;
+                    // Valor da opacidade: 1 para mostrar, 0 para ficar completamente invisível
+                    const graphicOpacity = isVisible ? 1 : 0; 
+                    
+                    // Em vez de 'invisible', forçamos a opacidade de todos os elementos filhos para zero
+                    chart.setOption({
+                        graphic: [
+                            { 
+                                id: 'vt1-line', 
+                                children: [
+                                    { style: { opacity: graphicOpacity } }, // Apaga a linha tracejada
+                                    { style: { opacity: graphicOpacity } }  // Apaga a etiqueta (VT1)
+                                ] 
+                            },
+                            { 
+                                id: 'vt2-line', 
+                                children: [
+                                    { style: { opacity: graphicOpacity } }, // Apaga a linha tracejada
+                                    { style: { opacity: graphicOpacity } }  // Apaga a etiqueta (VT2)
+                                ] 
+                            }
+                        ]
+                    });
+
+                    // Escurece os textos do painel
+                    if(vt1Container) vt1Container.style.opacity = isVisible ? '1' : '0.3';
+                    if(vt2Container) vt2Container.style.opacity = isVisible ? '1' : '0.3';
+                };
+            }
+
+            // Re-renderiza as linhas se a janela for redimensionada ou der zoom
+            chart.on('dataZoom', function () {
+                // (Opcional) Lógica complexa para atualizar posições no zoom pode ser adicionada aqui no futuro.
+                // Por agora as linhas ficam fixas na tela enquanto o zoom desliza, servindo como uma régua de mira.
+            });
+
+        }, 100); // 100ms de delay para garantir que o Canvas do ECharts está renderizado
     }
 
     renderMMPChart(powerData) {
