@@ -802,7 +802,6 @@ export class UIManager {
                 this.openActivityDetail(act);
             };
 
-            // Define Strava Icon state based on DB flag
             const isUploaded = act.uploaded_to_strava;
             const stravaColor = isUploaded ? '#FC4C02' : 'var(--text-muted)';
             const stravaTitle = isUploaded ? 'Already uploaded to Strava' : 'Upload to Strava';
@@ -1132,6 +1131,50 @@ export class UIManager {
                 <div class="modern-stat-card"><span class="label">HRR (1m/2m)</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
             `;
 
+            let analysisBox = document.getElementById('physiological-analysis-box');
+            if (!analysisBox) {
+                const chartsRow = document.querySelector('.charts-row');
+                analysisBox = document.createElement('div');
+                analysisBox.id = 'physiological-analysis-box';
+                analysisBox.style.cssText = `
+                    margin-top: 15px; 
+                    padding: 15px; 
+                    background: rgba(0,0,0,0.3); 
+                    border: 1px dashed rgba(255,255,255,0.2); 
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                `;
+                chartsRow.parentNode.insertBefore(analysisBox, chartsRow.nextSibling);
+            }
+
+            analysisBox.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; padding-right: 25px; margin-right: 15px; border-right: 1px solid rgba(255,255,255,0.1);">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: #fff; font-size: 0.95rem; font-weight: bold; margin: 0; white-space: nowrap;">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-vt-lines" checked>
+                            <span class="slider"></span>
+                        </div>
+                        Show VT1 & VT2
+                    </label>
+                </div>
+                
+                <div id="vt1-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
+                    <h4 style="color: #2ecc71; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT1 / LT1 (Aerobic)</h4>
+                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#2ecc71">GREEN</strong> line</span>
+                    <div id="vt1-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                </div>
+                
+                <div style="width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 10px;"></div>
+                
+                <div id="vt2-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
+                    <h4 style="color: #9b59b6; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT2 / LT2 (Anaerobic)</h4>
+                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#9b59b6">PURPLE</strong> line</span>
+                    <div id="vt2-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                </div>
+            `;
+
             this.renderMasterChart(details);
             this.renderMMPChart(details.power);
 
@@ -1143,9 +1186,33 @@ export class UIManager {
 
     renderMasterChart(details) {
         const chartDom = document.getElementById('masterChart');
+
+        if (this.masterChartInstance) {
+            this.masterChartInstance.dispose();
+        }
+
         this.masterChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
 
         const timeAxis = details.time || [];
+        const dataLength = timeAxis.length;
+
+        let vt1Index = Math.floor(dataLength * 0.3);
+        let vt2Index = Math.floor(dataLength * 0.7);
+
+        const updatePhysioBox = (type, dataIndex) => {
+            if (dataIndex < 0) dataIndex = 0;
+            if (dataIndex >= dataLength) dataIndex = dataLength - 1;
+
+            const pwr = details.power[dataIndex] || 0;
+            const hr = details.hr[dataIndex] || 0;
+
+            const el = document.getElementById(`${type}-data`);
+            if (el) {
+                el.innerText = `${pwr} w | ${hr} bpm`;
+                el.style.color = '#fff';
+                setTimeout(() => el.style.color = '', 300);
+            }
+        };
 
         const option = {
             tooltip: {
@@ -1153,7 +1220,7 @@ export class UIManager {
                 axisPointer: { type: 'cross' }
             },
             legend: {
-                data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
+                data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)', 'VT1', 'VT2'],
                 textStyle: { color: '#ccc' },
                 selected: { 'Elevation': false },
                 top: 0
@@ -1239,14 +1306,191 @@ export class UIManager {
                     yAxisIndex: 1,
                     symbol: 'none',
                     itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 1.5, color: '#3498db', type: 'solid' },
-                    smooth: true,
+                    lineStyle: { width: 1.5, color: '#3498db', type: 'dashed' },
                     data: details.cadence
+                },
+                {
+                    name: 'VT1',
+                    type: 'line',
+                    data: [],
+                    symbol: 'none',
+                    itemStyle: { color: '#2ecc71' },
+                    lineStyle: { width: 2, color: '#2ecc71', type: 'dashed' }
+                },
+                {
+                    name: 'VT2',
+                    type: 'line',
+                    data: [],
+                    symbol: 'none',
+                    itemStyle: { color: '#9b59b6' },
+                    lineStyle: { width: 2, color: '#9b59b6', type: 'dashed' }
                 }
             ]
         };
 
         this.masterChartInstance.setOption(option);
+
+        setTimeout(() => {
+            const chart = this.masterChartInstance;
+            const updateLinePosition = (type, dx, dy) => {
+                const pt = chart.convertFromPixel({ seriesIndex: 0 }, [dx, dy]);
+                if (pt) {
+                    const dataIndex = Math.round(pt[0]);
+                    updatePhysioBox(type, dataIndex);
+                }
+            };
+
+            updatePhysioBox('vt1', vt1Index);
+            updatePhysioBox('vt2', vt2Index);
+
+            const startPt1 = chart.convertToPixel({ seriesIndex: 0 }, [vt1Index, 0]);
+            const startPt2 = chart.convertToPixel({ seriesIndex: 0 }, [vt2Index, 0]);
+
+            const gridRect = chart.getModel().getComponent('grid').coordinateSystem.getRect();
+            const topY = gridRect.y;
+            const bottomY = gridRect.y + gridRect.height;
+
+            chart.setOption({
+                graphic: [
+                    {
+                        type: 'group',
+                        id: 'vt1-line',
+                        bounding: 'raw',
+                        position: [startPt1[0], topY],
+                        draggable: 'horizontal',
+                        ondrag: function (e) {
+                            if (this.x < gridRect.x) this.x = gridRect.x;
+                            if (this.x > gridRect.x + gridRect.width) this.x = gridRect.x + gridRect.width;
+                            updateLinePosition('vt1', this.x, bottomY);
+                        },
+                        children: [
+                            {
+                                type: 'line',
+                                shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
+                                style: { stroke: '#2ecc71', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                z: 100
+                            },
+                            {
+                                type: 'rect',
+                                shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
+                                style: { fill: '#2ecc71', opacity: 1 },
+                                z: 101
+                            },
+                            {
+                                type: 'text',
+                                x: -11, y: -5,
+                                style: { text: 'VT1', fill: '#fff', font: 'bold 11px sans-serif', opacity: 1 },
+                                z: 102
+                            }
+                        ]
+                    },
+                    {
+                        type: 'group',
+                        id: 'vt2-line',
+                        bounding: 'raw',
+                        position: [startPt2[0], topY],
+                        draggable: 'horizontal',
+                        ondrag: function (e) {
+                            if (this.x < gridRect.x) this.x = gridRect.x;
+                            if (this.x > gridRect.x + gridRect.width) this.x = gridRect.x + gridRect.width;
+                            updateLinePosition('vt2', this.x, bottomY);
+                        },
+                        children: [
+                            {
+                                type: 'line',
+                                shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
+                                style: { stroke: '#9b59b6', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                z: 100
+                            },
+                            {
+                                type: 'rect',
+                                shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
+                                style: { fill: '#9b59b6', opacity: 1 },
+                                z: 101
+                            },
+                            {
+                                type: 'text',
+                                x: -11, y: -5,
+                                style: { text: 'VT2', fill: '#fff', font: 'bold 11px sans-serif', opacity: 1 },
+                                z: 102
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            const toggleBtn = document.getElementById('toggle-vt-lines');
+            const vt1Container = document.getElementById('vt1-container');
+            const vt2Container = document.getElementById('vt2-container');
+
+            if (toggleBtn) {
+                toggleBtn.onchange = (e) => {
+                    const isVisible = e.target.checked;
+                    const graphicOpacity = isVisible ? 1 : 0;
+
+                    chart.dispatchAction({
+                        type: isVisible ? 'legendSelect' : 'legendUnSelect',
+                        name: 'VT1'
+                    });
+                    chart.dispatchAction({
+                        type: isVisible ? 'legendSelect' : 'legendUnSelect',
+                        name: 'VT2'
+                    });
+
+                    chart.setOption({
+                        graphic: [
+                            {
+                                id: 'vt1-line',
+                                children: [{ style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }]
+                            },
+                            {
+                                id: 'vt2-line',
+                                children: [{ style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }, { style: { opacity: graphicOpacity } }]
+                            }
+                        ]
+                    });
+
+                    if (vt1Container) vt1Container.style.opacity = isVisible ? '1' : '0.3';
+                    if (vt2Container) vt2Container.style.opacity = isVisible ? '1' : '0.3';
+                };
+            }
+
+            chart.on('legendselectchanged', function (params) {
+                if (params.name === 'VT1' || params.name === 'VT2') {
+                    const isVT1Visible = params.selected['VT1'];
+                    const isVT2Visible = params.selected['VT2'];
+
+                    chart.setOption({
+                        graphic: [
+                            {
+                                id: 'vt1-line',
+                                children: [
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT1Visible ? 1 : 0 } }
+                                ]
+                            },
+                            {
+                                id: 'vt2-line',
+                                children: [
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } },
+                                    { style: { opacity: isVT2Visible ? 1 : 0 } }
+                                ]
+                            }
+                        ]
+                    });
+
+                    if (vt1Container) vt1Container.style.opacity = isVT1Visible ? '1' : '0.3';
+                    if (vt2Container) vt2Container.style.opacity = isVT2Visible ? '1' : '0.3';
+
+                    if (toggleBtn) {
+                        toggleBtn.checked = (isVT1Visible || isVT2Visible);
+                    }
+                }
+            });
+
+        }, 100);
     }
 
     renderMMPChart(powerData) {
