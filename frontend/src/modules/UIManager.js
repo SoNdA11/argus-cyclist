@@ -1117,6 +1117,85 @@ export class UIManager {
             const distKm = (activity.total_distance / 1000).toFixed(2);
             const decoupling = activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A';
 
+            // Scientific Reference Tooltips Definitions
+            const trimpTooltip = `
+                <span class="tooltip-wrapper">
+                    TRIMP <span class="info-icon">?</span>
+                    <div class="tooltip-content">
+                        <strong style="color: #fff; display: block; margin-bottom: 5px;">Training Impulse (Banister)</strong>
+                        <table class="tooltip-table">
+                            <tr><td><span class="dot-safe">●</span> 0 - 70</td><td style="text-align: right;">Recovery</td></tr>
+                            <tr><td><span class="dot-neutral">●</span> 71 - 140</td><td style="text-align: right;">Maintenance</td></tr>
+                            <tr><td><span class="dot-warn">●</span> 141 - 250</td><td style="text-align: right;">Hard</td></tr>
+                            <tr><td><span class="dot-alert">●</span> &gt; 250</td><td style="text-align: right;">Extreme</td></tr>
+                        </table>
+                    </div>
+                </span>
+            `;
+
+            const driftTooltip = `
+                <span class="tooltip-wrapper">
+                    Pw:HR Drift <span class="info-icon">?</span>
+                    <div class="tooltip-content">
+                        <strong style="color: #fff; display: block; margin-bottom: 5px;">Aerobic Decoupling (Friel)</strong>
+                        <table class="tooltip-table">
+                            <tr><td><span class="dot-safe">●</span> &lt; 5%</td><td style="text-align: right;">Solid Base</td></tr>
+                            <tr><td><span class="dot-warn">●</span> 5 - 9.9%</td><td style="text-align: right;">Moderate</td></tr>
+                            <tr><td><span class="dot-alert">●</span> &gt; 10%</td><td style="text-align: right;">Poor Endurance</td></tr>
+                        </table>
+                        <div style="margin-top: 8px; font-size: 0.7rem; color: #aaa; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; line-height: 1.3;">
+                            <i>Note: High drift is expected during interval training. Only valid for steady-state efforts.</i>
+                        </div>
+                    </div>
+                </span>
+            `;
+
+            const hrrTooltip = `
+                <span class="tooltip-wrapper">
+                    HRR (1m/2m) <span class="info-icon">?</span>
+                    <div class="tooltip-content">
+                        <strong style="color: #fff; display: block; margin-bottom: 5px;">HR Recovery 1M (Cole et al.)</strong>
+                        <table class="tooltip-table">
+                            <tr><td><span class="dot-alert">●</span> &lt; 12 bpm</td><td style="text-align: right;">Severe Risk</td></tr>
+                            <tr><td><span class="dot-warn">●</span> 13 - 20 bpm</td><td style="text-align: right;">Average</td></tr>
+                            <tr><td><span class="dot-safe">●</span> 21 - 35 bpm</td><td style="text-align: right;">Good</td></tr>
+                            <tr><td><span class="dot-neutral">●</span> &gt; 35 bpm</td><td style="text-align: right;">Elite</td></tr>
+                        </table>
+                    </div>
+                </span>
+            `;
+
+            const ifTooltip = `
+                <span class="tooltip-wrapper">
+                    IF® <span class="info-icon">?</span>
+                    <div class="tooltip-content">
+                        <strong style="color: #fff; display: block; margin-bottom: 5px;">Intensity Factor (Allen)</strong>
+                        <table class="tooltip-table">
+                            <tr><td><span class="dot-safe">●</span> &lt; 0.75</td><td style="text-align: right;">Recovery</td></tr>
+                            <tr><td><span class="dot-neutral">●</span> 0.75 - 0.85</td><td style="text-align: right;">Endurance</td></tr>
+                            <tr><td><span class="dot-warn">●</span> 0.85 - 0.95</td><td style="text-align: right;">Tempo / Sweet Spot</td></tr>
+                            <tr><td><span class="dot-alert">●</span> &gt; 0.95</td><td style="text-align: right;">Threshold / Race</td></tr>
+                        </table>
+                    </div>
+                </span>
+            `;
+
+            const tssTooltip = `
+                <span class="tooltip-wrapper">
+                    TSS® <span class="info-icon">?</span>
+                    <div class="tooltip-content">
+                        <strong style="color: #fff; display: block; margin-bottom: 5px;">Training Stress Score</strong>
+                        <table class="tooltip-table">
+                            <tr><td><span class="dot-safe">●</span> &lt; 150</td><td style="text-align: right;">Low (1 day rec.)</td></tr>
+                            <tr><td><span class="dot-neutral">●</span> 150 - 300</td><td style="text-align: right;">Medium (1-2 days)</td></tr>
+                            <tr><td><span class="dot-warn">●</span> 300 - 450</td><td style="text-align: right;">High (2+ days)</td></tr>
+                            <tr><td><span class="dot-alert">●</span> &gt; 450</td><td style="text-align: right;">Epic (Several days)</td></tr>
+                        </table>
+                    </div>
+                </span>
+            `;
+
+            // Populate the modern top grid with tooltips injected
             document.getElementById('detail-metrics-grid').innerHTML = `
                 <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} m</span></div>
                 <div class="modern-stat-card"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
@@ -1124,11 +1203,11 @@ export class UIManager {
                 <div class="modern-stat-card"><span class="label">NP®</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
                 <div class="modern-stat-card"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
                 
-                <div class="modern-stat-card"><span class="label">IF®</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
-                <div class="modern-stat-card"><span class="label">TSS®</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
-                <div class="modern-stat-card"><span class="label">TRIMP</span><span class="value" style="color:#e74c3c">${activity.trimp || '--'}</span></div>
-                <div class="modern-stat-card"><span class="label">Pw:HR Drift</span><span class="value">${decoupling}</span></div>
-                <div class="modern-stat-card"><span class="label">HRR (1m/2m)</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
+                <div class="modern-stat-card"><span class="label">${ifTooltip}</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
+                <div class="modern-stat-card"><span class="label">${tssTooltip}</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
+                <div class="modern-stat-card"><span class="label">${trimpTooltip}</span><span class="value" style="color:#e74c3c">${activity.trimp || '--'}</span></div>
+                <div class="modern-stat-card"><span class="label">${driftTooltip}</span><span class="value">${decoupling}</span></div>
+                <div class="modern-stat-card"><span class="label">${hrrTooltip}</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
             `;
 
             let analysisBox = document.getElementById('physiological-analysis-box');
