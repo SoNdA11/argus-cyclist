@@ -312,6 +312,49 @@ export class UIManager {
         return 'var(--zone-6)'; // Red for zone 5+ HR
     }
 
+    // ========================================
+    // PHYSIOLOGICAL METRICS ZONES (SCIENTIFIC)
+    // ========================================
+
+    getTSSColor(value) {
+        if (!value || value <= 0) return 'var(--text-main)';
+        if (value < 150) return '#2ecc71'; // Safe (Green)
+        if (value <= 300) return '#3498db'; // Neutral (Blue)
+        if (value <= 450) return '#f1c40f'; // Warn (Yellow)
+        return '#e74c3c'; // Alert (Red)
+    }
+
+    getIFColor(value) {
+        if (!value || value <= 0) return 'var(--text-main)';
+        if (value < 0.75) return '#2ecc71'; // Safe
+        if (value <= 0.85) return '#3498db'; // Neutral
+        if (value <= 0.95) return '#f1c40f'; // Warn
+        return '#e74c3c'; // Alert
+    }
+
+    getTRIMPColor(value) {
+        if (!value || value <= 0) return 'var(--text-main)';
+        if (value <= 70) return '#2ecc71'; // Safe
+        if (value <= 140) return '#3498db'; // Neutral
+        if (value <= 250) return '#f1c40f'; // Warn
+        return '#e74c3c'; // Alert
+    }
+
+    getDriftColor(value) {
+        if (value == null || isNaN(value)) return 'var(--text-main)';
+        if (value < 5) return '#2ecc71'; // Safe
+        if (value < 10) return '#f1c40f'; // Warn (Yellow)
+        return '#e74c3c'; // Alert (Poor Endurance)
+    }
+
+    getHRRColor(value) {
+        if (!value || value <= 0) return 'var(--text-main)'; // Default fallback
+        if (value < 12) return '#e74c3c'; // Alert (Severe Risk)
+        if (value <= 20) return '#f1c40f'; // Warn (Average)
+        if (value <= 35) return '#2ecc71'; // Safe (Good)
+        return '#3498db'; // Elite (Neutral/Blue indicator)
+    }
+
     // =================
     // TELEMETRY UPDATES
     // =================
@@ -1195,7 +1238,18 @@ export class UIManager {
                 </span>
             `;
 
-            // Populate the modern top grid with tooltips injected
+            const ifValue = activity.intensity_factor || 0;
+            const tssValue = activity.tss || 0;
+            const trimpValue = activity.trimp || 0;
+
+            const driftValue = activity.duration >= 3600 ? activity.aerobic_decoupling : null;
+
+            const ifColor = this.getIFColor(ifValue);
+            const tssColor = this.getTSSColor(tssValue);
+            const trimpColor = this.getTRIMPColor(trimpValue);
+            const driftColor = driftValue !== null ? this.getDriftColor(driftValue) : 'var(--text-main)';
+            const hrrColor = this.getHRRColor(activity.hrr_1);
+
             document.getElementById('detail-metrics-grid').innerHTML = `
                 <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} m</span></div>
                 <div class="modern-stat-card"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
@@ -1203,11 +1257,26 @@ export class UIManager {
                 <div class="modern-stat-card"><span class="label">NP®</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
                 <div class="modern-stat-card"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
                 
-                <div class="modern-stat-card"><span class="label">${ifTooltip}</span><span class="value">${(activity.intensity_factor || 0).toFixed(2)}</span></div>
-                <div class="modern-stat-card"><span class="label">${tssTooltip}</span><span class="value">${(activity.tss || 0).toFixed(1)}</span></div>
-                <div class="modern-stat-card"><span class="label">${trimpTooltip}</span><span class="value" style="color:#e74c3c">${activity.trimp || '--'}</span></div>
-                <div class="modern-stat-card"><span class="label">${driftTooltip}</span><span class="value">${decoupling}</span></div>
-                <div class="modern-stat-card"><span class="label">${hrrTooltip}</span><span class="value" style="color:var(--argus-safe)">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span></div>
+                <div class="modern-stat-card">
+                    <span class="label">${ifTooltip}</span>
+                    <span class="value" style="color: ${ifColor}">${ifValue.toFixed(2)}</span>
+                </div>
+                <div class="modern-stat-card">
+                    <span class="label">${tssTooltip}</span>
+                    <span class="value" style="color: ${tssColor}">${tssValue.toFixed(1)}</span>
+                </div>
+                <div class="modern-stat-card">
+                    <span class="label">${trimpTooltip}</span>
+                    <span class="value" style="color: ${trimpColor}">${trimpValue || '--'}</span>
+                </div>
+                <div class="modern-stat-card">
+                    <span class="label">${driftTooltip}</span>
+                    <span class="value" style="color: ${driftColor}">${decoupling}</span>
+                </div>
+                <div class="modern-stat-card">
+                    <span class="label">${hrrTooltip}</span>
+                    <span class="value" style="color: ${hrrColor}">${activity.hrr_1 || 0}/${activity.hrr_2 || 0}</span>
+                </div>
             `;
 
             let analysisBox = document.getElementById('physiological-analysis-box');
