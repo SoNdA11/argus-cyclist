@@ -217,6 +217,7 @@ export class MapController {
         if (!this.routeGeoJSON || !this.map) return;
 
         const sourceId = 'route';
+        const outlineSourceId = 'route-continuous';
         const currentTheme = CONFIG.THEMES[this.currentStyleIndex];
 
         const istactical = currentTheme === 'tactical';
@@ -227,7 +228,7 @@ export class MapController {
         const outlineWidth = isSatellite ? 12 : 10;
         const wallColor = isSatellite ? '#ffffff' : '#000000';
 
-        ['route-glow', 'route-line', 'route-case'].forEach(id => {
+        ['route-glow', 'route-line', 'route-case', 'route-outline', 'route'].forEach(id => {
             if (this.map.getLayer(id)) this.map.removeLayer(id);
         });
 
@@ -237,7 +238,34 @@ export class MapController {
             this.map.addSource(sourceId, {
                 type: 'geojson',
                 data: this.routeGeoJSON,
-                lineMetrics: true
+                lineMetrics: false
+            });
+        }
+
+        let continuousCoords = [];
+        if (this.routeGeoJSON.features && this.routeGeoJSON.features.length > 0) {
+            this.routeGeoJSON.features.forEach((f, i) => {
+                if (f.geometry && f.geometry.coordinates && f.geometry.coordinates.length === 2) {
+                    if (i === 0) continuousCoords.push(f.geometry.coordinates[0]);
+                    continuousCoords.push(f.geometry.coordinates[1]);
+                }
+            });
+        }
+
+        const continuousGeoJSON = {
+            type: 'Feature',
+            geometry: {
+                type: 'LineString',
+                coordinates: continuousCoords
+            }
+        };
+
+        if (this.map.getSource(outlineSourceId)) {
+            this.map.getSource(outlineSourceId).setData(continuousGeoJSON);
+        } else {
+            this.map.addSource(outlineSourceId, {
+                type: 'geojson',
+                data: continuousGeoJSON
             });
         }
 
@@ -252,46 +280,36 @@ export class MapController {
             15, wallColor
         ];
 
-        const routeColor = gradientExpression;
+        this.map.addLayer({
+            id: 'route-outline',
+            type: 'line',
+            source: outlineSourceId,
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-width': outlineWidth,
+                'line-color': outlineColor,
+                'line-opacity': outlineOpacity,
+                'line-blur': 0
+            }
+        });
 
-        if (this.map.getLayer('route-outline')) {
-            this.map.setPaintProperty('route-outline', 'line-color', outlineColor);
-            this.map.setPaintProperty('route-outline', 'line-opacity', outlineOpacity);
-            this.map.setPaintProperty('route-outline', 'line-width', outlineWidth);
-        } else {
-            this.map.addLayer({
-                id: 'route-outline',
-                type: 'line',
-                source: sourceId,
-                layout: { 'line-join': 'round', 'line-cap': 'round' },
-                paint: {
-                    'line-width': outlineWidth,
-                    'line-color': outlineColor,
-                    'line-opacity': outlineOpacity,
-                    'line-blur': 0
-                }
-            });
-        }
-
-        if (this.map.getLayer('route')) {
-            this.map.setPaintProperty('route', 'line-color', routeColor);
-            this.map.setPaintProperty('route', 'line-width', istactical ? 8 : 6);
-        } else {
-            this.map.addLayer({
-                id: 'route',
-                type: 'line',
-                source: sourceId,
-                layout: {
-                    'line-join': istactical ? 'miter' : 'round',
-                    'line-cap': istactical ? 'square' : 'round'
-                },
-                paint: {
-                    'line-width': istactical ? 8 : 6,
-                    'line-color': routeColor,
-                    'line-opacity': 1.0
-                }
-            });
-        }
+        this.map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: sourceId,
+            layout: {
+                'line-join': 'bevel',
+                'line-cap': 'butt'
+            },
+            paint: {
+                'line-width': istactical ? 8 : 6,
+                'line-color': gradientExpression,
+                'line-opacity': 1.0
+            }
+        });
 
         const labels = this.map.getStyle().layers.find(l => l.type === 'symbol');
         if (labels) {
