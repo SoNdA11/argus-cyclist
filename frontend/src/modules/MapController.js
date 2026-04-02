@@ -27,6 +27,7 @@ export class MapController {
         this.markerElement = null;
         this.currentStyleIndex = 0;
         this.followCyclist = false;
+        this.isFlying = false;
         this.prevLngLat = null;
         this.lastBearingUpdatePos = null;
         this.routeGeoJSON = null;
@@ -353,7 +354,7 @@ export class MapController {
     // ==============
 
     setInitialPosition(lat, lon) {
-        this.map.flyTo({ center: [lon, lat], zoom: 17, pitch: 60, bearing: 0 });
+        this.map.jumpTo({ center: [lon, lat], zoom: 17, pitch: 60, bearing: 0 });
         if (this.marker) this.marker.setLngLat([lon, lat]);
         this.prevLngLat = [lon, lat];
         this.followCyclist = true;
@@ -362,12 +363,19 @@ export class MapController {
     centerCamera() {
         if (this.prevLngLat) {
             this.followCyclist = true;
+            this.isFlying = true;
+
             this.map.flyTo({
                 center: this.prevLngLat,
                 zoom: 17,
                 pitch: 60,
-                bearing: this.marker ? this.marker.getRotation() : 0
+                bearing: this.marker ? this.marker.getRotation() : 0,
+                duration: 1500
             });
+
+            setTimeout(() => {
+                this.isFlying = false;
+            }, 1550);
         }
     }
 
