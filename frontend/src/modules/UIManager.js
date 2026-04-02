@@ -1160,10 +1160,10 @@ export class UIManager {
             const distKm = (activity.total_distance / 1000).toFixed(2);
             const decoupling = activity.duration >= 3600 ? (activity.aerobic_decoupling || 0).toFixed(1) + '%' : 'N/A';
 
-            // Scientific Reference Tooltips Definitions
+            // 1. Refactored tooltips: using data-metric and forcing z-index to ensure clickability
             const trimpTooltip = `
                 <span class="tooltip-wrapper">
-                    TRIMP <span class="info-icon">?</span>
+                    TRIMP <span class="info-icon" style="cursor: pointer; position: relative; z-index: 50;" data-metric="TRIMP">?</span>
                     <div class="tooltip-content">
                         <strong style="color: #fff; display: block; margin-bottom: 5px;">Training Impulse (Banister)</strong>
                         <table class="tooltip-table">
@@ -1178,7 +1178,7 @@ export class UIManager {
 
             const driftTooltip = `
                 <span class="tooltip-wrapper">
-                    Pw:HR Drift <span class="info-icon">?</span>
+                    Pw:HR Drift <span class="info-icon" style="cursor: pointer; position: relative; z-index: 50;" data-metric="DRIFT">?</span>
                     <div class="tooltip-content">
                         <strong style="color: #fff; display: block; margin-bottom: 5px;">Aerobic Decoupling (Friel)</strong>
                         <table class="tooltip-table">
@@ -1195,7 +1195,7 @@ export class UIManager {
 
             const hrrTooltip = `
                 <span class="tooltip-wrapper">
-                    HRR (1m/2m) <span class="info-icon">?</span>
+                    HRR (1m/2m) <span class="info-icon" style="cursor: pointer; position: relative; z-index: 50;" data-metric="HRR">?</span>
                     <div class="tooltip-content">
                         <strong style="color: #fff; display: block; margin-bottom: 5px;">HR Recovery 1M (Cole et al.)</strong>
                         <table class="tooltip-table">
@@ -1210,7 +1210,7 @@ export class UIManager {
 
             const ifTooltip = `
                 <span class="tooltip-wrapper">
-                    IF® <span class="info-icon">?</span>
+                    IF® <span class="info-icon" style="cursor: pointer; position: relative; z-index: 50;" data-metric="IF">?</span>
                     <div class="tooltip-content">
                         <strong style="color: #fff; display: block; margin-bottom: 5px;">Intensity Factor (Allen)</strong>
                         <table class="tooltip-table">
@@ -1225,7 +1225,7 @@ export class UIManager {
 
             const tssTooltip = `
                 <span class="tooltip-wrapper">
-                    TSS® <span class="info-icon">?</span>
+                    TSS® <span class="info-icon" style="cursor: pointer; position: relative; z-index: 50;" data-metric="TSS">?</span>
                     <div class="tooltip-content">
                         <strong style="color: #fff; display: block; margin-bottom: 5px;">Training Stress Score</strong>
                         <table class="tooltip-table">
@@ -1279,6 +1279,20 @@ export class UIManager {
                 </div>
             `;
 
+            // 2. Anexa os Eventos de Clique de forma segura via JS Moderno
+            const infoIcons = document.querySelectorAll('#detail-metrics-grid .info-icon');
+            infoIcons.forEach(icon => {
+                icon.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // Impede a tabela preta ou qualquer outro elemento de "roubar" o clique
+                    const metricId = e.currentTarget.getAttribute('data-metric');
+                    if (metricId) {
+                        this.renderKnowledgeModal(metricId);
+                    }
+                });
+            });
+
+            // 3. Renderização da Analysis Box e Gráficos
             let analysisBox = document.getElementById('physiological-analysis-box');
             if (!analysisBox) {
                 const chartsRow = document.querySelector('.charts-row');
@@ -1854,6 +1868,104 @@ export class UIManager {
                 toast.classList.add('hidden');
             }, 500);
         }, duration);
+    }
+
+    // ===================================
+    // KNOWLEDGE BASE (EDUCATIONAL MODALS)
+    // ===================================
+
+    /**
+     * Retrieves the structured content for the Knowledge Base modal based on the metric ID.
+     * @param {string} metricId - The identifier for the metric (e.g., 'TSS', 'IF').
+     * @returns {Object} The structured educational data.
+     */
+    getKnowledgeBaseData(metricId) {
+        const tpGlossaryLink = "https://www.trainingpeaks.com/learn/articles/glossary-of-trainingpeaks-metrics/?utm_source=newsletter&utm_medium=partner&utm_term=sauce_trademark&utm_content=cta&utm_campaign=sauce";
+
+        const db = {
+            'TSS': {
+                title: 'Training Stress Score (TSS®)',
+                tldr: 'Estimates the total training load of a ride by combining intensity and duration into a single score.',
+                insight: 'Use TSS to guide recovery and planning. Lower scores generally allow for quicker return to hard training, while higher scores require more recovery. Individual tolerance varies based on fitness and training history.',
+                science: 'Developed by Dr. Andrew Coggan, TSS combines Intensity Factor (IF) and duration to quantify overall physiological stress relative to your Functional Threshold Power (FTP).',
+                link: tpGlossaryLink
+            },
+            'IF': {
+                title: 'Intensity Factor (IF®)',
+                tldr: 'Represents how intense a ride was relative to your FTP.',
+                insight: 'An IF around 0.70–0.80 typically reflects endurance riding, while values near or above 1.00 indicate efforts at or above threshold. Consistently high IF values may suggest your FTP is set too low.',
+                science: 'Calculated as Normalized Power® (NP) divided by Functional Threshold Power (FTP), giving a normalized measure of effort intensity.',
+                link: tpGlossaryLink
+            },
+            'TRIMP': {
+                title: 'Training Impulse (TRIMP)',
+                tldr: 'Measures cardiovascular training load based on heart rate response over time.',
+                insight: 'Useful when training without power data. TRIMP helps assess how taxing a session was on your cardiovascular system, especially across varying intensities.',
+                science: 'Based on Dr. Eric Banister’s model, TRIMP applies an exponential weighting to heart rate, giving greater importance to time spent at higher intensities.',
+                link: "https://www.firstbeat.com/en/blog/what-is-trimp/"
+            },
+            'DRIFT': {
+                title: 'Pw:HR Drift (Aerobic Decoupling)',
+                tldr: 'Indicates how much your heart rate rises relative to power over time.',
+                insight: 'Low drift suggests strong aerobic efficiency and endurance. Higher drift may indicate fatigue, dehydration, or insufficient aerobic conditioning for the effort duration.',
+                science: 'Popularized by Joe Friel, it compares the Power-to-Heart Rate ratio between the first and second halves of a steady effort.',
+                link: tpGlossaryLink
+            },
+            'HRR': {
+                title: 'Heart Rate Recovery (HRR 1M/2M)',
+                tldr: 'Measures how many beats per minute your heart rate drops in the first and second minutes after stopping a hard effort.',
+                insight: 'A faster drop generally reflects better cardiovascular fitness and recovery capacity. Slower recovery may indicate fatigue, stress, or insufficient recovery between sessions.',
+                science: 'Widely used in sports cardiology, HRR reflects how quickly the parasympathetic nervous system reactivates after exercise, rapidly lowering heart rate.',
+                link: "https://pezcyclingnews.com/latestnews/toolbox-heart-rate-recovery/"
+            }
+        };
+
+        return db[metricId];
+    }
+
+    /**
+     * Renders a glassmorphism modal containing deep-dive info about a physiological metric.
+     * @param {string} metricId - The identifier for the metric.
+     */
+    renderKnowledgeModal(metricId) {
+        // 1. Remove any existing knowledge modal to prevent duplicates
+        const existingModal = document.getElementById('kb-modal');
+        if (existingModal) existingModal.remove();
+
+        // 2. Fetch the content
+        const kbData = this.getKnowledgeBaseData(metricId);
+        if (!kbData) return;
+
+        // 3. Build the HTML template using Glassmorphism styling 
+        const modalHtml = `
+            <div id="kb-modal" class="modal-overlay active" style="z-index: 9999; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);" onclick="if(event.target === this) this.remove()">
+                
+                <div class="glass-panel" style="background: rgba(21, 32, 54, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 30px; max-width: 550px; width: 90%; color: var(--text-main); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: left; animation: fadeIn 0.3s ease;">
+                    
+                    <span class="close-btn" onclick="document.getElementById('kb-modal').remove()" style="position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">&times;</span>
+                    
+                    <h2 style="color: #00fbff; margin-top: 0; font-size: 1.6rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">${kbData.title}</h2>
+                    
+                    <h4 style="color: #fff; margin-bottom: 5px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">TL;DR</h4>
+                    <p style="color: #ccc; margin-top: 0; font-size: 0.95rem; line-height: 1.6;">${kbData.tldr}</p>
+                    
+                    <h4 style="color: #fff; margin-bottom: 5px; font-size: 1.1rem; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;">Actionable Insight</h4>
+                    <p style="color: #ccc; margin-top: 0; font-size: 0.95rem; line-height: 1.6;">${kbData.insight}</p>
+                    
+                    <h4 style="color: #fff; margin-bottom: 5px; font-size: 1.1rem; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;">The Science</h4>
+                    <p style="color: #ccc; margin-top: 0; font-size: 0.95rem; line-height: 1.6;">${kbData.science}</p>
+                    
+                    <div style="margin-top: 35px; text-align: center;">
+                        <button onclick="window.runtime.BrowserOpenURL('${kbData.link}')" style="background: #3498db; color: white; padding: 12px 24px; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: bold; display: inline-block; transition: background 0.2s; border: none; cursor: pointer;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                            Read Deep Dive Article <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 4. Inject into the DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 }
 
