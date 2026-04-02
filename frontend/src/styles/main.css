@@ -1,6 +1,6 @@
-/* =========================================
+/* =================
    1. FONTS & RESETS
-   ========================================= */
+   ================= */
 
 /* Keeping Nunito just in case, though your app uses Segoe UI by default */
 @font-face {
@@ -23,13 +23,12 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    /* ADICIONE ESTA LINHA: */
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* =========================================
+/* ==================
    2. THEME VARIABLES
-   ========================================= */
+   ================== */
 
 /* DARK THEME (Default) */
 :root[data-theme="dark"] {
@@ -81,9 +80,9 @@ body {
     color: var(--text-main);
 }
 
-/* =========================================
+/* ==================
    3. COMPONENTS & UI
-   ========================================= */
+   ================== */
 
 /* --- Modal --- */
 #connectionModal {
@@ -259,16 +258,16 @@ button {
 }
 
 .hud-sidebar {
-    width: 260px;
+    width: 230px;
     background: var(--panel-bg);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 16px;
     z-index: 1001;
     overflow-y: auto;
     transition: background-color 0.3s;
-    gap: 15px;
+    gap: 10px;
 }
 
 /* Glassmorphism Effect (Disabled in Satellite Mode) */
@@ -284,8 +283,16 @@ html:not([data-theme="satellite"]) footer {
     margin-bottom: 5px;
 }
 
+@media (min-width: 1025px) {
+    .hud-sidebar:not(.right-panel)>.data-card {
+        flex: 1;
+        justify-content: center;
+        margin-bottom: 0;
+    }
+}
+
 .data-label {
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 600;
@@ -294,14 +301,14 @@ html:not([data-theme="satellite"]) footer {
 
 .data-value {
     font-family: 'Courier New', monospace;
-    font-size: 2.0rem;
+    font-size: 2.3rem;
     font-weight: 700;
     line-height: 1;
     color: var(--text-main);
 }
 
 .data-unit {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--text-muted);
     font-weight: 400;
     margin-left: 4px;
@@ -426,17 +433,17 @@ footer {
     text-align: center;
 }
 
-/* =========================================
+/* ============
    4. UTILITIES
-   ========================================= */
+   ============ */
 
 .mt-auto {
     margin-top: auto;
 }
 
-/* =========================================
+/* ======================================
    5. NEW UI ELEMENTS (Settings & Modals)
-   ========================================= */
+   ====================================== */
 
 .modal-overlay {
     position: fixed;
@@ -897,7 +904,7 @@ footer {
     color: var(--argus-text-dim);
     padding: 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.7rem;
+    font-size: 0.78em;
     text-transform: uppercase;
 }
 
@@ -1614,9 +1621,9 @@ TACTICAL BLUE
     --hr-color: #f472b6;
 }
 
-/* =========================================
+/* ================================
    FINISH MODAL ANALYTICS (Phase 2)
-   ========================================= */
+   ================================ */
 
 :root {
     --zone-1: #7f8c8d;
@@ -1991,9 +1998,9 @@ TACTICAL BLUE
     }
 }
 
-/* =========================================
+/* ================================
    7. SETTINGS MODAL FIX FOR MOBILE
-   ========================================= */
+   ================================ */
 
 @media (max-height: 700px),
 (max-width: 768px) {
