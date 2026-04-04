@@ -14,21 +14,21 @@
 
 ### Desktop Experience
 
-| Virtual Ride & HUD | Profile and Devices |
+| Home & Profile Selection | Virtual Ride & HUD |
 | :---: | :---: |
-| <img src="./frontend/screenshots/print-5-argus-cyclist.png" width="400" alt="Dashboard"/> | <img src="./frontend/screenshots/pr-2-argus-cyclist.png" width="400" alt="Profile"/> |
-| **History and Stats** | **Dark Theme** |
-| <img src="./frontend/screenshots/pr-3-argus-cyclist.png" width="400" alt="History"/> | <img src="./frontend/screenshots/pr-4-argus-cyclist.png" width="400" alt="Dark Theme"/> |
-| **Workout Plan** | **Route Creator** |
-| <img src="./frontend/screenshots/pr-6-argus-cyclist.png" width="400" alt="Workout"/> | <img src="./frontend/screenshots/pr-7-argus-cyclist.png" width="400" alt="Route Creator"/> |
-| **Post-Ride Summary** | **Workout Graphical Analysis** |
-| <img src="./frontend/screenshots/post-workout-summary.png" width="400" alt="Workout"/> | <img src="./frontend/screenshots/post-workout-charts.png" width="400" alt="Route Creator"/> |
-
-### Mobile App (Android)
+| ![Home Screen](./frontend/screenshots/new-print-home.png) | ![Virtual HUD](./frontend/screenshots/new-print-virtual-HUD.png) |
+| **Profile & Cloud Integrations** | **History & Stats** |
+| ![Profile and Devices](./frontend/screenshots/new-print-profile.png) | ![History and Calendar](./frontend/screenshots/new-print-history.png) |
+| **Career Dashboard (PMC)** | **Activity Telemetry & Analysis** |
+| ![Career Dashboard](./frontend/screenshots/new-print-career-dashboard.png) | ![Activity Telemetry](./frontend/screenshots/new-print-act.png) |
+| **Post-Ride Summary** | **Structured Workout Plan** |
+| ![Post-Ride Summary](./frontend/screenshots/new-print-post-ride.png) | ![Workout Plan](./frontend/screenshots/new-print-workout-plan.png) |
+| **Dark Theme Map** | **Light Theme Map** |
+| ![Dark Theme](./frontend/screenshots/new-print-dark-theme.png) | ![Light Theme](./frontend/screenshots/new-print-white-theme.png) |
 
 | Mobile Gaming HUD |
 | :---: |
-| <img src="./frontend/screenshots/mobile-landscape-hud.jpg" width="800" alt="Mobile landscape view showing 3D map, telemetry data, and elevation profile"/> |
+| ![Mobile landscape view showing 3D map, telemetry data, and elevation profile](./frontend/screenshots/mobile-landscape-hud.jpg) |
 
 ## Cross-Platform: Now on Mobile (Android)
 
@@ -44,9 +44,11 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 * **Smart Trainer Support (BLE & ANT+):** Connects natively to FTMS and ANT+ FE-C compatible trainers (e.g., Tacx, Wahoo, Elite, Thinkrider) and Heart Rate monitors.
 * **Physics Engine:** Real-time speed calculation based on power (Watts), rider weight, bike weight, rolling resistance, and aerodynamic drag.
 * **Grade Simulation:** The trainer automatically adjusts resistance based on the virtual terrain slope.
+* **Cloud Integrations:** Direct connection to Strava for automatic or manual upload of your finished sessions.
 
 ### Gamification & Progression
 
+* **Multi-Profile System:** Create and manage multiple riders on the same device. Each profile has its own separate level, XP, FTP, weight settings, and activity history.
 * **Leveling System:** Earn **XP (Experience Points)** passively by riding.
 * **Dynamic Rewards:** Gain more XP for climbing and covering long distances.
 * **Persistent Profile:** Your stats (Level, Total XP, FTP, Weight) are saved locally using SQLite.
@@ -54,17 +56,20 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 
 ### Immersive 3D Map
 
-* **MapLibre Integration:** Powered by MapLibre GL JS with 3D Terrain-RGB for realistic topography. Features a 3D Globe projection with atmospheric fog and high-fidelity Satellite (Esri) or Vector (Day) themes.
+* **MapLibre Integration:** Powered by MapLibre GL JS with 3D Terrain-RGB for realistic topography. Features a 3D Globe projection with atmospheric fog.
+* **Dynamic Themes:** Fully customizable map visualization with crisp **Light** and **Dark** themes.
 * **Smart Route Rendering:** Route lines change color dynamically based on gradient (Green = Flat/Descent, Red = Steep Climb).
 * **Occlusion System:** The route renders correctly behind 3D buildings for better depth perception.
 * **Smooth Animation:** Interpolated cyclist movement at 60fps, eliminating GPS "jumping".
 
-### Tools & Data
+### Advanced Analytics & Tools
 
-* **Post-Ride Analysis:** Comprehensive end-of-workout summaries featuring detailed performance statistics and graphical charts (Power, Heart Rate, Elevation) immediately after finishing a session.
+* **Career Dashboard:** Track your long-term evolution with the Performance Management Chart (PMC), mapping your Fitness (CTL), Fatigue (ATL), and Form (TSB). Also features an Aerobic Decoupling (Pw:HR) tracker to monitor your aerobic base.
+* **Deep Activity Analysis:** Review your rides with advanced metrics including Normalized Power (NP), Intensity Factor (IF), TSS, and TRIMP. Dive into live telemetry charts with VT1/VT2 markers and detailed Power Curve (MMP) bar charts.
+* **Post-Ride Summary:** Instant feedback upon workout completion with core stats and a quick "Upload to Strava" action.
 * **Route Editor:** Create custom routes directly inside the app by clicking points on the map.
-* **GPX Import:** Ride any real-world route by importing standard `.GPX` files.
-* **Activity History:** Calendar view, monthly stats, and "Power Curve" analysis.
+* **GPX & Structured Workouts:** Ride real-world routes by importing `.GPX` files or train efficiently with visual ERG mode targets using imported plans.
+* **Activity History:** Calendar view, monthly stats, and recent rides list.
 * **Data Export:** Automatically generates `.FIT` files compatible with Strava, Garmin Connect, and TrainingPeaks.
 
 ## Technologies
@@ -110,21 +115,3 @@ To start the application in development mode (with Hot Reload):
 
 ```bash
 wails dev
-```
-
-### For Android (Capacitor)
-
-```bash
-cd frontend
-npm run build
-npx cap sync android
-npx cap open android
-```
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
