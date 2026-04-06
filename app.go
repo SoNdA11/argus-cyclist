@@ -1205,6 +1205,7 @@ func (a *App) ScanTrainers() []domain.BLEDevice {
 	if realSvc, ok := a.trainerService.(*ble.RealService); ok {
 		devices, err := realSvc.ScanForTrainers()
 		if err != nil {
+			fmt.Println("[BLE] ScanTrainers error:", err)
 			runtime.EventsEmit(a.ctx, "error", err.Error())
 			return []domain.BLEDevice{}
 		}
@@ -1223,6 +1224,7 @@ func (a *App) ScanHeartRate() []domain.BLEDevice {
 	if realSvc, ok := a.trainerService.(*ble.RealService); ok {
 		devices, err := realSvc.ScanForHR()
 		if err != nil {
+			fmt.Println("[BLE] ScanHeartRate error:", err)
 			runtime.EventsEmit(a.ctx, "error", err.Error())
 			return []domain.BLEDevice{}
 		}
