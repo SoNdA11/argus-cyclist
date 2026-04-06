@@ -908,21 +908,38 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
 
 let newAvatarBase64 = "";
 
+function getTimeGreeting() {
+    const h = new Date().getHours();
+    if (h < 5) return "Good night";
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+}
+
+function formatCompactNumber(n) {
+    const num = Number(n || 0);
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return `${num.toFixed(1)}`;
+}
+
 window.toggleCreateForm = (show) => {
     const grid = document.getElementById('profileGrid');
     const form = document.getElementById('createProfileForm');
     const subtitle = document.getElementById('homeSubtitle');
+    const welcome = document.getElementById('homeWelcome');
 
     if (show) {
         grid.style.display = 'none';
         form.classList.remove('hidden');
         form.style.display = 'block';
         if (subtitle) subtitle.innerText = "Create a new rider profile";
+        if (welcome) welcome.innerText = "New rider";
     } else {
-        grid.style.display = 'flex';
+        grid.style.display = '';
         form.classList.add('hidden');
         form.style.display = 'none';
-        if (subtitle) subtitle.innerText = "Welcome back! Select your rider profile.";
+        if (welcome) welcome.innerText = "Welcome back";
+        if (subtitle) subtitle.innerText = "Select a rider profile to start your session.";
     }
 };
 
@@ -1108,6 +1125,22 @@ async function initHomeScreen() {
 
     try {
         const accounts = await window.go.main.App.GetLocalAccounts();
+        const welcome = document.getElementById('homeWelcome');
+        const subtitle = document.getElementById('homeSubtitle');
+
+        if (welcome) {
+            const greeting = getTimeGreeting();
+            welcome.innerText = accounts && accounts.length ? `${greeting}` : `${greeting}`;
+        }
+        if (subtitle) {
+            if (!accounts || accounts.length === 0) {
+                subtitle.innerText = "Create your first rider profile to begin.";
+            } else if (accounts.length === 1) {
+                subtitle.innerText = "Select your rider profile to start your session.";
+            } else {
+                subtitle.innerText = "Choose who’s riding today.";
+            }
+        }
 
         // Renders existing accounts
         if (accounts && accounts.length > 0) {
@@ -1116,16 +1149,33 @@ async function initHomeScreen() {
                 const km = (acc.total_km || 0).toFixed(1);
                 const time = formatHomeTime(acc.total_time);
                 const lvl = acc.level || 1;
+                const weight = acc.weight ? `${acc.weight} kg` : "";
+                const ftp = acc.ftp ? `${acc.ftp} W` : "";
 
                 grid.innerHTML += `
-                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')" style="position: relative;">
-                        <button class="btn-delete-profile" onclick="window.deleteProfile('${acc.id}', '${acc.name}', event)" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #ff4444; z-index: 10;">✖</button>
-                        <img src="${photo}" alt="Avatar">
-                        <h4 style="margin-bottom: 5px; font-size: 1.2rem;">${acc.name}</h4>
+                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')" role="button" tabindex="0">
+                        <button
+                            type="button"
+                            class="btn-delete-profile"
+                            aria-label="Delete profile ${acc.name}"
+                            onclick="window.deleteProfile('${acc.id}', '${acc.name}', event)"
+                        >✖</button>
+
+                        <div class="profile-card-top">
+                            <img class="profile-avatar" src="${photo}" alt="Avatar for ${acc.name}">
+                            <div class="profile-meta">
+                                <h4 class="profile-name">${acc.name}</h4>
+                                <div class="profile-subtitle">
+                                    <span class="pill pill-level">LVL ${lvl}</span>
+                                    ${weight ? `<span class="pill">${weight}</span>` : ""}
+                                    ${ftp ? `<span class="pill">${ftp}</span>` : ""}
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="profile-stats">
-                            <span>📈 Level ${lvl}</span>
-                            <span>🚴🏼 ${km} km</span>
-                            <span>⏱️ ${time}</span>
+                            <span><span class="stat-icon">🚴🏼</span><span class="stat-value">${formatCompactNumber(km)}</span><span class="stat-label">km</span></span>
+                            <span><span class="stat-icon">⏱️</span><span class="stat-value">${time}</span></span>
                         </div>
                     </div>
                 `;
@@ -1136,7 +1186,8 @@ async function initHomeScreen() {
         grid.innerHTML += `
             <div class="profile-card profile-card-new" onclick="window.toggleCreateForm(true)">
                 <div class="plus-icon">+</div>
-                <h4>New Rider</h4>
+                <h4>Create new rider</h4>
+                <div class="new-rider-hint">Name • Weight • FTP</div>
             </div>
         `;
     } catch (err) {
