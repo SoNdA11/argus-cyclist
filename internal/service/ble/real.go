@@ -20,6 +20,8 @@ import (
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/service/ble/fec"
 	"fmt"
+	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -51,6 +53,8 @@ var (
 
 type RealService struct {
 	adapter *bluetooth.Adapter
+	enabled bool
+	enableM sync.Mutex
 
 	trainerDevice *bluetooth.Device
 	hrDevice      *bluetooth.Device
@@ -77,6 +81,41 @@ type RealService struct {
 	isReady      bool
 }
 
+func (s *RealService) enableAdapter() error {
+	s.enableM.Lock()
+	defer s.enableM.Unlock()
+	if s.enabled {
+		return nil
+	}
+	if err := s.adapter.Enable(); err != nil {
+		return err
+	}
+	s.enabled = true
+	return nil
+}
+
+func bleDebugEnabled() bool {
+	v := os.Getenv("ARGUS_BLE_DEBUG")
+	if v == "0" || v == "false" || v == "FALSE" || v == "no" || v == "NO" {
+		return false
+	}
+	// Default to verbose logs on Windows, where discovery issues are common and
+	// errors are otherwise hard to diagnose for end users.
+	if runtime.GOOS == "windows" && v == "" {
+		return true
+	}
+	return v == "1" || v == "true" || v == "TRUE" || v == "yes" || v == "YES"
+}
+
+func scanDisplayName(result bluetooth.ScanResult) string {
+	if n := result.LocalName(); n != "" {
+		return n
+	}
+	// No Windows, LocalName frequently comes empty for BLE advertisements.
+	// Returning the address avoids dropping valid devices from the UI list.
+	return result.Address.String()
+}
+
 func NewRealService() domain.TrainerService {
 	return &RealService{
 		adapter:        bluetooth.DefaultAdapter,
@@ -86,7 +125,7 @@ func NewRealService() domain.TrainerService {
 	}
 }
 func (s *RealService) ConnectTrainer(macAddress string, onStatus func(string, string)) error {
-	if err := s.adapter.Enable(); err != nil {
+	if err := s.enableAdapter(); err != nil {
 		return fmt.Errorf("bluetooth error: %w", err)
 	}
 
@@ -135,8 +174,7 @@ func (s *RealService) ConnectTrainer(macAddress string, onStatus func(string, st
 }
 
 func (s *RealService) ConnectHR(macAddress string, onStatus func(string, string)) error {
-	err := s.adapter.Enable()
-	if err != nil {
+	if err := s.enableAdapter(); err != nil {
 		return fmt.Errorf("bluetooth error: %w", err)
 	}
 
@@ -450,78 +488,160 @@ func (s *RealService) DisconnectHR() {
 
 // ScanForTrainers connects the antenna, searches for compatible reels for 5 seconds, and returns the list.
 func (s *RealService) ScanForTrainers() ([]domain.BLEDevice, error) {
-	if err := s.adapter.Enable(); err != nil {
+	if err := s.enableAdapter(); err != nil {
 		return nil, fmt.Errorf("Bluetooth error: %w", err)
 	}
 
 	var foundDevices []domain.BLEDevice
 	// I a map to avoid adding the same device twice (the radio picks up the same signal multiple times).
 	seen := make(map[string]bool)
+	var mu sync.Mutex
+	scanErrCh := make(chan error, 1)
+	done := make(chan struct{})
+	var callbackCount uint64
 
 	fmt.Println("[BLE] Starting 5 second scan by Smart Trainers...")
 
 	go func() {
-		s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-			if result.LocalName() == "" {
-				return
+		err := s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+			callbackCount++
+			if bleDebugEnabled() {
+				fmt.Printf("[BLE][SCAN][%s][TRAINER] addr=%s name=%q rssi=%d hasCP=%v hasFTMS=%v hasFEC=%v hasFEC128=%v\n",
+					runtime.GOOS,
+					result.Address.String(),
+					result.LocalName(),
+					result.RSSI,
+					result.HasServiceUUID(ServiceCyclingPower),
+					result.HasServiceUUID(ServiceFitnessMach),
+					result.HasServiceUUID(ServiceFEC),
+					result.HasServiceUUID(ServiceFEC128),
+				)
 			}
-			// Checks if it is a Trainer (FTMS or FE-C)
-			if result.HasServiceUUID(ServiceCyclingPower) ||
+			// Checks if it is a Trainer (FTMS or FE-C).
+			// On Windows, the backend often does not expose advertised service UUIDs in ScanResult,
+			// so we provide a fallback that lists named devices and validates services on connect.
+			isTrainerAdv := result.HasServiceUUID(ServiceCyclingPower) ||
 				result.HasServiceUUID(ServiceFitnessMach) ||
 				result.HasServiceUUID(ServiceFEC) ||
-				result.HasServiceUUID(ServiceFEC128) {
+				result.HasServiceUUID(ServiceFEC128)
+			isWindowsFallback := runtime.GOOS == "windows" && result.LocalName() != ""
+
+			if isTrainerAdv || isWindowsFallback {
 
 				mac := result.Address.String()
+				mu.Lock()
 				if !seen[mac] {
 					seen[mac] = true
-					foundDevices = append(foundDevices, domain.BLEDevice{
-						Name:    result.LocalName(),
-						Address: mac,
-					})
-					fmt.Printf("[BLE] Found: %s (%s)\n", result.LocalName(), mac)
+					name := scanDisplayName(result)
+					foundDevices = append(foundDevices, domain.BLEDevice{Name: name, Address: mac})
+					fmt.Printf("[BLE] Found: %s (%s)\n", name, mac)
 				}
+				mu.Unlock()
 			}
 		})
+		if err != nil {
+			// Always print the underlying backend error (Windows WinRT errors, etc).
+			fmt.Printf("[BLE] ScanForTrainers scan error: %v\n", err)
+			select {
+			case scanErrCh <- err:
+			default:
+			}
+		}
+		close(done)
 	}()
 
 	time.Sleep(5 * time.Second)
 	s.adapter.StopScan()
+	fmt.Printf("[BLE] StopScan requested (trainer scan). callbacks=%d\n", callbackCount)
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		// Avoid blocking forever if the backend never returns.
+		fmt.Println("[BLE] Warning: scan did not terminate 2s after StopScan")
+	}
 
+	select {
+	case err := <-scanErrCh:
+		return nil, fmt.Errorf("Bluetooth scan error: %w", err)
+	default:
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	fmt.Printf("[BLE] Trainer scan finished. found=%d callbacks=%d\n", len(foundDevices), callbackCount)
 	return foundDevices, nil
 }
 
 // ScanForHR activates the antenna, searches for heart rate monitors for 5 seconds, and returns the list.
 func (s *RealService) ScanForHR() ([]domain.BLEDevice, error) {
-	if err := s.adapter.Enable(); err != nil {
+	if err := s.enableAdapter(); err != nil {
 		return nil, fmt.Errorf("Bluetooth error: %w", err)
 	}
 
 	var foundDevices []domain.BLEDevice
 	seen := make(map[string]bool)
+	var mu sync.Mutex
+	scanErrCh := make(chan error, 1)
+	done := make(chan struct{})
+	var callbackCount uint64
 
 	fmt.Println("[BLE] Starting 5 second scan by HR Monitors...")
 
 	go func() {
-		s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-			if result.LocalName() == "" {
-				return
+		err := s.adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+			callbackCount++
+			if bleDebugEnabled() {
+				fmt.Printf("[BLE][SCAN][%s][HR] addr=%s name=%q rssi=%d hasHR=%v\n",
+					runtime.GOOS,
+					result.Address.String(),
+					result.LocalName(),
+					result.RSSI,
+					result.HasServiceUUID(ServiceHeartRate),
+				)
 			}
-			if result.HasServiceUUID(ServiceHeartRate) {
+			// Similar Windows fallback: advertised HR service UUID may be unavailable in ScanResult.
+			isHRAdv := result.HasServiceUUID(ServiceHeartRate)
+			isWindowsFallback := runtime.GOOS == "windows" && result.LocalName() != ""
+
+			if isHRAdv || isWindowsFallback {
 				mac := result.Address.String()
+				mu.Lock()
 				if !seen[mac] {
 					seen[mac] = true
-					foundDevices = append(foundDevices, domain.BLEDevice{
-						Name:    result.LocalName(),
-						Address: mac,
-					})
-					fmt.Printf("[BLE] HR Found: %s (%s)\n", result.LocalName(), mac)
+					name := scanDisplayName(result)
+					foundDevices = append(foundDevices, domain.BLEDevice{Name: name, Address: mac})
+					fmt.Printf("[BLE] HR Found: %s (%s)\n", name, mac)
 				}
+				mu.Unlock()
 			}
 		})
+		if err != nil {
+			fmt.Printf("[BLE] ScanForHR scan error: %v\n", err)
+			select {
+			case scanErrCh <- err:
+			default:
+			}
+		}
+		close(done)
 	}()
 
 	time.Sleep(5 * time.Second)
 	s.adapter.StopScan()
+	fmt.Printf("[BLE] StopScan requested (hr scan). callbacks=%d\n", callbackCount)
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		fmt.Println("[BLE] Warning: scan did not terminate 2s after StopScan")
+	}
 
+	select {
+	case err := <-scanErrCh:
+		return nil, fmt.Errorf("Bluetooth scan error: %w", err)
+	default:
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	fmt.Printf("[BLE] HR scan finished. found=%d callbacks=%d\n", len(foundDevices), callbackCount)
 	return foundDevices, nil
 }
