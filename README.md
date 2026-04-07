@@ -121,3 +121,15 @@ To start the application in development mode (with Hot Reload):
 
 ```bash
 wails dev
+```
+
+## Troubleshooting: Windows "Protect your PC" Warning
+
+When launching the downloaded `.exe` on Windows for the first time, you may encounter a blue "Windows protected your PC" (Microsoft Defender SmartScreen) warning.
+
+This happens because Argus Cyclist is an independent open-source project and the executable is currently not signed with a paid Authenticode Code Signing Certificate. The application is completely safe.
+
+**To run the simulator:**
+
+1. Click on **More info** text in the warning dialog.
+2. Click the **Run anyway** button that appears at the bottom.
