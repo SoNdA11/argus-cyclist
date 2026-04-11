@@ -1,5 +1,163 @@
 export namespace domain {
 	
+	export class WorkoutSegment {
+	    index: number;
+	    type: string;
+	    duration: number;
+	    start_factor: number;
+	    end_factor: number;
+	    text: string;
+	    free_ride: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkoutSegment(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.index = source["index"];
+	        this.type = source["type"];
+	        this.duration = source["duration"];
+	        this.start_factor = source["start_factor"];
+	        this.end_factor = source["end_factor"];
+	        this.text = source["text"];
+	        this.free_ride = source["free_ride"];
+	    }
+	}
+	export class ZWOStep {
+	    duration?: number;
+	    power?: number;
+	    power_low?: number;
+	    power_high?: number;
+	    repeat?: number;
+	    on_duration?: number;
+	    on_power?: number;
+	    off_duration?: number;
+	    off_power?: number;
+	    cadence?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ZWOStep(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.duration = source["duration"];
+	        this.power = source["power"];
+	        this.power_low = source["power_low"];
+	        this.power_high = source["power_high"];
+	        this.repeat = source["repeat"];
+	        this.on_duration = source["on_duration"];
+	        this.on_power = source["on_power"];
+	        this.off_duration = source["off_duration"];
+	        this.off_power = source["off_power"];
+	        this.cadence = source["cadence"];
+	    }
+	}
+	export class ZWOWorkout {
+	    steps: ZWOStep[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ZWOWorkout(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.steps = this.convertValues(source["steps"], ZWOStep);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ZWOFile {
+	    name: string;
+	    description: string;
+	    author: string;
+	    workout: ZWOWorkout;
+	
+	    static createFrom(source: any = {}) {
+	        return new ZWOFile(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.author = source["author"];
+	        this.workout = this.convertValues(source["workout"], ZWOWorkout);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ActiveWorkout {
+	    metadata: ZWOFile;
+	    segments: WorkoutSegment[];
+	    total_duration: number;
+	    is_test: boolean;
+	    test_type: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActiveWorkout(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.metadata = this.convertValues(source["metadata"], ZWOFile);
+	        this.segments = this.convertValues(source["segments"], WorkoutSegment);
+	        this.total_duration = source["total_duration"];
+	        this.is_test = source["is_test"];
+	        this.test_type = source["test_type"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Activity {
 	    id: number;
 	    route_name: string;
@@ -177,6 +335,9 @@ export namespace domain {
 		    return a;
 		}
 	}
+	
+	
+	
 
 }
 
@@ -317,6 +478,8 @@ export namespace main {
 	export class SessionSummary {
 	    activity: domain.Activity;
 	    zones: fit.TimeInZones;
+	    new_ftp: number;
+	    new_max_hr: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new SessionSummary(source);
@@ -326,6 +489,8 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.activity = this.convertValues(source["activity"], domain.Activity);
 	        this.zones = this.convertValues(source["zones"], fit.TimeInZones);
+	        this.new_ftp = source["new_ftp"];
+	        this.new_max_hr = source["new_max_hr"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -408,6 +573,25 @@ export namespace storage {
 	        this.level = source["level"];
 	        this.total_km = source["total_km"];
 	        this.total_time = source["total_time"];
+	    }
+	}
+
+}
+
+export namespace xml {
+	
+	export class Name {
+	    Space: string;
+	    Local: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Name(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Space = source["Space"];
+	        this.Local = source["Local"];
 	    }
 	}
 

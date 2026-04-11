@@ -59,12 +59,15 @@ type WorkoutSegment struct {
 	StartFactor     float64 `json:"start_factor"`
 	EndFactor       float64 `json:"end_factor"`
 	Text            string  `json:"text"`
+	FreeRide        bool    `json:"free_ride"`
 }
 
 type ActiveWorkout struct {
 	Metadata      ZWOFile          `json:"metadata"`
 	Segments      []WorkoutSegment `json:"segments"`
 	TotalDuration int              `json:"total_duration"`
+	IsTest        bool             `json:"is_test"`   // Indicates whether the session is an aptitude test.
+	TestType      string           `json:"test_type"` // "ramp", "ftp20", "vo2max5"
 }
 
 // Structure for sending state to the Frontend
@@ -78,4 +81,5 @@ type WorkoutState struct {
 	NextTargetPower   int     `json:"next_target_power"`
 	CompletionPercent float64 `json:"completion_percent"`
 	IntensityPct      int     `json:"intensity_pct"`
+	IsFreeRide        bool    `json:"is_free_ride"`
 }

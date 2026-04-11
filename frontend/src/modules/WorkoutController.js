@@ -76,7 +76,6 @@ export class WorkoutController {
         if (this.list) this.list.classList.add('hidden');
         const actions = document.getElementById('workout-completion-actions');
         if (actions) actions.classList.remove('hidden');
-        
         if (this.elMessage) this.elMessage.innerText = "WORKOUT COMPLETE";
         if (this.elTarget) this.elTarget.innerText = "--";
         if (this.elTimer) this.elTimer.innerText = "--:--";
@@ -102,6 +101,32 @@ export class WorkoutController {
         const actions = document.getElementById('workout-completion-actions');
         if (actions) actions.classList.add('hidden');
 
+        const isTest = this.getProp(workout, ['is_test', 'IsTest']);
+        if (isTest) {
+            document.getElementById('map-container').style.display = 'none';
+            const footer = document.querySelector('footer');
+            if (footer) footer.style.display = 'none';
+
+            const leftSidebar = document.querySelector('.hud-sidebar:not(#workout-panel)');
+            if (leftSidebar) leftSidebar.style.display = 'none';
+
+            document.getElementById('dashboard-view').classList.remove('hidden');
+
+            if (window.ui) {
+                window.ui.isDashboardMode = true;
+                window.ui.initLiveChart();
+                setTimeout(() => { if (window.ui.liveChartInstance) window.ui.liveChartInstance.resize(); }, 150);
+            }
+        } else {
+            document.getElementById('map-container').style.display = '';
+            document.getElementById('dashboard-view').classList.add('hidden');
+            const footer = document.querySelector('footer');
+            if (footer) footer.style.display = '';
+
+            const leftSidebar = document.querySelector('.hud-sidebar:not(#workout-panel)');
+            if (leftSidebar) leftSidebar.style.display = '';
+        }
+
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
                 window.mapController.map.resize();
@@ -124,6 +149,19 @@ export class WorkoutController {
         this.panel.classList.add('hidden');
         this.activeWorkout = null;
         this.stopMobileWorkoutLoop();
+
+        document.getElementById('map-container').style.display = '';
+        document.getElementById('dashboard-view').classList.add('hidden');
+
+        const footer = document.querySelector('footer');
+        if (footer) footer.style.display = '';
+
+        const leftSidebar = document.querySelector('.hud-sidebar:not(#workout-panel)');
+        if (leftSidebar) leftSidebar.style.display = '';
+
+        if (window.ui) {
+            window.ui.isDashboardMode = false;
+        }
 
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
@@ -253,7 +291,29 @@ export class WorkoutController {
         const currentIdx = this.getProp(state, ['current_segment_index', 'CurrentSegmentIdx']);
         const segDuration = this.getProp(state, ['segment_duration', 'SegmentDuration']);
 
-        this.elTarget.innerText = `${targetPower}w`;
+        const isFreeRide = this.getProp(state, ['is_free_ride', 'IsFreeRide']);
+
+        if (isFreeRide) {
+            this.elTarget.innerText = "FREE RIDE";
+            this.elTarget.style.color = "#3498db";
+            this.elMessage.innerText = "FREE RIDE - CONTROL YOUR GEARS";
+            this.elMessage.style.color = "#3498db";
+        } else {
+            this.elTarget.innerText = `${targetPower}w`;
+            this.elTarget.style.color = "";
+            this.elMessage.style.color = "";
+        }
+
+        if (window.ui && window.ui.isDashboardMode) {
+            const dashPowerSub = document.getElementById('dash-wkg');
+            if (dashPowerSub) {
+                if (isFreeRide) {
+                    dashPowerSub.innerHTML = `<span style="color:#3498db; font-weight:bold; font-size:1.1rem; letter-spacing:1px;">TARGET: FREE RIDE</span>`;
+                } else {
+                    dashPowerSub.innerHTML = `<span style="color:#f1c40f; font-weight:bold; font-size:1.1rem; letter-spacing:1px;">TARGET: ${targetPower} W</span>`;
+                }
+            }
+        }
 
         const intensityPct = this.getProp(state, ['intensity_pct', 'IntensityPct']);
         if (intensityPct && this.elIntensity) {
@@ -277,7 +337,9 @@ export class WorkoutController {
             if (curr) {
                 curr.classList.add('active');
                 curr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                this.elMessage.innerText = this.getSegmentTypeLabel(currentIdx);
+                if (!isFreeRide) {
+                    this.elMessage.innerText = this.getSegmentTypeLabel(currentIdx);
+                }
             }
         }
 
