@@ -1,12 +1,18 @@
-/*
-    Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
-    Copyright (C) 2026  Paulo Sérgio
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-*/
+// Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+// Copyright (C) 2026  Paulo Sérgio
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import './styles/main.css';
 import { MapController } from './modules/MapController.js';
@@ -699,6 +705,24 @@ async function finishWorkout() {
         const sessionSummary = await window.go.main.App.FinishSession();
         ui.showFinishModal(sessionSummary);
 
+        if (sessionSummary.new_ftp > 0) {
+            setTimeout(() => {
+                const msg = `Physiological Assessment Complete!\n\nNew Estimated FTP: ${sessionSummary.new_ftp} W\nMax HR Reached: ${sessionSummary.new_max_hr} BPM\n\nWould you like to update your profile with these new metrics?`;
+                if (confirm(msg)) {
+                    window.go.main.App.GetUserProfile().then(profile => {
+                        profile.ftp = sessionSummary.new_ftp;
+                        if (sessionSummary.new_max_hr > profile.max_hr) {
+                            profile.max_hr = sessionSummary.new_max_hr;
+                        }
+                        window.go.main.App.UpdateUserProfile(profile).then(() => {
+                            alert("Profile successfully updated!");
+                            if (window.ui) window.ui.loadUserProfile();
+                        });
+                    });
+                }
+            }, 1000);
+        }
+
         try {
             if (window.go.main.App.IsStravaConnected) {
                 const isConnected = await window.go.main.App.IsStravaConnected();
@@ -797,6 +821,62 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
     }
 });
 
+document.getElementById('btnFitnessTests').addEventListener('click', async () => {
+    if (Capacitor.isNativePlatform()) { alert("Fitness Tests not available on mobile yet."); return; }
+    try {
+        if (!window.go || !window.go.main) return;
+
+        const tests = await window.go.main.App.GetFitnessTests();
+
+        if (!tests || !Array.isArray(tests)) {
+            alert("The tests were not found in memory. You need to restart 'wails dev' in the terminal for it to recognize the new function in app.go.!");
+            return;
+        }
+
+        const list = document.getElementById('fitnessTestList');
+        list.innerHTML = '';
+
+        tests.forEach(test => {
+            const btn = document.createElement('div');
+            btn.style.cssText = "background: var(--bg-elevated); padding: 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+
+            btn.innerHTML = `
+                <h4 style="margin:0 0 5px 0; color: #fff;">${test.metadata.name}</h4>
+                <p style="margin:0; font-size: 12px; color: var(--text-muted);">${test.metadata.description}</p>
+                <div style="margin-top: 10px; font-size: 11px; font-weight: bold; color: var(--zone-3);">DURATION: ${Math.round(test.total_duration / 60)} MIN</div>
+            `;
+
+            btn.onmouseover = () => {
+                btn.style.borderColor = "var(--zone-4)";
+                btn.style.transform = "scale(1.03)";
+                btn.style.background = "rgba(255, 255, 255, 0.05)";
+                btn.style.boxShadow = "0 8px 15px rgba(0,0,0,0.4)";
+            };
+            btn.onmouseout = () => {
+                btn.style.borderColor = "transparent";
+                btn.style.transform = "scale(1)";
+                btn.style.background = "var(--bg-elevated)";
+                btn.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
+            };
+
+            btn.onclick = async () => {
+                const modal = document.getElementById('fitnessTestModal');
+                modal.classList.remove('active');
+                modal.classList.add('hidden');
+
+                await window.go.main.App.SetBuiltInWorkout(test.test_type);
+                window.ui.els.btnAction.classList.remove('hidden');
+            };
+            list.appendChild(btn);
+        });
+
+        const modal = document.getElementById('fitnessTestModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+
+    } catch (e) { alert("Error loading tests: " + e); }
+});
+
 
 // =======================
 // KEYBOARD DEBUG CONTROLS
@@ -877,7 +957,7 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
         if (window.ui) {
             window.ui.showFinishModal(summary);
         }
-        
+
         try {
             if (window.go && window.go.main && window.go.main.App.IsStravaConnected) {
                 const isConnected = await window.go.main.App.IsStravaConnected();

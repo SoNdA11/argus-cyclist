@@ -96,6 +96,8 @@ type ExportPoint struct {
 type SessionSummary struct {
 	Activity domain.Activity `json:"activity"`
 	Zones    fit.TimeInZones `json:"zones"`
+	NewFTP   int             `json:"new_ftp"`
+	NewMaxHR int             `json:"new_max_hr"`
 }
 
 // ActivityDetails contains the time-series data for the charts
@@ -611,6 +613,21 @@ func (a *App) InitiateCooldown() (string, error) {
 // It calculates statistics, saves the activity to the database,
 // exports the FIT file, and resets the application state.
 func (a *App) FinishSession() (SessionSummary, error) {
+	newFTP := 0
+	if a.activeWorkout != nil && a.activeWorkout.IsTest {
+		switch a.activeWorkout.TestType {
+		case "ramp":
+			best1 := a.calculateMMP(a.sessionPowerData, 60)
+			newFTP = int(float64(best1) * 0.75)
+		case "ftp20":
+			best20 := a.calculateMMP(a.sessionPowerData, 1200)
+			newFTP = int(float64(best20) * 0.95)
+		case "vo2max5":
+			best5 := a.calculateMMP(a.sessionPowerData, 300)
+			newFTP = int(float64(best5) * 0.80)
+		}
+	}
+
 	if !a.isRecording {
 		return SessionSummary{}, fmt.Errorf("not recording")
 	}
@@ -702,7 +719,6 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	fileName := fmt.Sprintf("workout_%s.fit", time.Now().Format("2006-01-02_15-04-05"))
 	fullPath := filepath.Join(workoutsDir, fileName)
 
-	// Lógica para calcular a diferença (queda de bpm)
 	hrr1 := 0
 	if a.hrAt1Min > 0 && a.peakHR > 0 {
 		hrr1 = a.peakHR - a.hrAt1Min
@@ -762,6 +778,8 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	return SessionSummary{
 		Activity: activity,
 		Zones:    zones,
+		NewFTP:   newFTP,
+		NewMaxHR: sessionMaxHR,
 	}, nil
 }
 
@@ -939,43 +957,49 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				elapsed := a.sessionActiveTime - a.workoutStartTimeOffset
 				timeAccumulator := 0.0
 
-				// Discover which segment we are in.
 				foundSegment := false
 				for i, seg := range a.activeWorkout.Segments {
 					segDur := float64(seg.DurationSeconds)
 
-					// Check if the elapsed time falls within this segment.
 					if elapsed >= timeAccumulator && elapsed < (timeAccumulator+segDur) {
 						foundSegment = true
 						currentSegmentIdx = seg.Index
 						workoutName = a.activeWorkout.Metadata.Name
-
-						// Time calculations
 						segmentElapsed := elapsed - timeAccumulator
 						remainingSegmentTime = int(segDur - segmentElapsed)
 
-						// Linear Power Interpolation (Supports Ramps and Steady)
 						progress := segmentElapsed / segDur
 						targetFactor := seg.StartFactor + (seg.EndFactor-seg.StartFactor)*progress
 
 						userFTP := float64(a.GetUserProfile().FTP)
 						if userFTP == 0 {
 							userFTP = 200
-						} // Safe fallback
-
+						}
 						targetWatts = int(targetFactor * userFTP * a.workoutIntensity)
 
-						// Next interval forecast for the UI
+						if seg.FreeRide {
+							if currentMode != "SIM" {
+								a.trainerService.SetTrainerMode("SIM")
+								currentMode = "SIM"
+							}
+							if math.Abs(1.0-lastSentGrade) > 0.1 {
+								a.trainerService.SetGrade(1.0)
+								lastSentGrade = 1.0
+							}
+						} else {
+							if currentMode != "ERG" {
+								a.trainerService.SetTrainerMode("ERG")
+								currentMode = "ERG"
+							}
+							if targetWatts != lastSentPower {
+								a.trainerService.SetPower(float64(targetWatts))
+								lastSentPower = targetWatts
+							}
+						}
+
 						if i+1 < len(a.activeWorkout.Segments) {
 							nextTarget = int(a.activeWorkout.Segments[i+1].StartFactor * userFTP)
 						}
-
-						// Send command to Roll (only if significantly changed so as not to flood BLE)
-						if targetWatts != lastSentPower {
-							a.trainerService.SetPower(float64(targetWatts))
-							lastSentPower = targetWatts
-						}
-
 						break
 					}
 					timeAccumulator += segDur
@@ -1045,15 +1069,24 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 
 			// 2. Training State Package (Only if you are training)
 			if a.isInWorkout {
+				isFreeRide := false
+				segDuration := 0
+				if currentSegmentIdx >= 0 && currentSegmentIdx < len(a.activeWorkout.Segments) {
+					isFreeRide = a.activeWorkout.Segments[currentSegmentIdx].FreeRide
+					segDuration = a.activeWorkout.Segments[currentSegmentIdx].DurationSeconds
+				}
+
 				workoutState := domain.WorkoutState{
 					IsActive:          true,
 					WorkoutName:       workoutName,
 					CurrentSegmentIdx: currentSegmentIdx,
 					SegmentTimeRemain: remainingSegmentTime,
+					SegmentDuration:   segDuration,
 					TargetPower:       targetWatts,
 					NextTargetPower:   nextTarget,
 					CompletionPercent: completionPct,
 					IntensityPct:      int(a.workoutIntensity * 100),
+					IsFreeRide:        isFreeRide,
 				}
 				runtime.EventsEmit(a.ctx, "workout_status", workoutState)
 			}
@@ -1558,4 +1591,30 @@ func (a *App) DisconnectStrava() error {
 		return fmt.Errorf("failed to clear tokens: %v", err)
 	}
 	return nil
+}
+
+func (a *App) GetFitnessTests() []domain.ActiveWorkout {
+	return workout.GetBuiltInAssessments()
+}
+
+func (a *App) SetBuiltInWorkout(testType string) string {
+    tests := workout.GetBuiltInAssessments()
+    
+    for _, t := range tests {
+        if t.TestType == testType {
+            wo := t
+            a.activeWorkout = &wo
+            
+            if a.isRecording {
+                a.workoutStartTimeOffset = a.sessionActiveTime
+                a.isInWorkout = true
+            } else {
+                a.workoutStartTimeOffset = 0
+            }
+            
+            runtime.EventsEmit(a.ctx, "workout_loaded", wo)
+            return "Loaded"
+        }
+    }
+    return "Not found"
 }

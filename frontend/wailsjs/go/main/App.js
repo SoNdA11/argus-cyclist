@@ -78,6 +78,10 @@ export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }
 
+export function GetFitnessTests() {
+  return window['go']['main']['App']['GetFitnessTests']();
+}
+
 export function GetLocalAccounts() {
   return window['go']['main']['App']['GetLocalAccounts']();
 }
@@ -148,6 +152,10 @@ export function SelectLocalAccount(arg1) {
 
 export function SelectProfileImage() {
   return window['go']['main']['App']['SelectProfileImage']();
+}
+
+export function SetBuiltInWorkout(arg1) {
+  return window['go']['main']['App']['SetBuiltInWorkout'](arg1);
 }
 
 export function SetPowerTarget(arg1) {

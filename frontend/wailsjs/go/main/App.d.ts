@@ -43,6 +43,8 @@ export function GetCareerDashboard():Promise<main.CareerDashboard>;
 
 export function GetElevationProfile():Promise<Array<number>>;
 
+export function GetFitnessTests():Promise<Array<domain.ActiveWorkout>>;
+
 export function GetLocalAccounts():Promise<Array<storage.ProfileSummary>>;
 
 export function GetMonthlyActivities(arg1:number,arg2:number):Promise<Array<domain.Activity>>;
@@ -78,6 +80,8 @@ export function SelectGPX():Promise<string>;
 export function SelectLocalAccount(arg1:string):Promise<string>;
 
 export function SelectProfileImage():Promise<string>;
+
+export function SetBuiltInWorkout(arg1:string):Promise<string>;
 
 export function SetPowerTarget(arg1:number):Promise<void>;
 
