@@ -1598,23 +1598,23 @@ func (a *App) GetFitnessTests() []domain.ActiveWorkout {
 }
 
 func (a *App) SetBuiltInWorkout(testType string) string {
-    tests := workout.GetBuiltInAssessments()
-    
-    for _, t := range tests {
-        if t.TestType == testType {
-            wo := t
-            a.activeWorkout = &wo
-            
-            if a.isRecording {
-                a.workoutStartTimeOffset = a.sessionActiveTime
-                a.isInWorkout = true
-            } else {
-                a.workoutStartTimeOffset = 0
-            }
-            
-            runtime.EventsEmit(a.ctx, "workout_loaded", wo)
-            return "Loaded"
-        }
-    }
-    return "Not found"
+	tests := workout.GetBuiltInAssessments()
+
+	for _, t := range tests {
+		if t.TestType == testType {
+			wo := t
+			a.activeWorkout = &wo
+
+			if a.isRecording {
+				a.workoutStartTimeOffset = a.sessionActiveTime
+				a.isInWorkout = true
+			} else {
+				a.workoutStartTimeOffset = 0
+			}
+
+			runtime.EventsEmit(a.ctx, "workout_loaded", wo)
+			return "Loaded"
+		}
+	}
+	return "Not found"
 }
