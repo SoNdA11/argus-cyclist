@@ -781,9 +781,17 @@
 
     <div id="activityDetailModal" class="modal-overlay">
         <div class="modal-content wide-content modern-detail-modal">
-            <div class="modal-header">
-                <h2 id="detail-route-name">Training Name</h2>
-                <button class="close-btn" onclick="ui.closeDetailModal()">×</button>
+            <div class="modal-header"
+                style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h2 id="detail-route-name" style="margin: 0;">Training Name</h2>
+
+                <div style="display: flex; gap: 10px; align-items: center; margin-left: auto;">
+                    <button class="btn-secondary" onclick="window.ui.exportPDF()"
+                        style="padding: 6px 12px; font-size: 0.85rem; border-color: #38bdf8;">Export PDF
+                        Report</button>
+                    <button class="close-btn" onclick="ui.closeDetailModal()"
+                        style="margin-left: 15px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
+                </div>
             </div>
             <div class="detail-body">
                 <div id="detail-metrics-grid" class="modern-stats-grid">

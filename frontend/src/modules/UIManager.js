@@ -18,6 +18,7 @@
 
 import { CONFIG } from '../config.js';
 import * as echarts from 'echarts';
+import { jsPDF } from 'jspdf';
 
 /**
  * UIManager
@@ -1140,6 +1141,8 @@ export class UIManager {
     }
 
     async openActivityDetail(activity) {
+        this.currentViewedActivity = activity;
+
         try {
             const modal = document.getElementById('activityDetailModal');
             document.getElementById('detail-route-name').innerText = activity.route_name || "Free Ride";
@@ -1966,6 +1969,154 @@ export class UIManager {
 
         // 4. Inject into the DOM
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // ============================
+    // EXPORT FUNCTIONS (CSV & PDF)
+    // ============================
+
+    async exportCSV() {
+        if (!this.currentViewedActivity) return;
+        const actId = this.currentViewedActivity.id || this.currentViewedActivity.ID;
+
+        try {
+            this.showToast("Preparing CSV file...", 2000);
+            const result = await window.go.main.App.ExportActivityCSV(actId);
+
+            if (result !== "Cancelled") {
+                this.showToast(result, 4000);
+            }
+        } catch (error) {
+            console.error("Export CSV Error:", error);
+            alert("Failed to export CSV: " + error);
+        }
+    }
+
+    exportPDF() {
+        if (!this.currentViewedActivity) return;
+        const act = this.currentViewedActivity;
+
+        this.showToast("Generating Detailed PDF Report...", 2000);
+
+        try {
+            // Inicializa um documento PDF em formato Paisagem (Landscape) A4
+            const doc = new jsPDF('landscape');
+
+            // =========
+            // 1. HEADER
+            // =========
+            doc.setFillColor(30, 30, 30);
+            doc.rect(0, 0, 300, 35, 'F');
+
+            doc.setFontSize(24);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.text(`ARGUS CYCLIST`, 14, 20);
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(200, 200, 200);
+            doc.text(`PHYSIOLOGICAL PERFORMANCE REPORT`, 14, 28);
+
+            // =======================
+            // 2. TRAINING INFORMATION
+            // =======================
+            const date = new Date(act.created_at).toLocaleString();
+
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${act.route_name || 'Free Ride Training'}`, 14, 48);
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(120, 120, 120);
+            doc.text(`Date & Time: ${date}`, 14, 55);
+
+            // ===========================
+            // 3. METRICS GRID (4 COLUMNS)
+            // ===========================
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+
+            let startY = 68;
+            const col1 = 14;
+            const col2 = 85;
+            const col3 = 155;
+            const col4 = 225;
+
+            const peakHR = act.peak_hr || '--';
+            const hrRecovery = act.hrr_1 || '--';
+
+            let driftText = '--';
+            if (act.duration >= 3600 && act.aerobic_decoupling) {
+                driftText = `${act.aerobic_decoupling.toFixed(2)}%`;
+            }
+
+            doc.setFont("helvetica", "bold");
+            doc.text("GENERAL METRICS", col1, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Duration: ${Math.round(act.duration / 60)} min`, col1, startY + 7);
+            doc.text(`Distance: ${(act.total_distance / 1000).toFixed(2)} km`, col1, startY + 14);
+            doc.text(`Elevation Gain: ${Math.round(act.elevation_gain || 0)} m`, col1, startY + 21);
+            doc.text(`Energy Spent: ${Math.round(act.calories || 0)} kcal`, col1, startY + 28);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("POWER DYNAMICS", col2, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Avg Power: ${act.avg_power} W`, col2, startY + 7);
+            doc.text(`Normalized (NP): ${act.normalized_power || '--'} W`, col2, startY + 14);
+            doc.text(`Intensity Factor (IF): ${(act.intensity_factor || 0).toFixed(2)}`, col2, startY + 21);
+            doc.text(`Training Stress (TSS): ${(act.tss || 0).toFixed(1)}`, col2, startY + 28);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("HEART RATE", col3, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Avg HR: ${act.avg_hr} BPM`, col3, startY + 7);
+            doc.text(`Max HR: ${act.max_hr} BPM`, col3, startY + 14);
+            doc.text(`Peak HR: ${peakHR} BPM`, col3, startY + 21);
+            doc.text(`HR Recovery (1m): ${hrRecovery} BPM`, col3, startY + 28);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("ADVANCED PHYSIOLOGY", col4, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Cardio Load (TRIMP): ${(act.trimp || 0).toFixed(1)}`, col4, startY + 7);
+            doc.text(`Pw:HR Drift: ${driftText}`, col4, startY + 14);
+            doc.text(`Avg Speed: ${(act.avg_speed || 0).toFixed(1)} km/h`, col4, startY + 21);
+
+            // =============================
+            // 4. VISUAL GRAPHIC (TELEMETRY)
+            // =============================
+            if (this.masterChartInstance) {
+                doc.setLineWidth(0.2);
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, 105, 283, 105);
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(40, 40, 40);
+                doc.text("LIVE TELEMETRY CHART", 14, 113);
+
+                const imgData = this.masterChartInstance.getDataURL({
+                    type: 'png',
+                    pixelRatio: 2,
+                    backgroundColor: '#1e1e1e'
+                });
+
+                doc.addImage(imgData, 'PNG', 14, 118, 269, 85);
+            }
+
+            // ============
+            // 5. SAVE FILE
+            // ============
+            const filename = `Argus_Report_${date.replace(/[\/\s:]/g, '_')}.pdf`;
+            doc.save(filename);
+
+            this.showToast("Detailed PDF Exported Successfully!", 3000);
+
+        } catch (error) {
+            console.error("Export PDF Error:", error);
+            alert("Failed to export PDF: " + error);
+        }
     }
 }
 
