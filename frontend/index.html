@@ -830,6 +830,23 @@
         </div>
     </div>
 
+    <div id="ftpAssessmentConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content-small" style="width: 540px; max-width: 90%;">
+            <div class="modal-header" style="display:flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; color: var(--zone-4);">Confirm Baseline FTP</h2>
+                <button class="close-btn"
+                    style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;"
+                    onclick="window.closeAssessmentFTPConfirmModal()">×</button>
+            </div>
+            <p id="ftpAssessmentConfirmMessage"
+                style="color: var(--text-muted); margin-top: 14px; font-size: 14px; line-height: 1.6;"></p>
+            <div class="modal-actions centered" style="margin-top: 24px; gap: 12px; justify-content: flex-end;">
+                <button id="btnEditAssessmentFTP" class="btn-secondary">Edit FTP</button>
+                <button id="btnProceedAssessmentFTP" class="btn-primary">Proceed</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="elevation-header"><span>Elevation Profile</span><span id="elevationCurrent"></span></div>
         <div class="elevation-graph-container">
