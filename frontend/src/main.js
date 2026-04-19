@@ -153,6 +153,43 @@ if (Capacitor.isNativePlatform()) {
     document.getElementById('btnConnHR').classList.remove('hidden');
 }
 
+let pendingAssessmentTest = null;
+
+function closeAssessmentFTPConfirmModal() {
+    const modal = document.getElementById('ftpAssessmentConfirmModal');
+    if (!modal) return;
+
+    modal.classList.remove('active');
+    modal.classList.add('hidden');
+    pendingAssessmentTest = null;
+}
+
+async function openAssessmentFTPConfirmModal(test) {
+    const profile = await window.go.main.App.GetUserProfile();
+    const ftp = profile?.ftp || 200;
+
+    pendingAssessmentTest = test;
+
+    const message = document.getElementById('ftpAssessmentConfirmMessage');
+    const proceedButton = document.getElementById('btnProceedAssessmentFTP');
+
+    if (message) {
+        message.textContent = `You are about to start an FTP Assessment. Your current saved FTP is ${ftp} W. The test warm-up and scaling will be based on this value.`;
+    }
+
+    if (proceedButton) {
+        proceedButton.textContent = `Proceed with ${ftp} W`;
+    }
+
+    const modal = document.getElementById('ftpAssessmentConfirmModal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
+}
+
+window.closeAssessmentFTPConfirmModal = closeAssessmentFTPConfirmModal;
+
 window.closeWorkout = async () => {
     if (confirm("Stop the structured workout and return to Free Ride?")) {
         if (typeof workoutCtrl !== 'undefined') workoutCtrl.hide();
@@ -204,6 +241,22 @@ document.getElementById('btnCloseSettings').addEventListener('click', () => ui.t
 document.getElementById('btnOpenSettings').addEventListener('click', async () => {
     ui.toggleSettings(true);
     await window.checkStravaStatus();
+});
+
+document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
+    closeAssessmentFTPConfirmModal();
+    await ui.openProfileSettings();
+    await window.checkStravaStatus();
+});
+
+document.getElementById('btnProceedAssessmentFTP').addEventListener('click', async () => {
+    if (!pendingAssessmentTest) return;
+
+    const selectedTest = pendingAssessmentTest;
+    closeAssessmentFTPConfirmModal();
+
+    await window.go.main.App.SetBuiltInWorkout(selectedTest.test_type);
+    window.ui.els.btnAction.classList.remove('hidden');
 });
 
 document.getElementById('btnToggleView').addEventListener('click', () => {
@@ -864,8 +917,7 @@ document.getElementById('btnFitnessTests').addEventListener('click', async () =>
                 modal.classList.remove('active');
                 modal.classList.add('hidden');
 
-                await window.go.main.App.SetBuiltInWorkout(test.test_type);
-                window.ui.els.btnAction.classList.remove('hidden');
+                await openAssessmentFTPConfirmModal(test);
             };
             list.appendChild(btn);
         });

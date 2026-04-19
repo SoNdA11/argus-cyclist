@@ -653,6 +653,29 @@ export class UIManager {
     }
 
     /**
+     * Opens the settings modal on the Profile tab and focuses the FTP field.
+     */
+    async openProfileSettings() {
+        this.toggleSettings(true);
+
+        document.querySelectorAll('.tab-pane').forEach((el) => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach((el) => el.classList.remove('active'));
+
+        const profileTab = document.getElementById('tab-profile');
+        const profileTabButton = document.querySelector('.tab-btn[onclick*="tab-profile"]');
+
+        if (profileTab) profileTab.classList.add('active');
+        if (profileTabButton) profileTabButton.classList.add('active');
+
+        await this.loadUserProfile();
+
+        if (this.els.inputFTP) {
+            this.els.inputFTP.focus();
+            this.els.inputFTP.select();
+        }
+    }
+
+    /**
      * Update UI based on recording state.
      * @param {'RECORDING' | 'PAUSED' | 'IDLE'} state
      */
