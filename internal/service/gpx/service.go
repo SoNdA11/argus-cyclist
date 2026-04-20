@@ -19,6 +19,7 @@ package gpx
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"argus-cyclist/internal/domain"
 
@@ -41,10 +42,27 @@ func (s *Service) LoadAndProcess(filepath string) ([]domain.RoutePoint, error) {
 		return nil, err
 	}
 
+	return s.processParsedGPX(gpxFile)
+}
+
+func (s *Service) LoadAndProcessContent(content string) ([]domain.RoutePoint, error) {
+	gpxFile, err := gpx.Parse(strings.NewReader(content))
+	if err != nil {
+		return nil, err
+	}
+
+	return s.processParsedGPX(gpxFile)
+}
+
+func (s *Service) processParsedGPX(gpxFile *gpx.GPX) ([]domain.RoutePoint, error) {
+	if gpxFile == nil {
+		return nil, fmt.Errorf("invalid GPX data")
+	}
+
 	var processedPoints []domain.RoutePoint
 	var totalDist float64
-	
-	var previousPoint *gpx.GPXPoint 
+
+	var previousPoint *gpx.GPXPoint
 	firstPoint := true
 
 	processPoint := func(p *gpx.GPXPoint) {
@@ -52,7 +70,7 @@ func (s *Service) LoadAndProcess(filepath string) ([]domain.RoutePoint, error) {
 		if !firstPoint && previousPoint != nil {
 			distDelta = previousPoint.Distance3D(p)
 		}
-		
+
 		totalDist += distDelta
 
 		processedPoints = append(processedPoints, domain.RoutePoint{
@@ -85,8 +103,8 @@ func (s *Service) LoadAndProcess(filepath string) ([]domain.RoutePoint, error) {
 	}
 
 	if len(processedPoints) < 2 {
-        return nil, fmt.Errorf("the GPX file does not contain valid GPS points")
-    }
+		return nil, fmt.Errorf("the GPX file does not contain valid GPS points")
+	}
 
 	s.points = smoothGrades(processedPoints)
 	return s.points, nil
@@ -101,6 +119,10 @@ func (s *Service) GetTotalDistance() float64 {
 		return 0
 	}
 	return s.points[len(s.points)-1].Distance
+}
+
+func (s *Service) SetPoints(points []domain.RoutePoint) {
+	s.points = points
 }
 
 func (s *Service) GetPointAtDistance(distanceMeter float64) domain.RoutePoint {
@@ -151,7 +173,7 @@ func (s *Service) GetPointAtDistance(distanceMeter float64) domain.RoutePoint {
 	}
 }
 
-// Função auxiliar simples para interpolação
+// lerp performs linear interpolation between two values.
 func lerp(start, end, ratio float64) float64 {
 	return start + ratio*(end-start)
 }
@@ -160,8 +182,9 @@ func smoothGrades(points []domain.RoutePoint) []domain.RoutePoint {
 	windowSize := 5
 	count := len(points)
 
-	if count < 2 { return points }
-
+	if count < 2 {
+		return points
+	}
 	for i := 0; i < count; i++ {
 		start := math.Max(0, float64(i-windowSize))
 		end := math.Min(float64(count-1), float64(i+windowSize))
@@ -174,8 +197,12 @@ func smoothGrades(points []domain.RoutePoint) []domain.RoutePoint {
 
 		if distDelta > 10.0 {
 			grade := (elevDelta / distDelta) * 100
-			if grade > 25 { grade = 25 }
-			if grade < -25 { grade = -25 }
+			if grade > 25 {
+				grade = 25
+			}
+			if grade < -25 {
+				grade = -25
+			}
 			points[i].Grade = grade
 		} else {
 			points[i].Grade = 0

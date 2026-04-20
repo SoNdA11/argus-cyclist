@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -55,6 +56,7 @@ type App struct {
 	activeWorkout          *domain.ActiveWorkout
 	workoutIntensity       float64
 	workoutStartTimeOffset float64
+	currentDirectGrade     float64
 
 	workoutStartTime time.Time
 	isInWorkout      bool
@@ -64,10 +66,10 @@ type App struct {
 
 	isTrainerConnected bool
 	isHRConnected      bool
-
-	currentDist   float64
-	telemetryChan chan domain.Telemetry
-	cancelSim     context.CancelFunc
+	isVirtualTrainer   bool
+	currentDist        float64
+	telemetryChan      chan domain.Telemetry
+	cancelSim          context.CancelFunc
 
 	// Session metadata
 	currentRouteName     string    // Selected GPX route name
@@ -272,6 +274,59 @@ func (a *App) SelectLocalAccount(id string) (string, error) {
 	return "ok", nil
 }
 
+// EnsureEventModeProfile loads a shared profile used by the home event launcher.
+// This keeps event sessions independent from manually created rider accounts.
+func (a *App) EnsureEventModeProfile() (string, error) {
+	const eventModeProfileID = "event-mode-shared"
+
+	if err := a.storageService.LoadUserDatabase(eventModeProfileID); err != nil {
+		return "", err
+	}
+
+	profile, _ := a.storageService.GetProfile()
+	if profile.Name == "" || profile.Name == "New Rider" {
+		profile.Name = "Event Mode"
+	}
+	if profile.Weight <= 0 {
+		profile.Weight = 75
+	}
+	if profile.BikeWeight <= 0 {
+		profile.BikeWeight = 9
+	}
+	if profile.FTP <= 0 {
+		profile.FTP = 250
+	}
+	if profile.Units == "" {
+		profile.Units = "metric"
+	}
+	if profile.Level <= 0 {
+		profile.Level = 1
+	}
+
+	if err := a.storageService.UpdateProfile(profile); err != nil {
+		return "", err
+	}
+
+	a.physicsEngine.UserWeight = profile.Weight
+	a.physicsEngine.BikeWeight = profile.BikeWeight
+
+	return "ok", nil
+}
+
+// GetDeviceConnectionState returns the current backend connection state for trainer and HR.
+func (a *App) GetDeviceConnectionState() map[string]interface{} {
+	trainerKind := "real"
+	if a.isVirtualTrainer {
+		trainerKind = "virtual"
+	}
+
+	return map[string]interface{}{
+		"trainer_connected": a.isTrainerConnected,
+		"hr_connected":      a.isHRConnected,
+		"trainer_kind":      trainerKind,
+	}
+}
+
 // DeleteLocalAccount removes a user profile and its associated data permanently.
 func (a *App) DeleteLocalAccount(id string) error {
 	return a.storageService.DeleteLocalAccount(id)
@@ -360,6 +415,90 @@ func (a *App) SelectGPX() string {
 	return a.currentRouteName
 }
 
+// LoadPredefinedKOMSegment injects the built-in event climb into the active route state.
+func (a *App) LoadPredefinedKOMSegment() (string, error) {
+	points, err := a.gpxService.LoadAndProcessContent(gpx.GetBuiltInKOMSegmentGPX())
+	if err != nil {
+		return "", err
+	}
+
+	a.currentRouteName = "KOM Event Segment"
+
+	totalDistKm := 0.0
+	if len(points) > 0 {
+		totalDistKm = points[len(points)-1].Distance / 1000.0
+	}
+	runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("Built-in KOM loaded: %d points | %.2f km", len(points), totalDistKm))
+
+	return a.currentRouteName, nil
+}
+
+// SetDirectGrade sets the trainer resistance to a direct grade percentage (hardcoded control).
+func (a *App) SetDirectGrade(grade float64) error {
+	a.currentDirectGrade = grade
+	if a.trainerService != nil {
+		a.trainerService.SetGrade(grade)
+	}
+	return nil
+}
+
+// SetKOMGradeSchedule creates a virtual KOM route with a custom grade schedule from frontend.
+func (a *App) SetKOMGradeSchedule(grades string) (string, error) {
+	gradeSchedule := []float64{0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8}
+
+	if grades != "" {
+		var parsed []float64
+		if err := json.Unmarshal([]byte(grades), &parsed); err == nil && len(parsed) > 0 {
+			gradeSchedule = parsed
+		}
+	}
+
+	numPoints := 30
+	routeLen := 3000.0
+	points := make([]domain.RoutePoint, numPoints)
+
+	startLat := -23.560000
+	startLon := -46.650000
+	startEle := 760.0
+
+	for i := 0; i < numPoints; i++ {
+		pct := float64(i) / float64(numPoints-1)
+
+		gradeIdx := pct * float64(len(gradeSchedule)-1)
+		idx1 := int(gradeIdx)
+		idx2 := idx1 + 1
+		if idx2 >= len(gradeSchedule) {
+			idx2 = len(gradeSchedule) - 1
+		}
+		t := gradeIdx - float64(idx1)
+		grade := gradeSchedule[idx1] + t*(gradeSchedule[idx2]-gradeSchedule[idx1])
+
+		lat := startLat - (float64(i) * 0.0012)
+		lon := startLon - (float64(i) * 0.0012)
+		dist := float64(i) * (routeLen / float64(numPoints))
+
+		ele := startEle
+		if i > 0 {
+			segLen := routeLen / float64(numPoints)
+			ele = points[i-1].Elevation + segLen*(grade/100)
+		}
+
+		points[i] = domain.RoutePoint{
+			Latitude:  lat,
+			Longitude: lon,
+			Elevation: ele,
+			Distance:  dist,
+			Grade:     grade,
+		}
+	}
+
+	a.gpxService.SetPoints(points)
+	a.currentRouteName = "KOM Event Segment"
+	runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("KOM route set: %d points", len(points)))
+
+	return a.currentRouteName, nil
+}
+
 // GetRoutePath returns all processed GPX points.
 func (a *App) GetRoutePath() []domain.RoutePoint {
 	return a.gpxService.GetAllPoints()
@@ -445,6 +584,7 @@ func (a *App) ConnectTrainer(macAddress string) (string, error) {
 	}
 
 	a.isTrainerConnected = true
+	a.isVirtualTrainer = false
 	return "Trainer Connected", nil
 }
 
@@ -468,6 +608,7 @@ func (a *App) ConnectVirtualTrainer() (string, error) {
 	}
 
 	a.isTrainerConnected = true
+	a.isVirtualTrainer = true
 	return "Simulator Active", nil
 }
 
@@ -478,6 +619,7 @@ func (a *App) DisconnectTrainer() string {
 		a.trainerService.Disconnect()
 		a.isTrainerConnected = false
 	}
+	a.isVirtualTrainer = false
 	return "Disconnected"
 }
 
@@ -1028,11 +1170,17 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 					currentMode = "SIM"
 				}
 
+				// Use direct grade if set (KOM mode), otherwise use GPX route grade
+				activeGrade := routePoint.Grade
+				if a.currentDirectGrade != 0 {
+					activeGrade = a.currentDirectGrade
+				}
+
 				// Applies the route slope (grid) to the roller
 				// Optimization: Only sends if changes exceed 0.1%
-				if math.Abs(routePoint.Grade-lastSentGrade) > 0.1 {
-					a.trainerService.SetGrade(routePoint.Grade)
-					lastSentGrade = routePoint.Grade
+				if math.Abs(activeGrade-lastSentGrade) > 0.1 {
+					a.trainerService.SetGrade(activeGrade)
+					lastSentGrade = activeGrade
 				}
 			}
 
@@ -1040,7 +1188,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			// PHYSICS and STATE UPDATE
 			// ========================
 
-			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), routePoint.Grade)
+			activeGrade := routePoint.Grade
+			if a.currentDirectGrade != 0 {
+				activeGrade = a.currentDirectGrade
+			}
+
+			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), activeGrade)
 			a.currentDist += speedMs * dt
 
 			if a.lastAltitude != -9999.0 {
@@ -1330,6 +1483,7 @@ func (a *App) DeleteActivityHistory(activityID uint) error {
 func (a *App) ResetAppState() {
 	a.gpxService = gpx.NewService()
 	a.workoutService = workout.NewService()
+	a.currentRouteName = ""
 
 	// Resets the physics engine to remove any remaining rotational tilt
 	if profile, err := a.storageService.GetProfile(); err == nil {

@@ -33,6 +33,8 @@ export function DisconnectStrava():Promise<void>;
 
 export function DisconnectTrainer():Promise<string>;
 
+export function EnsureEventModeProfile():Promise<string>;
+
 export function FinishSession():Promise<main.SessionSummary>;
 
 export function GetActivities():Promise<Array<domain.Activity>>;
@@ -40,6 +42,8 @@ export function GetActivities():Promise<Array<domain.Activity>>;
 export function GetActivityDetails(arg1:string):Promise<fit.ActivityDetails>;
 
 export function GetCareerDashboard():Promise<main.CareerDashboard>;
+
+export function GetDeviceConnectionState():Promise<Record<string, any>>;
 
 export function GetElevationProfile():Promise<Array<number>>;
 
@@ -60,6 +64,8 @@ export function GetUserProfile():Promise<domain.UserProfile>;
 export function InitiateCooldown():Promise<string>;
 
 export function IsStravaConnected():Promise<boolean>;
+
+export function LoadPredefinedKOMSegment():Promise<string>;
 
 export function LoadWorkout():Promise<string>;
 
@@ -82,6 +88,10 @@ export function SelectLocalAccount(arg1:string):Promise<string>;
 export function SelectProfileImage():Promise<string>;
 
 export function SetBuiltInWorkout(arg1:string):Promise<string>;
+
+export function SetDirectGrade(arg1:number):Promise<void>;
+
+export function SetKOMGradeSchedule(arg1:string):Promise<string>;
 
 export function SetPowerTarget(arg1:number):Promise<void>;
 

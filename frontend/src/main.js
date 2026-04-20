@@ -19,6 +19,7 @@ import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
+import { ChallengeController } from './modules/ChallengeController.js';
 
 // Capacitor imports for the Mobile version
 import { Capacitor } from '@capacitor/core';
@@ -131,6 +132,9 @@ window.chart = chart;
 
 const workoutCtrl = new WorkoutController();
 window.workoutCtrl = workoutCtrl;
+
+const challengeCtrl = new ChallengeController(ui, mapCtrl, chart);
+window.challengeCtrl = challengeCtrl;
 
 // Global State
 window.totalRouteDistance = 0;
@@ -313,39 +317,199 @@ const svgIcons = {
     wait: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22"></path><path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2"></path></svg>`
 };
 
-// 1. SCAN TRAINERS (Desktop only)
-document.getElementById('btnScanTrainer').addEventListener('click', async () => {
+const trainerUIs = [
+    {
+        status: document.getElementById('statusTrainer'),
+        list: document.getElementById('trainerList'),
+        scan: document.getElementById('btnScanTrainer'),
+        connect: document.getElementById('btnConnTrainer'),
+        virtual: document.getElementById('btnConnVirtual'),
+        type: 'settings'
+    },
+    {
+        status: document.getElementById('eventTrainerStatus'),
+        list: document.getElementById('eventTrainerList'),
+        scan: document.getElementById('btnEventScanTrainer'),
+        connect: document.getElementById('btnEventConnectTrainer'),
+        virtual: document.getElementById('btnEventConnectVirtual'),
+        type: 'event'
+    }
+];
+
+function getTrainerStateLabel(state) {
+    if (!state?.trainer_connected) return "Disconnected";
+    return state.trainer_kind === 'virtual' ? "Simulator Active" : "Trainer Connected";
+}
+
+function setTrainerStatusForAll(text, color = "") {
+    trainerUIs.forEach((uiSet) => {
+        if (!uiSet.status) return;
+        uiSet.status.innerText = text;
+        uiSet.status.style.color = color;
+    });
+}
+
+function populateTrainerLists(devices) {
+    trainerUIs.forEach((uiSet) => {
+        if (!uiSet.list) return;
+        uiSet.list.innerHTML = '<option value="">Select device...</option>';
+        devices.forEach((device) => {
+            const opt = document.createElement('option');
+            opt.value = device.address;
+            opt.text = device.name;
+            uiSet.list.appendChild(opt);
+        });
+    });
+}
+
+function syncTrainerListsValue(sourceValue) {
+    trainerUIs.forEach((uiSet) => {
+        if (uiSet.list) uiSet.list.value = sourceValue;
+    });
+}
+
+function renderTrainerUIState(state) {
+    const label = getTrainerStateLabel(state);
+    const color = !state?.trainer_connected ? "" : state.trainer_kind === 'virtual' ? "#00ADD8" : "var(--argus-safe)";
+    setTrainerStatusForAll(label, color);
+
+    trainerUIs.forEach((uiSet) => {
+        if (!uiSet.scan || !uiSet.connect || !uiSet.virtual) return;
+
+        uiSet.scan.disabled = false;
+        uiSet.connect.disabled = false;
+        uiSet.virtual.disabled = false;
+
+        if (uiSet.type === 'settings') {
+            uiSet.scan.innerHTML = svgIcons.scan;
+            uiSet.connect.innerHTML = state?.trainer_connected && state.trainer_kind === 'real' ? svgIcons.disconnect : svgIcons.bt;
+            uiSet.virtual.innerHTML = state?.trainer_connected && state.trainer_kind === 'virtual' ? svgIcons.disconnect : svgIcons.virtual;
+        } else {
+            uiSet.connect.textContent = state?.trainer_connected && state.trainer_kind === 'real' ? 'Disconnect Trainer' : 'Connect Selected';
+            uiSet.virtual.textContent = state?.trainer_connected && state.trainer_kind === 'virtual' ? 'Disconnect Simulator' : 'Use Simulator';
+            uiSet.scan.textContent = 'Scan Trainer';
+        }
+
+        if (state?.trainer_connected && state.trainer_kind === 'real') {
+            uiSet.connect.classList.remove('hidden');
+            if (uiSet.type === 'settings') uiSet.scan.classList.add('hidden');
+            uiSet.virtual.disabled = true;
+        } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
+            if (uiSet.type === 'settings') uiSet.connect.classList.add('hidden');
+            if (uiSet.list) uiSet.list.classList.add('hidden');
+            uiSet.virtual.classList.remove('hidden');
+            uiSet.scan.disable = true;
+            uiSet.connect.disabled = true;
+        } else {
+            if (uiSet.type === 'settings') uiSet.scan.classList.remove('hidden');
+            if (uiSet.list && uiSet.list.options.length > 1) {
+                uiSet.connect.classList.remove('hidden');
+            } else if (uiSet.type === 'settings') {
+                uiSet.connect.classList.add('hidden');
+            } else {
+                uiSet.connect.classList.add('hidden');
+            }
+        }
+    });
+}
+
+async function refreshTrainerConnectionState() {
+    if (window.go?.main?.App?.GetDeviceConnectionState) {
+        const state = await window.go.main.App.GetDeviceConnectionState();
+        renderTrainerUIState(state);
+        return state;
+    }
+
+    return { trainer_connected: false, trainer_kind: 'real' };
+}
+
+async function scanTrainerDevices() {
     if (Capacitor.isNativePlatform()) return;
 
-    const btnScan = document.getElementById('btnScanTrainer');
-    const btnConn = document.getElementById('btnConnTrainer');
-    const list = document.getElementById('trainerList');
-    const status = document.getElementById('statusTrainer');
-
-    btnScan.innerHTML = svgIcons.wait;
-    btnScan.disabled = true;
-    status.innerText = "Scanning...";
+    trainerUIs.forEach((uiSet) => {
+        if (uiSet.scan) {
+            if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.wait;
+            else uiSet.scan.textContent = 'Scanning...';
+            uiSet.scan.disabled = true;
+        }
+    });
+    setTrainerStatusForAll("Scanning...");
 
     try {
         const devices = await window.go.main.App.ScanTrainers();
-        list.innerHTML = '<option value="">Select device...</option>';
+        populateTrainerLists(devices || []);
 
         if (devices && devices.length > 0) {
-            devices.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.address; opt.text = d.name;
-                list.appendChild(opt);
+            trainerUIs.forEach((uiSet) => {
+                uiSet.list?.classList.remove('hidden');
+                uiSet.connect?.classList.remove('hidden');
+                if (uiSet.type === 'settings') uiSet.scan?.classList.add('hidden');
             });
-            list.classList.remove('hidden');
-            btnConn.classList.remove('hidden');
-            btnScan.classList.add('hidden');
-            status.innerText = "Select a device";
+            setTrainerStatusForAll("Select a device");
         } else {
-            status.innerText = "No devices found";
-            btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
+            setTrainerStatusForAll("No devices found");
+            trainerUIs.forEach((uiSet) => {
+                if (uiSet.scan) {
+                    if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
+                    else uiSet.scan.textContent = 'Scan Trainer';
+                    uiSet.scan.disabled = false;
+                }
+            });
         }
     } catch (err) {
-        status.innerText = "Scan error"; btnScan.innerHTML = svgIcons.scan; btnScan.disabled = false;
+        setTrainerStatusForAll("Scan error");
+        trainerUIs.forEach((uiSet) => {
+            if (uiSet.scan) {
+                if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
+                else uiSet.scan.textContent = 'Scan Trainer';
+                uiSet.scan.disabled = false;
+            }
+        });
+    }
+}
+
+document.getElementById('btnScanTrainer')?.addEventListener('click', scanTrainerDevices);
+document.getElementById('btnEventScanTrainer')?.addEventListener('click', scanTrainerDevices);
+document.getElementById('btnEventConnectTrainer')?.addEventListener('click', async () => {
+    const status = document.getElementById('eventTrainerStatus');
+    const list = document.getElementById('eventTrainerList');
+
+    if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
+        if (status.innerText === "Trainer Connected") {
+            await window.go.main.App.DisconnectTrainer();
+            return;
+        }
+
+        const selectedMac = list.value;
+        if (!selectedMac) { alert("Please select a trainer from the list."); return; }
+
+        document.getElementById('btnEventConnectTrainer').disabled = true;
+        try {
+            await window.go.main.App.ConnectTrainer(selectedMac);
+        } catch (err) {
+            status.innerText = "Error connecting";
+            status.style.color = "var(--argus-alert)";
+            document.getElementById('btnEventConnectTrainer').disabled = false;
+        }
+    }
+});
+
+document.getElementById('btnEventConnectVirtual')?.addEventListener('click', async () => {
+    if (Capacitor.isNativePlatform()) return;
+    const status = document.getElementById('eventTrainerStatus');
+
+    if (status.innerText === "Simulator Active") {
+        await window.go.main.App.DisconnectTrainer();
+        return;
+    }
+
+    document.getElementById('btnEventConnectVirtual').disabled = true;
+    try {
+        await window.go.main.App.ConnectVirtualTrainer();
+    } catch (err) {
+        status.innerText = "Error connecting";
+        status.style.color = "var(--argus-alert)";
+        document.getElementById('btnEventConnectVirtual').disabled = false;
     }
 });
 
@@ -376,6 +540,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
             (data) => {
                 ui.updateTelemetry(data, window.totalRouteDistance);
                 if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+                challengeCtrl.updateTelemetry(data);
             }
         );
         btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
@@ -965,9 +1130,17 @@ window.openTab = openTab;
 if (window.runtime && !Capacitor.isNativePlatform()) {
 
     window.runtime.EventsOn("ble_connection_status", (data) => {
+        if (data?.msg) {
+            const tone = data.stage?.includes('CONNECTED')
+                ? (data.msg.includes('Virtual') ? "#00ADD8" : "var(--argus-safe)")
+                : "";
+            setTrainerStatusForAll(data.msg, tone);
+        }
         if (data.stage === "READY") {
             mapCtrl.followCyclist = true;
         }
+
+        refreshTrainerConnectionState();
     });
 
     window.runtime.EventsOn("status_change", (status) => {
@@ -992,6 +1165,7 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
     window.runtime.EventsOn("telemetry_update", (data) => {
         ui.updateTelemetry(data, totalRouteDistance);
         mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+        challengeCtrl.updateTelemetry(data);
     });
 
     window.runtime.EventsOn("cooldown_update", (data) => {
@@ -1059,17 +1233,26 @@ window.toggleCreateForm = (show) => {
     const form = document.getElementById('createProfileForm');
     const subtitle = document.getElementById('homeSubtitle');
     const welcome = document.getElementById('homeWelcome');
+    const eventActions = document.querySelector('.home-event-actions');
 
     if (show) {
         grid.style.display = 'none';
         form.classList.remove('hidden');
         form.style.display = 'block';
+        if (eventActions) {
+            eventActions.classList.add('hidden');
+            eventActions.style.display = 'none';
+        }
         if (subtitle) subtitle.innerText = "Create a new rider profile";
         if (welcome) welcome.innerText = "New rider";
     } else {
         grid.style.display = '';
         form.classList.add('hidden');
         form.style.display = 'none';
+        if (eventActions) {
+            eventActions.classList.remove('hidden');
+            eventActions.style.display = '';
+        }
         if (welcome) welcome.innerText = "Welcome back";
         if (subtitle) subtitle.innerText = "Select a rider profile to start your session.";
     }
@@ -1234,12 +1417,16 @@ window.logoutProfile = async () => {
         window.workoutCtrl.hide();
     }
 
+    if (window.challengeCtrl) {
+        await window.challengeCtrl.abortActiveChallenge();
+    }
+
     // 5. Displays the home screen again
     const homeScreen = document.getElementById('homeScreen');
     if (homeScreen) {
         homeScreen.classList.add('active');
     }
-
+    await refreshTrainerConnectionState();
     initHomeScreen();
 };
 
@@ -1256,7 +1443,8 @@ async function initHomeScreen() {
     grid.innerHTML = "";
 
     try {
-        const accounts = await window.go.main.App.GetLocalAccounts();
+        const rawAccounts = await window.go.main.App.GetLocalAccounts();
+        const accounts = (rawAccounts || []).filter(acc => acc.name !== 'Event Mode');
         const welcome = document.getElementById('homeWelcome');
         const subtitle = document.getElementById('homeSubtitle');
 
@@ -1332,5 +1520,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // We wait 300ms to guarantee window.go.main is ready
     setTimeout(() => {
         initHomeScreen();
+        refreshTrainerConnectionState();
     }, 300);
 });

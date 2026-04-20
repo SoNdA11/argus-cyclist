@@ -23,6 +23,12 @@
             <div class="profile-grid" id="profileGrid">
             </div>
 
+            <div class="home-event-actions">
+                <button id="btnHomeEventMode" class="home-event-btn">Open Event Mode</button>
+                <button id="btnHomeLeaderboard" class="home-event-btn home-event-btn-secondary">Offline
+                    Leaderboard</button>
+            </div>
+
             <div id="createProfileForm" class="create-profile-form hidden">
                 <div class="profile-avatar-container" onclick="window.selectAvatar()" style="margin: 0 auto 15px auto;">
                     <img id="newAvatarPreview" src="src/assets/images/argus-cyclist.png" alt="Avatar">
@@ -43,327 +49,338 @@
 
     <div id="settingsModal" class="modal-overlay">
         <div class="settings-content">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="openTab('tab-profile', event)">
-                    Profile & Devices
-                </button>
+            <div class="settings-shell">
+                <aside class="settings-nav tabs">
+                    <button class="tab-btn active" data-tab="tab-profile" onclick="openTab('tab-profile', event)">
+                        <strong>Profile & Devices</strong>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-history" onclick="openTab('tab-history', event)">
+                        <strong>History & Stats</strong>
+                    </button>
 
-                <button class="tab-btn" onclick="openTab('tab-history', event)">
-                    History & Stats
-                </button>
+                    <button class="tab-btn" data-tab="tab-career" onclick="openTab('tab-career', event)">
+                        <strong>Career Dashboard</strong>
+                    </button>
+                </aside>
 
-                <button class="tab-btn" onclick="openTab('tab-career', event)">
-                    Career Dashboard
-                </button>
-            </div>
+                <div class="settings-panels">
+                    <div id="tab-profile" class="tab-pane active">
+                        <div class="settings-grid compact-profile">
+                            <div class="profile-left">
+                                <div class="profile-avatar-container" onclick="window.ui.selectProfileImage()">
+                                    <img id="profileImage" src="src/assets/images/argus-cyclist.png" alt="Profile">
+                                    <div class="avatar-overlay">📷 Change</div>
+                                </div>
 
-            <div id="tab-profile" class="tab-pane active">
-                <div class="settings-grid compact-profile">
-                    <div class="profile-left">
-                        <div class="profile-avatar-container" onclick="window.ui.selectProfileImage()">
-                            <img id="profileImage" src="src/assets/images/argus-cyclist.png" alt="Profile">
-                            <div class="avatar-overlay">📷 Change</div>
-                        </div>
+                                <h3 id="profileNameDisplay"
+                                    style="margin-top:15px; margin-bottom: 5px; color:var(--text-main)">
+                                    Cyclist</h3>
 
-                        <h3 id="profileNameDisplay" style="margin-top:15px; margin-bottom: 5px; color:var(--text-main)">
-                            Cyclist</h3>
+                                <div class="player-progression">
 
-                        <div class="player-progression">
+                                    <div class="level-row">
+                                        <div class="level-pill">LVL <span id="level-val">1</span></div>
 
-                            <div class="level-row">
-                                <div class="level-pill">LVL <span id="level-val">1</span></div>
+                                        <div class="xp-container-inline">
+                                            <div class="xp-bar-bg">
+                                                <div id="xp-fill" class="xp-bar-fill" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <div class="xp-container-inline">
-                                    <div class="xp-bar-bg">
-                                        <div id="xp-fill" class="xp-bar-fill" style="width: 0%"></div>
+                                    <div class="badges-row">
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="badges-row">
+                            <div class="profile-right">
+                                <section class="settings-section">
+                                    <h3>👤 Personal Data</h3>
+
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label>Name</label>
+                                            <input type="text" id="inputName" placeholder="Name">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Units</label>
+                                            <select id="selectUnits">
+                                                <option value="metric">Metric (km)</option>
+                                                <option value="imperial">Imperial (mi)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label>Weight (kg)</label>
+                                            <input type="number" id="inputRiderWeight" step="0.5">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Bike (kg)</label>
+                                            <input type="number" id="inputBikeWeight" step="0.5">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>FTP (w)</label>
+                                            <input type="number" id="inputFTP">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label>Max HR (bpm)</label>
+                                            <input type="number" id="inputMaxHR" placeholder="190" min="100" max="250">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>LTHR (bpm)</label>
+                                            <input type="number" id="inputLTHR" placeholder="170" min="100" max="250">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Resting HR</label>
+                                            <input type="number" id="inputRestingHR" placeholder="60" min="30"
+                                                max="120">
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="settings-section">
+                                    <h3>📡 Connections</h3>
+
+                                    <div class="device-row compact">
+                                        <span>Trainer</span>
+                                        <div>
+                                            <span id="statusTrainer" class="status-indicator">Disconnected</span>
+
+                                            <select id="trainerList" class="hidden"
+                                                style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
+                                                <option value="">Select device...</option>
+                                            </select>
+
+                                            <button id="btnConnVirtual" class="btn-icon-small" title="Use Simulator"
+                                                style="margin-right: 5px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                                    <line x1="2" y1="20" x2="22" y2="20"></line>
+                                                </svg>
+                                            </button>
+
+                                            <button id="btnScanTrainer" class="btn-icon-small"
+                                                title="Search Real Hardware" style="margin-right: 5px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg>
+                                            </button>
+
+                                            <button id="btnConnTrainer" class="btn-icon-small hidden" title="Connect">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
+                                                    </polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="device-row compact">
+                                        <span>Heart Rate</span>
+                                        <div>
+                                            <span id="statusHR" class="status-indicator">Disconnected</span>
+
+                                            <select id="hrList" class="hidden"
+                                                style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
+                                                <option value="">Select device...</option>
+                                            </select>
+
+                                            <button id="btnScanHR" class="btn-icon-small" title="Search HR Monitors"
+                                                style="margin-right: 5px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg>
+                                            </button>
+
+                                            <button id="btnConnHR" class="btn-icon-small hidden" title="Connect"
+                                                style="margin-right: 5px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
+                                                    </polyline>
+                                                </svg>
+                                            </button>
+
+                                            <button id="btnWaitHR" class="btn-icon-small hidden" title="Waiting..."
+                                                style="margin-right: 5px; opacity: 0.5; cursor: wait;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <path d="M5 22h14"></path>
+                                                    <path d="M5 2h14"></path>
+                                                    <path
+                                                        d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22">
+                                                    </path>
+                                                    <path
+                                                        d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="settings-section">
+                                    <h3>⚙️ Trainer Control (ANT+ FE-C)</h3>
+                                    <div class="input-group">
+                                        <label>Mode</label>
+                                        <select id="selectTrainerMode">
+                                            <option value="SIM">Simulation (Grade)</option>
+                                            <option value="ERG">ERG (Target Power)</option>
+                                        </select>
+                                    </div>
+                                    <div id="ergControl" class="input-group hidden">
+                                        <label>Target Power (Watts)</label>
+                                        <div class="input-row">
+                                            <input type="number" id="inputTargetPower" value="150" step="5">
+                                            <button id="btnSetPower" class="btn-primary">Set</button>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="settings-section">
+                                    <h3>☁️ Cloud Integrations</h3>
+                                    <div class="device-row compact"
+                                        style="justify-content: flex-start; gap: 15px; align-items: center;">
+                                        <button id="btnConnectStrava" class="btn-strava">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2"
+                                                style="vertical-align: middle; margin-right: 5px;">
+                                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71">
+                                                </path>
+                                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">
+                                                </path>
+                                            </svg>
+                                            Connect with Strava
+                                        </button>
+                                        <button id="btnDisconnectStrava" class="btn-icon-small danger hidden"
+                                            title="Disconnect Strava">✕</button>
+
+                                        <span id="statusStrava" class="status-indicator">Not connected</span>
+                                    </div>
+                                </section>
                             </div>
                         </div>
                     </div>
 
-                    <div class="profile-right">
-                        <section class="settings-section">
-                            <h3>👤 Personal Data</h3>
+                    <div id="tab-history" class="tab-pane">
 
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>Name</label>
-                                    <input type="text" id="inputName" placeholder="Name">
-                                </div>
-                                <div class="input-group">
-                                    <label>Units</label>
-                                    <select id="selectUnits">
-                                        <option value="metric">Metric (km)</option>
-                                        <option value="imperial">Imperial (mi)</option>
-                                    </select>
+                        <div class="stat-summary">
+                            <div class="stat-box">
+                                <small>Total Distance</small>
+                                <strong id="statTotalDist">0 km</strong>
+                            </div>
+                            <div class="stat-box">
+                                <small>Total Time</small>
+                                <strong id="statTotalTime">00:00</strong>
+                            </div>
+                            <div class="stat-box">
+                                <small>Activities</small>
+                                <strong id="statTotalActivities">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-row">
+
+                            <div class="records-container compact">
+                                <h4>Power Records (MMP)</h4>
+                                <div class="power-table-wrapper">
+                                    <table class="power-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Watts</th>
+                                                <th>W/Kg</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="powerCurveBody">
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>Weight (kg)</label>
-                                    <input type="number" id="inputRiderWeight" step="0.5">
+                            <div class="calendar-wrapper compact">
+                                <div class="calendar-header">
+                                    <button class="btn-icon-small" onclick="changeMonth(-1)">‹</button>
+                                    <h4 id="calendarTitle">Month</h4>
+                                    <button class="btn-icon-small" onclick="changeMonth(1)">›</button>
                                 </div>
-                                <div class="input-group">
-                                    <label>Bike (kg)</label>
-                                    <input type="number" id="inputBikeWeight" step="0.5">
-                                </div>
-                                <div class="input-group">
-                                    <label>FTP (w)</label>
-                                    <input type="number" id="inputFTP">
-                                </div>
+                                <div class="calendar-grid" id="calendarGrid"></div>
                             </div>
+                        </div>
 
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>Max HR (bpm)</label>
-                                    <input type="number" id="inputMaxHR" placeholder="190" min="100" max="250">
-                                </div>
-                                <div class="input-group">
-                                    <label>LTHR (bpm)</label>
-                                    <input type="number" id="inputLTHR" placeholder="170" min="100" max="250">
-                                </div>
-                                <div class="input-group">
-                                    <label>Resting HR</label>
-                                    <input type="number" id="inputRestingHR" placeholder="60" min="30" max="120">
-                                </div>
+                        <h3>Recent Activities</h3>
+                        <div class="history-list">
+                            <div class="history-item history-header">
+                                <span style="flex: 2;">Date / Route</span>
+                                <span style="flex: 1; text-align: center;">Dist</span>
+                                <span style="flex: 1; text-align: center;">Avg Pwr</span>
+                                <span style="flex: 1; text-align: center;">TRIMP</span> <span
+                                    style="width: 100px; text-align: center;">Actions</span>
                             </div>
-                        </section>
-
-                        <section class="settings-section">
-                            <h3>📡 Connections</h3>
-
-                            <div class="device-row compact">
-                                <span>Trainer</span>
-                                <div>
-                                    <span id="statusTrainer" class="status-indicator">Disconnected</span>
-
-                                    <select id="trainerList" class="hidden"
-                                        style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
-                                        <option value="">Select device...</option>
-                                    </select>
-
-                                    <button id="btnConnVirtual" class="btn-icon-small" title="Use Simulator"
-                                        style="margin-right: 5px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                            <line x1="2" y1="20" x2="22" y2="20"></line>
-                                        </svg>
-                                    </button>
-
-                                    <button id="btnScanTrainer" class="btn-icon-small" title="Search Real Hardware"
-                                        style="margin-right: 5px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        </svg>
-                                    </button>
-
-                                    <button id="btnConnTrainer" class="btn-icon-small hidden" title="Connect">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
-                                            </polyline>
-                                        </svg>
-                                    </button>
-                                </div>
+                            <div id="historyContainer">
+                                <div class="history-item"><span>Loading...</span></div>
                             </div>
-
-                            <div class="device-row compact">
-                                <span>Heart Rate</span>
-                                <div>
-                                    <span id="statusHR" class="status-indicator">Disconnected</span>
-
-                                    <select id="hrList" class="hidden"
-                                        style="max-width: 110px; font-size: 0.8rem; margin-right: 5px;">
-                                        <option value="">Select device...</option>
-                                    </select>
-
-                                    <button id="btnScanHR" class="btn-icon-small" title="Search HR Monitors"
-                                        style="margin-right: 5px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        </svg>
-                                    </button>
-
-                                    <button id="btnConnHR" class="btn-icon-small hidden" title="Connect"
-                                        style="margin-right: 5px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5">
-                                            </polyline>
-                                        </svg>
-                                    </button>
-
-                                    <button id="btnWaitHR" class="btn-icon-small hidden" title="Waiting..."
-                                        style="margin-right: 5px; opacity: 0.5; cursor: wait;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path d="M5 22h14"></path>
-                                            <path d="M5 2h14"></path>
-                                            <path
-                                                d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22">
-                                            </path>
-                                            <path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2">
-                                            </path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section class="settings-section">
-                            <h3>⚙️ Trainer Control (ANT+ FE-C)</h3>
-                            <div class="input-group">
-                                <label>Mode</label>
-                                <select id="selectTrainerMode">
-                                    <option value="SIM">Simulation (Grade)</option>
-                                    <option value="ERG">ERG (Target Power)</option>
-                                </select>
-                            </div>
-                            <div id="ergControl" class="input-group hidden">
-                                <label>Target Power (Watts)</label>
-                                <div class="input-row">
-                                    <input type="number" id="inputTargetPower" value="150" step="5">
-                                    <button id="btnSetPower" class="btn-primary">Set</button>
-                                </div>
-                            </div>
-                        </section>
-                        <section class="settings-section">
-                            <h3>☁️ Cloud Integrations</h3>
-                            <div class="device-row compact"
-                                style="justify-content: flex-start; gap: 15px; align-items: center;">
-                                <button id="btnConnectStrava" class="btn-strava">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                    </svg>
-                                    Connect with Strava
-                                </button>
-                                <button id="btnDisconnectStrava" class="btn-icon-small danger hidden"
-                                    title="Disconnect Strava">✕</button>
-
-                                <span id="statusStrava" class="status-indicator">Not connected</span>
-                            </div>
-                        </section>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-history" class="tab-pane">
-
-                <div class="stat-summary">
-                    <div class="stat-box">
-                        <small>Total Distance</small>
-                        <strong id="statTotalDist">0 km</strong>
-                    </div>
-                    <div class="stat-box">
-                        <small>Total Time</small>
-                        <strong id="statTotalTime">00:00</strong>
-                    </div>
-                    <div class="stat-box">
-                        <small>Activities</small>
-                        <strong id="statTotalActivities">0</strong>
-                    </div>
-                </div>
-
-                <div class="dashboard-row">
-
-                    <div class="records-container compact">
-                        <h4>Power Records (MMP)</h4>
-                        <div class="power-table-wrapper">
-                            <table class="power-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Watts</th>
-                                        <th>W/Kg</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="powerCurveBody">
-                                </tbody>
-                            </table>
                         </div>
                     </div>
 
-                    <div class="calendar-wrapper compact">
-                        <div class="calendar-header">
-                            <button class="btn-icon-small" onclick="changeMonth(-1)">‹</button>
-                            <h4 id="calendarTitle">Month</h4>
-                            <button class="btn-icon-small" onclick="changeMonth(1)">›</button>
+                    <div id="tab-career" class="tab-pane">
+                        <div class="career-header">
+                            <h3>Performance Management Chart (PMC)</h3>
+                            <p class="career-subtitle">Track your Fitness (CTL), Fatigue (ATL), and Form (TSB) evolution
+                                over
+                                time.</p>
                         </div>
-                        <div class="calendar-grid" id="calendarGrid"></div>
+
+                        <div class="career-chart-container">
+                            <div id="pmcChart" style="width: 100%; height: 350px;"></div>
+                        </div>
+
+                        <div class="career-header" style="margin-top: 20px;">
+                            <h3>Aerobic Decoupling History (Pw:HR)</h3>
+                            <p class="career-subtitle">Tracks your cardiovascular drift on rides over 1 hour. Values
+                                under
+                                5%
+                                indicate a solid aerobic base.</p>
+                        </div>
+
+                        <div class="career-chart-container">
+                            <div id="careerDecouplingChart" style="width: 100%; height: 250px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions" style="justify-content: space-between;">
+                        <button id="btnLogout" class="btn-danger" onclick="window.logoutProfile()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Switch Profile
+                        </button>
+                        <button id="btnCloseSettings" class="btn-primary">Save & Close</button>
                     </div>
                 </div>
-
-                <h3>Recent Activities</h3>
-                <div class="history-list">
-                    <div class="history-item history-header">
-                        <span style="flex: 2;">Date / Route</span>
-                        <span style="flex: 1; text-align: center;">Dist</span>
-                        <span style="flex: 1; text-align: center;">Avg Pwr</span>
-                        <span style="flex: 1; text-align: center;">TRIMP</span> <span
-                            style="width: 100px; text-align: center;">Actions</span>
-                    </div>
-                    <div id="historyContainer">
-                        <div class="history-item"><span>Loading...</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-career" class="tab-pane">
-                <div class="career-header">
-                    <h3>Performance Management Chart (PMC)</h3>
-                    <p class="career-subtitle">Track your Fitness (CTL), Fatigue (ATL), and Form (TSB) evolution over
-                        time.</p>
-                </div>
-
-                <div class="career-chart-container">
-                    <div id="pmcChart" style="width: 100%; height: 350px;"></div>
-                </div>
-
-                <div class="career-header" style="margin-top: 20px;">
-                    <h3>Aerobic Decoupling History (Pw:HR)</h3>
-                    <p class="career-subtitle">Tracks your cardiovascular drift on rides over 1 hour. Values under 5%
-                        indicate a solid aerobic base.</p>
-                </div>
-
-                <div class="career-chart-container">
-                    <div id="careerDecouplingChart" style="width: 100%; height: 250px;"></div>
-                </div>
-            </div>
-
-            <div class="modal-actions" style="justify-content: space-between;">
-                <button id="btnLogout" class="btn-danger" onclick="window.logoutProfile()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        style="vertical-align: middle; margin-right: 5px;">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Switch Profile
-                </button>
-                <button id="btnCloseSettings" class="btn-primary">Save & Close</button>
             </div>
         </div>
     </div>
-
     <div id="confirmModal" class="modal-overlay hidden">
         <div class="modal-content-small">
             <h3>Workout Paused</h3>
@@ -377,13 +394,163 @@
     <div id="cooldownModal" class="modal-overlay hidden">
         <div class="modal-content-small text-center" style="text-align: center;">
             <h3 style="color: var(--zone-4);">Heart Rate Recovery 🫀</h3>
-            <p style="color: var(--text-muted); margin-top: 10px;">Stop pedaling or spin lightly. Measuring your heart's
+            <p style="color: var(--text-muted); margin-top: 10px;">Stop pedaling or spin lightly. Measuring your
+                heart's
                 ability to recover...</p>
             <div style="font-size: 3.5rem; font-family: var(--metric-font); font-weight: bold; margin: 20px 0; color: var(--text-main);"
                 id="cooldownTimer">02:00</div>
             <div style="font-size: 1.5rem; color: var(--zone-2);" id="cooldownHR">-- bpm</div>
             <div class="action-buttons" style="justify-content: center; margin-top: 25px;">
                 <button id="btnSkipCooldown" class="btn-secondary">Skip & Save</button>
+            </div>
+        </div>
+    </div>
+    <div id="eventHubModal" class="modal-overlay hidden">
+        <div class="modal-content challenge-hub-content">
+            <div class="challenge-hub-header">
+                <div>
+                    <div class="challenge-hub-kicker">Event Mode</div>
+                    <h2>Choose the next challenge</h2>
+                    <p>Run premium cycling challenges without switching accounts. Results are kept in an in-memory event
+                        leaderboard.</p>
+                </div>
+                <button class="btn-icon-small" id="btnCloseEventHub" title="Close">✕</button>
+            </div>
+
+            <div class="challenge-device-panel" style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 12px 0; font-size: 1.1rem; color: var(--power-color);">⚙️ Device Connection</h3>
+
+                <div class="device-row compact"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span>Trainer Status:</span>
+                    <span id="eventTrainerStatus" class="status-indicator"
+                        style="font-weight: bold; font-size: 0.9rem;">Disconnected</span>
+                </div>
+
+                <select id="eventTrainerList" class="hidden home-input"
+                    style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;"></select>
+
+                <div class="challenge-device-actions" style="display: flex; gap: 10px;">
+                    <button id="btnEventScanTrainer" class="btn-secondary"
+                        style="flex: 1; padding: 10px; border-radius: 6px;">Scan Trainer</button>
+                    <button id="btnEventConnectTrainer" class="btn-primary hidden"
+                        style="flex: 1; padding: 10px; border-radius: 6px;">Connect</button>
+                    <button id="btnEventConnectVirtual" class="btn-secondary"
+                        style="flex: 1; padding: 10px; border-radius: 6px;">Use Simulator</button>
+                </div>
+            </div>
+
+            <div class="challenge-hub-form">
+                <div class="input-group">
+                    <label for="eventRiderName">Cyclist Name</label>
+                    <input type="text" id="eventRiderName" class="home-input" placeholder="Who is riding now?">
+                </div>
+                <div class="input-group">
+                    <label for="eventTargetPower">Target Power for Contrarrelógio</label>
+                    <input type="number" id="eventTargetPower" class="home-input" value="250" min="100" step="5">
+                </div>
+            </div>
+
+            <div class="challenge-card-grid">
+                <button class="challenge-card challenge-sprint-card" id="btnLaunchSprint">
+                    <span class="challenge-card-mode">Sprint</span>
+                    <strong>Sprint (Maximum Power Test)</strong>
+                    <span>15-second max power blast with speed tunnel HUD and event ranking.</span>
+                </button>
+                <button class="challenge-card challenge-kom-card" id="btnLaunchKOM">
+                    <span class="challenge-card-mode">KOM</span>
+                    <strong>King of the Mountain</strong>
+                    <span>1-minute fixed climb with smart trainer resistance driven by a built-in GPX segment.</span>
+                </button>
+                <button class="challenge-card challenge-tt-card" id="btnLaunchTimeTrial">
+                    <span class="challenge-card-mode">Time Trial</span>
+                    <strong>Time Trial (Precision Pacing)</strong>
+                    <span>Hold target power inside ±5% for 60 seconds and bank precision points.</span>
+                </button>
+            </div>
+
+            <div class="challenge-hub-footer">
+                <button id="btnEventLeaderboard" class="btn-secondary">View Leaderboard</button>
+            </div>
+        </div>
+    </div>
+    <div id="eventLeaderboardModal" class="modal-overlay hidden">
+        <div class="modal-content challenge-leaderboard-content">
+            <div class="challenge-hub-header">
+                <div>
+                    <div class="challenge-hub-kicker">Offline Leaderboard</div>
+                    <h2>Event podium</h2>
+                    <p>Temporary in-memory ranking for Sprint, KOM and Contrarrelógio.</p>
+                </div>
+                <button class="btn-icon-small" id="btnCloseEventLeaderboard" title="Close">✕</button>
+            </div>
+            <div id="eventLeaderboardPanels" class="leaderboard-category-grid"></div>
+        </div>
+    </div>
+    <div id="challengeOverlay" class="challenge-overlay hidden">
+        <canvas id="challengeBackdropCanvas" class="challenge-backdrop-canvas"></canvas>
+        <canvas id="challengeTelemetryCanvas" class="challenge-telemetry-canvas"></canvas>
+
+        <div class="challenge-shell">
+            <div class="challenge-topbar">
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Mode</span>
+                    <strong id="challengeModeLabel">Sprint</strong>
+                </div>
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Cyclist</span>
+                    <strong id="challengeRiderLabel">Guest Rider</strong>
+                </div>
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Status</span>
+                    <strong id="challengeStatusLabel">Waiting for first pedal stroke</strong>
+                </div>
+            </div>
+
+            <div class="challenge-main-metrics">
+                <div class="challenge-timer-panel">
+                    <span class="challenge-chip-label">Time Remaining</span>
+                    <div id="challengeTimerValue" class="challenge-timer-value">15.0s</div>
+                </div>
+
+                <div class="challenge-center-panel">
+                    <div class="challenge-power-label" id="challengePrimaryLabel">Live Power</div>
+                    <div id="challengePowerValue" class="challenge-power-value">0</div>
+                    <div id="challengePowerUnit" class="challenge-power-unit">watts</div>
+                </div>
+
+                <div class="challenge-side-panel">
+                    <div class="challenge-side-metric">
+                        <span class="challenge-chip-label" id="challengeSecondaryLabel">Peak Power</span>
+                        <strong id="challengeSecondaryValue">0 W</strong>
+                    </div>
+                    <div class="challenge-side-metric">
+                        <span class="challenge-chip-label" id="challengeTertiaryLabel">Cadence</span>
+                        <strong id="challengeTertiaryValue">0 rpm</strong>
+                    </div>
+                    <div class="challenge-side-metric" id="challengeGraceMetric">
+                        <span class="challenge-chip-label">Grace Window</span>
+                        <strong id="challengeGraceValue">5.0s</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div id="challengeLeaderboardPanel" class="challenge-inline-leaderboard"></div>
+
+            <div class="challenge-overlay-actions">
+                <button id="btnAbortChallenge" class="btn-danger">Abort Challenge</button>
+            </div>
+        </div>
+    </div>
+    <div id="challengeResultModal" class="modal-overlay hidden">
+        <div class="modal-content challenge-result-content">
+            <div class="challenge-hub-kicker" id="challengeResultMode">Sprint</div>
+            <h2 id="challengeResultTitle">Challenge complete</h2>
+            <div id="challengeResultValue" class="challenge-result-value">0 W</div>
+            <p id="challengeResultDescription">Result saved to the offline leaderboard.</p>
+            <div class="challenge-result-actions">
+                <button id="btnChallengeResultLeaderboard" class="btn-secondary">Open Leaderboard</button>
+                <button id="btnChallengeResultClose" class="btn-primary">Back to Event Mode</button>
             </div>
         </div>
     </div>
@@ -562,10 +729,13 @@
 
             <div id="workout-completion-actions" class="hidden"
                 style="padding: 15px; display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-primary" onclick="window.go.main.App.RepeatWorkout()">Repeat Current Workout</button>
-                <button class="btn-secondary" onclick="window.go.main.App.LoadWorkout()">Import New Workout</button>
+                <button class="btn-primary" onclick="window.go.main.App.RepeatWorkout()">Repeat Current
+                    Workout</button>
+                <button class="btn-secondary" onclick="window.go.main.App.LoadWorkout()">Import New
+                    Workout</button>
                 <button class="btn-danger"
-                    onclick="window.go.main.App.UnloadWorkout(); window.workoutCtrl.hide();">Close Panel</button>
+                    onclick="window.go.main.App.UnloadWorkout(); window.workoutCtrl.hide();">Close
+                    Panel</button>
             </div>
 
         </aside>
@@ -590,7 +760,8 @@
         <div class="modal-content finish-content" style="max-width: 500px; width: 90%;">
             <div class="finish-icon">🏆</div>
             <h2>Workout Completed!</h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Your session has been saved successfully.</p>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Your session has been saved successfully.
+            </p>
 
             <div class="finish-stats-grid">
                 <div class="stat-box-small">
@@ -712,7 +883,8 @@
                             </table>
                             <div
                                 style="margin-top: 8px; font-size: 0.7rem; color: #aaa; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; line-height: 1.3; font-weight: normal; text-transform: none;">
-                                <i>* Note: High drift is expected during interval training. Only valid for steady-state
+                                <i>* Note: High drift is expected during interval training. Only valid for
+                                    steady-state
                                     efforts.</i>
                             </div>
                         </div>
@@ -725,7 +897,8 @@
                     <span class="label tooltip-wrapper">
                         HRR (1m/2m) <span class="info-icon">?</span>
                         <div class="tooltip-content">
-                            <strong style="color: #fff; display: block; margin-bottom: 5px;">HR Recovery 1M (Cole et
+                            <strong style="color: #fff; display: block; margin-bottom: 5px;">HR Recovery 1M
+                                (Cole et
                                 al.)</strong>
                             <table class="tooltip-table">
                                 <tr>
@@ -823,7 +996,8 @@
                     style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;"
                     onclick="document.getElementById('fitnessTestModal').classList.remove('active'); document.getElementById('fitnessTestModal').classList.add('hidden')">×</button>
             </div>
-            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Select an assessment to establish
+            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Select an assessment to
+                establish
                 your baseline metrics.</p>
             <div id="fitnessTestList" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
             </div>
@@ -858,4 +1032,4 @@
     <script type="module" src="/src/main.js"></script>
 </body>
 
-</html>
+</html> 
