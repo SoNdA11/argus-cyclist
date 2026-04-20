@@ -9,6 +9,215 @@
 </head>
 
 <body>
+    <!-- Event Mode Full Screen Hub -->
+    <div id="eventModeScreen" class="event-mode-screen hidden">
+        <div class="event-mode-bg"></div>
+        <div class="event-mode-container">
+            <div class="event-mode-header">
+                <div class="event-logo">
+                    <span class="event-logo-argus">ARGUS</span>
+                    <span class="event-logo-mode">EVENT MODE</span>
+                </div>
+                <button class="event-back-btn" id="btnBackFromEventMode">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Back
+                </button>
+            </div>
+
+            <div class="event-mode-content">
+                <div class="event-title-section">
+                    <h1>Choose the next challenge</h1>
+                    <p>Select your event type and push your limits with premium indoor cycling challenges.</p>
+                </div>
+
+                <div class="event-inputs-row">
+                    <div class="event-input-group">
+                        <label for="eventRiderName2">Cyclist Name</label>
+                        <input type="text" id="eventRiderName2" class="event-input" placeholder="Enter your name">
+                    </div>
+                    <div class="event-input-group">
+                        <label for="eventTargetPower2">Target Power (Time Trial)</label>
+                        <input type="number" id="eventTargetPower2" class="event-input" value="250" min="100" step="5">
+                    </div>
+                </div>
+
+                <div class="event-challenges-grid">
+                    <button class="event-challenge-card sprint" id="btnLaunchSprint2">
+                        <div class="event-card-bg"></div>
+                        <div class="event-card-content">
+                            <span class="event-card-mode">Sprint</span>
+                            <h3>Peak Power Test</h3>
+                            <p>15-second maximum power burst. Unleash your explosive strength.</p>
+                            <div class="event-card-cta">Start Sprint →</div>
+                        </div>
+                    </button>
+                    <button class="event-challenge-card kom" id="btnLaunchKOM2">
+                        <div class="event-card-bg"></div>
+                        <div class="event-card-content">
+                            <span class="event-card-mode">KOM</span>
+                            <h3>King of the Mountain</h3>
+                            <p>60-second climb challenge. Conquer the gradient with smart trainer resistance.</p>
+                            <div class="event-card-cta">Start KOM →</div>
+                        </div>
+                    </button>
+                    <button class="event-challenge-card tt" id="btnLaunchTimeTrial2">
+                        <div class="event-card-bg"></div>
+                        <div class="event-card-content">
+                            <span class="event-card-mode">Time Trial</span>
+                            <h3>Precision Pacing</h3>
+                            <p>60-second endurance test. Hold your target power with precision.</p>
+                            <div class="event-card-cta">Start Time Trial →</div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="event-footer-section">
+                    <button class="event-leaderboard-btn" id="btnEventLeaderboard2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"></path>
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                        View Leaderboard
+                    </button>
+                    <div class="event-device-status">
+                        <span class="device-status-label">Trainer:</span>
+                        <span class="device-status-indicator" id="eventTrainerStatus2">
+                            <span class="status-dot disconnected"></span>
+                            Disconnected
+                        </span>
+                        <button class="device-scan-btn" id="btnEventScanTrainer2">Scan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sprint Challenge Screen -->
+    <div id="sprintChallengeScreen" class="challenge-screen sprint-mode hidden">
+        <div class="challenge-bg"></div>
+        <div class="challenge-canvas-container">
+            <canvas id="sprintCanvas"></canvas>
+        </div>
+        <div class="challenge-ui">
+            <div class="challenge-header">
+                <div class="challenge-mode-badge sprint">SPRINT</div>
+                <div class="challenge-rider-name" id="sprintRiderName">Rider</div>
+            </div>
+            <div class="challenge-main-display">
+                <div class="challenge-timer-mini">
+                    <span class="label">TIME</span>
+                    <span class="value" id="sprintTimerValue">15.0s</span>
+                </div>
+                <div class="challenge-primary-value">
+                    <span class="label" id="sprintPrimaryLabel">LIVE POWER</span>
+                    <span class="value neon-blue" id="sprintPowerValue">0</span>
+                    <span class="unit">WATTS</span>
+                </div>
+            </div>
+            <div class="challenge-secondary-metrics">
+                <div class="metric-box">
+                    <span class="label">PEAK POWER</span>
+                    <span class="value" id="sprintPeakPower">0</span>
+                    <span class="unit">W</span>
+                </div>
+                <div class="metric-box">
+                    <span class="label">CADENCE</span>
+                    <span class="value" id="sprintCadence">0</span>
+                    <span class="unit">RPM</span>
+                </div>
+            </div>
+            <div class="challenge-status-bar">
+                <span id="sprintStatusLabel">Waiting for pedal stroke...</span>
+            </div>
+            <button class="challenge-abort-btn" id="btnAbortSprint">✕ Abort</button>
+        </div>
+    </div>
+
+    <!-- KOM Challenge Screen -->
+    <div id="komChallengeScreen" class="challenge-screen kom-mode hidden">
+        <div class="challenge-bg"></div>
+        <div class="challenge-canvas-container">
+            <canvas id="komCanvas"></canvas>
+        </div>
+        <div class="challenge-ui">
+            <div class="challenge-header">
+                <div class="challenge-mode-badge kom">KOM</div>
+                <div class="challenge-rider-name" id="komRiderName">Rider</div>
+            </div>
+            <div class="challenge-main-display">
+                <div class="challenge-timer-mini">
+                    <span class="label">TIME</span>
+                    <span class="value" id="komTimerValue">60.0s</span>
+                </div>
+                <div class="challenge-primary-value">
+                    <span class="label">DISTANCE</span>
+                    <span class="value neon-green" id="komDistanceValue">0</span>
+                    <span class="unit">METERS</span>
+                </div>
+            </div>
+            <div class="challenge-secondary-metrics">
+                <div class="metric-box">
+                    <span class="label">CURRENT GRADE</span>
+                    <span class="value" id="komGradeValue">0.0</span>
+                    <span class="unit">%</span>
+                </div>
+                <div class="metric-box">
+                    <span class="label">ELEVATION</span>
+                    <span class="value" id="komElevation">760</span>
+                    <span class="unit">M</span>
+                </div>
+            </div>
+            <div class="challenge-progress-bar">
+                <div class="progress-fill" id="komProgressFill"></div>
+            </div>
+            <button class="challenge-abort-btn" id="btnAbortKOM">✕ Abort</button>
+        </div>
+    </div>
+
+    <!-- Time Trial Challenge Screen -->
+    <div id="ttChallengeScreen" class="challenge-screen tt-mode hidden">
+        <div class="challenge-bg"></div>
+        <div class="challenge-canvas-container">
+            <canvas id="ttCanvas"></canvas>
+        </div>
+        <div class="challenge-ui">
+            <div class="challenge-header">
+                <div class="challenge-mode-badge tt">TIME TRIAL</div>
+                <div class="challenge-rider-name" id="ttRiderName">Rider</div>
+            </div>
+            <div class="challenge-main-display">
+                <div class="challenge-timer-mini">
+                    <span class="label">TIME</span>
+                    <span class="value" id="ttTimerValue">60.0s</span>
+                </div>
+                <div class="challenge-primary-value">
+                    <span class="label" id="ttPrimaryLabel">LIVE POWER</span>
+                    <span class="value neon-purple" id="ttPowerValue">0</span>
+                    <span class="unit">TARGET: <span id="ttTargetPower">250</span>W</span>
+                </div>
+            </div>
+            <div class="challenge-secondary-metrics">
+                <div class="metric-box">
+                    <span class="label">SCORE</span>
+                    <span class="value" id="ttScore">0</span>
+                    <span class="unit">PTS</span>
+                </div>
+                <div class="metric-box">
+                    <span class="label">TOLERANCE</span>
+                    <span class="value" id="ttTolerance">±12</span>
+                    <span class="unit">W</span>
+                </div>
+            </div>
+            <div class="challenge-power-graph" id="ttPowerGraph">
+                <canvas id="ttPowerCanvas"></canvas>
+            </div>
+            <button class="challenge-abort-btn" id="btnAbortTT">✕ Abort</button>
+        </div>
+    </div>
+
     <div id="homeScreen" class="home-overlay active">
         <div class="home-container">
             <div class="home-header">
