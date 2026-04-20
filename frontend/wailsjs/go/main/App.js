@@ -170,6 +170,14 @@ export function SetBuiltInWorkout(arg1) {
   return window['go']['main']['App']['SetBuiltInWorkout'](arg1);
 }
 
+export function SetDirectGrade(arg1) {
+  return window['go']['main']['App']['SetDirectGrade'](arg1);
+}
+
+export function SetKOMGradeSchedule(arg1) {
+  return window['go']['main']['App']['SetKOMGradeSchedule'](arg1);
+}
+
 export function SetPowerTarget(arg1) {
   return window['go']['main']['App']['SetPowerTarget'](arg1);
 }

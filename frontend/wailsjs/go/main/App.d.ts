@@ -89,6 +89,10 @@ export function SelectProfileImage():Promise<string>;
 
 export function SetBuiltInWorkout(arg1:string):Promise<string>;
 
+export function SetDirectGrade(arg1:number):Promise<void>;
+
+export function SetKOMGradeSchedule(arg1:string):Promise<string>;
+
 export function SetPowerTarget(arg1:number):Promise<void>;
 
 export function SetTrainerMode(arg1:string):Promise<void>;

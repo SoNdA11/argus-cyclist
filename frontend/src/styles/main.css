@@ -645,21 +645,25 @@ footer {
 }
 
 .settings-shell {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .settings-nav {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 8px;
     margin-bottom: 0;
-    border-bottom: 0;
-    padding-bottom: 0;
-    position: sticky;
-    top: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.settings-nav .tab-btn {
+    text-align: center;
+    padding: 12px 20px;
 }
 
 .settings-panels {
@@ -691,23 +695,24 @@ footer {
 
 .settings-nav-kicker {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 5px;
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
     color: rgba(148, 163, 184, 0.82);
 }
 
 .tab-btn strong {
     display: block;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .tab-btn.active {
-    color: var(--argus-safe);
-    border-color: rgba(34, 197, 94, 0.4);
-    background: rgba(34, 197, 94, 0.08);
-    transform: translateX(2px);
+    color: var(--power-color);
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(56, 189, 248, 0.12);
+    transform: translateY(-2px);
 }
 
 .tab-pane {
@@ -2704,13 +2709,14 @@ TACTICAL BLUE
 .challenge-hub-content,
 .challenge-leaderboard-content,
 .challenge-result-content {
-    width: min(1100px, 94vw);
-    border-radius: 28px;
+    width: min(900px, 94vw);
+    border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.14);
     background:
-        radial-gradient(1200px circle at top left, rgba(14, 165, 233, 0.12), transparent 45%),
-        linear-gradient(180deg, rgba(7, 12, 21, 0.96), rgba(5, 9, 16, 0.98));
-    box-shadow: 0 34px 80px -40px rgba(2, 132, 199, 0.45);
+        radial-gradient(1200px circle at top left, rgba(14, 165, 233, 0.08), transparent 45%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(10, 15, 25, 0.98));
+    box-shadow: 0 34px 80px -40px rgba(2, 132, 199, 0.3);
+    padding: 32px;
 }
 
 .challenge-hub-header {
@@ -2718,12 +2724,21 @@ TACTICAL BLUE
     justify-content: space-between;
     gap: 18px;
     align-items: flex-start;
-    margin-bottom: 22px;
+    margin-bottom: 28px;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.challenge-hub-header > div {
+    text-align: center;
+    max-width: 600px;
 }
 
 .challenge-hub-header h2 {
     margin: 6px 0 8px;
-    font-size: 2rem;
+    font-size: 1.6rem;
+    color: var(--text-main);
 }
 
 .challenge-hub-header p {
@@ -2734,10 +2749,10 @@ TACTICAL BLUE
 
 .challenge-hub-kicker {
     text-transform: uppercase;
-    letter-spacing: 0.28em;
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #67e8f9;
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--power-color);
 }
 
 .challenge-hub-form {
@@ -2759,17 +2774,22 @@ TACTICAL BLUE
 }
 
 .challenge-device-panel {
-    border-radius: 24px;
-    padding: 22px;
+    border-radius: 12px;
+    padding: 18px;
     background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+    max-width: 500px;
+    margin: 0 auto 24px;
 }
 
 .challenge-device-panel h3 {
-    margin: 6px 0;
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    text-align: center;
+    color: var(--text-muted);
 }
 
 .challenge-device-panel p {
@@ -2809,59 +2829,74 @@ TACTICAL BLUE
 
 .challenge-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .challenge-card {
-    text-align: left;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    padding: 22px;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 16px;
     color: #f8fafc;
     cursor: pointer;
-    background: rgba(15, 23, 42, 0.56);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 50px -35px rgba(15, 23, 42, 1);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    background: rgba(30, 41, 59, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .challenge-card:hover {
     transform: translateY(-4px);
+    background: rgba(30, 41, 59, 0.8);
 }
 
 .challenge-card strong {
     display: block;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+    font-size: 1.05rem;
+    margin: 10px 0 8px;
+    font-weight: 600;
 }
 
 .challenge-card span {
     display: block;
-    color: rgba(226, 232, 240, 0.76);
-    line-height: 1.45;
+    color: rgba(226, 232, 240, 0.65);
+    line-height: 1.4;
+    font-size: 0.85rem;
 }
 
 .challenge-card-mode {
     text-transform: uppercase;
-    letter-spacing: 0.22em;
-    font-size: 0.72rem;
-    font-weight: 800;
-    margin-bottom: 14px;
+    letter-spacing: 0.15em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-muted);
 }
 
+.challenge-sprint-card {
+    border-top: 3px solid #38bdf8;
+}
 .challenge-sprint-card:hover {
-    border-color: rgba(56, 189, 248, 0.5);
-    box-shadow: 0 26px 50px -35px rgba(14, 165, 233, 0.75);
+    border-color: rgba(56, 189, 248, 0.7);
+    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.25);
 }
 
+.challenge-kom-card {
+    border-top: 3px solid #fbbf24;
+}
 .challenge-kom-card:hover {
-    border-color: rgba(250, 204, 21, 0.5);
-    box-shadow: 0 26px 50px -35px rgba(234, 179, 8, 0.75);
+    border-color: rgba(250, 204, 21, 0.7);
+    box-shadow: 0 8px 30px rgba(234, 179, 8, 0.25);
 }
 
+.challenge-tt-card {
+    border-top: 3px solid #22c55e;
+}
 .challenge-tt-card:hover {
-    border-color: rgba(16, 185, 129, 0.5);
-    box-shadow: 0 26px 50px -35px rgba(16, 185, 129, 0.75);
+    border-color: rgba(16, 185, 129, 0.7);
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
 }
 
 .challenge-hub-footer,
@@ -2875,19 +2910,24 @@ TACTICAL BLUE
 
 .leaderboard-category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .leaderboard-category-card {
-    border-radius: 24px;
-    padding: 22px;
-    background: rgba(15, 23, 42, 0.55);
+    border-radius: 12px;
+    padding: 18px;
+    background: rgba(30, 41, 59, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .leaderboard-category-card h3 {
-    margin: 0 0 18px;
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+    text-align: center;
+    color: var(--text-muted);
 }
 
 .leaderboard-podium {
@@ -2959,7 +2999,7 @@ TACTICAL BLUE
     inset: 0;
     z-index: 12000;
     overflow: hidden;
-    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.75), rgba(2, 6, 23, 0.98));
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 22, 0.98));
 }
 
 .challenge-backdrop-canvas,
@@ -2971,7 +3011,7 @@ TACTICAL BLUE
 }
 
 .challenge-telemetry-canvas {
-    opacity: 0.92;
+    opacity: 0.7;
 }
 
 .challenge-shell {
@@ -2981,17 +3021,19 @@ TACTICAL BLUE
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 32px;
+    padding: 24px;
     pointer-events: none;
 }
 
 .challenge-topbar,
 .challenge-main-metrics {
     display: flex;
-    gap: 18px;
+    gap: 12px;
+    justify-content: center;
 }
 
 .challenge-topbar {
+    justify-content: center;
     align-items: stretch;
 }
 
@@ -3000,100 +3042,107 @@ TACTICAL BLUE
 .challenge-side-panel,
 .challenge-inline-leaderboard,
 .challenge-center-panel {
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(15, 23, 42, 0.24);
-    border-radius: 24px;
-    box-shadow: 0 20px 50px -36px rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .challenge-chip {
-    padding: 16px 18px;
-    min-width: 180px;
+    padding: 12px 16px;
+    min-width: 140px;
+    text-align: center;
 }
 
 .challenge-chip-label {
     display: block;
-    color: rgba(148, 163, 184, 0.8);
+    color: rgba(148, 163, 184, 0.7);
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.72rem;
-    font-weight: 800;
-    margin-bottom: 8px;
+    letter-spacing: 0.12em;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-bottom: 6px;
 }
 
 .challenge-main-metrics {
     align-items: center;
-    justify-content: space-between;
-    margin-top: 28px;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 16px;
 }
 
 .challenge-timer-panel,
 .challenge-side-panel,
 .challenge-center-panel {
-    padding: 24px;
+    padding: 20px;
 }
 
 .challenge-timer-panel {
-    min-width: 240px;
+    min-width: 160px;
 }
 
 .challenge-timer-value {
-    font-size: clamp(3.2rem, 6vw, 5.4rem);
+    font-size: clamp(2.5rem, 5vw, 4rem);
     line-height: 1;
-    font-weight: 900;
+    font-weight: 800;
+    color: var(--text-main);
 }
 
 .challenge-center-panel {
     flex: 1;
     text-align: center;
-    min-height: 300px;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    max-width: 400px;
 }
 
 .challenge-power-label {
-    color: rgba(226, 232, 240, 0.7);
+    color: rgba(226, 232, 240, 0.6);
     text-transform: uppercase;
-    letter-spacing: 0.28em;
-    font-size: 0.8rem;
-    font-weight: 800;
-    margin-bottom: 16px;
+    letter-spacing: 0.2em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 .challenge-power-value {
-    font-size: clamp(6rem, 15vw, 12rem);
-    line-height: 0.86;
-    font-weight: 900;
-    letter-spacing: -0.06em;
-    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    font-size: clamp(5rem, 12vw, 9rem);
+    line-height: 0.9;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    color: var(--power-color);
 }
 
 .challenge-power-unit {
-    margin-top: 12px;
+    margin-top: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.6em;
-    font-size: 0.95rem;
-    color: rgba(148, 163, 184, 0.86);
+    letter-spacing: 0.4em;
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.7);
 }
 
 .challenge-side-panel {
-    min-width: 250px;
+    min-width: 180px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .challenge-side-metric strong {
-    font-size: 1.7rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
 }
 
 .challenge-inline-leaderboard {
-    width: min(380px, 100%);
+    width: min(320px, 100%);
     margin-top: auto;
-    padding: 22px;
+    padding: 16px;
     align-self: flex-end;
 }
 
@@ -3118,19 +3167,21 @@ TACTICAL BLUE
 .challenge-overlay-actions {
     margin-top: 18px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     pointer-events: auto;
 }
 
 .challenge-result-content {
-    max-width: 560px;
+    max-width: 480px;
     text-align: center;
+    padding: 32px;
 }
 
 .challenge-result-value {
-    font-size: clamp(3.2rem, 9vw, 5.5rem);
-    font-weight: 900;
-    margin: 16px 0;
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 800;
+    margin: 20px 0;
+    color: var(--power-color);
 }
 
 body.challenge-mode-active header,

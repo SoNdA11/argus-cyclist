@@ -1233,17 +1233,26 @@ window.toggleCreateForm = (show) => {
     const form = document.getElementById('createProfileForm');
     const subtitle = document.getElementById('homeSubtitle');
     const welcome = document.getElementById('homeWelcome');
+    const eventActions = document.querySelector('.home-event-actions');
 
     if (show) {
         grid.style.display = 'none';
         form.classList.remove('hidden');
         form.style.display = 'block';
+        if (eventActions) {
+            eventActions.classList.add('hidden');
+            eventActions.style.display = 'none';
+        }
         if (subtitle) subtitle.innerText = "Create a new rider profile";
         if (welcome) welcome.innerText = "New rider";
     } else {
         grid.style.display = '';
         form.classList.add('hidden');
         form.style.display = 'none';
+        if (eventActions) {
+            eventActions.classList.remove('hidden');
+            eventActions.style.display = '';
+        }
         if (welcome) welcome.innerText = "Welcome back";
         if (subtitle) subtitle.innerText = "Select a rider profile to start your session.";
     }

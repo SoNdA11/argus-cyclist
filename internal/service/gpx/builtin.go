@@ -21,26 +21,15 @@ const builtInKOMSegmentGPX = `<?xml version="1.0" encoding="UTF-8"?>
   <trk>
     <name>Argus KOM Event Segment</name>
     <trkseg>
-      <trkpt lat="-23.563800" lon="-46.654100"><ele>760.0</ele></trkpt>
-      <trkpt lat="-23.563620" lon="-46.653910"><ele>763.0</ele></trkpt>
-      <trkpt lat="-23.563430" lon="-46.653700"><ele>767.0</ele></trkpt>
-      <trkpt lat="-23.563230" lon="-46.653470"><ele>772.0</ele></trkpt>
-      <trkpt lat="-23.563030" lon="-46.653250"><ele>778.0</ele></trkpt>
-      <trkpt lat="-23.562830" lon="-46.653000"><ele>785.0</ele></trkpt>
-      <trkpt lat="-23.562620" lon="-46.652780"><ele>792.0</ele></trkpt>
-      <trkpt lat="-23.562400" lon="-46.652570"><ele>799.0</ele></trkpt>
-      <trkpt lat="-23.562150" lon="-46.652360"><ele>806.0</ele></trkpt>
-      <trkpt lat="-23.561890" lon="-46.652170"><ele>813.0</ele></trkpt>
-      <trkpt lat="-23.561620" lon="-46.651980"><ele>820.0</ele></trkpt>
-      <trkpt lat="-23.561350" lon="-46.651770"><ele>828.0</ele></trkpt>
-      <trkpt lat="-23.561090" lon="-46.651560"><ele>835.0</ele></trkpt>
-      <trkpt lat="-23.560820" lon="-46.651340"><ele>842.0</ele></trkpt>
-      <trkpt lat="-23.560560" lon="-46.651130"><ele>850.0</ele></trkpt>
-      <trkpt lat="-23.560300" lon="-46.650910"><ele>857.0</ele></trkpt>
-      <trkpt lat="-23.560050" lon="-46.650680"><ele>864.0</ele></trkpt>
-      <trkpt lat="-23.559790" lon="-46.650470"><ele>871.0</ele></trkpt>
-      <trkpt lat="-23.559540" lon="-46.650240"><ele>878.0</ele></trkpt>
-      <trkpt lat="-23.559300" lon="-46.650020"><ele>884.0</ele></trkpt>
+      <trkpt lat="-23.560000" lon="-46.650000"><ele>760.0</ele></trkpt>
+      <trkpt lat="-23.555500" lon="-46.645500"><ele>760.0</ele></trkpt>
+      <trkpt lat="-23.551000" lon="-46.641000"><ele>770.0</ele></trkpt>
+      <trkpt lat="-23.546500" lon="-46.636500"><ele>784.0</ele></trkpt>
+      <trkpt lat="-23.542000" lon="-46.632000"><ele>802.0</ele></trkpt>
+      <trkpt lat="-23.537500" lon="-46.627500"><ele>824.0</ele></trkpt>
+      <trkpt lat="-23.533000" lon="-46.623000"><ele>850.0</ele></trkpt>
+      <trkpt lat="-23.528500" lon="-46.618500"><ele>872.0</ele></trkpt>
+      <trkpt lat="-23.524000" lon="-46.614000"><ele>884.0</ele></trkpt>
     </trkseg>
   </trk>
 </gpx>`

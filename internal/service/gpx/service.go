@@ -61,7 +61,7 @@ func (s *Service) processParsedGPX(gpxFile *gpx.GPX) ([]domain.RoutePoint, error
 
 	var processedPoints []domain.RoutePoint
 	var totalDist float64
-	
+
 	var previousPoint *gpx.GPXPoint
 	firstPoint := true
 
@@ -70,7 +70,7 @@ func (s *Service) processParsedGPX(gpxFile *gpx.GPX) ([]domain.RoutePoint, error
 		if !firstPoint && previousPoint != nil {
 			distDelta = previousPoint.Distance3D(p)
 		}
-		
+
 		totalDist += distDelta
 
 		processedPoints = append(processedPoints, domain.RoutePoint{
@@ -103,7 +103,7 @@ func (s *Service) processParsedGPX(gpxFile *gpx.GPX) ([]domain.RoutePoint, error
 	}
 
 	if len(processedPoints) < 2 {
-        return nil, fmt.Errorf("the GPX file does not contain valid GPS points")
+		return nil, fmt.Errorf("the GPX file does not contain valid GPS points")
 	}
 
 	s.points = smoothGrades(processedPoints)
@@ -119,6 +119,10 @@ func (s *Service) GetTotalDistance() float64 {
 		return 0
 	}
 	return s.points[len(s.points)-1].Distance
+}
+
+func (s *Service) SetPoints(points []domain.RoutePoint) {
+	s.points = points
 }
 
 func (s *Service) GetPointAtDistance(distanceMeter float64) domain.RoutePoint {

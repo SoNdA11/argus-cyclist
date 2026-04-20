@@ -240,48 +240,169 @@ export class ChallengeController {
         }
 
         if (mode === 'kom') {
-            await this.loadKOMRoute();
+            if (window.go?.main?.App?.SetDirectGrade) {
+                await window.go.main.App.SetDirectGrade(0);
+            }
         } else {
+            if (window.go?.main?.App?.SetDirectGrade) {
+                await window.go.main.App.SetDirectGrade(0);
+            }
             this.clearRoutePreview();
         }
 
         return true;
     }
 
-    async loadKOMRoute() {
-        if (!window.go?.main?.App?.LoadPredefinedKOMSegment) return;
-
-        const routeName = await window.go.main.App.LoadPredefinedKOMSegment();
-        const routePoints = await window.go.main.App.GetRoutePath();
-        const elevations = await window.go.main.App.GetElevationProfile();
-
-        if (window.ui?.setFilename) {
-            window.ui.setFilename(routeName);
-        }
-
-        if (routePoints.length > 1) {
-            window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
-            this.ui.showRoutePreview(window.totalRouteDistance);
-
-            const features = [];
-            for (let i = 0; i < routePoints.length - 1; i++) {
-                features.push({
-                    type: 'Feature',
-                    properties: { grade: routePoints[i].grade },
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: [
-                            [routePoints[i].lon, routePoints[i].lat],
-                            [routePoints[i + 1].lon, routePoints[i + 1].lat]
-                        ]
-                    }
-                });
+    updateKOMGrade(distanceMeters) {
+        if (!window.go?.main?.App?.SetDirectGrade) return;
+        
+        const gradeSchedule = [
+            { pct: 0, grade: 0 },
+            { pct: 0.05, grade: 0 },
+            { pct: 0.10, grade: 1 },
+            { pct: 0.20, grade: 2 },
+            { pct: 0.30, grade: 3 },
+            { pct: 0.40, grade: 4 },
+            { pct: 0.50, grade: 5 },
+            { pct: 0.60, grade: 6 },
+            { pct: 0.70, grade: 7 },
+            { pct: 0.80, grade: 8 },
+            { pct: 0.90, grade: 8 },
+            { pct: 1.00, grade: 8 }
+        ];
+        
+        const routeDistance = 3000;
+        const pct = Math.min(1, distanceMeters / routeDistance);
+        
+        for (let i = 0; i < gradeSchedule.length - 1; i++) {
+            if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
+                const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
+                const grade = gradeSchedule[i].grade + t * (gradeSchedule[i + 1].grade - gradeSchedule[i].grade);
+                window.go.main.App.SetDirectGrade(grade);
+                return;
             }
-
-            this.mapCtrl.renderRoute({ type: 'FeatureCollection', features });
-            this.mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
-            this.chart.setData(elevations);
         }
+        window.go.main.App.SetDirectGrade(gradeSchedule[gradeSchedule.length - 1].grade);
+    }
+
+    updateKOMGradeByTime(elapsedSeconds) {
+        if (!window.go?.main?.App?.SetDirectGrade) return;
+        
+        const duration = 60;
+        const maxGrade = 7;
+        const pct = Math.min(1, elapsedSeconds / duration);
+        
+        let grade = 0;
+        if (pct <= 0.15) {
+            grade = 0;
+        } else if (pct <= 0.35) {
+            grade = (pct - 0.15) / 0.2 * 2;
+        } else if (pct <= 0.6) {
+            grade = 2 + (pct - 0.35) / 0.25 * 3;
+        } else {
+            grade = 5 + (pct - 0.6) / 0.4 * (maxGrade - 5);
+        }
+        
+        grade = Math.min(maxGrade, grade);
+        
+        window.go.main.App.SetDirectGrade(grade);
+        
+        if (this.lastTelemetry) {
+            this.lastTelemetry.grade = grade;
+        }
+    }
+
+    async loadKOMRoute() {
+        const routePoints = this.createVirtualKOMRoute();
+        
+        if (!routePoints || routePoints.length === 0) return;
+
+        window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
+        
+        if (window.ui?.setFilename) {
+            window.ui.setFilename('KOM Challenge Route');
+        }
+
+        this.ui.showRoutePreview(window.totalRouteDistance);
+
+        const features = [];
+        for (let i = 0; i < routePoints.length - 1; i++) {
+            features.push({
+                type: 'Feature',
+                properties: { grade: routePoints[i].grade },
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                        [routePoints[i].lon, routePoints[i].lat],
+                        [routePoints[i + 1].lon, routePoints[i + 1].lat]
+                    ]
+                }
+            });
+        }
+
+        this.mapCtrl.renderRoute({ type: 'FeatureCollection', features });
+        this.mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
+        
+        const elevations = routePoints.map(p => p.ele);
+        this.chart.setData(elevations);
+    }
+
+    createVirtualKOMRoute() {
+        const points = [];
+        const numPoints = 30;
+        const startLat = -23.560000;
+        const startLon = -46.650000;
+        const startEle = 760.0;
+        
+        const latStep = 0.0012;
+        const lonStep = 0.0012;
+        
+        const gradeSchedule = [
+            { pct: 0, grade: 0 },
+            { pct: 0.05, grade: 0 },
+            { pct: 0.10, grade: 1 },
+            { pct: 0.20, grade: 2 },
+            { pct: 0.30, grade: 3 },
+            { pct: 0.40, grade: 4 },
+            { pct: 0.50, grade: 5 },
+            { pct: 0.60, grade: 6 },
+            { pct: 0.70, grade: 7 },
+            { pct: 0.80, grade: 8 },
+            { pct: 0.90, grade: 8 },
+            { pct: 1.00, grade: 8 }
+        ];
+
+        let currentEle = startEle;
+        
+        for (let i = 0; i < numPoints; i++) {
+            const pct = i / (numPoints - 1);
+            const grade = this.interpolateGrade(pct, gradeSchedule);
+            
+            if (i > 0) {
+                const distSinceLast = 100;
+                currentEle += distSinceLast * (grade / 100);
+            }
+            
+            points.push({
+                lat: startLat - (i * latStep),
+                lon: startLon - (i * lonStep),
+                ele: currentEle,
+                grade: grade,
+                distance: i * 100
+            });
+        }
+
+        return points;
+    }
+
+    interpolateGrade(pct, schedule) {
+        for (let i = 0; i < schedule.length - 1; i++) {
+            if (pct >= schedule[i].pct && pct <= schedule[i + 1].pct) {
+                const t = (pct - schedule[i].pct) / (schedule[i + 1].pct - schedule[i].pct);
+                return schedule[i].grade + t * (schedule[i + 1].grade - schedule[i].grade);
+            }
+        }
+        return schedule[schedule.length - 1].grade;
     }
 
     clearRoutePreview() {
@@ -335,7 +456,7 @@ export class ChallengeController {
             duration: 15,
             started: false,
             peakPower: 0,
-            threshold: 20
+            threshold: 5
         });
     }
 
@@ -350,7 +471,7 @@ export class ChallengeController {
             duration: 60,
             started: false,
             bestDistance: 0,
-            threshold: 20
+            threshold: 5
         });
     }
 
@@ -358,7 +479,11 @@ export class ChallengeController {
         const riderName = this.getRiderName();
         if (!riderName) return;
 
-        const targetPower = Math.max(100, parseInt(this.els.targetPowerInput?.value || '250', 10));
+        const targetPowerInput = this.els.targetPowerInput;
+        const rawValue = targetPowerInput?.value;
+        const parsedValue = parseInt(rawValue, 10);
+        const targetPower = (!isNaN(parsedValue) && parsedValue > 0) ? parsedValue : 250;
+        
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
         await this.startChallenge({
@@ -369,8 +494,8 @@ export class ChallengeController {
             targetPower,
             tolerance: targetPower * 0.05,
             score: 0,
-            graceRemaining: 3,
-            threshold: 20,
+            graceRemaining: 5,
+            threshold: 5,
             history: new Array(180).fill(targetPower),
             isOutOfZone: false
         });
@@ -438,7 +563,7 @@ export class ChallengeController {
         if (this.activeChallenge.type === 'timeTrial') {
             this.els.secondaryValue.textContent = '0 pts';
             this.els.statusLabel.textContent = `Target locked at ${this.activeChallenge.targetPower} W`;
-            this.els.graceValue.textContent = '3.0s';
+            this.els.graceValue.textContent = '5.0s';
         }
         this.renderInlineLeaderboard();
     }
@@ -473,6 +598,10 @@ export class ChallengeController {
             const remaining = Math.max(0, this.activeChallenge.duration - elapsed);
             this.els.timerValue.textContent = `${remaining.toFixed(1)}s`;
 
+            if (this.activeChallenge.type === 'kom') {
+                this.updateKOMGradeByTime(elapsed);
+            }
+
             if (this.activeChallenge.type === 'timeTrial') {
                 this.updateTimeTrial(dt);
             }
@@ -481,6 +610,8 @@ export class ChallengeController {
                 this.finishActiveChallenge(true, 'Challenge complete');
                 return;
             }
+        } else if (!this.activeChallenge.started) {
+            this.els.timerValue.textContent = `${this.activeChallenge.duration.toFixed(1)}s`;
         }
 
         this.syncDisplayedTelemetry();
@@ -501,7 +632,7 @@ export class ChallengeController {
 
         if (inZone) {
             challenge.isOutOfZone = false;
-            challenge.graceRemaining = 3;
+            challenge.graceRemaining = 5;
             challenge.score += challenge.targetPower * dt;
             this.els.statusLabel.textContent = 'Inside target zone';
         } else {
@@ -551,6 +682,14 @@ export class ChallengeController {
     }
 
     updateTelemetry(data) {
+        if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
+            const dist = data.total_dist || 0;
+            const grade = this.getGradeForDistance(dist);
+            data.grade = grade;
+            
+            this.updateKOMGrade(dist);
+        }
+
         this.lastTelemetry = data;
 
         if (!this.activeChallenge || this.activeChallenge.finalized) return;
@@ -562,6 +701,34 @@ export class ChallengeController {
         if (this.activeChallenge.type === 'kom') {
             this.activeChallenge.bestDistance = Math.max(this.activeChallenge.bestDistance, data.total_dist || 0);
         }
+    }
+
+    getGradeForDistance(distanceMeters) {
+        const gradeSchedule = [
+            { pct: 0, grade: 0 },
+            { pct: 0.05, grade: 0 },
+            { pct: 0.10, grade: 1 },
+            { pct: 0.20, grade: 2 },
+            { pct: 0.30, grade: 3 },
+            { pct: 0.40, grade: 4 },
+            { pct: 0.50, grade: 5 },
+            { pct: 0.60, grade: 6 },
+            { pct: 0.70, grade: 7 },
+            { pct: 0.80, grade: 8 },
+            { pct: 0.90, grade: 8 },
+            { pct: 1.00, grade: 8 }
+        ];
+        
+        const routeDistance = 3000;
+        const pct = Math.min(1, distanceMeters / routeDistance);
+        
+        for (let i = 0; i < gradeSchedule.length - 1; i++) {
+            if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
+                const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
+                return gradeSchedule[i].grade + t * (gradeSchedule[i + 1].grade - gradeSchedule[i].grade);
+            }
+        }
+        return gradeSchedule[gradeSchedule.length - 1].grade;
     }
 
     drawCurrentChallenge(dt) {
@@ -925,6 +1092,10 @@ export class ChallengeController {
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
         document.body.classList.remove('challenge-mode-active');
+        
+        if (window.go?.main?.App?.SetDirectGrade) {
+            window.go.main.App.SetDirectGrade(0);
+        }
     }
 
     returnToEventHub() {
