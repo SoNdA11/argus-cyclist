@@ -50,36 +50,7 @@ export class ChallengeController {
             eventTrainerStatus: document.getElementById('eventTrainerStatus'),
             backdropCanvas: document.getElementById('challengeBackdropCanvas'),
             telemetryCanvas: document.getElementById('challengeTelemetryCanvas'),
-            trainerStatus: document.getElementById('statusTrainer'),
-            eventModeScreen: document.getElementById('eventModeScreen'),
-            sprintChallengeScreen: document.getElementById('sprintChallengeScreen'),
-            komChallengeScreen: document.getElementById('komChallengeScreen'),
-            ttChallengeScreen: document.getElementById('ttChallengeScreen'),
-            sprintCanvas: document.getElementById('sprintCanvas'),
-            komCanvas: document.getElementById('komCanvas'),
-            ttCanvas: document.getElementById('ttCanvas'),
-            riderInput2: document.getElementById('eventRiderName2'),
-            targetPowerInput2: document.getElementById('eventTargetPower2'),
-            eventTrainerStatus2: document.getElementById('eventTrainerStatus2'),
-            sprintPowerValue: document.getElementById('sprintPowerValue'),
-            sprintPeakPower: document.getElementById('sprintPeakPower'),
-            sprintCadence: document.getElementById('sprintCadence'),
-            sprintTimerValue: document.getElementById('sprintTimerValue'),
-            sprintStatusLabel: document.getElementById('sprintStatusLabel'),
-            sprintRiderName: document.getElementById('sprintRiderName'),
-            komDistanceValue: document.getElementById('komDistanceValue'),
-            komGradeValue: document.getElementById('komGradeValue'),
-            komElevation: document.getElementById('komElevation'),
-            komTimerValue: document.getElementById('komTimerValue'),
-            komProgressFill: document.getElementById('komProgressFill'),
-            komRiderName: document.getElementById('komRiderName'),
-            ttPowerValue: document.getElementById('ttPowerValue'),
-            ttScore: document.getElementById('ttScore'),
-            ttTolerance: document.getElementById('ttTolerance'),
-            ttTimerValue: document.getElementById('ttTimerValue'),
-            ttTargetPower: document.getElementById('ttTargetPower'),
-            ttRiderName: document.getElementById('ttRiderName'),
-            ttPrimaryLabel: document.getElementById('ttPrimaryLabel')
+            trainerStatus: document.getElementById('statusTrainer')
         };
 
         this.backdropCtx = this.els.backdropCanvas?.getContext('2d');
@@ -155,15 +126,13 @@ export class ChallengeController {
             this.openLeaderboard();
         });
 
-        document.getElementById('btnBackFromEventMode')?.addEventListener('click', () => this.exitEventMode());
-        document.getElementById('btnLaunchSprint2')?.addEventListener('click', () => this.launchSprintNew());
-        document.getElementById('btnLaunchKOM2')?.addEventListener('click', () => this.launchKOMNew());
-        document.getElementById('btnLaunchTimeTrial2')?.addEventListener('click', () => this.launchTimeTrialNew());
-        document.getElementById('btnEventLeaderboard2')?.addEventListener('click', () => this.openLeaderboard());
-        document.getElementById('btnEventScanTrainer2')?.addEventListener('click', () => this.scanTrainerNew());
-        document.getElementById('btnAbortSprint')?.addEventListener('click', () => this.abortActiveChallenge());
-        document.getElementById('btnAbortKOM')?.addEventListener('click', () => this.abortActiveChallenge());
-        document.getElementById('btnAbortTT')?.addEventListener('click', () => this.abortActiveChallenge());
+        document.getElementById('btnLaunchSprint')?.addEventListener('click', () => this.launchSprint());
+        document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchKOM());
+        document.getElementById('btnLaunchTimeTrial')?.addEventListener('click', () => this.launchTimeTrial());
+
+        document.getElementById('btnAbortChallenge')?.addEventListener('click', async () => {
+            await this.abortActiveChallenge();
+        });
     }
 
     resizeCanvases() {
@@ -189,120 +158,7 @@ export class ChallengeController {
         const homeScreen = document.getElementById('homeScreen');
         if (homeScreen) homeScreen.classList.remove('active');
 
-        this.openEventHubFullScreen();
-    }
-
-    openEventHubFullScreen() {
-        const screen = this.els.eventModeScreen;
-        if (screen) {
-            screen.classList.remove('hidden');
-        }
-    }
-
-    exitEventMode() {
-        const screen = this.els.eventModeScreen;
-        if (screen) {
-            screen.classList.add('hidden');
-        }
-        const homeScreen = document.getElementById('homeScreen');
-        if (homeScreen) homeScreen.classList.add('active');
-    }
-
-    async scanTrainerNew() {
-        if (window.go?.main?.App?.ScanTrainers) {
-            const devices = await window.go.main.App.ScanTrainers();
-            if (devices && devices.length > 0) {
-                const first = devices[0];
-                if (window.go?.main?.App?.ConnectTrainer) {
-                    const result = await window.go.main.App.ConnectTrainer(first.mac_address);
-                    await this.updateDeviceStatusNew(result);
-                }
-            }
-        }
-    }
-
-    async updateDeviceStatusNew(status) {
-        const el = this.els.eventTrainerStatus2;
-        if (!el) return;
-        
-        const isConnected = status && !status.includes('error');
-        const dot = el.querySelector('.status-dot');
-        
-        if (dot) {
-            dot.classList.toggle('connected', isConnected);
-            dot.classList.toggle('disconnected', !isConnected);
-        }
-        
-        if (isConnected) {
-            el.innerHTML = `<span class="status-dot connected"></span>Connected`;
-        } else {
-            el.innerHTML = `<span class="status-dot disconnected"></span>Disconnected`;
-        }
-    }
-
-    async launchSprintNew() {
-        const riderName = this.els.riderInput2?.value?.trim() || 'Rider';
-        
-        if (!await this.prepareChallengeEnvironment('sprint')) return;
-
-        this.els.sprintRiderName.textContent = riderName;
-        this.els.sprintChallengeScreen?.classList.remove('hidden');
-        
-        await this.startChallenge({
-            type: 'sprint',
-            riderName,
-            duration: 15,
-            started: false,
-            peakPower: 0,
-            threshold: 5
-        });
-    }
-
-    async launchKOMNew() {
-        const riderName = this.els.riderInput2?.value?.trim() || 'Rider';
-        
-        if (!await this.prepareChallengeEnvironment('kom')) return;
-
-        this.els.komRiderName.textContent = riderName;
-        this.els.komChallengeScreen?.classList.remove('hidden');
-        
-        await this.startChallenge({
-            type: 'kom',
-            riderName,
-            duration: 60,
-            started: false,
-            bestDistance: 0,
-            threshold: 5
-        });
-    }
-
-    async launchTimeTrialNew() {
-        const riderName = this.els.riderInput2?.value?.trim() || 'Rider';
-        const targetPowerInput = this.els.targetPowerInput2;
-        const rawValue = targetPowerInput?.value;
-        const parsedValue = parseInt(rawValue, 10);
-        const targetPower = (!isNaN(parsedValue) && parsedValue > 0) ? parsedValue : 250;
-        
-        if (!await this.prepareChallengeEnvironment('timeTrial')) return;
-
-        this.els.ttRiderName.textContent = riderName;
-        this.els.ttTargetPower.textContent = targetPower;
-        this.els.ttTolerance.textContent = `±${Math.round(targetPower * 0.05)}`;
-        this.els.ttChallengeScreen?.classList.remove('hidden');
-        
-        await this.startChallenge({
-            type: 'timeTrial',
-            riderName,
-            duration: 60,
-            started: false,
-            targetPower,
-            tolerance: targetPower * 0.05,
-            score: 0,
-            graceRemaining: 5,
-            threshold: 5,
-            history: new Array(180).fill(targetPower),
-            isOutOfZone: false
-        });
+        this.openEventHub();
     }
 
     openEventHub() {
@@ -805,23 +661,11 @@ export class ChallengeController {
         if (this.activeChallenge.type === 'sprint') {
             this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.peakPower || 0)} W`;
             this.els.tertiaryValue.textContent = `${cadence} rpm`;
-            
-            if (this.els.sprintPowerValue) this.els.sprintPowerValue.textContent = `${power}`;
-            if (this.els.sprintPeakPower) this.els.sprintPeakPower.textContent = `${Math.round(this.activeChallenge.peakPower || 0)}`;
-            if (this.els.sprintCadence) this.els.sprintCadence.textContent = `${cadence}`;
         }
 
         if (this.activeChallenge.type === 'kom') {
             this.els.secondaryValue.textContent = this.formatDistance(this.activeChallenge.bestDistance || 0);
             this.els.tertiaryValue.textContent = `${(this.lastTelemetry.grade || 0).toFixed(1)} %`;
-            
-            if (this.els.komDistanceValue) this.els.komDistanceValue.textContent = this.formatDistance(this.activeChallenge.bestDistance || 0, false);
-            if (this.els.komGradeValue) this.els.komGradeValue.textContent = `${(this.lastTelemetry.grade || 0).toFixed(1)}`;
-            
-            if (this.els.komProgressFill) {
-                const progress = Math.min(100, (this.activeChallenge.bestDistance || 0) / 30);
-                this.els.komProgressFill.style.width = `${progress}%`;
-            }
         }
 
         if (this.activeChallenge.type === 'timeTrial') {
@@ -831,9 +675,6 @@ export class ChallengeController {
             this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.score)} pts`;
             this.els.tertiaryValue.textContent = `±${Math.round(tolerance)} W`;
 
-            if (this.els.ttPowerValue) this.els.ttPowerValue.textContent = `${power}`;
-            if (this.els.ttScore) this.els.ttScore.textContent = `${Math.round(this.activeChallenge.score)}`;
-            
             if (!this.activeChallenge.started) {
                 this.els.statusLabel.textContent = `Target locked at ${target} W`;
             }
@@ -1252,10 +1093,6 @@ export class ChallengeController {
         this.closeChallengeOverlay();
         document.body.classList.remove('challenge-mode-active');
         
-        if (this.els.sprintChallengeScreen) this.els.sprintChallengeScreen.classList.add('hidden');
-        if (this.els.komChallengeScreen) this.els.komChallengeScreen.classList.add('hidden');
-        if (this.els.ttChallengeScreen) this.els.ttChallengeScreen.classList.add('hidden');
-        
         if (window.go?.main?.App?.SetDirectGrade) {
             window.go.main.App.SetDirectGrade(0);
         }
@@ -1263,6 +1100,6 @@ export class ChallengeController {
 
     returnToEventHub() {
         this.closeModal(this.els.resultModal);
-        this.openEventHubFullScreen();
+        this.openEventHub();
     }
 }
