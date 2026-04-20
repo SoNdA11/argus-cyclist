@@ -58,6 +58,10 @@ export function DisconnectTrainer() {
   return window['go']['main']['App']['DisconnectTrainer']();
 }
 
+export function EnsureEventModeProfile() {
+  return window['go']['main']['App']['EnsureEventModeProfile']();
+}
+
 export function FinishSession() {
   return window['go']['main']['App']['FinishSession']();
 }
@@ -72,6 +76,10 @@ export function GetActivityDetails(arg1) {
 
 export function GetCareerDashboard() {
   return window['go']['main']['App']['GetCareerDashboard']();
+}
+
+export function GetDeviceConnectionState() {
+  return window['go']['main']['App']['GetDeviceConnectionState']();
 }
 
 export function GetElevationProfile() {
@@ -112,6 +120,10 @@ export function InitiateCooldown() {
 
 export function IsStravaConnected() {
   return window['go']['main']['App']['IsStravaConnected']();
+}
+
+export function LoadPredefinedKOMSegment() {
+  return window['go']['main']['App']['LoadPredefinedKOMSegment']();
 }
 
 export function LoadWorkout() {
