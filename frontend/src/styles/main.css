@@ -659,6 +659,7 @@ footer {
     padding-bottom: 12px;
     justify-content: center;
     flex-wrap: wrap;
+    padding-top: 4px;
 }
 
 .settings-nav .tab-btn {
@@ -679,6 +680,7 @@ footer {
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 5px;
+    padding-top: 4px;
 }
 
 .tab-btn {
@@ -1858,6 +1860,15 @@ TACTICAL BLUE
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 20px;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.career-chart-container canvas {
+    max-width: 100%;
 }
 
 /* =========================================
