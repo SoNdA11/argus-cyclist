@@ -19,6 +19,7 @@
 import { CONFIG } from '../config.js';
 import * as echarts from 'echarts';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 /**
  * UIManager
@@ -2139,6 +2140,63 @@ export class UIManager {
         } catch (error) {
             console.error("Export PDF Error:", error);
             alert("Failed to export PDF: " + error);
+        }
+    }
+
+    toggleShareMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('share-dropdown-menu');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            document.addEventListener('click', this._closeShareMenuHandler);
+        } else {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', this._closeShareMenuHandler);
+        }
+    }
+
+    _closeShareMenuHandler = (event) => {
+        const menu = document.getElementById('share-dropdown-menu');
+        const container = document.querySelector('.share-dropdown-container');
+        if (container && !container.contains(event.target)) {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', this._closeShareMenuHandler);
+        }
+    };
+
+    async exportPNG() {
+        if (!this.currentViewedActivity) return;
+
+        const menu = document.getElementById('share-dropdown-menu');
+        menu.classList.add('hidden');
+        document.removeEventListener('click', this._closeShareMenuHandler);
+
+        this.showToast("Generating PNG Image...", 2000);
+
+        try {
+            const modal = document.querySelector('.modern-detail-modal');
+            if (!modal) {
+                throw new Error("Modal not found");
+            }
+
+            const canvas = await html2canvas(modal, {
+                scale: 2,
+                backgroundColor: '#1e293b',
+                logging: false,
+                useCORS: true
+            });
+
+            const link = document.createElement('a');
+            const act = this.currentViewedActivity;
+            const date = new Date(act.created_at).toLocaleDateString().replace(/[\/\s]/g, '_');
+            link.download = `Argus_Ride_${date}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            this.showToast("PNG Image Exported Successfully!", 3000);
+        } catch (error) {
+            console.error("Export PNG Error:", error);
+            this.showToast("Failed to export PNG: " + error.message, 4000);
         }
     }
 }
