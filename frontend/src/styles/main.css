@@ -70,7 +70,8 @@ body {
 :root {
     --hr-color: #f472b6;
     --grade-color: #fbbf24;
-    --argus-safe: #22c55e;
+    --argus-safe: #10b981;
+    --argus-safe-glow: rgba(16, 185, 129, 0.3);
     --argus-alert: #ef4444;
     --status-standby: #64748b;
 }
@@ -222,7 +223,24 @@ button {
 }
 
 .btn-start {
-    background-color: var(--argus-safe);
+    background: linear-gradient(135deg, var(--argus-safe), #059669);
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px var(--argus-safe-glow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-start:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px var(--argus-safe-glow);
+    filter: brightness(1.1);
+}
+
+.btn-start:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .btn-stop {
