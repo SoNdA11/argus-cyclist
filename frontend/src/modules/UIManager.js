@@ -1752,63 +1752,183 @@ export class UIManager {
         const chartDom = document.getElementById('pmcChart');
         if (!chartDom) return;
 
+        if (pmcData && pmcData.length > 0) {
+            const lastEntry = pmcData[pmcData.length - 1];
+            
+            const dateEl = document.getElementById('pmcLatestDate');
+            const ctlEl = document.getElementById('pmcLatestCTL');
+            const atlEl = document.getElementById('pmcLatestATL');
+            const tsbEl = document.getElementById('pmcLatestTSB');
+
+            if (dateEl) {
+                try {
+                    const d = new Date(lastEntry.date + 'T12:00:00Z');
+                    dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                } catch(e) {
+                    dateEl.textContent = lastEntry.date;
+                }
+            }
+            if (ctlEl) ctlEl.textContent = Math.round(lastEntry.ctl);
+            if (atlEl) atlEl.textContent = Math.round(lastEntry.atl);
+            
+            if (tsbEl) {
+                const tsbVal = Math.round(lastEntry.tsb);
+                let tsbColor = '#ccc';
+                if (tsbVal >= 25) tsbColor = '#e67e22'; 
+                else if (tsbVal >= 5) tsbColor = '#3498db'; 
+                else if (tsbVal >= -10) tsbColor = '#2ecc71'; 
+                else if (tsbVal >= -30) tsbColor = '#f1c40f'; 
+                else tsbColor = '#e74c3c'; 
+                
+                tsbEl.textContent = tsbVal > 0 ? `+${tsbVal}` : tsbVal;
+                tsbEl.style.color = tsbColor;
+            }
+        }
+
         if (this.pmcChartInstance) {
             this.pmcChartInstance.dispose();
         }
         this.pmcChartInstance = echarts.init(chartDom, 'dark', { background: 'transparent' });
 
         const dates = pmcData.map(d => d.date);
-        const ctl = pmcData.map(d => d.ctl);
-        const atl = pmcData.map(d => d.atl);
-        const tsb = pmcData.map(d => d.tsb);
+        const ctl = pmcData.map(d => Math.round(d.ctl));
+        const atl = pmcData.map(d => Math.round(d.atl));
+        const tsb = pmcData.map(d => Math.round(d.tsb));
 
         const option = {
             tooltip: {
                 trigger: 'axis',
-                axisPointer: { type: 'cross' }
+                axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
+                backgroundColor: 'rgba(21, 32, 54, 0.95)',
+                borderColor: 'rgba(255,255,255,0.1)',
+                textStyle: { color: '#fff' },
+                formatter: function (params) {
+                    let tooltipHtml = `<div style="font-weight:bold;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;">${params[0].axisValue}</div>`;
+                    
+                    params.forEach(param => {
+                        let color = param.color;
+                        let valueStr = param.value;
+                        let textColor = '#ccc'; 
+                        
+                        if (param.seriesName === 'TSB (Form)') {
+                            const val = param.value;
+                            if (val >= 25) color = '#e67e22'; 
+                            else if (val >= 5) color = '#3498db'; 
+                            else if (val >= -10) color = '#2ecc71'; 
+                            else if (val >= -30) color = '#f1c40f'; 
+                            else color = '#e74c3c'; 
+                            
+                            valueStr = val > 0 ? `+${val}` : val;
+                            textColor = color; 
+                        }
+
+                        tooltipHtml += `
+                            <div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:4px;">
+                                <span style="display:flex;align-items:center;color:${textColor}">
+                                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${color};margin-right:6px;"></span>
+                                    ${param.seriesName}
+                                </span>
+                                <span style="font-weight:bold; font-family:monospace; font-size: 1.1em; color:${textColor}">${valueStr}</span>
+                            </div>
+                        `;
+                    });
+                    return tooltipHtml;
+                }
             },
             legend: {
                 data: ['CTL (Fitness)', 'ATL (Fatigue)', 'TSB (Form)'],
-                textStyle: { color: '#ccc' }
+                textStyle: { color: '#ccc' },
+                top: 0
             },
-            grid: { left: '5%', right: '5%', bottom: '15%', containLabel: true },
+            grid: { left: '3%', right: '3%', bottom: '15%', top: '15%', containLabel: true },
             dataZoom: [
-                { type: 'inside', start: pmcData.length > 90 ? 70 : 0, end: 100 },
-                { start: pmcData.length > 90 ? 70 : 0, end: 100 }
+                { 
+                    type: 'inside', 
+                    xAxisIndex: [0, 1], 
+                    start: pmcData.length > 90 ? 70 : 0, 
+                    end: 100 
+                },
+                { 
+                    type: 'slider', 
+                    xAxisIndex: [0, 1], 
+                    start: pmcData.length > 90 ? 70 : 0, 
+                    end: 100,
+                    height: 20, 
+                    bottom: 5, 
+                    borderColor: 'transparent',
+                    fillerColor: 'rgba(52, 152, 219, 0.2)', 
+                    textStyle: { color: '#888' } 
+                }
             ],
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: dates,
-                axisLabel: { color: '#888' }
-            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false, 
+                    data: dates,
+                    axisLabel: { color: '#888' },
+                    axisLine: { lineStyle: { color: '#444' } }
+                },
+                {
+                    type: 'category',
+                    boundaryGap: true, 
+                    data: dates,
+                    show: false 
+                }
+            ],
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#333' } }
+                splitLine: { lineStyle: { color: '#333', type: 'dashed' } },
+                axisLabel: { color: '#ccc' }
+            },
+            visualMap: {
+                seriesIndex: 2, 
+                show: false,
+                pieces: [
+                    { min: 25, color: '#e67e22' },             
+                    { min: 5, max: 25, color: '#3498db' },     
+                    { min: -10, max: 5, color: '#2ecc71' },    
+                    { min: -30, max: -10, color: '#f1c40f' },  
+                    { max: -30, color: '#e74c3c' }             
+                ]
             },
             series: [
                 {
-                    name: 'TSB (Form)',
-                    type: 'bar',
+                    name: 'CTL (Fitness)',
+                    type: 'line',
+                    xAxisIndex: 0,
+                    symbol: 'none',
                     itemStyle: { color: '#3498db' },
-                    data: tsb
+                    lineStyle: { width: 3, color: '#3498db' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(52, 152, 219, 0.4)' },
+                            { offset: 1, color: 'rgba(52, 152, 219, 0.05)' }
+                        ])
+                    },
+                    data: ctl,
+                    z: 3
                 },
                 {
                     name: 'ATL (Fatigue)',
                     type: 'line',
+                    xAxisIndex: 0,
                     symbol: 'none',
                     itemStyle: { color: '#e056fd' },
                     lineStyle: { width: 2, color: '#e056fd' },
-                    data: atl
+                    data: atl,
+                    z: 2
                 },
                 {
-                    name: 'CTL (Fitness)',
-                    type: 'line',
-                    symbol: 'none',
-                    itemStyle: { color: '#f1c40f' },
-                    lineStyle: { width: 3, color: '#f1c40f' },
-                    areaStyle: { color: 'rgba(241, 196, 15, 0.2)' },
-                    data: ctl
+                    name: 'TSB (Form)',
+                    type: 'bar',
+                    xAxisIndex: 1,
+                    itemStyle: { color: '#3498db', borderRadius: [2, 2, 0, 0] },
+                    data: tsb,
+                    z: 1,
+                    markArea: {
+                        itemStyle: { color: 'rgba(255, 255, 255, 0.03)' },
+                        data: [ [ { yAxis: -10 }, { yAxis: -30 } ] ]
+                    }
                 }
             ]
         };

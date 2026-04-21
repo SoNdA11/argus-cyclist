@@ -70,7 +70,8 @@ body {
 :root {
     --hr-color: #f472b6;
     --grade-color: #fbbf24;
-    --argus-safe: #22c55e;
+    --argus-safe: #10b981;
+    --argus-safe-glow: rgba(16, 185, 129, 0.3);
     --argus-alert: #ef4444;
     --status-standby: #64748b;
 }
@@ -222,7 +223,24 @@ button {
 }
 
 .btn-start {
-    background-color: var(--argus-safe);
+    background: linear-gradient(135deg, var(--argus-safe), #059669);
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px var(--argus-safe-glow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-start:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px var(--argus-safe-glow);
+    filter: brightness(1.1);
+}
+
+.btn-start:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .btn-stop {
@@ -463,16 +481,19 @@ footer {
     display: flex;
 }
 
-/* Settings Modal */
 .settings-content {
+    width: 90%;
+    max-width: 1000px;
+    /* 1. Definimos uma altura fixa para que o modal não mude de tamanho entre as abas */
+    height: 100vh; 
+    max-height: 955px; 
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
-    width: 600px;
-    max-width: 90%;
-    padding: 30px;
+    padding: 25px 30px;
     border-radius: 12px;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column; /* Organiza o conteúdo verticalmente */
+    overflow: hidden; /* Impede que o modal "vaze" para fora da tela */
 }
 
 .settings-content h2 {
@@ -549,8 +570,10 @@ footer {
 
 .modal-actions {
     display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
+    justify-content: space-between;
+    margin-top: auto !important; 
+    padding: 20px 0 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Confirmation Modal */
@@ -644,21 +667,24 @@ footer {
     padding: 25px 30px;
 }
 
+
 .settings-shell {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    height: 100%;
 }
 
 .settings-nav {
     display: flex;
     flex-direction: row;
-    gap: 8px;
-    margin-bottom: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px; 
+    border-radius: 12px;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: visible; 
 }
 
 .settings-nav .tab-btn {
@@ -667,7 +693,18 @@ footer {
 }
 
 .settings-panels {
-    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 800px;
+}
+
+.settings-panels::-webkit-scrollbar {
+    width: 6px;
+}
+.settings-panels::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .tabs {
@@ -679,18 +716,24 @@ footer {
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 5px;
+    padding-top: 4px;
 }
 
 .tab-btn {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--argus-text-dim);
-    font-size: 1.1rem;
-    padding: 0.5rem 1rem;
+    flex: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 0.85rem; 
+    padding: 10px 12px; 
     cursor: pointer;
-    border-radius: 18px;
-    text-align: left;
-    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    border-radius: 8px;
+    white-space: nowrap; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .settings-nav-kicker {
@@ -703,16 +746,55 @@ footer {
 }
 
 .tab-btn strong {
-    display: block;
-    font-size: 0.9rem;
     font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.tab-btn svg {
+    opacity: 0.7;
+    transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
+    flex-shrink: 0; 
+}
+
+.tab-btn:hover svg {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
 }
 
 .tab-btn.active {
+    color: #fff;
+    background: linear-gradient(145deg, rgba(56, 189, 248, 0.15), rgba(2, 132, 199, 0.05));
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.15), inset 0 0 10px rgba(56, 189, 248, 0.05);
+}
+
+.tab-btn.active svg {
+    opacity: 1;
     color: var(--power-color);
-    border-color: rgba(56, 189, 248, 0.5);
-    background: rgba(56, 189, 248, 0.12);
-    transform: translateY(-2px);
+    filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.6));
+}
+
+@media (max-width: 600px) {
+    .settings-nav {
+        flex-direction: column;
+        background: transparent;
+        border: none;
+        padding: 0;
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        justify-content: flex-start;
+        padding: 12px 15px;
+    }
 }
 
 .tab-pane {
@@ -1858,6 +1940,15 @@ TACTICAL BLUE
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 20px;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.career-chart-container canvas {
+    max-width: 100%;
 }
 
 /* =========================================
