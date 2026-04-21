@@ -52,13 +52,25 @@
             <div class="settings-shell">
                 <aside class="settings-nav tabs">
                     <button class="tab-btn active" data-tab="tab-profile" onclick="openTab('tab-profile', event)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
                         <strong>Profile & Devices</strong>
                     </button>
                     <button class="tab-btn" data-tab="tab-history" onclick="openTab('tab-history', event)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
                         <strong>History & Stats</strong>
                     </button>
-
                     <button class="tab-btn" data-tab="tab-career" onclick="openTab('tab-career', event)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                        </svg>
                         <strong>Career Dashboard</strong>
                     </button>
                 </aside>
@@ -341,14 +353,39 @@
                     </div>
 
                     <div id="tab-career" class="tab-pane">
-                        <div class="career-header">
-                            <h3>Performance Management Chart (PMC)</h3>
-                            <p class="career-subtitle">Track your Fitness (CTL), Fatigue (ATL), and Form (TSB) evolution
-                                over time.</p>
+                        <div class="career-header"
+                            style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 5px; margin-bottom: 10px;">
+                            <div>
+                                <h3>Performance Management Chart (PMC)</h3>
+                                <p class="career-subtitle">Track your Fitness (CTL), Fatigue (ATL), and Form (TSB)
+                                    evolution over time.</p>
+                            </div>
+
+                            <div
+                                style="text-align: right; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.75rem; color: #888; margin-bottom: 6px;">
+                                    Latest update: <strong id="pmcLatestDate" style="color: #ccc;">--</strong>
+                                </div>
+                                <div
+                                    style="display: flex; gap: 15px; font-weight: bold; font-family: monospace; font-size: 1.3rem; justify-content: flex-end; line-height: 1;">
+                                    <div style="color: #3498db; display: flex; align-items: baseline; gap: 4px;"><span
+                                            style="font-size:0.7rem; color:#888; font-family:sans-serif; letter-spacing: 1px;">CTL</span>
+                                        <span id="pmcLatestCTL">--</span>
+                                    </div>
+                                    <div style="color: #e056fd; display: flex; align-items: baseline; gap: 4px;"><span
+                                            style="font-size:0.7rem; color:#888; font-family:sans-serif; letter-spacing: 1px;">ATL</span>
+                                        <span id="pmcLatestATL">--</span>
+                                    </div>
+                                    <div style="display: flex; align-items: baseline; gap: 4px;"><span
+                                            style="font-size:0.7rem; color:#888; font-family:sans-serif; letter-spacing: 1px;">TSB</span>
+                                        <span id="pmcLatestTSB" style="color: #ccc;">--</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="career-chart-container">
-                            <div id="pmcChart" style="width: 100%; height: 350px;"></div>
+                            <div id="pmcChart" style="width: 100%; height: 300px;"></div>
 
                             <div class="tsb-legend"
                                 style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.75rem; flex-wrap: wrap;">
@@ -364,14 +401,14 @@
                             </div>
                         </div>
 
-                        <div class="career-header" style="margin-top: 20px;">
+                        <div class="career-header" style="margin-top: 15px;">
                             <h3>Aerobic Decoupling History (Pw:HR)</h3>
                             <p class="career-subtitle">Tracks your cardiovascular drift on rides over 1 hour. Values
                                 under 5% indicate a solid aerobic base.</p>
                         </div>
 
                         <div class="career-chart-container">
-                            <div id="careerDecouplingChart" style="width: 100%; height: 250px;"></div>
+                            <div id="careerDecouplingChart" style="width: 100%; height: 200px;"></div>
                         </div>
                     </div>
 

@@ -1752,6 +1752,39 @@ export class UIManager {
         const chartDom = document.getElementById('pmcChart');
         if (!chartDom) return;
 
+        if (pmcData && pmcData.length > 0) {
+            const lastEntry = pmcData[pmcData.length - 1];
+            
+            const dateEl = document.getElementById('pmcLatestDate');
+            const ctlEl = document.getElementById('pmcLatestCTL');
+            const atlEl = document.getElementById('pmcLatestATL');
+            const tsbEl = document.getElementById('pmcLatestTSB');
+
+            if (dateEl) {
+                try {
+                    const d = new Date(lastEntry.date + 'T12:00:00Z');
+                    dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                } catch(e) {
+                    dateEl.textContent = lastEntry.date;
+                }
+            }
+            if (ctlEl) ctlEl.textContent = Math.round(lastEntry.ctl);
+            if (atlEl) atlEl.textContent = Math.round(lastEntry.atl);
+            
+            if (tsbEl) {
+                const tsbVal = Math.round(lastEntry.tsb);
+                let tsbColor = '#ccc';
+                if (tsbVal >= 25) tsbColor = '#e67e22'; 
+                else if (tsbVal >= 5) tsbColor = '#3498db'; 
+                else if (tsbVal >= -10) tsbColor = '#2ecc71'; 
+                else if (tsbVal >= -30) tsbColor = '#f1c40f'; 
+                else tsbColor = '#e74c3c'; 
+                
+                tsbEl.textContent = tsbVal > 0 ? `+${tsbVal}` : tsbVal;
+                tsbEl.style.color = tsbColor;
+            }
+        }
+
         if (this.pmcChartInstance) {
             this.pmcChartInstance.dispose();
         }
@@ -1775,7 +1808,7 @@ export class UIManager {
                     params.forEach(param => {
                         let color = param.color;
                         let valueStr = param.value;
-                        let textColor = '#ccc';
+                        let textColor = '#ccc'; 
                         
                         if (param.seriesName === 'TSB (Form)') {
                             const val = param.value;
@@ -1786,7 +1819,7 @@ export class UIManager {
                             else color = '#e74c3c'; 
                             
                             valueStr = val > 0 ? `+${val}` : val;
-                            textColor = color;
+                            textColor = color; 
                         }
 
                         tooltipHtml += `
@@ -1809,9 +1842,15 @@ export class UIManager {
             },
             grid: { left: '3%', right: '3%', bottom: '15%', top: '15%', containLabel: true },
             dataZoom: [
-                { type: 'inside', start: pmcData.length > 90 ? 70 : 0, end: 100 },
+                { 
+                    type: 'inside', 
+                    xAxisIndex: [0, 1], 
+                    start: pmcData.length > 90 ? 70 : 0, 
+                    end: 100 
+                },
                 { 
                     type: 'slider', 
+                    xAxisIndex: [0, 1], 
                     start: pmcData.length > 90 ? 70 : 0, 
                     end: 100,
                     height: 20, 
@@ -1821,13 +1860,21 @@ export class UIManager {
                     textStyle: { color: '#888' } 
                 }
             ],
-            xAxis: {
-                type: 'category',
-                boundaryGap: true, 
-                data: dates,
-                axisLabel: { color: '#888' },
-                axisLine: { lineStyle: { color: '#444' } }
-            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false, 
+                    data: dates,
+                    axisLabel: { color: '#888' },
+                    axisLine: { lineStyle: { color: '#444' } }
+                },
+                {
+                    type: 'category',
+                    boundaryGap: true, 
+                    data: dates,
+                    show: false 
+                }
+            ],
             yAxis: {
                 type: 'value',
                 splitLine: { lineStyle: { color: '#333', type: 'dashed' } },
@@ -1848,6 +1895,7 @@ export class UIManager {
                 {
                     name: 'CTL (Fitness)',
                     type: 'line',
+                    xAxisIndex: 0,
                     symbol: 'none',
                     itemStyle: { color: '#3498db' },
                     lineStyle: { width: 3, color: '#3498db' },
@@ -1863,6 +1911,7 @@ export class UIManager {
                 {
                     name: 'ATL (Fatigue)',
                     type: 'line',
+                    xAxisIndex: 0,
                     symbol: 'none',
                     itemStyle: { color: '#e056fd' },
                     lineStyle: { width: 2, color: '#e056fd' },
@@ -1872,7 +1921,8 @@ export class UIManager {
                 {
                     name: 'TSB (Form)',
                     type: 'bar',
-                    itemStyle: { borderRadius: [2, 2, 0, 0] },
+                    xAxisIndex: 1,
+                    itemStyle: { color: '#3498db', borderRadius: [2, 2, 0, 0] },
                     data: tsb,
                     z: 1,
                     markArea: {
