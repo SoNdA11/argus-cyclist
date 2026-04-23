@@ -255,7 +255,7 @@ export class ChallengeController {
 
     updateKOMGrade(distanceMeters) {
         if (!window.go?.main?.App?.SetDirectGrade) return;
-        
+
         const gradeSchedule = [
             { pct: 0, grade: 0 },
             { pct: 0.05, grade: 0 },
@@ -270,10 +270,10 @@ export class ChallengeController {
             { pct: 0.90, grade: 8 },
             { pct: 1.00, grade: 8 }
         ];
-        
+
         const routeDistance = 3000;
         const pct = Math.min(1, distanceMeters / routeDistance);
-        
+
         for (let i = 0; i < gradeSchedule.length - 1; i++) {
             if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
                 const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
@@ -287,11 +287,11 @@ export class ChallengeController {
 
     updateKOMGradeByTime(elapsedSeconds) {
         if (!window.go?.main?.App?.SetDirectGrade) return;
-        
+
         const duration = 60;
         const maxGrade = 7;
         const pct = Math.min(1, elapsedSeconds / duration);
-        
+
         let grade = 0;
         if (pct <= 0.15) {
             grade = 0;
@@ -302,11 +302,11 @@ export class ChallengeController {
         } else {
             grade = 5 + (pct - 0.6) / 0.4 * (maxGrade - 5);
         }
-        
+
         grade = Math.min(maxGrade, grade);
-        
+
         window.go.main.App.SetDirectGrade(grade);
-        
+
         if (this.lastTelemetry) {
             this.lastTelemetry.grade = grade;
         }
@@ -314,11 +314,11 @@ export class ChallengeController {
 
     async loadKOMRoute() {
         const routePoints = this.createVirtualKOMRoute();
-        
+
         if (!routePoints || routePoints.length === 0) return;
 
         window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
-        
+
         if (window.ui?.setFilename) {
             window.ui.setFilename('KOM Challenge Route');
         }
@@ -342,7 +342,7 @@ export class ChallengeController {
 
         this.mapCtrl.renderRoute({ type: 'FeatureCollection', features });
         this.mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
-        
+
         const elevations = routePoints.map(p => p.ele);
         this.chart.setData(elevations);
     }
@@ -353,10 +353,10 @@ export class ChallengeController {
         const startLat = -23.560000;
         const startLon = -46.650000;
         const startEle = 760.0;
-        
+
         const latStep = 0.0012;
         const lonStep = 0.0012;
-        
+
         const gradeSchedule = [
             { pct: 0, grade: 0 },
             { pct: 0.05, grade: 0 },
@@ -373,16 +373,16 @@ export class ChallengeController {
         ];
 
         let currentEle = startEle;
-        
+
         for (let i = 0; i < numPoints; i++) {
             const pct = i / (numPoints - 1);
             const grade = this.interpolateGrade(pct, gradeSchedule);
-            
+
             if (i > 0) {
                 const distSinceLast = 100;
                 currentEle += distSinceLast * (grade / 100);
             }
-            
+
             points.push({
                 lat: startLat - (i * latStep),
                 lon: startLon - (i * lonStep),
@@ -483,7 +483,7 @@ export class ChallengeController {
         const rawValue = targetPowerInput?.value;
         const parsedValue = parseInt(rawValue, 10);
         const targetPower = (!isNaN(parsedValue) && parsedValue > 0) ? parsedValue : 250;
-        
+
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
         await this.startChallenge({
@@ -584,7 +584,8 @@ export class ChallengeController {
     tick(now) {
         if (!this.activeChallenge) return;
 
-        const dt = Math.min(0.05, Math.max(0.001, (now - this.lastFrameTime) / 1000));
+        const rawDt = (now - this.lastFrameTime) / 1000;
+        const dt = Math.min(0.05, Math.max(0.001, rawDt));
         this.lastFrameTime = now;
 
         if (!this.activeChallenge.started && this.lastTelemetry.power > this.activeChallenge.threshold) {
@@ -598,12 +599,21 @@ export class ChallengeController {
             const remaining = Math.max(0, this.activeChallenge.duration - elapsed);
             this.els.timerValue.textContent = `${remaining.toFixed(1)}s`;
 
+            let activeDt = rawDt;
+            if (elapsed < activeDt) {
+                activeDt = Math.max(0, elapsed);
+            }
+            if (elapsed > this.activeChallenge.duration) {
+                const overshoot = elapsed - this.activeChallenge.duration;
+                activeDt = Math.max(0, activeDt - overshoot);
+            }
+
             if (this.activeChallenge.type === 'kom') {
                 this.updateKOMGradeByTime(elapsed);
             }
 
             if (this.activeChallenge.type === 'timeTrial') {
-                this.updateTimeTrial(dt);
+                this.updateTimeTrial(activeDt);
             }
 
             if (remaining <= 0) {
@@ -633,7 +643,7 @@ export class ChallengeController {
         if (inZone) {
             challenge.isOutOfZone = false;
             challenge.graceRemaining = 5;
-            challenge.score += challenge.targetPower * dt;
+            challenge.score += Math.pow(challenge.targetPower, 1.5) * dt;
             this.els.statusLabel.textContent = 'Inside target zone';
         } else {
             challenge.isOutOfZone = true;
@@ -686,7 +696,7 @@ export class ChallengeController {
             const dist = data.total_dist || 0;
             const grade = this.getGradeForDistance(dist);
             data.grade = grade;
-            
+
             this.updateKOMGrade(dist);
         }
 
@@ -718,10 +728,10 @@ export class ChallengeController {
             { pct: 0.90, grade: 8 },
             { pct: 1.00, grade: 8 }
         ];
-        
+
         const routeDistance = 3000;
         const pct = Math.min(1, distanceMeters / routeDistance);
-        
+
         for (let i = 0; i < gradeSchedule.length - 1; i++) {
             if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
                 const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
@@ -1052,6 +1062,14 @@ export class ChallengeController {
 
         this.activeChallenge.finalized = true;
         const challenge = this.activeChallenge;
+
+        // Apply completion bonus for Time Trial
+        if (challenge.type === 'timeTrial' && success) {
+            // 25% Completion Bonus for surviving the full 60 seconds
+            challenge.score *= 1.25;
+            title = 'Challenge complete (+25% Survival Bonus!)';
+        }
+
         const finalValue = this.getLiveLeaderboardValue();
         const description = success
             ? 'Result saved to the offline leaderboard.'
@@ -1092,7 +1110,7 @@ export class ChallengeController {
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
         document.body.classList.remove('challenge-mode-active');
-        
+
         if (window.go?.main?.App?.SetDirectGrade) {
             window.go.main.App.SetDirectGrade(0);
         }
