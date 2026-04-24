@@ -108,8 +108,19 @@ type Activity struct {
 	TimeInHRZones     map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
 	UploadedToStrava  bool           `json:"uploaded_to_strava"`
 	PeakHR            int            `json:"peak_hr"`
-    HRR1              int            `json:"hrr_1"`
-    HRR2              int            `json:"hrr_2"`
+	HRR1              int            `json:"hrr_1"`
+	HRR2              int            `json:"hrr_2"`
+}
+
+// EventRecord represents a leaderboard entry for Event Mode.
+// Kept separate from the standard Activity model to maintain isolation.
+type EventRecord struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	RiderName string    `json:"rider_name"`
+	EventMode string    `json:"event_mode"` // "sprint", "kom", "timeTrial"
+	Score     float64   `json:"score"`      // Watts, Distance, or Points
+	Status    string    `json:"status"`     // "success", "failed"
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // BLEDevice represents a Bluetooth device found during the scan.

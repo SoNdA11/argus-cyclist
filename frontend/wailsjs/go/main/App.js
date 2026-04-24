@@ -86,6 +86,10 @@ export function GetElevationProfile() {
   return window['go']['main']['App']['GetElevationProfile']();
 }
 
+export function GetEventLeaderboard(arg1) {
+  return window['go']['main']['App']['GetEventLeaderboard'](arg1);
+}
+
 export function GetFitnessTests() {
   return window['go']['main']['App']['GetFitnessTests']();
 }
@@ -140,6 +144,14 @@ export function RepeatWorkout() {
 
 export function ResetAppState() {
   return window['go']['main']['App']['ResetAppState']();
+}
+
+export function ResetEventLeaderboard(arg1) {
+  return window['go']['main']['App']['ResetEventLeaderboard'](arg1);
+}
+
+export function SaveEventResult(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SaveEventResult'](arg1, arg2, arg3, arg4);
 }
 
 export function SaveGeneratedGPX(arg1, arg2) {

@@ -56,6 +56,7 @@ type ProfileSummary struct {
 type Service struct {
 	masterDB *gorm.DB
 	userDB   *gorm.DB
+	eventDB  *gorm.DB
 }
 
 // NewService initializes the master database connection.
@@ -73,7 +74,15 @@ func NewService() *Service {
 		fmt.Println("Error migrating master DB:", err)
 	}
 
-	return &Service{masterDB: db, userDB: nil}
+	eventDbPath := "events_ranking.db"
+	eventDB, err := gorm.Open(sqlite.Open(eventDbPath), &gorm.Config{})
+	if err != nil {
+		fmt.Println("Error opening event DB:", err)
+	} else {
+		eventDB.AutoMigrate(&domain.EventRecord{})
+	}
+
+	return &Service{masterDB: db, userDB: nil, eventDB: eventDB}
 }
 
 // ====================
@@ -374,4 +383,39 @@ func (s *Service) UpdateActivityStatus(id uint, uploaded bool) error {
 		return fmt.Errorf("no user database loaded")
 	}
 	return s.userDB.Model(&domain.Activity{}).Where("id = ?", id).Update("uploaded_to_strava", uploaded).Error
+}
+
+// =================
+// EVENT LEADERBOARD
+// =================
+
+func (s *Service) SaveEventRecord(record domain.EventRecord) error {
+	if s.eventDB == nil {
+		return fmt.Errorf("Event database not initialized")
+	}
+	return s.eventDB.Create(&record).Error
+}
+
+func (s *Service) GetTopEventRecords(mode string, limit int) ([]domain.EventRecord, error) {
+	var records []domain.EventRecord
+	if s.eventDB == nil {
+		return records, fmt.Errorf("Event database not initialized")
+	}
+
+	err := s.eventDB.Where("event_mode = ? AND status = ?", mode, "success").
+		Order("score desc").
+		Limit(limit).
+		Find(&records).Error
+
+	return records, err
+}
+
+func (s *Service) ResetEventLeaderboard(mode string) error {
+	if s.eventDB == nil {
+		return fmt.Errorf("Event database not initialized")
+	}
+	if mode == "all" {
+		return s.eventDB.Exec("DELETE FROM event_records").Error
+	}
+	return s.eventDB.Where("event_mode = ?", mode).Delete(&domain.EventRecord{}).Error
 }

@@ -97,6 +97,8 @@ export class ChallengeController {
         this.lastFrameTime = 0;
         this.tunnelParticles = Array.from({ length: 140 }, () => this.makeTunnelParticle(true));
 
+        window.challengeController = this;
+
         this.bindEvents();
         this.resizeCanvases();
 
@@ -166,7 +168,8 @@ export class ChallengeController {
         this.closeModal(this.els.resultModal);
     }
 
-    openLeaderboard() {
+    async openLeaderboard() {
+        await this.fetchLeaderboardsFromDB();
         this.renderLeaderboardModal();
         this.openModal(this.els.leaderboardModal);
     }
@@ -190,6 +193,25 @@ export class ChallengeController {
             return '';
         }
         return name;
+    }
+
+    async fetchLeaderboardsFromDB() {
+        if (!window.go?.main?.App?.GetEventLeaderboard) return;
+
+        for (const type of Object.keys(this.modeMeta)) {
+            try {
+                const records = await window.go.main.App.GetEventLeaderboard(type);
+                this.leaderboards[type] = (records || []).map(r => ({
+                    rider: r.rider_name,
+                    value: r.score,
+                    status: r.status,
+                    createdAt: new Date(r.created_at).getTime()
+                }));
+            } catch (e) {
+                console.error(`Failed to fetch leaderboard for ${type}:`, e);
+                this.leaderboards[type] = [];
+            }
+        }
     }
 
     async hasTrainerConnection() {
@@ -1014,8 +1036,9 @@ export class ChallengeController {
         return this.activeChallenge.score || 0;
     }
 
-    saveResult(type, rider, value, status) {
+    async saveResult(type, rider, value, status) {
         if (!rider || value <= 0) return;
+
         this.leaderboards[type].push({
             rider,
             value,
@@ -1023,6 +1046,24 @@ export class ChallengeController {
             createdAt: Date.now()
         });
         this.leaderboards[type].sort((a, b) => b.value - a.value);
+
+        if (window.go?.main?.App?.SaveEventResult) {
+            try {
+                await window.go.main.App.SaveEventResult(rider, type, value, status);
+            } catch (e) {
+                console.error("Failed to save event result:", e);
+            }
+        }
+    }
+
+    async resetLeaderboard(type) {
+        if (confirm(`Are you sure you want to clear the ranking for ${type === 'all' ? 'ALL events' : this.modeMeta[type].title}? This cannot be undone.`)) {
+            if (window.go?.main?.App?.ResetEventLeaderboard) {
+                await window.go.main.App.ResetEventLeaderboard(type);
+                await this.fetchLeaderboardsFromDB();
+                this.renderLeaderboardModal();
+            }
+        }
     }
 
     renderLeaderboardModal() {
@@ -1033,7 +1074,15 @@ export class ChallengeController {
 
             return `
                 <section class="leaderboard-category-card">
-                    <h3>${meta.fullTitle}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">${meta.fullTitle}</h3>
+                        <button onclick="window.challengeController.resetLeaderboard('${type}')" class="icon-minimal-danger" title="Clear Ranking" style="display: flex; align-items: center; background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
                     <div class="leaderboard-podium">
                         ${podium.map((entry, index) => `
                             <div class="leaderboard-podium-entry ${entry ? `is-${['first', 'second', 'third'][index]}` : ''}">
