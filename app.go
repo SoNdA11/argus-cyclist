@@ -1772,3 +1772,33 @@ func (a *App) SetBuiltInWorkout(testType string) string {
 	}
 	return "Not found"
 }
+
+// ==========================
+// EVENT LEADERBOARD BINDINGS
+// ==========================
+
+// SaveEventResult is called by the frontend to persist a challenge result.
+func (a *App) SaveEventResult(riderName string, mode string, score float64, status string) error {
+	record := domain.EventRecord{
+		RiderName: riderName,
+		EventMode: mode,
+		Score:     score,
+		Status:    status,
+		CreatedAt: time.Now(),
+	}
+	return a.storageService.SaveEventRecord(record)
+}
+
+// GetEventLeaderboard fetches the top N records for a specific mode.
+func (a *App) GetEventLeaderboard(mode string) []domain.EventRecord {
+	records, err := a.storageService.GetTopEventRecords(mode, 10)
+	if err != nil {
+		return []domain.EventRecord{}
+	}
+	return records
+}
+
+// ResetEventLeaderboard clears the rankings for a mode (or "all").
+func (a *App) ResetEventLeaderboard(mode string) error {
+	return a.storageService.ResetEventLeaderboard(mode)
+}

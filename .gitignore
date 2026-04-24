@@ -10,6 +10,7 @@ routes/
 argus_data.db
 argus_master.db
 users_data
+events_ranking.db
 
 frontend/package.json.md5
 

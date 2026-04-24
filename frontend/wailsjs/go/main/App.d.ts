@@ -47,6 +47,8 @@ export function GetDeviceConnectionState():Promise<Record<string, any>>;
 
 export function GetElevationProfile():Promise<Array<number>>;
 
+export function GetEventLeaderboard(arg1:string):Promise<Array<domain.EventRecord>>;
+
 export function GetFitnessTests():Promise<Array<domain.ActiveWorkout>>;
 
 export function GetLocalAccounts():Promise<Array<storage.ProfileSummary>>;
@@ -74,6 +76,10 @@ export function OpenFileFolder(arg1:string):Promise<void>;
 export function RepeatWorkout():Promise<string>;
 
 export function ResetAppState():Promise<void>;
+
+export function ResetEventLeaderboard(arg1:string):Promise<void>;
+
+export function SaveEventResult(arg1:string,arg2:string,arg3:number,arg4:string):Promise<void>;
 
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
 
