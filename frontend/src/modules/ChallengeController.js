@@ -494,7 +494,7 @@ export class ChallengeController {
             targetPower,
             tolerance: targetPower * 0.05,
             score: 0,
-            graceRemaining: 5,
+            graceRemaining: 10,
             threshold: 5,
             history: new Array(180).fill(targetPower),
             isOutOfZone: false
@@ -563,7 +563,7 @@ export class ChallengeController {
         if (this.activeChallenge.type === 'timeTrial') {
             this.els.secondaryValue.textContent = '0 pts';
             this.els.statusLabel.textContent = `Target locked at ${this.activeChallenge.targetPower} W`;
-            this.els.graceValue.textContent = '5.0s';
+            this.els.graceValue.textContent = '10s';
         }
         this.renderInlineLeaderboard();
     }
@@ -642,7 +642,7 @@ export class ChallengeController {
 
         if (inZone) {
             challenge.isOutOfZone = false;
-            challenge.graceRemaining = 5;
+            challenge.graceRemaining = 10;
             challenge.score += Math.pow(challenge.targetPower, 1.5) * dt;
             this.els.statusLabel.textContent = 'Inside target zone';
         } else {
