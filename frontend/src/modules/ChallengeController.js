@@ -139,33 +139,87 @@ export class ChallengeController {
         this.els.riderInput?.addEventListener('input', (e) => this.generateDynamicAvatar(e.target.value));
     }
 
-    generateDynamicAvatar(name) {
-        const avatarEl = document.getElementById('dynamicAvatar');
-        if (!avatarEl) return;
+    getGenderEmoji(name) {
+        if (!name) return '👤';
+        const firstName = name.trim().split(' ')[0].toLowerCase();
 
-        if (!name || name.trim() === '') {
-            avatarEl.textContent = '?';
-            avatarEl.style.background = '#38bdf8';
-            avatarEl.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.4)';
-            return;
+        const maleNames = ['lucas', 'nicolas', 'mateus', 'matheus', 'marcos', 'thomas', 'douglas', 'gabriel', 'rafael', 'daniel', 'miguel', 'samuel', 'davi', 'joão', 'joao', 'guilherme', 'henrique', 'felipe', 'andre', 'andré', 'luis', 'luís', 'luiz', 'jonatas'];
+        const femaleNames = ['raquel', 'isabel', 'karen', 'yasmin', 'aline', 'viviane', 'simone', 'eliane', 'beatriz', 'ruth', 'ester', 'cibele', 'michelle', 'iris', 'lais', 'laís', 'carmen', 'suelen'];
+
+        let isFemale = false;
+        let isMale = false;
+
+        if (femaleNames.includes(firstName)) {
+            isFemale = true;
+        } else if (maleNames.includes(firstName)) {
+            isMale = true;
+        } else if (firstName.endsWith('a') || firstName.endsWith('y') || firstName.endsWith('z') || firstName.endsWith('elle') || firstName.endsWith('ete')) {
+            isFemale = true;
+        } else if (firstName.endsWith('o') || firstName.endsWith('r') || firstName.endsWith('s') || firstName.endsWith('l') || firstName.endsWith('m') || firstName.endsWith('n') || firstName.endsWith('i') || firstName.endsWith('u')) {
+            isMale = true;
         }
 
-        const initial = name.trim().charAt(0).toUpperCase();
-        avatarEl.textContent = initial;
+        const maleFaces = ['👨', '👱‍♂️', '👨‍🦱', '🧔', '👨‍🦰', '👨‍🦳', '😎', '🚴‍♂️', '👦'];
+        const femaleFaces = ['👩', '👱‍♀️', '👩‍🦱', '👩‍🦰', '👩‍🦳', '😎', '🚴‍♀️', '👧', '👩‍🦲'];
+        const neutralFaces = ['🧑', '😎', '🤓', '🚴', '🚀', '⚡'];
 
         let hash = 0;
         for (let i = 0; i < name.length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
         }
+        hash = Math.abs(hash);
 
+        if (isFemale) return femaleFaces[hash % femaleFaces.length];
+        if (isMale) return maleFaces[hash % maleFaces.length];
+        return neutralFaces[hash % neutralFaces.length];
+    }
+
+    generateDynamicAvatar(name) {
+        const avatarEl = document.getElementById('dynamicAvatar');
+        if (!avatarEl) return;
+
+        if (!name || name.trim() === '') {
+            avatarEl.innerHTML = '👤';
+            avatarEl.style.background = '#38bdf8';
+            avatarEl.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.3)';
+            return;
+        }
+
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
         const hue = Math.abs(hash % 360);
-        avatarEl.style.background = `hsl(${hue}, 70%, 50%)`;
-        avatarEl.style.boxShadow = `0 0 20px hsl(${hue}, 70%, 50%, 0.6)`;
 
+        const emoji = this.getGenderEmoji(name);
+
+        avatarEl.innerHTML = `<span style="font-size: 2.4rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); line-height: 1;">${emoji}</span>`;
+
+        avatarEl.style.background = `hsl(${hue}, 70%, 50%)`;
+        avatarEl.style.boxShadow = `0 0 20px hsl(${hue}, 70%, 50%, 0.4), inset 0 0 15px rgba(0,0,0,0.2)`;
         avatarEl.style.transform = 'scale(1.1)';
         setTimeout(() => {
             if (avatarEl) avatarEl.style.transform = 'scale(1)';
         }, 150);
+    }
+
+    getAvatarHTML(name, size = 40) {
+        if (!name || name.trim() === '') {
+            return `<div class="lb-avatar" style="width:${size}px; height:${size}px; background:#38bdf8; font-size:${size * 0.5}px;">👤</div>`;
+        }
+
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash % 360);
+        const emoji = this.getGenderEmoji(name);
+
+        return `
+            <div class="lb-avatar" style="width:${size}px; height:${size}px; background-color:hsl(${hue}, 70%, 50%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
+                <span style="font-size: ${size * 0.55}px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${emoji}</span>
+            </div>
+        `;
     }
 
     resizeCanvases() {
@@ -605,14 +659,17 @@ export class ChallengeController {
         this.els.riderLabel.textContent = this.activeChallenge.riderName;
         this.els.statusLabel.textContent = 'Waiting for first pedal stroke';
         this.els.primaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Distance Covered' : 'Live Power';
-        this.els.secondaryLabel.textContent = meta.metric;
+        this.els.secondaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Live Power' : meta.metric;
         this.els.tertiaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Current Grade' : 'Cadence';
+
         this.els.graceMetric.style.display = this.activeChallenge.type === 'timeTrial' ? 'block' : 'none';
-        this.els.secondaryValue.textContent = this.formatResultValue(this.activeChallenge.type, 0);
+
+        this.els.secondaryValue.textContent = this.activeChallenge.type === 'kom' ? '0 W' : this.formatResultValue(this.activeChallenge.type, 0);
         this.els.powerUnit.textContent = this.activeChallenge.type === 'kom' ? 'meters' : 'watts';
         this.els.tertiaryValue.textContent = this.activeChallenge.type === 'kom' ? '0.0 %' : '0 rpm';
         this.els.powerValue.textContent = '0';
         this.els.timerValue.textContent = `${this.activeChallenge.duration.toFixed(1)}s`;
+
         if (this.activeChallenge.type === 'timeTrial') {
             this.els.secondaryValue.textContent = '0 pts';
             this.els.statusLabel.textContent = `Target locked at ${this.activeChallenge.targetPower} W`;
@@ -717,6 +774,7 @@ export class ChallengeController {
 
         const power = Math.round(this.lastTelemetry.power || 0);
         const cadence = Math.round(this.lastTelemetry.cadence || 0);
+
         this.els.powerValue.textContent = this.activeChallenge.type === 'kom'
             ? this.formatDistance(this.activeChallenge.bestDistance || 0, false)
             : `${power}`;
@@ -727,7 +785,7 @@ export class ChallengeController {
         }
 
         if (this.activeChallenge.type === 'kom') {
-            this.els.secondaryValue.textContent = this.formatDistance(this.activeChallenge.bestDistance || 0);
+            this.els.secondaryValue.textContent = `${power} W`;
             this.els.tertiaryValue.textContent = `${(this.lastTelemetry.grade || 0).toFixed(1)} %`;
         }
 
@@ -1100,37 +1158,57 @@ export class ChallengeController {
     renderLeaderboardModal() {
         this.els.leaderboardPanels.innerHTML = Object.entries(this.modeMeta).map(([type, meta]) => {
             const entries = [...this.leaderboards[type]].sort((a, b) => b.value - a.value);
-            const podium = [entries[0], entries[1], entries[2]];
-            const rest = entries.slice(3, 10);
+
+            const p1 = entries[0] || null;
+            const p2 = entries[1] || null;
+            const p3 = entries[2] || null;
+
+            const rest = entries.slice(3);
+            const renderPodiumStep = (entry, place, label) => {
+                if (!entry) return `
+                    <div class="lb-podium-col empty is-${place}">
+                        <div class="lb-podium-block"><span class="lb-podium-rank">${label}</span></div>
+                    </div>`;
+
+                const avatarSize = place === 'first' ? 76 : 56;
+                return `
+                    <div class="lb-podium-col is-${place}">
+                        <div style="margin-bottom: 8px;">
+                            ${this.getAvatarHTML(entry.rider, avatarSize)}
+                        </div>
+                        <strong class="lb-podium-name" title="${entry.rider}">${entry.rider}</strong>
+                        <div class="lb-podium-score">${this.formatResultValue(type, entry.value)}</div>
+                        <div class="lb-podium-block">
+                            <span class="lb-podium-rank">${label}</span>
+                        </div>
+                    </div>
+                `;
+            };
 
             return `
                 <section class="leaderboard-category-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">
-                        <h3 style="margin: 0;">${meta.fullTitle}</h3>
-                        <button onclick="window.challengeController.resetLeaderboard('${type}')" class="icon-minimal-danger" title="Clear Ranking" style="display: flex; align-items: center; background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
-                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            </svg>
-                            Reset
-                        </button>
+                    <div class="lb-cat-header">
+                        <h3>${meta.fullTitle}</h3>
+                        <button onclick="window.challengeController.resetLeaderboard('${type}')" class="btn-icon-small danger" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;" title="Clear Ranking">Reset</button>
                     </div>
-                    <div class="leaderboard-podium">
-                        ${podium.map((entry, index) => `
-                            <div class="leaderboard-podium-entry ${entry ? `is-${['first', 'second', 'third'][index]}` : ''}">
-                                <div class="leaderboard-podium-rank">${index + 1}${['st', 'nd', 'rd'][index] || 'th'}</div>
-                                <strong>${entry?.rider || 'Open Slot'}</strong>
-                                <div class="leaderboard-score">${entry ? this.formatResultValue(type, entry.value) : '--'}</div>
-                            </div>
-                        `).join('')}
+                    
+                    <div class="leaderboard-podium-kahoot">
+                        ${renderPodiumStep(p2, 'second', '2nd')}
+                        ${renderPodiumStep(p1, 'first', '1st')}
+                        ${renderPodiumStep(p3, 'third', '3rd')}
                     </div>
-                    <div class="leaderboard-list">
+
+                    <div class="leaderboard-scroll-list">
                         ${rest.length ? rest.map((entry, index) => `
                             <div class="leaderboard-row">
-                                <span>${index + 4}.</span>
-                                <strong>${entry.rider}</strong>
-                                <span class="leaderboard-score">${this.formatResultValue(type, entry.value)}</span>
+                                <span class="lb-row-rank">${index + 4}</span>
+                                <div>
+                                    ${this.getAvatarHTML(entry.rider, 36)}
+                                </div>
+                                <strong class="lb-row-name">${entry.rider}</strong>
+                                <span class="leaderboard-score" style="font-weight: 800;">${this.formatResultValue(type, entry.value)}</span>
                             </div>
-                        `).join('') : '<div class="leaderboard-row"><span>4.</span><strong>No attempts yet</strong><span class="leaderboard-score">--</span></div>'}
+                        `).join('') : '<div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 10px;">No more attempts</div>'}
                     </div>
                 </section>
             `;
@@ -1143,9 +1221,7 @@ export class ChallengeController {
         this.activeChallenge.finalized = true;
         const challenge = this.activeChallenge;
 
-        // Apply completion bonus for Time Trial
         if (challenge.type === 'timeTrial' && success) {
-            // 25% Completion Bonus for surviving the full 60 seconds
             challenge.score *= 1.25;
             title = 'Challenge complete (+25% Survival Bonus!)';
         }
