@@ -3660,46 +3660,239 @@ body.challenge-mode-active .main-viewport {
     flex-shrink: 0;
 }
 
-/* ==============================
-   EVENT HUB GLASSMORPHISM & GLOW
-   ============================== */
-
 #eventHubPage {
-    background: radial-gradient(900px circle at 50% 50%, #0f172a, #020617) !important;
+    background: radial-gradient(1000px circle at 50% 50%, #0f172a, #020617) !important;
     z-index: 10000;
 }
 
+.challenge-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .challenge-card {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
+    background: rgba(20, 24, 34, 0.4);
+    border-radius: 24px;
+    padding: 36px 24px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     overflow: hidden;
+    text-align: center;
+    color: #f8fafc;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+    z-index: 1;
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.challenge-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.challenge-card strong {
+    display: block;
+    font-size: 1.3rem;
+    margin: 12px 0 12px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.challenge-card span {
+    display: block;
+    color: rgba(226, 232, 240, 0.7);
+    line-height: 1.5;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 2;
+}
+
+.challenge-card-mode {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+}
+
+.card-cta {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease, color 0.3s ease;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+@keyframes sprint-speed {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.challenge-sprint-card {
+    border-top: 3px solid rgba(56, 189, 248, 0.4);
+}
+
+.challenge-sprint-card .card-cta {
+    color: #38bdf8;
+}
+
+.challenge-sprint-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.15), transparent);
+    background-size: 200% 100%;
+    animation: sprint-speed 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
 .challenge-sprint-card:hover {
-    border-color: rgba(56, 189, 248, 0.9);
-    box-shadow: 0 10px 40px rgba(56, 189, 248, 0.4);
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.8);
+}
+
+.challenge-sprint-card:hover::before {
+    opacity: 1;
+    animation-duration: 1.5s;
+}
+
+.challenge-sprint-card:hover strong {
+    color: #38bdf8;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.challenge-sprint-card:hover .card-cta {
+    opacity: 1;
+}
+
+@keyframes kom-climb {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+.challenge-kom-card {
+    border-top: 3px solid rgba(250, 204, 21, 0.4);
+}
+
+.challenge-kom-card .card-cta {
+    color: #facc15;
+}
+
+.challenge-kom-card::before {
+    content: "";
+    position: absolute;
+    inset: -50% 0;
+    z-index: 0;
+    background: linear-gradient(0deg, transparent, rgba(250, 204, 21, 0.15), transparent);
+    animation: kom-climb 4s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
 .challenge-kom-card:hover {
-    border-color: rgba(250, 204, 21, 0.9);
-    box-shadow: 0 10px 40px rgba(250, 204, 21, 0.3);
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(250, 204, 21, 0.1);
+    border-color: rgba(250, 204, 21, 0.8);
+}
+
+.challenge-kom-card:hover::before {
+    opacity: 1;
+    animation-duration: 2s;
+}
+
+.challenge-kom-card:hover strong {
+    color: #facc15;
+    text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+}
+
+.challenge-kom-card:hover .card-cta {
+    opacity: 1;
+}
+
+@keyframes tt-pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+.challenge-tt-card {
+    border-top: 3px solid rgba(34, 197, 94, 0.4);
+}
+
+.challenge-tt-card::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    margin-top: -100px;
+    margin-left: -100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, transparent 70%);
+    z-index: 0;
+    animation: tt-pulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
 .challenge-tt-card:hover {
-    border-color: rgba(34, 197, 94, 0.9);
-    box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3);
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.8);
 }
 
+.challenge-tt-card:hover::before {
+    opacity: 1;
+    animation-duration: 1.5s;
+}
 
-/* ====================================
-   FASE 3: PÓDIO METÁLICO (LEADERBOARD)
-   ==================================== */
+.challenge-tt-card:hover strong {
+    color: #4ade80;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+}
+
+#btnLaunchTimeTrial:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
 
 .leaderboard-podium-entry {
     transition: transform 0.2s ease;
