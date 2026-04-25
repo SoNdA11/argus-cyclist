@@ -25,8 +25,6 @@
 
             <div class="home-event-actions">
                 <button id="btnHomeEventMode" class="home-event-btn">Open Event Mode</button>
-                <button id="btnHomeLeaderboard" class="home-event-btn home-event-btn-secondary">Offline
-                    Leaderboard</button>
             </div>
 
             <div id="createProfileForm" class="create-profile-form hidden">
@@ -452,8 +450,8 @@
             </div>
         </div>
     </div>
-    <div id="eventHubModal" class="modal-overlay hidden">
-        <div class="modal-content challenge-hub-content">
+    <div id="eventHubPage" class="home-overlay hidden" style="z-index: 10000;">
+        <div class="home-container" style="margin-top: 4vh; width: 100%;">
             <div class="challenge-hub-header">
                 <div>
                     <div class="challenge-hub-kicker">Event Mode</div>
@@ -466,17 +464,14 @@
 
             <div class="challenge-device-panel" style="margin-bottom: 24px;">
                 <h3 style="margin: 0 0 12px 0; font-size: 1.1rem; color: var(--power-color);">⚙️ Device Connection</h3>
-
                 <div class="device-row compact"
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span>Trainer Status:</span>
                     <span id="eventTrainerStatus" class="status-indicator"
                         style="font-weight: bold; font-size: 0.9rem;">Disconnected</span>
                 </div>
-
                 <select id="eventTrainerList" class="hidden home-input"
                     style="width: 100%; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;"></select>
-
                 <div class="challenge-device-actions" style="display: flex; gap: 10px;">
                     <button id="btnEventScanTrainer" class="btn-secondary"
                         style="flex: 1; padding: 10px; border-radius: 6px;">Scan Trainer</button>
@@ -487,21 +482,28 @@
                 </div>
             </div>
 
-            <div class="challenge-hub-form">
-                <div class="input-group">
-                    <label for="eventRiderName">Cyclist Name</label>
-                    <input type="text" id="eventRiderName" class="home-input" placeholder="Who is riding now?">
+            <div class="challenge-hub-form"
+                style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 30px;">
+                <div id="dynamicAvatar"
+                    style="width: 70px; height: 70px; border-radius: 50%; background: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); transition: all 0.3s ease; flex-shrink: 0;">
+                    ?
                 </div>
-                <div class="input-group">
-                    <label for="eventTargetPower">Target Power for Contrarrelógio</label>
-                    <input type="number" id="eventTargetPower" class="home-input" value="250" min="100" step="5">
+                <div class="input-group" style="flex-grow: 1; max-width: 300px; margin-bottom: 0;">
+                    <label for="eventRiderName">Cyclist Name</label>
+                    <input type="text" id="eventRiderName" class="home-input" placeholder="Who is riding now?"
+                        autocomplete="off" style="margin-bottom: 0;">
+                </div>
+                <div class="input-group" style="flex-grow: 1; max-width: 200px; margin-bottom: 0;">
+                    <label for="eventTargetPower">Target Power (TT)</label>
+                    <input type="number" id="eventTargetPower" class="home-input" value="250" min="100" step="5"
+                        style="margin-bottom: 0;">
                 </div>
             </div>
 
             <div class="challenge-card-grid">
                 <button class="challenge-card challenge-sprint-card" id="btnLaunchSprint">
                     <span class="challenge-card-mode">Sprint</span>
-                    <strong>Sprint (Maximum Power Test)</strong>
+                    <strong>Sprint (Max Power Test)</strong>
                     <span>15-second max power blast with speed tunnel HUD and event ranking.</span>
                 </button>
                 <button class="challenge-card challenge-kom-card" id="btnLaunchKOM">
@@ -521,7 +523,7 @@
             </div>
         </div>
     </div>
-    <div id="eventLeaderboardModal" class="modal-overlay hidden">
+    <div id="eventLeaderboardModal" class="modal-overlay hidden" style="z-index: 10005;">
         <div class="modal-content challenge-leaderboard-content">
             <div class="challenge-hub-header">
                 <div>

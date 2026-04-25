@@ -22,7 +22,7 @@ export class ChallengeController {
 
         this.els = {
             homeScreen: document.getElementById('homeScreen'),
-            eventHubModal: document.getElementById('eventHubModal'),
+            eventHubModal: document.getElementById('eventHubPage'),
             leaderboardModal: document.getElementById('eventLeaderboardModal'),
             leaderboardPanels: document.getElementById('eventLeaderboardPanels'),
             resultModal: document.getElementById('challengeResultModal'),
@@ -135,6 +135,37 @@ export class ChallengeController {
         document.getElementById('btnAbortChallenge')?.addEventListener('click', async () => {
             await this.abortActiveChallenge();
         });
+
+        this.els.riderInput?.addEventListener('input', (e) => this.generateDynamicAvatar(e.target.value));
+    }
+
+    generateDynamicAvatar(name) {
+        const avatarEl = document.getElementById('dynamicAvatar');
+        if (!avatarEl) return;
+
+        if (!name || name.trim() === '') {
+            avatarEl.textContent = '?';
+            avatarEl.style.background = '#38bdf8';
+            avatarEl.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.4)';
+            return;
+        }
+
+        const initial = name.trim().charAt(0).toUpperCase();
+        avatarEl.textContent = initial;
+
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const hue = Math.abs(hash % 360);
+        avatarEl.style.background = `hsl(${hue}, 70%, 50%)`;
+        avatarEl.style.boxShadow = `0 0 20px hsl(${hue}, 70%, 50%, 0.6)`;
+
+        avatarEl.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            if (avatarEl) avatarEl.style.transform = 'scale(1)';
+        }, 150);
     }
 
     resizeCanvases() {

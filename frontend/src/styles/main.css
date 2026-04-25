@@ -484,16 +484,15 @@ footer {
 .settings-content {
     width: 90%;
     max-width: 1000px;
-    /* 1. Definimos uma altura fixa para que o modal não mude de tamanho entre as abas */
-    height: 100vh; 
-    max-height: 955px; 
+    height: 100vh;
+    max-height: 955px;
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
     padding: 25px 30px;
     border-radius: 12px;
     display: flex;
-    flex-direction: column; /* Organiza o conteúdo verticalmente */
-    overflow: hidden; /* Impede que o modal "vaze" para fora da tela */
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .settings-content h2 {
@@ -571,7 +570,7 @@ footer {
 .modal-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: auto !important; 
+    margin-top: auto !important;
     padding: 20px 0 10px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -680,11 +679,11 @@ footer {
     gap: 6px;
     margin-bottom: 25px;
     background: rgba(0, 0, 0, 0.25);
-    padding: 8px; 
+    padding: 8px;
     border-radius: 12px;
     justify-content: space-between;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    overflow: visible; 
+    overflow: visible;
 }
 
 .settings-nav .tab-btn {
@@ -702,6 +701,7 @@ footer {
 .settings-panels::-webkit-scrollbar {
     width: 6px;
 }
+
 .settings-panels::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -720,7 +720,7 @@ footer {
 }
 
 .tab-btn {
-    flex: 1; 
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -728,11 +728,11 @@ footer {
     background: transparent;
     border: 1px solid transparent;
     color: var(--text-muted);
-    font-size: 0.85rem; 
-    padding: 10px 12px; 
+    font-size: 0.85rem;
+    padding: 10px 12px;
     cursor: pointer;
     border-radius: 8px;
-    white-space: nowrap; 
+    white-space: nowrap;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -753,7 +753,7 @@ footer {
 .tab-btn svg {
     opacity: 0.7;
     transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 .tab-btn:hover svg {
@@ -787,7 +787,7 @@ footer {
         padding: 0;
         gap: 8px;
     }
-    
+
     .tab-btn {
         width: 100%;
         background: rgba(0, 0, 0, 0.2);
@@ -2821,7 +2821,7 @@ TACTICAL BLUE
     align-items: center;
 }
 
-.challenge-hub-header > div {
+.challenge-hub-header>div {
     text-align: center;
     max-width: 600px;
 }
@@ -2969,6 +2969,7 @@ TACTICAL BLUE
 .challenge-sprint-card {
     border-top: 3px solid #38bdf8;
 }
+
 .challenge-sprint-card:hover {
     border-color: rgba(56, 189, 248, 0.7);
     box-shadow: 0 8px 30px rgba(56, 189, 248, 0.25);
@@ -2977,6 +2978,7 @@ TACTICAL BLUE
 .challenge-kom-card {
     border-top: 3px solid #fbbf24;
 }
+
 .challenge-kom-card:hover {
     border-color: rgba(250, 204, 21, 0.7);
     box-shadow: 0 8px 30px rgba(234, 179, 8, 0.25);
@@ -2985,6 +2987,7 @@ TACTICAL BLUE
 .challenge-tt-card {
     border-top: 3px solid #22c55e;
 }
+
 .challenge-tt-card:hover {
     border-color: rgba(16, 185, 129, 0.7);
     box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
@@ -3625,6 +3628,7 @@ body.challenge-mode-active .main-viewport {
         opacity: 0;
         transform: translateY(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3654,4 +3658,103 @@ body.challenge-mode-active .main-viewport {
 
 .share-dropdown-menu button svg {
     flex-shrink: 0;
+}
+
+/* ==============================
+   EVENT HUB GLASSMORPHISM & GLOW
+   ============================== */
+
+#eventHubPage {
+    background: radial-gradient(900px circle at 50% 50%, #0f172a, #020617) !important;
+    z-index: 10000;
+}
+
+.challenge-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.challenge-sprint-card:hover {
+    border-color: rgba(56, 189, 248, 0.9);
+    box-shadow: 0 10px 40px rgba(56, 189, 248, 0.4);
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(56, 189, 248, 0.1);
+}
+
+.challenge-kom-card:hover {
+    border-color: rgba(250, 204, 21, 0.9);
+    box-shadow: 0 10px 40px rgba(250, 204, 21, 0.3);
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(250, 204, 21, 0.1);
+}
+
+.challenge-tt-card:hover {
+    border-color: rgba(34, 197, 94, 0.9);
+    box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3);
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(34, 197, 94, 0.1);
+}
+
+
+/* ====================================
+   FASE 3: PÓDIO METÁLICO (LEADERBOARD)
+   ==================================== */
+
+.leaderboard-podium-entry {
+    transition: transform 0.2s ease;
+}
+
+.leaderboard-podium-entry:hover {
+    transform: translateY(-5px);
+}
+
+.leaderboard-podium-entry.is-first {
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(218, 165, 32, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.leaderboard-podium-entry.is-first .leaderboard-podium-rank {
+    color: #FFD700;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.leaderboard-podium-entry.is-first .leaderboard-score {
+    color: #FFD700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+    font-weight: 900;
+}
+
+.leaderboard-podium-entry.is-second {
+    background: linear-gradient(145deg, rgba(226, 232, 240, 0.15), rgba(148, 163, 184, 0.05));
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    box-shadow: 0 0 20px rgba(226, 232, 240, 0.15);
+}
+
+.leaderboard-podium-entry.is-second .leaderboard-podium-rank {
+    color: #e2e8f0;
+    font-weight: 800;
+}
+
+.leaderboard-podium-entry.is-second .leaderboard-score {
+    color: #e2e8f0;
+    text-shadow: 0 0 10px rgba(226, 232, 240, 0.4);
+}
+
+.leaderboard-podium-entry.is-third {
+    background: linear-gradient(145deg, rgba(217, 119, 6, 0.15), rgba(180, 83, 9, 0.05));
+    border: 1px solid rgba(217, 119, 6, 0.6);
+    box-shadow: 0 0 20px rgba(217, 119, 6, 0.15);
+}
+
+.leaderboard-podium-entry.is-third .leaderboard-podium-rank {
+    color: #d97706;
+    font-weight: 800;
+}
+
+.leaderboard-podium-entry.is-third .leaderboard-score {
+    color: #d97706;
+    text-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
 }
