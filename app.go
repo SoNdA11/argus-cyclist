@@ -1791,7 +1791,7 @@ func (a *App) SaveEventResult(riderName string, mode string, score float64, stat
 
 // GetEventLeaderboard fetches the top N records for a specific mode.
 func (a *App) GetEventLeaderboard(mode string) []domain.EventRecord {
-	records, err := a.storageService.GetTopEventRecords(mode, 10)
+	records, err := a.storageService.GetTopEventRecords(mode, 150)
 	if err != nil {
 		return []domain.EventRecord{}
 	}

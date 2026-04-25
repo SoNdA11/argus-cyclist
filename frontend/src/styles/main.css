@@ -484,16 +484,15 @@ footer {
 .settings-content {
     width: 90%;
     max-width: 1000px;
-    /* 1. Definimos uma altura fixa para que o modal não mude de tamanho entre as abas */
-    height: 100vh; 
-    max-height: 955px; 
+    height: 100vh;
+    max-height: 955px;
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
     padding: 25px 30px;
     border-radius: 12px;
     display: flex;
-    flex-direction: column; /* Organiza o conteúdo verticalmente */
-    overflow: hidden; /* Impede que o modal "vaze" para fora da tela */
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .settings-content h2 {
@@ -571,7 +570,7 @@ footer {
 .modal-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: auto !important; 
+    margin-top: auto !important;
     padding: 20px 0 10px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -680,11 +679,11 @@ footer {
     gap: 6px;
     margin-bottom: 25px;
     background: rgba(0, 0, 0, 0.25);
-    padding: 8px; 
+    padding: 8px;
     border-radius: 12px;
     justify-content: space-between;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    overflow: visible; 
+    overflow: visible;
 }
 
 .settings-nav .tab-btn {
@@ -702,6 +701,7 @@ footer {
 .settings-panels::-webkit-scrollbar {
     width: 6px;
 }
+
 .settings-panels::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -720,7 +720,7 @@ footer {
 }
 
 .tab-btn {
-    flex: 1; 
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -728,11 +728,11 @@ footer {
     background: transparent;
     border: 1px solid transparent;
     color: var(--text-muted);
-    font-size: 0.85rem; 
-    padding: 10px 12px; 
+    font-size: 0.85rem;
+    padding: 10px 12px;
     cursor: pointer;
     border-radius: 8px;
-    white-space: nowrap; 
+    white-space: nowrap;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -753,7 +753,7 @@ footer {
 .tab-btn svg {
     opacity: 0.7;
     transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 .tab-btn:hover svg {
@@ -787,7 +787,7 @@ footer {
         padding: 0;
         gap: 8px;
     }
-    
+
     .tab-btn {
         width: 100%;
         background: rgba(0, 0, 0, 0.2);
@@ -2821,7 +2821,7 @@ TACTICAL BLUE
     align-items: center;
 }
 
-.challenge-hub-header > div {
+.challenge-hub-header>div {
     text-align: center;
     max-width: 600px;
 }
@@ -2969,6 +2969,7 @@ TACTICAL BLUE
 .challenge-sprint-card {
     border-top: 3px solid #38bdf8;
 }
+
 .challenge-sprint-card:hover {
     border-color: rgba(56, 189, 248, 0.7);
     box-shadow: 0 8px 30px rgba(56, 189, 248, 0.25);
@@ -2977,6 +2978,7 @@ TACTICAL BLUE
 .challenge-kom-card {
     border-top: 3px solid #fbbf24;
 }
+
 .challenge-kom-card:hover {
     border-color: rgba(250, 204, 21, 0.7);
     box-shadow: 0 8px 30px rgba(234, 179, 8, 0.25);
@@ -2985,6 +2987,7 @@ TACTICAL BLUE
 .challenge-tt-card {
     border-top: 3px solid #22c55e;
 }
+
 .challenge-tt-card:hover {
     border-color: rgba(16, 185, 129, 0.7);
     box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
@@ -2999,12 +3002,13 @@ TACTICAL BLUE
     flex-wrap: wrap;
 }
 
+/* Layout Fixo de 3 Colunas Lado a Lado */
 .leaderboard-category-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    max-width: 800px;
-    margin: 0 auto;
+    grid-template-columns: repeat(3, 1fr); /* Força estritamente 3 colunas */
+    gap: 40px; /* Expandido: Afasta mais os 3 quadros para usar a nova largura da tela */
+    flex: 1; /* Ocupa a altura restante do ecrã */
+    min-height: 0; /* Impede transbordo (overflow) */
 }
 
 .leaderboard-category-card {
@@ -3625,6 +3629,7 @@ body.challenge-mode-active .main-viewport {
         opacity: 0;
         transform: translateY(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3654,4 +3659,491 @@ body.challenge-mode-active .main-viewport {
 
 .share-dropdown-menu button svg {
     flex-shrink: 0;
+}
+
+#eventHubPage {
+    background: radial-gradient(1000px circle at 50% 50%, #0f172a, #020617) !important;
+    z-index: 10000;
+}
+
+.challenge-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.challenge-card {
+    position: relative;
+    background: rgba(20, 24, 34, 0.4);
+    border-radius: 24px;
+    padding: 36px 24px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    text-align: center;
+    color: #f8fafc;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+    z-index: 1;
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.challenge-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.challenge-card strong {
+    display: block;
+    font-size: 1.3rem;
+    margin: 12px 0 12px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.challenge-card span {
+    display: block;
+    color: rgba(226, 232, 240, 0.7);
+    line-height: 1.5;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 2;
+}
+
+.challenge-card-mode {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+}
+
+.card-cta {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease, color 0.3s ease;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+@keyframes sprint-speed {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.challenge-sprint-card {
+    border-top: 3px solid rgba(56, 189, 248, 0.4);
+}
+
+.challenge-sprint-card .card-cta {
+    color: #38bdf8;
+}
+
+.challenge-sprint-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.15), transparent);
+    background-size: 200% 100%;
+    animation: sprint-speed 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.challenge-sprint-card:hover {
+    border-color: rgba(56, 189, 248, 0.8);
+}
+
+.challenge-sprint-card:hover::before {
+    opacity: 1;
+    animation-duration: 1.5s;
+}
+
+.challenge-sprint-card:hover strong {
+    color: #38bdf8;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.challenge-sprint-card:hover .card-cta {
+    opacity: 1;
+}
+
+@keyframes kom-climb {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+.challenge-kom-card {
+    border-top: 3px solid rgba(250, 204, 21, 0.4);
+}
+
+.challenge-kom-card .card-cta {
+    color: #facc15;
+}
+
+.challenge-kom-card::before {
+    content: "";
+    position: absolute;
+    inset: -50% 0;
+    z-index: 0;
+    background: linear-gradient(0deg, transparent, rgba(250, 204, 21, 0.15), transparent);
+    animation: kom-climb 4s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.challenge-kom-card:hover {
+    border-color: rgba(250, 204, 21, 0.8);
+}
+
+.challenge-kom-card:hover::before {
+    opacity: 1;
+    animation-duration: 2s;
+}
+
+.challenge-kom-card:hover strong {
+    color: #facc15;
+    text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+}
+
+.challenge-kom-card:hover .card-cta {
+    opacity: 1;
+}
+
+@keyframes tt-pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+.challenge-tt-card {
+    border-top: 3px solid rgba(34, 197, 94, 0.4);
+}
+
+.challenge-tt-card::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    margin-top: -100px;
+    margin-left: -100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, transparent 70%);
+    z-index: 0;
+    animation: tt-pulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.challenge-tt-card:hover {
+    border-color: rgba(34, 197, 94, 0.8);
+}
+
+.challenge-tt-card:hover::before {
+    opacity: 1;
+    animation-duration: 1.5s;
+}
+
+.challenge-tt-card:hover strong {
+    color: #4ade80;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+}
+
+#btnLaunchTimeTrial:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
+.challenge-leaderboard-content {
+    width: 96vw !important;
+    max-width: 1800px !important;
+    height: 92vh !important;
+    padding: 40px 50px !important;
+    background: radial-gradient(1000px circle at 50% 50%, #0f172a, #020617) !important;
+    backdrop-filter: none !important;
+    --webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+#eventLeaderboardModal .challenge-hub-header {
+    flex-shrink: 0;
+    margin-bottom: 20px;
+}
+
+.leaderboard-category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    flex: 1;
+    min-height: 0;
+}
+
+.leaderboard-category-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.lb-cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.lb-cat-header h3 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaderboard-podium-kahoot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.lb-podium-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.lb-podium-col:hover:not(.empty) {
+    transform: translateY(-5px);
+}
+
+.lb-podium-col.is-first {
+    order: 2;
+    z-index: 3;
+}
+
+.lb-podium-col.is-second {
+    order: 1;
+    z-index: 2;
+}
+
+.lb-podium-col.is-third {
+    order: 3;
+    z-index: 1;
+}
+
+.lb-podium-name {
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.lb-podium-score {
+    font-weight: 900;
+    font-size: 1.15rem;
+    margin-bottom: 12px;
+}
+
+.is-first .lb-podium-score {
+    color: #facc15;
+}
+
+.is-second .lb-podium-score {
+    color: #e2e8f0;
+}
+
+.is-third .lb-podium-score {
+    color: #fbd38d;
+}
+
+.lb-podium-block {
+    width: 100%;
+    border-radius: 12px 12px 4px 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15px;
+}
+
+.is-first .lb-podium-block {
+    height: 120px;
+    background: linear-gradient(to top, rgba(250, 204, 21, 0.3), rgba(250, 204, 21, 0.05));
+    border: 1px solid rgba(250, 204, 21, 0.6);
+    box-shadow: 0 -10px 30px rgba(250, 204, 21, 0.15);
+}
+
+.is-second .lb-podium-block {
+    height: 80px;
+    background: linear-gradient(to top, rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.05));
+    border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.is-third .lb-podium-block {
+    height: 50px;
+    background: linear-gradient(to top, rgba(217, 119, 6, 0.3), rgba(217, 119, 6, 0.05));
+    border: 1px solid rgba(217, 119, 6, 0.6);
+}
+
+.empty .lb-podium-block {
+    height: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.lb-podium-rank {
+    font-size: 1.8rem;
+    font-weight: 900;
+    opacity: 0.25;
+    line-height: 1;
+}
+
+.lb-avatar {
+    border-radius: 50%;
+}
+
+.lb-podium-col.is-first .lb-avatar {
+    border: 3px solid #facc15;
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+}
+
+.lb-podium-col.is-second .lb-avatar {
+    border: 3px solid #cbd5e1;
+    box-shadow: 0 0 15px rgba(148, 163, 184, 0.3);
+}
+
+.lb-podium-col.is-third .lb-avatar {
+    border: 3px solid #d97706;
+    box-shadow: 0 0 15px rgba(217, 119, 6, 0.3);
+}
+
+.leaderboard-scroll-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 8px;
+}
+
+.leaderboard-scroll-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.leaderboard-scroll-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 30px 40px 1fr auto; 
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 18px;
+    border-radius: 12px; 
+    transition: background 0.2s, transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.leaderboard-row:hover { 
+    background: rgba(255, 255, 255, 0.08); 
+    transform: translateX(4px);
+}
+
+.lb-row-rank { 
+    font-weight: 800; 
+    color: rgba(255, 255, 255, 0.4); 
+    text-align: center; 
+    font-size: 1.05rem;
+}
+
+.lb-row-name { 
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-align: left;
+    letter-spacing: 0.3px;
+}
+
+.leaderboard-row .lb-avatar { 
+    border: 1px solid rgba(255,255,255,0.2); 
+    box-shadow: none; 
+}
+
+body.suppress-map-modals #confirmModal,
+body.suppress-map-modals #finishModal,
+body.suppress-map-modals #cooldownModal {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    z-index: -100 !important;
 }
