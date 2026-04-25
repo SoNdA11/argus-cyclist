@@ -137,6 +137,13 @@ export class ChallengeController {
         });
 
         this.els.riderInput?.addEventListener('input', (e) => this.generateDynamicAvatar(e.target.value));
+
+        document.getElementById('btnEventDisconnectTrainer')?.addEventListener('click', async () => {
+            if (window.go?.main?.App?.DisconnectTrainer) {
+                await window.go.main.App.DisconnectTrainer();
+                await this.refreshTrainerStatus();
+            }
+        });
     }
 
     getGenderEmoji(name) {
@@ -241,6 +248,7 @@ export class ChallengeController {
         }
 
         await this.refreshTrainerStatus();
+        await this.fetchLeaderboardsFromDB();
 
         const homeScreen = document.getElementById('homeScreen');
         if (homeScreen) homeScreen.classList.remove('active');
@@ -307,25 +315,47 @@ export class ChallengeController {
         const status = this.els.trainerStatus?.innerText || '';
         return ['Trainer Connected', 'Simulator Active', 'Virtual Trainer Connected'].includes(status);
     }
+
     async refreshTrainerStatus() {
-        let text = this.els.trainerStatus?.innerText || 'Disconnected';
+        let text = 'Disconnected';
+        let isConnected = false;
 
         if (window.go?.main?.App?.GetDeviceConnectionState) {
             const state = await window.go.main.App.GetDeviceConnectionState();
             if (state?.trainer_connected) {
                 text = state.trainer_kind === 'virtual' ? 'Simulator Active' : 'Trainer Connected';
-            } else {
-                text = 'Disconnected';
+                isConnected = true;
+            }
+        } else {
+            const status = this.els.trainerStatus?.innerText || '';
+            if (['Trainer Connected', 'Simulator Active', 'Virtual Trainer Connected'].includes(status)) {
+                text = status;
+                isConnected = true;
             }
         }
 
-        if (this.els.eventTrainerStatus) {
-            this.els.eventTrainerStatus.textContent = text;
-            this.els.eventTrainerStatus.style.color = text === 'Disconnected'
-                ? 'var(--text-main)'
-                : text === 'Simulator Active'
-                    ? '#38bdf8'
-                    : 'var(--argus-safe)';
+        const statusEl = this.els.eventTrainerStatus;
+        if (statusEl) {
+            statusEl.textContent = text;
+            statusEl.style.color = isConnected ? '#22c55e' : '#ef4444';
+        }
+
+        const btnScan = document.getElementById('btnEventScanTrainer');
+        const btnSim = document.getElementById('btnEventConnectVirtual');
+        const btnConn = document.getElementById('btnEventConnectTrainer');
+        const btnDisc = document.getElementById('btnEventDisconnectTrainer');
+        const list = document.getElementById('eventTrainerList');
+
+        if (isConnected) {
+            if (btnScan) btnScan.style.display = 'none';
+            if (btnSim) btnSim.style.display = 'none';
+            if (btnConn) btnConn.style.display = 'none';
+            if (list) list.classList.add('hidden');
+            if (btnDisc) btnDisc.classList.remove('hidden');
+        } else {
+            if (btnScan) btnScan.style.display = 'flex';
+            if (btnSim) btnSim.style.display = 'flex';
+            if (btnDisc) btnDisc.classList.add('hidden');
         }
     }
 
@@ -340,10 +370,6 @@ export class ChallengeController {
         if (window.isRecording) {
             alert('Finish the current session before starting a new event challenge.');
             return false;
-        }
-
-        if (window.go?.main?.App?.ResetAppState) {
-            await window.go.main.App.ResetAppState();
         }
 
         if (mode === 'kom') {
@@ -532,24 +558,49 @@ export class ChallengeController {
 
     async startBackendSession() {
         window.isRecording = true;
-        this.ui.setRecordingState('RECORDING');
-        const result = await window.go.main.App.ToggleSession();
-        if (typeof result === 'string' && result.toLowerCase().includes('error')) {
-            window.isRecording = false;
-            this.ui.setRecordingState('IDLE');
-            throw new Error(result);
+        if (this.ui && this.ui.setRecordingState) {
+            this.ui.setRecordingState('RECORDING');
+        }
+
+        document.body.classList.add('suppress-map-modals');
+
+        if (window.go?.main?.App?.ToggleSession) {
+            const result = await window.go.main.App.ToggleSession();
+            if (typeof result === 'string' && result.toLowerCase().includes('error')) {
+                window.isRecording = false;
+                if (this.ui) this.ui.setRecordingState('IDLE');
+                document.body.classList.remove('suppress-map-modals');
+                throw new Error(result);
+            }
         }
     }
 
     async stopBackendSession() {
         if (!window.isRecording) return;
 
+        document.body.classList.add('suppress-map-modals');
+
         if (window.go?.main?.App?.DiscardSession) {
             await window.go.main.App.DiscardSession();
         }
 
         window.isRecording = false;
-        this.ui.setRecordingState('IDLE');
+        if (this.ui && this.ui.setRecordingState) {
+            this.ui.setRecordingState('IDLE');
+        }
+
+        const intrudingModals = ['confirmModal', 'finishModal', 'cooldownModal'];
+        intrudingModals.forEach(id => {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('active');
+                modal.classList.add('hidden');
+            }
+        });
+
+        setTimeout(() => {
+            document.body.classList.remove('suppress-map-modals');
+        }, 1500);
     }
 
     async launchSprint() {
@@ -593,13 +644,15 @@ export class ChallengeController {
 
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
+        const calculatedTolerance = Math.max(targetPower * 0.12, 20);
+
         await this.startChallenge({
             type: 'timeTrial',
             riderName,
             duration: 60,
             started: false,
             targetPower,
-            tolerance: targetPower * 0.05,
+            tolerance: calculatedTolerance,
             score: 0,
             graceRemaining: 10,
             threshold: 5,
@@ -618,16 +671,8 @@ export class ChallengeController {
                 ...config,
                 startTime: 0,
                 finalized: false,
-                finishedAt: 0
-            };
-
-            this.lastTelemetry = {
-                power: 0,
-                cadence: 0,
-                grade: 0,
-                speed: 0,
-                total_dist: 0,
-                elevation_gain: 0
+                finishedAt: 0,
+                initialDistance: this.lastTelemetry.total_dist || 0
             };
 
             this.updateChallengeChrome();
@@ -803,12 +848,14 @@ export class ChallengeController {
     }
 
     updateTelemetry(data) {
+        let relativeDist = 0;
         if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
-            const dist = data.total_dist || 0;
-            const grade = this.getGradeForDistance(dist);
-            data.grade = grade;
+            const currentDist = data.total_dist || 0;
+            relativeDist = Math.max(0, currentDist - (this.activeChallenge.initialDistance || 0));
 
-            this.updateKOMGrade(dist);
+            const grade = this.getGradeForDistance(relativeDist);
+            data.grade = grade;
+            this.updateKOMGrade(relativeDist);
         }
 
         this.lastTelemetry = data;
@@ -820,7 +867,7 @@ export class ChallengeController {
         }
 
         if (this.activeChallenge.type === 'kom') {
-            this.activeChallenge.bestDistance = Math.max(this.activeChallenge.bestDistance, data.total_dist || 0);
+            this.activeChallenge.bestDistance = Math.max(this.activeChallenge.bestDistance, relativeDist);
         }
     }
 
@@ -1226,12 +1273,21 @@ export class ChallengeController {
             title = 'Challenge complete (+25% Survival Bonus!)';
         }
 
-        const finalValue = this.getLiveLeaderboardValue();
-        const description = success
+        let finalValue = this.getLiveLeaderboardValue();
+        let description = success
             ? 'Result saved to the offline leaderboard.'
             : finalValue > 0
                 ? 'Partial result saved to the offline leaderboard.'
                 : 'No valid score was saved for this attempt.';
+
+        let displayValue = this.formatResultValue(challenge.type, finalValue);
+
+        if (challenge.type === 'timeTrial' && !success) {
+            title = 'Pacing Failed';
+            finalValue = 0;
+            displayValue = 'FAILED';
+            description = "You couldn't maintain the target power within the zone for 1 minute. Don't get discouraged! Take a sip of water, recover your legs, and show what you're capable of in the next attempt. You've got this!";
+        }
 
         this.saveResult(challenge.type, challenge.riderName, finalValue, success ? 'success' : 'failed');
         this.renderInlineLeaderboard();
@@ -1240,10 +1296,15 @@ export class ChallengeController {
         this.stopAnimationLoop();
         await this.stopBackendSession();
 
+        this.openEventHub();
+
         this.els.resultMode.textContent = this.modeMeta[challenge.type].fullTitle;
         this.els.resultTitle.textContent = title;
-        this.els.resultValue.textContent = this.formatResultValue(challenge.type, finalValue);
+        this.els.resultValue.textContent = displayValue;
         this.els.resultDescription.textContent = description;
+
+        this.els.resultValue.style.color = (challenge.type === 'timeTrial' && !success) ? '#ef4444' : 'var(--power-color)';
+
         this.openModal(this.els.resultModal);
 
         this.cleanupChallengeState();

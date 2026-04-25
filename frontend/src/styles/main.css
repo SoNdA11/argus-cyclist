@@ -4137,3 +4137,13 @@ body.challenge-mode-active .main-viewport {
     border: 1px solid rgba(255,255,255,0.2); 
     box-shadow: none; 
 }
+
+body.suppress-map-modals #confirmModal,
+body.suppress-map-modals #finishModal,
+body.suppress-map-modals #cooldownModal {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    z-index: -100 !important;
+}

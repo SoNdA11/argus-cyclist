@@ -484,25 +484,27 @@
                     class="hide-mobile"></div>
 
                 <div
-                    style="flex: 1; display: flex; align-items: center; justify-content: space-between; min-width: 350px; gap: 20px;">
-                    <div style="flex-grow: 1;">
+                    style="flex: 1.5; display: flex; align-items: center; justify-content: space-between; min-width: 320px; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex-grow: 1; min-width: 150px;">
                         <div
                             style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600;">
                             Smart Equipment</div>
                         <div id="eventTrainerStatus" class="status-indicator"
-                            style="font-weight: 700; font-size: 1.1rem; color: #fff;">Disconnected</div>
+                            style="font-weight: 800; font-size: 1.1rem; transition: color 0.3s;">Disconnected</div>
                         <select id="eventTrainerList" class="hidden home-input"
                             style="width: 100%; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px;"></select>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
                         <button id="btnEventScanTrainer" class="btn-secondary" title="Scan Hardware"
-                            style="padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">🔍
+                            style="padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">🔍
                             Scan</button>
                         <button id="btnEventConnectVirtual" class="btn-secondary" title="Use Simulator"
-                            style="padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">💻
+                            style="padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">💻
                             Sim</button>
                         <button id="btnEventConnectTrainer" class="btn-primary hidden"
-                            style="padding: 12px 20px; border-radius: 12px;">Connect</button>
+                            style="padding: 10px 16px; border-radius: 12px; font-size: 0.85rem;">Connect</button>
+                        <button id="btnEventDisconnectTrainer" class="btn-danger hidden"
+                            style="padding: 10px 16px; border-radius: 12px; font-size: 0.85rem; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Disconnect</button>
                     </div>
                 </div>
             </div>
@@ -632,7 +634,7 @@
             </div>
         </div>
     </div>
-    <div id="challengeResultModal" class="modal-overlay hidden">
+    <div id="challengeResultModal" class="modal-overlay hidden" style="z-index: 10015; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
         <div class="modal-content challenge-result-content">
             <div class="challenge-hub-kicker" id="challengeResultMode">Sprint</div>
             <h2 id="challengeResultTitle">Challenge complete</h2>
