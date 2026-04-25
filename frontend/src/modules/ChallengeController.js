@@ -93,6 +93,7 @@ export class ChallengeController {
         };
 
         this.activeChallenge = null;
+        this.leaderboardFilter = 'G';
         this.animationFrame = null;
         this.lastFrameTime = 0;
         this.tunnelParticles = Array.from({ length: 140 }, () => this.makeTunnelParticle(true));
@@ -179,6 +180,34 @@ export class ChallengeController {
         if (isFemale) return femaleFaces[hash % femaleFaces.length];
         if (isMale) return maleFaces[hash % maleFaces.length];
         return neutralFaces[hash % neutralFaces.length];
+    }
+
+    detectGender(name) {
+        if (!name) return 'G';
+        const firstName = name.trim().split(' ')[0].toLowerCase();
+        const maleNames = ['lucas', 'nicolas', 'mateus', 'matheus', 'marcos', 'thomas', 'douglas', 'gabriel', 'rafael', 'daniel', 'miguel', 'samuel', 'davi', 'joão', 'joao', 'guilherme', 'henrique', 'felipe', 'andre', 'andré', 'luis', 'luís', 'luiz', 'jonatas', 'paulo'];
+        const femaleNames = ['raquel', 'isabel', 'karen', 'yasmin', 'aline', 'viviane', 'simone', 'eliane', 'beatriz', 'ruth', 'ester', 'cibele', 'michelle', 'iris', 'lais', 'laís', 'carmen', 'suelen', 'maria'];
+
+        if (femaleNames.includes(firstName)) return 'F';
+        if (maleNames.includes(firstName)) return 'M';
+        if (firstName.endsWith('a') || firstName.endsWith('y') || firstName.endsWith('z') || firstName.endsWith('elle') || firstName.endsWith('ete')) return 'F';
+        if (firstName.endsWith('o') || firstName.endsWith('r') || firstName.endsWith('s') || firstName.endsWith('l') || firstName.endsWith('m') || firstName.endsWith('n') || firstName.endsWith('i') || firstName.endsWith('u')) return 'M';
+        return 'G';
+    }
+
+    setLeaderboardFilter(filter) {
+        this.leaderboardFilter = filter;
+        this.renderLeaderboardModal();
+
+        document.querySelectorAll('.lb-filter-btn').forEach(btn => {
+            if (btn.dataset.filter === filter) {
+                btn.style.background = 'rgba(56,189,248,0.2)';
+                btn.style.color = '#38bdf8';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.color = '#aaa';
+            }
+        });
     }
 
     generateDynamicAvatar(name) {
@@ -280,12 +309,17 @@ export class ChallengeController {
     }
 
     getRiderName() {
-        const name = this.els.riderInput?.value?.trim();
+        const nameInput = this.els.riderInput;
+        const genderInput = document.getElementById('eventRiderGender');
+        const name = nameInput?.value?.trim();
+
         if (!name) {
             alert('Please enter the cyclist name before starting the event.');
             return '';
         }
-        return name;
+
+        const gender = genderInput?.value || 'G';
+        return `${name} [${gender}]`;
     }
 
     async fetchLeaderboardsFromDB() {
@@ -294,12 +328,28 @@ export class ChallengeController {
         for (const type of Object.keys(this.modeMeta)) {
             try {
                 const records = await window.go.main.App.GetEventLeaderboard(type);
-                this.leaderboards[type] = (records || []).map(r => ({
-                    rider: r.rider_name,
-                    value: r.score,
-                    status: r.status,
-                    createdAt: new Date(r.created_at).getTime()
-                }));
+                this.leaderboards[type] = (records || []).map(r => {
+                    let rawName = r.rider_name;
+                    let cleanName = rawName;
+                    let gender = 'G';
+
+                    const match = rawName.match(/(.+) \[([MFG])\]$/);
+                    if (match) {
+                        cleanName = match[1].trim();
+                        gender = match[2];
+                    } else {
+                        gender = this.detectGender(cleanName);
+                    }
+
+                    return {
+                        rider: cleanName,
+                        rawRider: rawName,
+                        gender: gender,
+                        value: r.score,
+                        status: r.status,
+                        createdAt: new Date(r.created_at).getTime()
+                    };
+                });
             } catch (e) {
                 console.error(`Failed to fetch leaderboard for ${type}:`, e);
                 this.leaderboards[type] = [];
@@ -701,7 +751,10 @@ export class ChallengeController {
 
         const meta = this.modeMeta[this.activeChallenge.type];
         this.els.modeLabel.textContent = meta.fullTitle;
-        this.els.riderLabel.textContent = this.activeChallenge.riderName;
+
+        const cleanRiderName = this.activeChallenge.riderName.replace(/ \[[MFG]\]$/, '');
+        this.els.riderLabel.textContent = cleanRiderName;
+
         this.els.statusLabel.textContent = 'Waiting for first pedal stroke';
         this.els.primaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Distance Covered' : 'Live Power';
         this.els.secondaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Live Power' : meta.metric;
@@ -1141,22 +1194,29 @@ export class ChallengeController {
         const challenge = this.activeChallenge;
         if (!challenge) return;
 
+        const currentCleanName = challenge.riderName.replace(/ \[[MFG]\]$/, '');
+
         const entries = [...this.leaderboards[challenge.type]]
             .sort((a, b) => b.value - a.value)
             .slice(0, 5);
 
         const liveValue = this.getLiveLeaderboardValue();
         const currentRow = {
-            rider: challenge.riderName,
+            rider: currentCleanName,
+            isCurrentPlayer: true,
             value: liveValue
         };
 
-        const preview = [...entries, currentRow].sort((a, b) => b.value - a.value).slice(0, 5);
+        const filteredEntries = entries.filter(e => e.rider !== currentCleanName);
+
+        const preview = [...filteredEntries, currentRow]
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
 
         this.els.inlineLeaderboard.innerHTML = `
             <div class="challenge-chip-label">Event Ranking</div>
             ${preview.map((entry, index) => `
-                <div class="challenge-inline-entry ${entry.rider === challenge.riderName ? 'is-active' : ''}">
+                <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}">
                     <span>${index + 1}.</span>
                     <strong>${entry.rider}</strong>
                     <span>${this.formatResultValue(challenge.type, entry.value)}</span>
@@ -1204,13 +1264,18 @@ export class ChallengeController {
 
     renderLeaderboardModal() {
         this.els.leaderboardPanels.innerHTML = Object.entries(this.modeMeta).map(([type, meta]) => {
-            const entries = [...this.leaderboards[type]].sort((a, b) => b.value - a.value);
+            let filteredEntries = this.leaderboards[type].filter(e => {
+                if (this.leaderboardFilter === 'G') return true;
+                return e.gender === this.leaderboardFilter;
+            });
 
-            const p1 = entries[0] || null;
-            const p2 = entries[1] || null;
-            const p3 = entries[2] || null;
+            filteredEntries = filteredEntries.sort((a, b) => b.value - a.value).slice(0, 150);
 
-            const rest = entries.slice(3);
+            const p1 = filteredEntries[0] || null;
+            const p2 = filteredEntries[1] || null;
+            const p3 = filteredEntries[2] || null;
+            const rest = filteredEntries.slice(3);
+
             const renderPodiumStep = (entry, place, label) => {
                 if (!entry) return `
                     <div class="lb-podium-col empty is-${place}">

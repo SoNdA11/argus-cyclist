@@ -471,12 +471,20 @@
                         style="width: 64px; height: 64px; border-radius: 50%; background: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); transition: all 0.3s ease; flex-shrink: 0;">
                         ?</div>
                     <div class="input-group" style="margin: 0; width: 100%;">
-                        <label for="eventRiderName"
+                        <label
                             style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Cyclist
-                            Name</label>
-                        <input type="text" id="eventRiderName" class="home-input" placeholder="Type your name..."
-                            autocomplete="off"
-                            style="margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 1.2rem; padding: 12px 16px; border-radius: 12px; font-weight: 500;">
+                            Name & Category</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="eventRiderName" class="home-input" placeholder="Type your name..."
+                                autocomplete="off"
+                                style="margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 1.2rem; padding: 12px 16px; border-radius: 12px; font-weight: 500; flex: 1;">
+                            <select id="eventRiderGender" class="home-input"
+                                style="margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; padding: 0 12px; border-radius: 12px; font-weight: 600; color: #fff; width: 85px; cursor: pointer;">
+                                <option value="G">Gen</option>
+                                <option value="M">Mas</option>
+                                <option value="F">Fem</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -568,15 +576,30 @@
     </div>
     <div id="eventLeaderboardModal" class="modal-overlay hidden" style="z-index: 10005;">
         <div class="modal-content challenge-leaderboard-content">
-            <div class="challenge-hub-header">
-                <div>
-                    <div class="challenge-hub-kicker">Offline Leaderboard</div>
-                    <h2>Event podium</h2>
-                    <p>Persistent ranking storage for Sprint, KOM, and Time Trial using a SQLite database.</p>
+            <div class="challenge-hub-header"
+                style="flex-direction: row; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
+                <div style="text-align: left;">
+                    <div class="challenge-hub-kicker">Global Ranking</div>
+                    <h2 style="font-size: 1.8rem; margin: 0;">Event Podium</h2>
                 </div>
-                <button class="btn-icon-small" id="btnCloseEventLeaderboard" title="Close">✕</button>
+
+                <div
+                    style="display: flex; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); gap: 5px;">
+                    <button class="lb-filter-btn active" data-filter="G"
+                        onclick="window.challengeController.setLeaderboardFilter('G')"
+                        style="padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; background: rgba(56,189,248,0.2); color: #38bdf8; border: none; cursor: pointer; transition: all 0.2s;">Geral</button>
+                    <button class="lb-filter-btn" data-filter="M"
+                        onclick="window.challengeController.setLeaderboardFilter('M')"
+                        style="padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; background: transparent; color: #aaa; border: none; cursor: pointer; transition: all 0.2s;">Male</button>
+                    <button class="lb-filter-btn" data-filter="F"
+                        onclick="window.challengeController.setLeaderboardFilter('F')"
+                        style="padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; background: transparent; color: #aaa; border: none; cursor: pointer; transition: all 0.2s;">Female</button>
+                </div>
+
+                <button class="btn-icon-small" id="btnCloseEventLeaderboard" title="Close"
+                    style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.1); border: none; color: white;">✕</button>
             </div>
-            <div id="eventLeaderboardPanels" class="leaderboard-category-grid"></div>
+            <div id="eventLeaderboardPanels" class="leaderboard-category-grid" style="margin-top: 20px;"></div>
         </div>
     </div>
     <div id="challengeOverlay" class="challenge-overlay hidden">
@@ -634,7 +657,8 @@
             </div>
         </div>
     </div>
-    <div id="challengeResultModal" class="modal-overlay hidden" style="z-index: 10015; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+    <div id="challengeResultModal" class="modal-overlay hidden"
+        style="z-index: 10015; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
         <div class="modal-content challenge-result-content">
             <div class="challenge-hub-kicker" id="challengeResultMode">Sprint</div>
             <h2 id="challengeResultTitle">Challenge complete</h2>
