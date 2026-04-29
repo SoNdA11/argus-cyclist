@@ -289,9 +289,9 @@ export class UIManager {
         return { val: kph.toFixed(1), unit: 'km/h' };
     }
 
-    // =================
+    // ===============
     // TELEMETRY ZONES
-    // =================
+    // ===============
 
     getPowerZoneColor(power) {
         if (!power || power === 0) return ''; // Fallback to CSS default when coasting
@@ -312,6 +312,14 @@ export class UIManager {
         if (pct < 0.80) return 'var(--zone-3)';
         if (pct < 0.90) return 'var(--zone-4)';
         return 'var(--zone-6)'; // Red for zone 5+ HR
+    }
+
+    getGradeColor(grade) {
+        if (!grade || grade < 3) return 'var(--text-main)';   // Flat or downhill (White/Default)
+        if (grade < 6) return 'var(--argus-safe)';            // 3% to 5.9% (Green)
+        if (grade < 9) return 'var(--grade-color)';           // 6% to 8.9% (Yellow)
+        if (grade < 12) return 'var(--hr-color)';             // 9% to 11.9% (Pink/Orange)
+        return 'var(--argus-alert)';                          // 12%+ (Red)
     }
 
     // ========================================
@@ -380,7 +388,9 @@ export class UIManager {
         this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">❤</span>`;
         this.els.hr.style.color = hrColor;
 
+        const gradeColor = this.getGradeColor(data.grade);
         this.els.grade.innerHTML = `${data.grade.toFixed(1)}<span class="data-unit">%</span>`;
+        this.els.grade.style.color = gradeColor;
 
         // Speed (unit-aware)
         const speedObj = this.formatSpeed(data.speed);
@@ -542,6 +552,7 @@ export class UIManager {
         this.els.hr.style.color = '';
 
         this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
+        this.els.grade.style.color = '';
 
         if (this.els.elevation) {
             const eleUnit = this.units === 'imperial' ? 'ft' : 'm';
@@ -1754,7 +1765,7 @@ export class UIManager {
 
         if (pmcData && pmcData.length > 0) {
             const lastEntry = pmcData[pmcData.length - 1];
-            
+
             const dateEl = document.getElementById('pmcLatestDate');
             const ctlEl = document.getElementById('pmcLatestCTL');
             const atlEl = document.getElementById('pmcLatestATL');
@@ -1764,22 +1775,22 @@ export class UIManager {
                 try {
                     const d = new Date(lastEntry.date + 'T12:00:00Z');
                     dateEl.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                } catch(e) {
+                } catch (e) {
                     dateEl.textContent = lastEntry.date;
                 }
             }
             if (ctlEl) ctlEl.textContent = Math.round(lastEntry.ctl);
             if (atlEl) atlEl.textContent = Math.round(lastEntry.atl);
-            
+
             if (tsbEl) {
                 const tsbVal = Math.round(lastEntry.tsb);
                 let tsbColor = '#ccc';
-                if (tsbVal >= 25) tsbColor = '#e67e22'; 
-                else if (tsbVal >= 5) tsbColor = '#3498db'; 
-                else if (tsbVal >= -10) tsbColor = '#2ecc71'; 
-                else if (tsbVal >= -30) tsbColor = '#f1c40f'; 
-                else tsbColor = '#e74c3c'; 
-                
+                if (tsbVal >= 25) tsbColor = '#e67e22';
+                else if (tsbVal >= 5) tsbColor = '#3498db';
+                else if (tsbVal >= -10) tsbColor = '#2ecc71';
+                else if (tsbVal >= -30) tsbColor = '#f1c40f';
+                else tsbColor = '#e74c3c';
+
                 tsbEl.textContent = tsbVal > 0 ? `+${tsbVal}` : tsbVal;
                 tsbEl.style.color = tsbColor;
             }
@@ -1804,22 +1815,22 @@ export class UIManager {
                 textStyle: { color: '#fff' },
                 formatter: function (params) {
                     let tooltipHtml = `<div style="font-weight:bold;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;">${params[0].axisValue}</div>`;
-                    
+
                     params.forEach(param => {
                         let color = param.color;
                         let valueStr = param.value;
-                        let textColor = '#ccc'; 
-                        
+                        let textColor = '#ccc';
+
                         if (param.seriesName === 'TSB (Form)') {
                             const val = param.value;
-                            if (val >= 25) color = '#e67e22'; 
-                            else if (val >= 5) color = '#3498db'; 
-                            else if (val >= -10) color = '#2ecc71'; 
-                            else if (val >= -30) color = '#f1c40f'; 
-                            else color = '#e74c3c'; 
-                            
+                            if (val >= 25) color = '#e67e22';
+                            else if (val >= 5) color = '#3498db';
+                            else if (val >= -10) color = '#2ecc71';
+                            else if (val >= -30) color = '#f1c40f';
+                            else color = '#e74c3c';
+
                             valueStr = val > 0 ? `+${val}` : val;
-                            textColor = color; 
+                            textColor = color;
                         }
 
                         tooltipHtml += `
@@ -1842,37 +1853,37 @@ export class UIManager {
             },
             grid: { left: '3%', right: '3%', bottom: '15%', top: '15%', containLabel: true },
             dataZoom: [
-                { 
-                    type: 'inside', 
-                    xAxisIndex: [0, 1], 
-                    start: pmcData.length > 90 ? 70 : 0, 
-                    end: 100 
+                {
+                    type: 'inside',
+                    xAxisIndex: [0, 1],
+                    start: pmcData.length > 90 ? 70 : 0,
+                    end: 100
                 },
-                { 
-                    type: 'slider', 
-                    xAxisIndex: [0, 1], 
-                    start: pmcData.length > 90 ? 70 : 0, 
+                {
+                    type: 'slider',
+                    xAxisIndex: [0, 1],
+                    start: pmcData.length > 90 ? 70 : 0,
                     end: 100,
-                    height: 20, 
-                    bottom: 5, 
+                    height: 20,
+                    bottom: 5,
                     borderColor: 'transparent',
-                    fillerColor: 'rgba(52, 152, 219, 0.2)', 
-                    textStyle: { color: '#888' } 
+                    fillerColor: 'rgba(52, 152, 219, 0.2)',
+                    textStyle: { color: '#888' }
                 }
             ],
             xAxis: [
                 {
                     type: 'category',
-                    boundaryGap: false, 
+                    boundaryGap: false,
                     data: dates,
                     axisLabel: { color: '#888' },
                     axisLine: { lineStyle: { color: '#444' } }
                 },
                 {
                     type: 'category',
-                    boundaryGap: true, 
+                    boundaryGap: true,
                     data: dates,
-                    show: false 
+                    show: false
                 }
             ],
             yAxis: {
@@ -1881,14 +1892,14 @@ export class UIManager {
                 axisLabel: { color: '#ccc' }
             },
             visualMap: {
-                seriesIndex: 2, 
+                seriesIndex: 2,
                 show: false,
                 pieces: [
-                    { min: 25, color: '#e67e22' },             
-                    { min: 5, max: 25, color: '#3498db' },     
-                    { min: -10, max: 5, color: '#2ecc71' },    
-                    { min: -30, max: -10, color: '#f1c40f' },  
-                    { max: -30, color: '#e74c3c' }             
+                    { min: 25, color: '#e67e22' },
+                    { min: 5, max: 25, color: '#3498db' },
+                    { min: -10, max: 5, color: '#2ecc71' },
+                    { min: -30, max: -10, color: '#f1c40f' },
+                    { max: -30, color: '#e74c3c' }
                 ]
             },
             series: [
@@ -1927,7 +1938,7 @@ export class UIManager {
                     z: 1,
                     markArea: {
                         itemStyle: { color: 'rgba(255, 255, 255, 0.03)' },
-                        data: [ [ { yAxis: -10 }, { yAxis: -30 } ] ]
+                        data: [[{ yAxis: -10 }, { yAxis: -30 }]]
                     }
                 }
             ]

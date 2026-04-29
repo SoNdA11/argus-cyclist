@@ -336,10 +336,6 @@ html:not([data-theme="satellite"]) footer {
     color: var(--power-color);
 }
 
-.val-grade {
-    color: var(--grade-color);
-}
-
 .val-hr {
     color: var(--argus-alert);
 }
