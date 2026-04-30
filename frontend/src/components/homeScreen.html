@@ -1,0 +1,53 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="homeScreen" class="home-overlay active">
+        <div class="home-container">
+            <div class="home-header">
+                <img src="src/assets/images/argus-cyclist.png" alt="Argus Cyclist Logo" class="home-logo">
+                <div class="home-titles">
+                    <div class="home-brand">ARGUS<span>CYCLIST</span></div>
+                    <div class="home-welcome" id="homeWelcome">Welcome back</div>
+                    <p class="home-subtitle" id="homeSubtitle">Select a rider profile to start your session.</p>
+                </div>
+            </div>
+
+            <div class="profile-grid" id="profileGrid">
+            </div>
+
+            <div class="home-event-actions">
+                <button id="btnHomeEventMode" class="home-event-btn">Open Event Mode</button>
+            </div>
+
+            <div id="createProfileForm" class="create-profile-form hidden">
+                <div class="profile-avatar-container" onclick="window.selectAvatar()" style="margin: 0 auto 15px auto;">
+                    <img id="newAvatarPreview" src="src/assets/images/argus-cyclist.png" alt="Avatar">
+                    <div class="avatar-overlay">📷 Photo</div>
+                </div>
+                <input type="text" id="newRiderName" placeholder="Rider Name" class="home-input">
+                <input type="number" id="newRiderWeight" placeholder="Weight (kg)" class="home-input">
+                <input type="number" id="newRiderFTP" placeholder="FTP (Watts)" class="home-input">
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn-secondary" onclick="window.toggleCreateForm(false)"
+                        style="flex: 1;">Cancel</button>
+                    <button class="btn-primary" onclick="window.createProfile()" style="flex: 2;">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,323 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* ==========
+   THEME: DAY
+   ========== 
+*/
+
+:root[data-theme="day"] {
+    --bg-app: #f8fafc;
+    --panel-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+
+    --power-color: #38bdf8;
+
+    --chart-bg: #f1f5f9;
+    --chart-fill: #cbd5e1;
+    --chart-cursor: #ef4444;
+
+    --marker-bg: #38bdf8;
+    --marker-border: #ffffff;
+    --marker-glow: rgba(22, 163, 74, 0.3);
+
+    --argus-safe: #22c55e;
+    --argus-alert: #dc2626;
+    --grade-color: #f59e0b;
+    --hr-color: #e11d48;
+}
+
+html[data-theme="day"] .hud-sidebar,
+html[data-theme="day"] header,
+html[data-theme="day"] footer {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-theme="day"] .history-list {
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+html[data-theme="day"] .history-header {
+    background-color: transparent;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border-color);
+}
+
+html[data-theme="day"] .history-item {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.compact-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .compact-profile {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        align-items: start;
+    }
+}
+
+.profile-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.profile-avatar-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--power-color);
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    background-color: #000;
+}
+
+.profile-avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-overlay {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 3px 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.profile-avatar-container:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+}
+
+.input-group input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    height: 36px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+
+.input-group select {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    height: 36px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-group select option {
+    background-color: #1a1e25;
+    /* Cinza bem escuro sólido */
+    color: #ffffff;
+    padding: 10px;
+}
+
+.device-row.compact {
+    padding: 5px 0;
+    font-size: 0.85rem;
+}
+
+.btn-icon-small {
+    padding: 2px 6px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.profile-left h3 {
+    text-align: center;
+    width: 90%;
+    margin-top: 15px;
+    color: var(--text-main);
+}
+
+/* --- XP BAR --- */
+.xp-container {
+    width: 100%;
+    max-width: 120px;
+    margin: 10px auto 5px auto;
+    position: relative;
+}
+
+.xp-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.level-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fbbf24;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 1px 8px;
+    border-radius: 8px;
+    border: 2px solid #1e1e1e;
+    z-index: 10;
+}
+
+.player-progression {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.level-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.level-pill {
+    background: var(--power-color);
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.xp-container-inline {
+    flex: 1;
+    max-width: 120px;
+}
+
+.badges-row {
+    display: flex;
+    gap: 5px;
+    height: 20px;
+}
+
+/* --- FINISH MODAL --- */
+.finish-content {
+    text-align: center;
+    border-top: 5px solid #fbbf24;
+}
+
+.finish-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    animation: bounce 1s infinite alternate;
+}
+
+.finish-status {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    font-weight: bold;
+}
+
+@keyframes bounce {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-10px);
+    }
+}
+
+.modal-actions.centered {
+    justify-content: center;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}

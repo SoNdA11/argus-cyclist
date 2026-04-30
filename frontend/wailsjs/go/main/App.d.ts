@@ -3,7 +3,6 @@
 import {main} from '../models';
 import {domain} from '../models';
 import {fit} from '../models';
-import {storage} from '../models';
 
 export function ChangePowerSimulation(arg1:number):Promise<number>;
 
@@ -51,11 +50,11 @@ export function GetEventLeaderboard(arg1:string):Promise<Array<domain.EventRecor
 
 export function GetFitnessTests():Promise<Array<domain.ActiveWorkout>>;
 
-export function GetLocalAccounts():Promise<Array<storage.ProfileSummary>>;
+export function GetLocalAccounts():Promise<Array<domain.ProfileSummary>>;
 
 export function GetMonthlyActivities(arg1:number,arg2:number):Promise<Array<domain.Activity>>;
 
-export function GetPowerCurve():Promise<Array<storage.PowerRecord>>;
+export function GetPowerCurve():Promise<Array<domain.PowerRecord>>;
 
 export function GetRoutePath():Promise<Array<domain.RoutePoint>>;
 

@@ -20,6 +20,7 @@ import { CONFIG } from '../config.js';
 import * as echarts from 'echarts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { telemetryBus } from './TelemetryEventBus.js';
 
 /**
  * UIManager
@@ -147,6 +148,8 @@ export class UIManager {
             });
             observer.observe(workoutPanel, { attributes: true });
         }
+
+        telemetryBus.subscribe((data) => this.updateTelemetry(data, window.totalRouteDistance));
     }
 
     // ===========
@@ -293,6 +296,18 @@ export class UIManager {
     // TELEMETRY ZONES
     // ===============
 
+    /**
+     * Determine the CSS color based on Power (Watts) relative to FTP (Functional Threshold Power).
+     * Calculates the percentage of current power over FTP and maps it to a traditional 6-zone model:
+     * - Zone 1: Active Recovery (< 55%)
+     * - Zone 2: Endurance (55% - 74%)
+     * - Zone 3: Tempo (75% - 89%)
+     * - Zone 4: Lactate Threshold (90% - 104%)
+     * - Zone 5: VO2 Max (105% - 119%)
+     * - Zone 6: Anaerobic Capacity (>= 120%)
+     * @param {number} power - Current power in watts.
+     * @returns {string} CSS color variable representing the zone.
+     */
     getPowerZoneColor(power) {
         if (!power || power === 0) return ''; // Fallback to CSS default when coasting
         const pct = power / this.ftp;
@@ -304,6 +319,17 @@ export class UIManager {
         return 'var(--zone-6)';                 // Anaerobic
     }
 
+    /**
+     * Determine the CSS color based on Heart Rate (BPM) relative to Maximum Heart Rate.
+     * Calculates the percentage of current HR over Max HR and maps it to a 5-zone model:
+     * - Zone 1: Warm Up (< 60%)
+     * - Zone 2: Easy (60% - 69%)
+     * - Zone 3: Aerobic (70% - 79%)
+     * - Zone 4: Threshold (80% - 89%)
+     * - Zone 5: Maximum (>= 90%)
+     * @param {number} hr - Current heart rate in beats per minute.
+     * @returns {string} CSS color variable representing the zone.
+     */
     getHeartRateZoneColor(hr) {
         if (!hr || hr === 0) return ''; // Fallback to CSS default
         const pct = hr / this.maxHr;
@@ -326,6 +352,12 @@ export class UIManager {
     // PHYSIOLOGICAL METRICS ZONES (SCIENTIFIC)
     // ========================================
 
+    /**
+     * Get the CSS color indicator for Training Stress Score (TSS).
+     * TSS estimates the overall physiological stress created by a training session.
+     * @param {number} value - The TSS value.
+     * @returns {string} CSS color hex.
+     */
     getTSSColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
         if (value < 150) return '#2ecc71'; // Safe (Green)
@@ -334,6 +366,12 @@ export class UIManager {
         return '#e74c3c'; // Alert (Red)
     }
 
+    /**
+     * Get the CSS color indicator for Intensity Factor (IF).
+     * IF is the ratio of Normalized Power to FTP, indicating the intensity of the ride.
+     * @param {number} value - The IF value.
+     * @returns {string} CSS color hex.
+     */
     getIFColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
         if (value < 0.75) return '#2ecc71'; // Safe
@@ -342,6 +380,12 @@ export class UIManager {
         return '#e74c3c'; // Alert
     }
 
+    /**
+     * Get the CSS color indicator for Training Impulse (TRIMP).
+     * TRIMP measures training load based on heart rate and duration.
+     * @param {number} value - The TRIMP value.
+     * @returns {string} CSS color hex.
+     */
     getTRIMPColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
         if (value <= 70) return '#2ecc71'; // Safe
@@ -350,6 +394,12 @@ export class UIManager {
         return '#e74c3c'; // Alert
     }
 
+    /**
+     * Get the CSS color indicator for Aerobic Decoupling (Pw:HR or Pa:HR).
+     * Indicates cardiovascular drift over prolonged exercises. Values under 5% indicate a solid aerobic base.
+     * @param {number} value - The percentage of decoupling.
+     * @returns {string} CSS color hex.
+     */
     getDriftColor(value) {
         if (value == null || isNaN(value)) return 'var(--text-main)';
         if (value < 5) return '#2ecc71'; // Safe
@@ -357,6 +407,13 @@ export class UIManager {
         return '#e74c3c'; // Alert (Poor Endurance)
     }
 
+    /**
+     * Get the CSS color indicator for Heart Rate Recovery (HRR).
+     * Measures the drop in heart rate one or two minutes after ceasing effort.
+     * Higher drops indicate better cardiovascular fitness and autonomic function.
+     * @param {number} value - The drop in beats per minute.
+     * @returns {string} CSS color hex.
+     */
     getHRRColor(value) {
         if (!value || value <= 0) return 'var(--text-main)'; // Default fallback
         if (value < 12) return '#e74c3c'; // Alert (Severe Risk)
@@ -410,7 +467,9 @@ export class UIManager {
             this.els.elevation.innerHTML = `${Math.round(eleVal)}<span class="data-unit">${eleUnit}</span>`;
         }
 
-        // Watts per kilogram
+        // Watts per kilogram (W/kg) calculation:
+        // W/kg is the primary metric for cycling performance, as it standardizes 
+        // power output against the rider's body mass, directly affecting climbing ability.
         const totalWeight = this.riderWeight;
         const wkgVal = (data.power / totalWeight).toFixed(2);
         this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;

@@ -1,0 +1,33 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="fitnessTestModal" class="modal-overlay hidden">
+        <div class="modal-content-small" style="width: 500px; max-width: 90%;">
+            <div class="modal-header" style="display:flex; justify-content: space-between;">
+                <h2 style="margin: 0; color: var(--zone-4);">Physiological Assessments</h2>
+                <button class="close-btn"
+                    style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;"
+                    onclick="document.getElementById('fitnessTestModal').classList.remove('active'); document.getElementById('fitnessTestModal').classList.add('hidden')">×</button>
+            </div>
+            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Select an assessment to
+                establish
+                your baseline metrics.</p>
+            <div id="fitnessTestList" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+            </div>
+        </div>
+    </div>

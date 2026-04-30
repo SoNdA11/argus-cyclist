@@ -1,0 +1,53 @@
+
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* ================
+   THEME: SATELLITE
+   ================
+*/
+
+:root[data-theme="satellite"] {
+    --bg-app: #0f1115;
+    --panel-bg: rgba(20, 24, 30, 0.85);
+    --text-main: #e0e6ed;
+    --text-muted: #94a3b8;
+    --border-color: #1e293b;
+    --power-color: #38bdf8;
+    --chart-bg: #1e293b;
+    --chart-fill: rgba(56, 189, 248, 0.15);
+    --chart-cursor: #ef4444;
+    --marker-bg: #38bdf8;
+    --marker-border: #ffffff;
+    --marker-glow: rgba(56, 189, 248, 0.8);
+}
+
+/* GLOBAL CONSTANTS */
+:root {
+    --hr-color: #f472b6;
+    --grade-color: #fbbf24;
+    --argus-safe: #10b981;
+    --argus-safe-glow: rgba(16, 185, 129, 0.3);
+    --argus-alert: #ef4444;
+    --status-standby: #64748b;
+}
+
+body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+}

@@ -1,0 +1,73 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="challengeOverlay" class="challenge-overlay hidden">
+        <canvas id="challengeBackdropCanvas" class="challenge-backdrop-canvas"></canvas>
+        <canvas id="challengeTelemetryCanvas" class="challenge-telemetry-canvas"></canvas>
+
+        <div class="challenge-shell">
+            <div class="challenge-topbar">
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Mode</span>
+                    <strong id="challengeModeLabel">Sprint</strong>
+                </div>
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Cyclist</span>
+                    <strong id="challengeRiderLabel">Guest Rider</strong>
+                </div>
+                <div class="challenge-chip">
+                    <span class="challenge-chip-label">Status</span>
+                    <strong id="challengeStatusLabel">Waiting for first pedal stroke</strong>
+                </div>
+            </div>
+
+            <div class="challenge-main-metrics">
+                <div class="challenge-timer-panel">
+                    <span class="challenge-chip-label">Time Remaining</span>
+                    <div id="challengeTimerValue" class="challenge-timer-value">15.0s</div>
+                </div>
+
+                <div class="challenge-center-panel">
+                    <div class="challenge-power-label" id="challengePrimaryLabel">Live Power</div>
+                    <div id="challengePowerValue" class="challenge-power-value">0</div>
+                    <div id="challengePowerUnit" class="challenge-power-unit">watts</div>
+                </div>
+
+                <div class="challenge-side-panel">
+                    <div class="challenge-side-metric">
+                        <span class="challenge-chip-label" id="challengeSecondaryLabel">Peak Power</span>
+                        <strong id="challengeSecondaryValue">0 W</strong>
+                    </div>
+                    <div class="challenge-side-metric">
+                        <span class="challenge-chip-label" id="challengeTertiaryLabel">Cadence</span>
+                        <strong id="challengeTertiaryValue">0 rpm</strong>
+                    </div>
+                    <div class="challenge-side-metric" id="challengeGraceMetric">
+                        <span class="challenge-chip-label">Grace Window</span>
+                        <strong id="challengeGraceValue">10s</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div id="challengeLeaderboardPanel" class="challenge-inline-leaderboard"></div>
+
+            <div class="challenge-overlay-actions">
+                <button id="btnAbortChallenge" class="btn-danger">Abort Challenge</button>
+            </div>
+        </div>
+    </div>

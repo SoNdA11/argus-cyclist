@@ -35,7 +35,7 @@ import (
 	"argus-cyclist/internal/service/fit"
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
-	"argus-cyclist/internal/service/storage"
+	"argus-cyclist/internal/usecase"
 	"argus-cyclist/internal/service/strava"
 	"argus-cyclist/internal/service/workout"
 
@@ -51,7 +51,7 @@ type App struct {
 	fitService             *fit.Service
 	physicsEngine          *sim.Engine
 	trainerService         domain.TrainerService
-	storageService         *storage.Service
+	storageService         *usecase.StorageFacade
 	workoutService         *workout.Service
 	activeWorkout          *domain.ActiveWorkout
 	workoutIntensity       float64
@@ -124,8 +124,8 @@ type CareerDashboard struct {
 
 // NewApp initializes all core services and dependencies.
 func NewApp() *App {
-	// Initialize persistent storage (Master DB only at startup)
-	store := storage.NewService()
+	// Initialize persistent storage via UseCase Facade
+	store := usecase.NewStorageFacade()
 
 	// Provide default fallback weights since the profile is loaded later
 	defaultRiderWeight := 75.0
@@ -216,7 +216,7 @@ func (a *App) SelectProfileImage() string {
 // =====================
 
 // GetLocalAccounts fetches all registered profiles for the Home Screen.
-func (a *App) GetLocalAccounts() []storage.ProfileSummary {
+func (a *App) GetLocalAccounts() []domain.ProfileSummary {
 	return a.storageService.GetProfilesSummary()
 }
 
@@ -224,7 +224,7 @@ func (a *App) GetLocalAccounts() []storage.ProfileSummary {
 func (a *App) CreateLocalAccount(name string, avatar string, weight float64, ftp float64) (string, error) {
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
 
-	acc := storage.LocalAccount{
+	acc := domain.LocalAccount{
 		ID:        id,
 		Name:      name,
 		Avatar:    avatar,
@@ -381,7 +381,7 @@ func (a *App) GetMonthlyActivities(year int, month int) []domain.Activity {
 	return acts
 }
 
-func (a *App) GetPowerCurve() []storage.PowerRecord {
+func (a *App) GetPowerCurve() []domain.PowerRecord {
 	return a.storageService.GetPowerCurve()
 }
 
@@ -848,7 +848,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		bestWatts := a.calculateMMP(a.sessionPowerData, duration)
 		if bestWatts > 0 {
 			wkg := float64(bestWatts) / userWeight
-			record := storage.PowerRecord{
+			record := domain.PowerRecord{
 				Duration: duration,
 				Watts:    bestWatts,
 				Wkg:      wkg,

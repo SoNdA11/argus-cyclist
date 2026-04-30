@@ -1,0 +1,78 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* =====================
+   STRAVA INTEGRATION UI
+   ===================== 
+*/
+
+.btn-strava {
+    background-color: #FC4C02;
+    /* Official Strava Orange */
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-strava:hover {
+    background-color: #e34402;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(252, 76, 2, 0.3);
+}
+
+.btn-strava:disabled {
+    background-color: #fb9a73;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions button {
+        width: 100%;
+        padding: 15px;
+    }
+}
+
+.icon-minimal {
+    color: rgba(255, 253, 253, 0.456);
+    cursor: pointer;
+    display: flex;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-minimal:hover {
+    color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+}
+
+.icon-minimal.icon-minimal-danger:hover {
+    color: #ff4757;
+}
