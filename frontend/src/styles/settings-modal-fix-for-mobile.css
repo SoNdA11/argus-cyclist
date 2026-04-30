@@ -1,0 +1,58 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* ================================
+   7. SETTINGS MODAL FIX FOR MOBILE
+   ================================
+*/
+
+@media (max-height: 700px),
+(max-width: 768px) {
+
+    /* Changes overlay behavior to allow background scrolling if content is too tall */
+    .modal-overlay.active {
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: max(20px, env(safe-area-inset-top)) 10px max(40px, env(safe-area-inset-bottom)) 10px !important;
+    }
+
+    /* Removes strict height limits from settings window to prevent button clipping */
+    .settings-content,
+    .modal-content {
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        width: 95%;
+        max-width: 1000px;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 20px auto;
+    }
+
+    /* Ensures "Save & Close" button is large and easy to hit with thumbs */
+    #btnCloseSettings {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        margin-top: 20px;
+    }
+}

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import { telemetryBus } from './TelemetryEventBus.js';
+
 export class ChallengeController {
     constructor(ui, mapCtrl, chart) {
         this.ui = ui;
@@ -98,7 +100,12 @@ export class ChallengeController {
         this.lastFrameTime = 0;
         this.tunnelParticles = Array.from({ length: 140 }, () => this.makeTunnelParticle(true));
 
+        this.lastKOMGrade = null;
+        this.lastTTColor = null;
+
         window.challengeController = this;
+
+        telemetryBus.subscribe((data) => this.updateTelemetry(data));
 
         this.bindEvents();
         this.resizeCanvases();
@@ -140,8 +147,14 @@ export class ChallengeController {
         this.els.riderInput?.addEventListener('input', (e) => this.generateDynamicAvatar(e.target.value));
 
         document.getElementById('btnEventDisconnectTrainer')?.addEventListener('click', async () => {
-            if (window.go?.main?.App?.DisconnectTrainer) {
-                await window.go.main.App.DisconnectTrainer();
+            try {
+                if (window.go?.main?.App?.DisconnectTrainer) {
+                    await window.go.main.App.DisconnectTrainer();
+                }
+                // Use global unified state refresh to update both panels
+                await this.refreshTrainerStatus();
+            } catch (e) {
+                console.error('Error disconnecting trainer:', e);
                 await this.refreshTrainerStatus();
             }
         });
@@ -269,6 +282,9 @@ export class ChallengeController {
 
         if (this.backdropCtx) this.backdropCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
         if (this.telemetryCtx) this.telemetryCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+        this.lastKOMGrade = null;
+        this.lastTTColor = null;
     }
 
     async enterEventMode() {
@@ -367,45 +383,38 @@ export class ChallengeController {
     }
 
     async refreshTrainerStatus() {
-        let text = 'Disconnected';
+        // Delegate to the global unified trainer UI system (main.js)
+        // which manages both Settings and Event Hub buttons consistently.
+        if (window.refreshTrainerConnectionState) {
+            const state = await window.refreshTrainerConnectionState();
+
+            // Update the Event Hub's own status text and color
+            const statusEl = this.els.eventTrainerStatus;
+            if (statusEl) {
+                if (state?.trainer_connected) {
+                    statusEl.textContent = state.trainer_kind === 'virtual' ? 'Simulator Active' : 'Trainer Connected';
+                    statusEl.style.color = state.trainer_kind === 'virtual' ? '#00ADD8' : '#22c55e';
+                } else {
+                    statusEl.textContent = 'Disconnected';
+                    statusEl.style.color = '#ef4444';
+                }
+            }
+
+            return;
+        }
+
+        // Fallback: manual check if global function is not available
         let isConnected = false;
 
         if (window.go?.main?.App?.GetDeviceConnectionState) {
             const state = await window.go.main.App.GetDeviceConnectionState();
-            if (state?.trainer_connected) {
-                text = state.trainer_kind === 'virtual' ? 'Simulator Active' : 'Trainer Connected';
-                isConnected = true;
-            }
-        } else {
-            const status = this.els.trainerStatus?.innerText || '';
-            if (['Trainer Connected', 'Simulator Active', 'Virtual Trainer Connected'].includes(status)) {
-                text = status;
-                isConnected = true;
-            }
+            isConnected = !!state?.trainer_connected;
         }
 
         const statusEl = this.els.eventTrainerStatus;
         if (statusEl) {
-            statusEl.textContent = text;
+            statusEl.textContent = isConnected ? 'Trainer Connected' : 'Disconnected';
             statusEl.style.color = isConnected ? '#22c55e' : '#ef4444';
-        }
-
-        const btnScan = document.getElementById('btnEventScanTrainer');
-        const btnSim = document.getElementById('btnEventConnectVirtual');
-        const btnConn = document.getElementById('btnEventConnectTrainer');
-        const btnDisc = document.getElementById('btnEventDisconnectTrainer');
-        const list = document.getElementById('eventTrainerList');
-
-        if (isConnected) {
-            if (btnScan) btnScan.style.display = 'none';
-            if (btnSim) btnSim.style.display = 'none';
-            if (btnConn) btnConn.style.display = 'none';
-            if (list) list.classList.add('hidden');
-            if (btnDisc) btnDisc.classList.remove('hidden');
-        } else {
-            if (btnScan) btnScan.style.display = 'flex';
-            if (btnSim) btnSim.style.display = 'flex';
-            if (btnDisc) btnDisc.classList.add('hidden');
         }
     }
 
@@ -637,6 +646,12 @@ export class ChallengeController {
         window.isRecording = false;
         if (this.ui && this.ui.setRecordingState) {
             this.ui.setRecordingState('IDLE');
+        }
+
+        // Fully reset the main dashboard data so that when the Event Hub
+        // is closed, the user sees a clean idle state — not stale KOM data.
+        if (this.ui && this.ui.resetDashboardData) {
+            this.ui.resetDashboardData();
         }
 
         const intrudingModals = ['confirmModal', 'finishModal', 'cooldownModal'];
@@ -903,6 +918,10 @@ export class ChallengeController {
     updateTelemetry(data) {
         let relativeDist = 0;
         if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
+            if (!this.activeChallenge.started) {
+                this.activeChallenge.initialDistance = data.total_dist || 0;
+            }
+            
             const currentDist = data.total_dist || 0;
             relativeDist = Math.max(0, currentDist - (this.activeChallenge.initialDistance || 0));
 
@@ -978,8 +997,11 @@ export class ChallengeController {
     }
 
     makeTunnelParticle(randomizeDepth = false) {
+        const angle = Math.random() * Math.PI * 2;
         return {
-            angle: Math.random() * Math.PI * 2,
+            angle,
+            cosA: Math.cos(angle),
+            sinA: Math.sin(angle),
             depth: randomizeDepth ? Math.random() : 1,
             lane: Math.random() * 0.55 + 0.2
         };
@@ -1009,8 +1031,8 @@ export class ChallengeController {
             const radius = (1 - particle.depth) * Math.min(window.innerWidth, window.innerHeight) * particle.lane;
             const alpha = (1 - particle.depth) * 0.95;
             const lineLength = 18 + powerFactor * 110 * (1 - particle.depth);
-            const x = cx + Math.cos(particle.angle) * radius;
-            const y = cy + Math.sin(particle.angle) * radius;
+            const x = cx + particle.cosA * radius;
+            const y = cy + particle.sinA * radius;
 
             ctx.beginPath();
             ctx.lineWidth = 1.5 + powerFactor * 3.5;
@@ -1019,8 +1041,8 @@ export class ChallengeController {
             ctx.shadowColor = `hsla(${hue}, 100%, 60%, ${Math.min(0.8, alpha)})`;
             ctx.moveTo(x, y);
             ctx.lineTo(
-                x + Math.cos(particle.angle) * lineLength,
-                y + Math.sin(particle.angle) * lineLength
+                x + particle.cosA * lineLength,
+                y + particle.sinA * lineLength
             );
             ctx.stroke();
         }
@@ -1029,6 +1051,10 @@ export class ChallengeController {
     drawKOMBackdrop() {
         const ctx = this.backdropCtx;
         if (!ctx) return;
+
+        const currentGrade = this.lastTelemetry.grade || 0;
+        if (this.lastKOMGrade === currentGrade) return;
+        this.lastKOMGrade = currentGrade;
 
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         const gradient = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
@@ -1076,8 +1102,11 @@ export class ChallengeController {
         const ctx = this.backdropCtx;
         if (!ctx) return;
 
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         const color = this.getTimeTrialColor();
+        if (this.lastTTColor === color) return;
+        this.lastTTColor = color;
+
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
         const gradient = ctx.createRadialGradient(
             window.innerWidth * 0.5,
@@ -1359,8 +1388,10 @@ export class ChallengeController {
 
         this.closeChallengeOverlay();
         this.stopAnimationLoop();
-        await this.stopBackendSession();
 
+        // Show the result UI FIRST, before stopping the backend session.
+        // This prevents the brief flash of the reset main UI (settings screen)
+        // that happens when DiscardSession emits status_change → IDLE.
         this.openEventHub();
 
         this.els.resultMode.textContent = this.modeMeta[challenge.type].fullTitle;
@@ -1372,6 +1403,9 @@ export class ChallengeController {
 
         this.openModal(this.els.resultModal);
 
+        // Now stop the backend session safely behind the result overlay
+        await this.stopBackendSession();
+
         this.cleanupChallengeState();
     }
 
@@ -1380,11 +1414,14 @@ export class ChallengeController {
 
         this.closeChallengeOverlay();
         this.stopAnimationLoop();
-        await this.stopBackendSession();
-        this.cleanupChallengeState();
+
+        // Show the hub FIRST to cover the screen before backend cleanup
         if (reopenHub) {
             this.openEventHub();
         }
+
+        await this.stopBackendSession();
+        this.cleanupChallengeState();
     }
 
     cleanupChallengeState() {

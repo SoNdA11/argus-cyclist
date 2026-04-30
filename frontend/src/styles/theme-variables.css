@@ -1,0 +1,40 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* ===================
+   2. THEME  VARIABLES
+   ===================
+*/
+
+/* DARK THEME (Default) */
+:root[data-theme="dark"] {
+    --bg-app: #0f1115;
+    --panel-bg: rgba(20, 24, 30, 0.85);
+    /* Translucent with Blur */
+    --text-main: #e0e6ed;
+    --text-muted: #94a3b8;
+    --border-color: #1e293b;
+    --power-color: #38bdf8;
+    --chart-bg: #1e293b;
+    --chart-fill: #334155;
+    --chart-cursor: #ef4444;
+    --marker-bg: #00e5ff;
+    --marker-border: #ffffff;
+    --marker-glow: rgba(0, 229, 255, 0.6);
+}
+

@@ -15,6 +15,29 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import './styles/main.css';
+import homeScreenHtml from './components/homeScreen.html?raw';
+import settingsModalHtml from './components/settingsModal.html?raw';
+import confirmModalHtml from './components/confirmModal.html?raw';
+import cooldownModalHtml from './components/cooldownModal.html?raw';
+import eventHubPageHtml from './components/eventHubPage.html?raw';
+import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
+import challengeOverlayHtml from './components/challengeOverlay.html?raw';
+import challengeResultModalHtml from './components/challengeResultModal.html?raw';
+import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
+import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
+
+document.body.insertAdjacentHTML('afterbegin', 
+    homeScreenHtml + 
+    settingsModalHtml + 
+    confirmModalHtml + 
+    cooldownModalHtml + 
+    eventHubPageHtml + 
+    eventLeaderboardModalHtml + 
+    challengeOverlayHtml + 
+    challengeResultModalHtml + 
+    fitnessTestModalHtml + 
+    ftpAssessmentConfirmModalHtml
+);
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
@@ -24,6 +47,7 @@ import { ChallengeController } from './modules/ChallengeController.js';
 // Capacitor imports for the Mobile version
 import { Capacitor } from '@capacitor/core';
 import { CapacitorBluetoothService } from './modules/CapacitorBluetoothService.js';
+import { telemetryBus } from './modules/TelemetryEventBus.js';
 
 // =====================
 // MOBILE WAILS POLYFILL
@@ -376,38 +400,72 @@ function renderTrainerUIState(state) {
     trainerUIs.forEach((uiSet) => {
         if (!uiSet.scan || !uiSet.connect || !uiSet.virtual) return;
 
+        // Reset disabled states
         uiSet.scan.disabled = false;
         uiSet.connect.disabled = false;
         uiSet.virtual.disabled = false;
 
+        // Get the disconnect button for event type
+        const btnDisc = uiSet.type === 'event'
+            ? document.getElementById('btnEventDisconnectTrainer')
+            : null;
+
         if (uiSet.type === 'settings') {
+            // Settings panel uses icon-based buttons
             uiSet.scan.innerHTML = svgIcons.scan;
             uiSet.connect.innerHTML = state?.trainer_connected && state.trainer_kind === 'real' ? svgIcons.disconnect : svgIcons.bt;
             uiSet.virtual.innerHTML = state?.trainer_connected && state.trainer_kind === 'virtual' ? svgIcons.disconnect : svgIcons.virtual;
-        } else {
-            uiSet.connect.textContent = state?.trainer_connected && state.trainer_kind === 'real' ? 'Disconnect Trainer' : 'Connect Selected';
-            uiSet.virtual.textContent = state?.trainer_connected && state.trainer_kind === 'virtual' ? 'Disconnect Simulator' : 'Use Simulator';
-            uiSet.scan.textContent = 'Scan Trainer';
         }
 
         if (state?.trainer_connected && state.trainer_kind === 'real') {
-            uiSet.connect.classList.remove('hidden');
-            if (uiSet.type === 'settings') uiSet.scan.classList.add('hidden');
-            uiSet.virtual.disabled = true;
-        } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
-            if (uiSet.type === 'settings') uiSet.connect.classList.add('hidden');
-            if (uiSet.list) uiSet.list.classList.add('hidden');
-            uiSet.virtual.classList.remove('hidden');
-            uiSet.scan.disable = true;
-            uiSet.connect.disabled = true;
-        } else {
-            if (uiSet.type === 'settings') uiSet.scan.classList.remove('hidden');
-            if (uiSet.list && uiSet.list.options.length > 1) {
+            // ── REAL TRAINER CONNECTED ──
+            if (uiSet.type === 'settings') {
                 uiSet.connect.classList.remove('hidden');
-            } else if (uiSet.type === 'settings') {
-                uiSet.connect.classList.add('hidden');
+                uiSet.scan.classList.add('hidden');
+                uiSet.virtual.disabled = true;
             } else {
+                // Event Hub: hide scan/sim/connect, show disconnect
+                uiSet.scan.classList.add('hidden');
+                uiSet.virtual.classList.add('hidden');
                 uiSet.connect.classList.add('hidden');
+                if (uiSet.list) uiSet.list.classList.add('hidden');
+                if (btnDisc) btnDisc.classList.remove('hidden');
+            }
+        } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
+            // ── VIRTUAL TRAINER CONNECTED ──
+            if (uiSet.type === 'settings') {
+                uiSet.connect.classList.add('hidden');
+                uiSet.virtual.classList.remove('hidden');
+                uiSet.scan.disabled = true;
+                uiSet.connect.disabled = true;
+            } else {
+                // Event Hub: hide scan/connect, show disconnect
+                uiSet.scan.classList.add('hidden');
+                uiSet.virtual.classList.add('hidden');
+                uiSet.connect.classList.add('hidden');
+                if (uiSet.list) uiSet.list.classList.add('hidden');
+                if (btnDisc) btnDisc.classList.remove('hidden');
+            }
+        } else {
+            // ── DISCONNECTED ──
+            if (uiSet.type === 'settings') {
+                uiSet.scan.classList.remove('hidden');
+                if (uiSet.list && uiSet.list.options.length > 1) {
+                    uiSet.connect.classList.remove('hidden');
+                } else {
+                    uiSet.connect.classList.add('hidden');
+                }
+            } else {
+                // Event Hub: show scan/sim, hide connect (until scan), hide disconnect
+                uiSet.scan.classList.remove('hidden');
+                uiSet.virtual.classList.remove('hidden');
+                if (uiSet.list && uiSet.list.options.length > 1) {
+                    uiSet.connect.classList.remove('hidden');
+                    if (uiSet.list) uiSet.list.classList.remove('hidden');
+                } else {
+                    uiSet.connect.classList.add('hidden');
+                }
+                if (btnDisc) btnDisc.classList.add('hidden');
             }
         }
     });
@@ -422,6 +480,7 @@ async function refreshTrainerConnectionState() {
 
     return { trainer_connected: false, trainer_kind: 'real' };
 }
+window.refreshTrainerConnectionState = refreshTrainerConnectionState;
 
 async function scanTrainerDevices() {
     if (Capacitor.isNativePlatform()) return;
@@ -538,9 +597,8 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
                 if (msg === "Trainer Connected") status.style.color = "var(--argus-safe)";
             },
             (data) => {
-                ui.updateTelemetry(data, window.totalRouteDistance);
+                telemetryBus.publish(data);
                 if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
-                challengeCtrl.updateTelemetry(data);
             }
         );
         btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
@@ -1153,6 +1211,15 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
             window.isRecording = true;
         }
         else {
+            // When a challenge mode (KOM, Sprint, etc.) is ending, it manages
+            // its own UI lifecycle. The suppress-map-modals flag indicates the
+            // challenge controller is handling cleanup — skip the full UI reset
+            // to prevent a visual flash of the settings/config screen.
+            if (document.body.classList.contains('suppress-map-modals')) {
+                window.isRecording = false;
+                return;
+            }
+
             ui.setRecordingState('IDLE');
             window.isRecording = false;
 
@@ -1163,9 +1230,8 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
     });
 
     window.runtime.EventsOn("telemetry_update", (data) => {
-        ui.updateTelemetry(data, totalRouteDistance);
-        mapCtrl.updateCyclistPosition(data.lat, data.lon, data.speed, data);
-        challengeCtrl.updateTelemetry(data);
+        telemetryBus.publish(data);
+        if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
     });
 
     window.runtime.EventsOn("cooldown_update", (data) => {

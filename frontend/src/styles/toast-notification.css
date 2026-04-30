@@ -1,0 +1,144 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/* ==================
+   TOAST NOTIFICATION
+   ================== 
+*/
+
+.toast {
+    position: fixed;
+    top: 80px;
+    /* Distance from the top */
+    left: 55%;
+    transform: translateX(-50%);
+    /* Centers horizontally */
+    background-color: rgba(15, 23, 42, 0.95);
+    /* Almost opaque dark background */
+    color: #fff;
+    border: 6px solid var(--power-color);
+    /* Border in theme color (blue/green) */
+    border-left: 6px solid var(--power-color);
+    /* Side detail */
+
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+    z-index: 9999;
+    /* Stays above everything */
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    /* Allows clicking through it */
+}
+
+/* When active */
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10px);
+    /* Small entry movement */
+}
+
+/* Completely hides when not used */
+.toast.hidden {
+    display: none;
+}
+
+.intensity-control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px 10px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.intensity-control-row .label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.intensity-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.intensity-actions .value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    width: 50px;
+    text-align: center;
+}
+
+.btn-intensity {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-intensity:hover {
+    background: var(--power-color);
+    border-color: var(--power-color);
+    color: #000;
+}
+
+/* 
+=============
+TACTICAL BLUE
+=============
+*/
+
+:root[data-theme="tactical"] {
+    --bg-app: #0f1115;
+    --panel-bg: rgba(20, 24, 30, 0.85);
+    --text-main: #e0e6ed;
+    --text-muted: #94a3b8;
+    --border-color: #1a1a1a;
+
+    --power-color: #38bdf8;
+
+    --chart-bg: #000000;
+    --chart-fill: rgba(0, 136, 255, 0.15);
+    --chart-cursor: #ef4444;
+
+    --marker-bg: #38bdf8;
+    --marker-border: #000000;
+    --marker-glow: rgba(0, 136, 255, 0.4);
+
+    --argus-safe: #22c55e;
+    --argus-alert: #ff003c;
+    --grade-color: #fbbf24;
+    --hr-color: #f472b6;
+}

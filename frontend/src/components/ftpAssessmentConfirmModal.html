@@ -1,0 +1,34 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="ftpAssessmentConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content-small" style="width: 540px; max-width: 90%;">
+            <div class="modal-header" style="display:flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; color: var(--zone-4);">Confirm Baseline FTP</h2>
+                <button class="close-btn"
+                    style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;"
+                    onclick="window.closeAssessmentFTPConfirmModal()">×</button>
+            </div>
+            <p id="ftpAssessmentConfirmMessage"
+                style="color: var(--text-muted); margin-top: 14px; font-size: 14px; line-height: 1.6;"></p>
+            <div class="modal-actions centered" style="margin-top: 24px; gap: 12px; justify-content: flex-end;">
+                <button id="btnEditAssessmentFTP" class="btn-secondary">Edit FTP</button>
+                <button id="btnProceedAssessmentFTP" class="btn-primary">Proceed</button>
+            </div>
+        </div>
+    </div>

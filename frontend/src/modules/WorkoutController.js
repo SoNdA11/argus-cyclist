@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import * as echarts from 'echarts';
+import { telemetryBus } from './TelemetryEventBus.js';
 import { Capacitor } from '@capacitor/core';
 
 export class WorkoutController {
@@ -61,7 +63,7 @@ export class WorkoutController {
                     this.hide();
                 }
             });
-            window.runtime.EventsOn("telemetry_update", (data) => this.updateTelemetry(data));
+            telemetryBus.subscribe((data) => this.updateTelemetry(data));
         }
 
         window.addEventListener('resize', () => {
