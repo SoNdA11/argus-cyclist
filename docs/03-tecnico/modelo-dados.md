@@ -17,6 +17,8 @@ Durante e após a sessão, o motor de métricas varre o array de `MetricSamples`
 * **Métricas de Agregação:** Potência Média (W), Frequência Cardíaca Média e Máxima, Cadência Média.
 * **Distribuição de Esforço:** Análise de picos de potência (ex: *Sprint* de 5, 10 e 30 segundos) com base no array consolidado.
 
-## 3. Persistência e Padrão `.FIT`
+## 3. Padrão `.FIT` e Persistência Relacional (SQLite)
 
 Para garantir que as métricas calculadas sejam aceitas universalmente, o Argus consolida os metadados e os *samples* 1Hz formatando-os rigorosamente no formato de arquivo **FIT (Flexible and Interoperable Data Transfer)**. Isso assegura interoperabilidade total com o Strava, TrainingPeaks e Garmin Connect.
+
+Além do arquivo físico gerado para exportação, o sistema implementa um **banco de dados relacional embarcado (SQLite)**. O modelo relacional (`internal/repository/sqlite/`) mapeia as estruturas para tabelas normalizadas (ex: `activities`, `power_records`, `users`), permitindo que o histórico e as métricas de evolução sejam consultadas diretamente no aplicativo através de um *Dashboard offline*, sem dependência de plataformas de terceiros.

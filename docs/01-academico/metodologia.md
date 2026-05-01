@@ -23,11 +23,12 @@ A arquitetura do Argus Cyclist foi projetada visando máxima modularidade e sepa
 
 ## 3. Implementação e Codificação
 
-O desenvolvimento foi segmentado em módulos autônomos:
+O desenvolvimento foi segmentado em módulos autônomos, passando por um recente processo de refatoração para escalabilidade e design *offline-first*:
 
-1. **Módulo de Hardware (`internal/service/ble`):** Implementação de clientes genéricos e *mocks* para varredura e conexão com sensores GATT.
-2. **Módulo de Simulação (`internal/service/sim`):** Desenvolvimento do motor físico que calcula velocidade e potência simulada com base na altimetria de arquivos GPX.
-3. **Módulo de Armazenamento e Exportação (`internal/service/fit` e `strava`):** Geração local e criptografada de tokens de sessão, e rotinas de upload *multipart* para a nuvem.
+1. **Módulo de Hardware (`internal/service/ble`):** Implementação de clientes genéricos e *mocks* para varredura e conexão com sensores GATT de forma concorrente.
+2. **Módulo de Simulação e Gamificação (`internal/service/sim`):** Desenvolvimento do motor físico para cálculo de velocidade/potência com suporte a interações em tempo real (Sprints, testes de FTP e desafios *King of the Mountain*).
+3. **Módulo de Persistência (*Repository Pattern*):** Implementação de acesso a banco de dados embutido (`internal/repository/sqlite`) e orquestração de transações via Padrão *Facade* (`internal/usecase/storage_facade`).
+4. **Módulo de Exportação (`internal/service/fit` e `strava`):** Geração estruturada de arquivos de sessão e rotinas de upload *multipart* seguras para APIs de terceiros.
 
 ## 4. Testes e Validação Experimental
 

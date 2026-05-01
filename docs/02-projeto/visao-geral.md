@@ -10,5 +10,6 @@ O sistema atua como uma ponte inteligente entre o hardware esportivo (sensores d
 
 * **Interoperabilidade Total:** Suporte nativo aos protocolos padrão da indústria (BLE/FTMS/FE-C), garantindo que o atleta não fique preso a ecossistemas proprietários.
 * **Performance Computacional:** Utilização de processamento nativo em Go para manipulação de sinais de sensores, eliminando gargalos comuns em aplicações baseadas puramente em Electron ou Web.
-* **Sincronização Unificada:** Integração fluida com o Strava, permitindo que o ciclo de treino (da captura à análise social) ocorra em uma única interface.
-* **Simulação Física Realista:** Implementação de um motor de física que traduz gradientes de arquivos GPX em resistência real no equipamento, simulando a sensação de rodagem externa.
+* **Engajamento e Gamificação:** Inclusão de segmentos de desafio (Sprints e KOM - King of the Mountain) e testes de aptidão (FTP Assessment) para tornar a experiência imersiva e dinâmica.
+* **Sincronização Unificada e Persistência Local:** Armazenamento local robusto em SQLite garantindo funcionamento *offline* e modo *Dashboard* de estúdio, além da integração fluida com o Strava para o ciclo de treino completo.
+* **Simulação Física Realista:** Implementação de um motor de física que traduz gradientes de arquivos GPX em resistência real no equipamento, simulando a sensação de rodagem externa de maneira eficiente.
