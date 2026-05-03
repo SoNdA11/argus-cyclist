@@ -144,6 +144,12 @@ func (s *ConnectionManager) GetProfilesSummary() []domain.ProfileSummary {
 			if dur != nil {
 				summary.TotalTime = *dur
 			}
+
+			var elev *float64
+			db.Model(&domain.Activity{}).Select("sum(elevation_gain)").Scan(&elev)
+			if elev != nil {
+				summary.TotalElevation = *elev
+			}
 		}
 
 		summaries = append(summaries, summary)

@@ -338,7 +338,10 @@ const svgIcons = {
     bt: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline></svg>`,
     virtual: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>`,
     disconnect: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
-    wait: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22"></path><path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2"></path></svg>`
+    wait: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M14 22V18.13a4 4 0 0 0-1.17-2.83L12 14.4l-1.83.9A4 4 0 0 0 9 18.13V22"></path><path d="M14 2v3.87a4 4 0 0 1-1.17 2.83L12 9.6l-1.83-.9A4 4 0 0 1 9 5.87V2"></path></svg>`,
+    dist: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 3 4 4 4 4s1 0 1 1v4c0 1-1 1-1 1H3"></path><path d="M15 21c-3 0-7-1-7-8V5c0-1.25.756-2.017 2-2h4c1.25 0 2 .75 2 1.972V11c0 3-4 4-4 4s-1 0-1 1v4c0 1 1 1 1 1h3"></path></svg>`,
+    time: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    elev: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>`
 };
 
 const trainerUIs = [
@@ -417,6 +420,12 @@ function renderTrainerUIState(state) {
             uiSet.virtual.innerHTML = state?.trainer_connected && state.trainer_kind === 'virtual' ? svgIcons.disconnect : svgIcons.virtual;
         }
 
+        if (uiSet.type === 'event') {
+            uiSet.scan.innerHTML = svgIcons.scan;
+            uiSet.virtual.innerHTML = svgIcons.virtual;
+            uiSet.connect.innerHTML = svgIcons.bt;
+        }
+
         if (state?.trainer_connected && state.trainer_kind === 'real') {
             // ── REAL TRAINER CONNECTED ──
             if (uiSet.type === 'settings') {
@@ -429,7 +438,10 @@ function renderTrainerUIState(state) {
                 uiSet.virtual.classList.add('hidden');
                 uiSet.connect.classList.add('hidden');
                 if (uiSet.list) uiSet.list.classList.add('hidden');
-                if (btnDisc) btnDisc.classList.remove('hidden');
+                if (btnDisc) {
+                    btnDisc.classList.remove('hidden');
+                    btnDisc.innerHTML = svgIcons.disconnect;
+                }
             }
         } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
             // ── VIRTUAL TRAINER CONNECTED ──
@@ -444,7 +456,10 @@ function renderTrainerUIState(state) {
                 uiSet.virtual.classList.add('hidden');
                 uiSet.connect.classList.add('hidden');
                 if (uiSet.list) uiSet.list.classList.add('hidden');
-                if (btnDisc) btnDisc.classList.remove('hidden');
+                if (btnDisc) {
+                    btnDisc.classList.remove('hidden');
+                    btnDisc.innerHTML = svgIcons.disconnect;
+                }
             }
         } else {
             // ── DISCONNECTED ──
@@ -488,7 +503,7 @@ async function scanTrainerDevices() {
     trainerUIs.forEach((uiSet) => {
         if (uiSet.scan) {
             if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.wait;
-            else uiSet.scan.textContent = 'Scanning...';
+            else uiSet.scan.innerHTML = svgIcons.wait;
             uiSet.scan.disabled = true;
         }
     });
@@ -510,7 +525,7 @@ async function scanTrainerDevices() {
             trainerUIs.forEach((uiSet) => {
                 if (uiSet.scan) {
                     if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                    else uiSet.scan.textContent = 'Scan Trainer';
+                    else uiSet.scan.innerHTML = svgIcons.scan;
                     uiSet.scan.disabled = false;
                 }
             });
@@ -520,7 +535,7 @@ async function scanTrainerDevices() {
         trainerUIs.forEach((uiSet) => {
             if (uiSet.scan) {
                 if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                else uiSet.scan.textContent = 'Scan Trainer';
+                else uiSet.scan.innerHTML = svgIcons.scan;
                 uiSet.scan.disabled = false;
             }
         });
@@ -1534,6 +1549,7 @@ async function initHomeScreen() {
                 const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : "src/assets/images/argus-cyclist.png";
                 const km = (acc.total_km || 0).toFixed(1);
                 const time = formatHomeTime(acc.total_time);
+                const elev = Math.round(acc.total_elevation || 0);
                 const lvl = acc.level || 1;
                 const weight = acc.weight ? `${acc.weight} kg` : "";
                 const ftp = acc.ftp ? `${acc.ftp} W` : "";
@@ -1560,8 +1576,35 @@ async function initHomeScreen() {
                         </div>
 
                         <div class="profile-stats">
-                            <span><span class="stat-icon">🚴🏼</span><span class="stat-value">${formatCompactNumber(km)}</span><span class="stat-label">km</span></span>
-                            <span><span class="stat-icon">⏱️</span><span class="stat-value">${time}</span></span>
+                            <div class="stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-icon">${svgIcons.dist}</span>
+                                    <span class="stat-label">DISTANCE</span>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-value">${formatCompactNumber(km)}</span>
+                                    <span class="stat-unit">km</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-icon">${svgIcons.elev}</span>
+                                    <span class="stat-label">ALTITUDE</span>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-value">${elev}</span>
+                                    <span class="stat-unit">m</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-icon">${svgIcons.time}</span>
+                                    <span class="stat-label">TIME</span>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-value">${time}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;

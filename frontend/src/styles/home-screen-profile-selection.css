@@ -225,40 +225,63 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .profile-stats {
-    margin-top: 5px;
+    margin-top: 18px;
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    font-size: 0.95rem;
-    color: rgba(226, 232, 240, 0.9);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.18));
-    padding: 14px 14px;
-    border-radius: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(6px);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
 }
 
-.profile-stats span {
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stat-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 500;
-    white-space: nowrap;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.4);
 }
 
-.profile-stats .stat-icon {
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--power-color);
 }
 
-.profile-stats .stat-value {
+.stat-label {
+    font-size: 0.6rem;
     font-weight: 800;
-    letter-spacing: 0.2px;
-    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
 }
 
-.profile-stats .stat-label {
-    color: rgba(226, 232, 240, 0.7);
+.stat-content {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    line-height: 1;
+}
+
+.stat-unit {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .btn-delete-profile {
