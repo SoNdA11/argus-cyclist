@@ -332,6 +332,7 @@ export namespace domain {
 	    level: number;
 	    total_km: number;
 	    total_time: number;
+	    total_elevation: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new ProfileSummary(source);
@@ -345,6 +346,7 @@ export namespace domain {
 	        this.level = source["level"];
 	        this.total_km = source["total_km"];
 	        this.total_time = source["total_time"];
+	        this.total_elevation = source["total_elevation"];
 	    }
 	}
 	export class RoutePoint {

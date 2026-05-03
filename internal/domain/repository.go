@@ -32,8 +32,9 @@ type ProfileSummary struct {
 	Name      string  `json:"name"`
 	Avatar    string  `json:"avatar"`
 	Level     int     `json:"level"`
-	TotalKm   float64 `json:"total_km"`
-	TotalTime int64   `json:"total_time"`
+	TotalKm        float64 `json:"total_km"`
+	TotalTime      int64   `json:"total_time"`
+	TotalElevation float64 `json:"total_elevation"`
 }
 
 // PowerRecord represents a power curve data point.
