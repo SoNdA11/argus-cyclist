@@ -25,6 +25,7 @@ import challengeOverlayHtml from './components/challengeOverlay.html?raw';
 import challengeResultModalHtml from './components/challengeResultModal.html?raw';
 import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
+import tutorialModalHtml from './components/tutorialModal.html?raw';
 
 document.body.insertAdjacentHTML('afterbegin', 
     homeScreenHtml + 
@@ -36,7 +37,8 @@ document.body.insertAdjacentHTML('afterbegin',
     challengeOverlayHtml + 
     challengeResultModalHtml + 
     fitnessTestModalHtml + 
-    ftpAssessmentConfirmModalHtml
+    ftpAssessmentConfirmModalHtml +
+    tutorialModalHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
@@ -1624,11 +1626,129 @@ async function initHomeScreen() {
     }
 }
 
+// =========================
+// ONBOARDING TUTORIAL LOGIC
+// =========================
+
+let currentTutorialStep = 1;
+const totalTutorialSteps = 9;
+
+function initTutorial() {
+    const tutorialSeen = localStorage.getItem('argus_tutorial_seen');
+    if (!tutorialSeen) {
+        showTutorial();
+    }
+
+    // Event listeners
+    document.getElementById('btnNextStep').addEventListener('click', nextTutorialStep);
+    document.getElementById('btnPrevStep').addEventListener('click', prevTutorialStep);
+    document.getElementById('btnFinishTutorial').addEventListener('click', finishTutorial);
+    
+    const btnSkip = document.getElementById('btnSkipTutorial');
+    if (btnSkip) {
+        btnSkip.addEventListener('click', finishTutorial);
+    }
+    
+    const btnViewTut = document.getElementById('btnViewTutorial');
+    if (btnViewTut) {
+        btnViewTut.addEventListener('click', () => {
+            if (window.ui) window.ui.toggleSettings(false);
+            showTutorial();
+        });
+    }
+}
+
+function showTutorial() {
+    currentTutorialStep = 1;
+    updateTutorialUI();
+    const modal = document.getElementById('tutorialModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    }
+}
+
+function updateTutorialUI() {
+    document.querySelectorAll('.tutorial-step').forEach(step => {
+        step.classList.remove('active');
+        if (parseInt(step.dataset.step) === currentTutorialStep) {
+            step.classList.add('active');
+        }
+    });
+
+    // Update dots
+    const indicators = document.querySelector('.step-indicators');
+    if (indicators) {
+        if (currentTutorialStep === 1) indicators.classList.add('hidden');
+        else indicators.classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.step-indicators .dot').forEach(dot => {
+        dot.classList.remove('active');
+        if (parseInt(dot.dataset.step) === currentTutorialStep) {
+            dot.classList.add('active');
+        }
+    });
+
+    // Update buttons
+    const btnPrev = document.getElementById('btnPrevStep');
+    const btnNext = document.getElementById('btnNextStep');
+    const btnFinish = document.getElementById('btnFinishTutorial');
+
+    if (btnPrev && btnNext && btnFinish) {
+        if (currentTutorialStep === 1) {
+            btnPrev.classList.add('hidden');
+        } else {
+            btnPrev.classList.remove('hidden');
+        }
+
+        if (currentTutorialStep === totalTutorialSteps) {
+            btnNext.classList.add('hidden');
+            btnFinish.classList.remove('hidden');
+        } else {
+            btnNext.classList.remove('hidden');
+            btnFinish.classList.add('hidden');
+        }
+    }
+}
+
+function nextTutorialStep() {
+    if (currentTutorialStep < totalTutorialSteps) {
+        currentTutorialStep++;
+        updateTutorialUI();
+    }
+}
+
+function prevTutorialStep() {
+    if (currentTutorialStep > 1) {
+        currentTutorialStep--;
+        updateTutorialUI();
+    }
+}
+
+function finishTutorial() {
+    const modal = document.getElementById('tutorialModal');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.classList.add('hidden');
+    }
+
+    const chk = document.getElementById('chkDoNotShowAgain');
+    if (chk && chk.checked) {
+        localStorage.setItem('argus_tutorial_seen', 'true');
+    }
+}
+
+window.closeTutorial = function() {
+    finishTutorial();
+}
+
 // Call this explicitly when Wails finishes mounting the runtime
 document.addEventListener("DOMContentLoaded", () => {
     // We wait 300ms to guarantee window.go.main is ready
     setTimeout(() => {
         initHomeScreen();
         refreshTrainerConnectionState();
+        initTutorial();
     }, 300);
 });

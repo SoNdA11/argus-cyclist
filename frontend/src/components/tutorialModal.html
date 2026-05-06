@@ -1,0 +1,251 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="tutorialModal" class="modal-overlay hidden">
+    <div class="modal-content tutorial-content-v2">
+        <!-- Close Button -->
+        <button class="tutorial-close" onclick="window.closeTutorial()">&times;</button>
+
+        <div class="tutorial-carousel">
+            <!-- Step 1: Welcome -->
+            <div class="tutorial-step active" data-step="1">
+                <div class="hero-content">
+                    <div class="hero-logo">
+                        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="var(--power-color)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Minimalist "Aero-Eye" Concept -->
+                            <path d="M2 12c3-5 7-7 10-7s7 2 10 7" stroke-width="3.5" opacity="0.9"></path> <!-- Top Curve / Back -->
+                            <path d="M2 12c3 5 7 7 10 7s7-2 10-7" stroke-width="1.5" opacity="0.4"></path> <!-- Bottom Curve / Road -->
+                            <circle cx="12" cy="12" r="2.5" fill="var(--power-color)"></circle> <!-- Core / Pupil / Hub -->
+                        </svg>
+                    </div>
+
+                    <h1>Welcome to Argus Cyclist</h1>
+                    <p class="hero-subtitle">Elevate your indoor training with Argus Cyclist. A cross-platform, open-source simulator delivering real-time smart trainer integration, dynamic 3D maps, and versatile modes for both free riding and precise structured workouts.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Profile -->
+            <div class="tutorial-step" data-step="2">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 01</div>
+                        <h2>Optimize Your Profile</h2>
+                        <p>Accuracy is everything. Enter your <strong>Weight</strong> and <strong>FTP</strong> in the settings to ensure all physiological metrics and training zones are tailored to you.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="glass-card profile-card">
+                            <div class="avatar-circle"></div>
+                            <div class="name-skeleton"></div>
+                            <div class="metric-row">
+                                <div class="metric-box highlighted"><span>75</span><small>KG</small></div>
+                                <div class="metric-box"><span>280</span><small>FTP</small></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Devices -->
+            <div class="tutorial-step" data-step="3">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 02</div>
+                        <h2>Seamless Connectivity</h2>
+                        <p>Argus connects to your Smart Trainer and HR monitor via Bluetooth. Control resistance in real-time and capture every heartbeat.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="connection-stage">
+                            <div class="node central">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--power-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
+                                </svg>
+                            </div>
+                            <div class="node-line pulse-1"></div>
+                            <div class="node satellite">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="overflow: visible;">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                                </svg>
+                            </div>
+                            <div class="node-line pulse-2"></div>
+                            <div class="node satellite">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Global Exploration -->
+            <div class="tutorial-step" data-step="4">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 03</div>
+                        <h2>Global Exploration</h2>
+                        <p>Import any <strong>GPX file</strong> to ride real-world roads. Our terrain engine simulates every climb and descent with high precision.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="route-preview-card" style="background-image: url('https://images.unsplash.com/photo-1444723121867-7a241cacace9?q=80&w=600&auto=format&fit=crop'); background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 0 30px rgba(0,0,0,0.6);">
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.2);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Create Route -->
+            <div class="tutorial-step" data-step="5">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 04</div>
+                        <h2>Freedom of Path</h2>
+                        <p>Use the <strong>Route Editor</strong> to draw your own custom routes on the map. Create, save, and ride your dream segments instantly.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="glass-card">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--power-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            <div style="margin-top:15px; font-size:0.8rem; color:#fff">Custom Route Creator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Assessments -->
+            <div class="tutorial-step" data-step="6">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 05</div>
+                        <h2>Fitness Intelligence</h2>
+                        <p>Measure your performance with built-in <strong>Assessments</strong>. From Ramp Tests to FTP durations, track your evolution scientifically.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="glass-card">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--power-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            </svg>
+                            <div style="margin-top:15px; font-size:0.8rem; color:#fff">Ramp Test • FTP Test</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Workouts -->
+            <div class="tutorial-step" data-step="7">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 06</div>
+                        <h2>Structured Mastery</h2>
+                        <p>Load <strong>ZWO workouts</strong> for targeted power sessions. Let the ERG mode take control while you focus on hitting those watts.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="workout-bars">
+                            <div class="bar" style="height: 40%"></div>
+                            <div class="bar" style="height: 60%"></div>
+                            <div class="bar active" style="height: 85%"></div>
+                            <div class="bar" style="height: 50%"></div>
+                            <div class="bar" style="height: 70%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: Sync & History -->
+            <div class="tutorial-step" data-step="8">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 07</div>
+                        <h2>History & Cloud Sync</h2>
+                        <p>Review your progress in the <strong>Activity History</strong>. Want to share? Connect to <strong>Strava</strong> and sync your rides automatically after every session.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="glass-card" style="text-align: center;">
+                            <div style="background: #fc6100; padding: 12px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+                                    <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.172"></path>
+                                </svg>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Sincronize com Strava</div>
+                            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display: flex; gap: 8px; justify-content: center;">
+                                <div style="width: 20px; height: 8px; background: rgba(56, 189, 248, 0.3); border-radius: 4px;"></div>
+                                <div style="width: 40px; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 9: Privacy -->
+            <div class="tutorial-step" data-step="9">
+                <div class="feature-layout">
+                    <div class="feature-text">
+                        <div class="feature-kicker">STEP 08</div>
+                        <h2>Privacy & Freedom</h2>
+                        <p>Your data belongs to you. All profiles, routes, and activities are stored <strong>locally</strong>. We never send your performance data to external servers.</p>
+                    </div>
+                    <div class="feature-visual">
+                        <div class="glass-card" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.02);">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <div style="margin-top:15px; font-size:0.8rem; color:#10b981">100% Local Storage Safe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="tutorial-footer-v2">
+            <div class="indicators-container">
+                <div class="step-indicators">
+                    <div class="dot active" data-step="1"></div>
+                    <div class="dot" data-step="2"></div>
+                    <div class="dot" data-step="3"></div>
+                    <div class="dot" data-step="4"></div>
+                    <div class="dot" data-step="5"></div>
+                    <div class="dot" data-step="6"></div>
+                    <div class="dot" data-step="7"></div>
+                    <div class="dot" data-step="8"></div>
+                    <div class="dot" data-step="9"></div>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <button id="btnPrevStep" class="btn-ghost hidden">Back</button>
+                <div class="spacer"></div>
+                <button id="btnNextStep" class="btn-primary-small">Next</button>
+                <button id="btnFinishTutorial" class="btn-success-small hidden">Get Started</button>
+            </div>
+        </div>
+
+        <!-- Options / Persist -->
+        <div class="tutorial-options-v2">
+            <label class="checkbox-container">
+                <input type="checkbox" id="chkDoNotShowAgain">
+                <span class="checkmark"></span>
+                Don't show this again
+            </label>
+        </div>
+    </div>
+</div>
