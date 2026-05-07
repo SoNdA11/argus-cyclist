@@ -115,12 +115,30 @@ type Activity struct {
 // EventRecord represents a leaderboard entry for Event Mode.
 // Kept separate from the standard Activity model to maintain isolation.
 type EventRecord struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	RiderName string    `json:"rider_name"`
-	EventMode string    `json:"event_mode"` // "sprint", "kom", "timeTrial"
-	Score     float64   `json:"score"`      // Watts, Distance, or Points
-	Status    string    `json:"status"`     // "success", "failed"
-	CreatedAt time.Time `json:"created_at"`
+	ID               uint      `json:"id" gorm:"primaryKey"`
+	RiderName        string    `json:"rider_name"`
+	EventMode        string    `json:"event_mode"` // "sprint", "kom", "timeTrial"
+	Score            float64   `json:"score"`      // Watts, Distance, or Points
+	Status           string    `json:"status"`     // "success", "failed"
+	CreatedAt        time.Time `json:"created_at"`
+	Filename         string    `json:"filename"`           // Path to the .fit file
+	Duration         int       `json:"duration"`           // Duration in seconds
+	UploadedToStrava bool      `json:"uploaded_to_strava"` // Sync status
+}
+
+// SyncQueue represents a pending or failed upload to Strava.
+type SyncQueue struct {
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	RecordID     uint      `json:"record_id"` // ID of the EventRecord or Activity
+	Type         string    `json:"type"`      // "event" or "activity"
+	Filename     string    `json:"filename"`  // Path to the .fit file
+	ActivityName string    `json:"activity_name"` // e.g. "Argus Challenge: Sprint - 1200 W"
+	Description  string    `json:"description"`
+	Status       string    `json:"status"`    // "pending", "failed"
+	RetryCount   int       `json:"retry_count"`
+	LastError    string    `json:"last_error"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // BLEDevice represents a Bluetooth device found during the scan.

@@ -26,6 +26,7 @@ import challengeResultModalHtml from './components/challengeResultModal.html?raw
 import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
 import tutorialModalHtml from './components/tutorialModal.html?raw';
+import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 
 document.body.insertAdjacentHTML('afterbegin', 
     homeScreenHtml + 
@@ -38,7 +39,8 @@ document.body.insertAdjacentHTML('afterbegin',
     challengeResultModalHtml + 
     fitnessTestModalHtml + 
     ftpAssessmentConfirmModalHtml +
-    tutorialModalHtml
+    tutorialModalHtml +
+    raceHistoryModalHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';

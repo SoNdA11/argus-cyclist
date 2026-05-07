@@ -1779,14 +1779,82 @@ func (a *App) SetBuiltInWorkout(testType string) string {
 
 // SaveEventResult is called by the frontend to persist a challenge result.
 func (a *App) SaveEventResult(riderName string, mode string, score float64, status string) error {
-	record := domain.EventRecord{
-		RiderName: riderName,
-		EventMode: mode,
-		Score:     score,
-		Status:    status,
-		CreatedAt: time.Now(),
+	duration := 0
+	if a.fitService != nil {
+		duration = a.fitService.GetRecordCount()
 	}
-	return a.storageService.SaveEventRecord(record)
+
+	filename := ""
+	if duration >= 5 {
+		os.MkdirAll("workouts/events", os.ModePerm)
+		filename = fmt.Sprintf("workouts/events/event_%d.fit", time.Now().UnixNano())
+		if err := a.fitService.Save(filename); err != nil {
+			fmt.Printf("Failed to generate FIT file for event: %v\n", err)
+			filename = ""
+		}
+	}
+
+	record := domain.EventRecord{
+		RiderName:        riderName,
+		EventMode:        mode,
+		Score:            score,
+		Status:           status,
+		CreatedAt:        time.Now(),
+		Filename:         filename,
+		Duration:         duration,
+		UploadedToStrava: false,
+	}
+
+	err := a.storageService.SaveEventRecord(record)
+	if err != nil {
+		return err
+	}
+
+	// Also try to save as a regular activity in the rider's personal DB if they exist
+	localAccounts := a.storageService.GetLocalAccounts()
+	cleanName := riderName
+	if idx := strings.Index(riderName, " ["); idx != -1 {
+		cleanName = riderName[:idx]
+	}
+
+	var accountID string
+	for _, acc := range localAccounts {
+		if strings.EqualFold(acc.Name, cleanName) {
+			accountID = acc.ID
+			break
+		}
+	}
+
+	if accountID == "" && len(localAccounts) == 1 {
+		accountID = localAccounts[0].ID
+	}
+
+	if accountID != "" {
+		fmt.Printf("[EVENT] Saving activity for account: %s (%s)\n", cleanName, accountID)
+		// Switch to rider's DB
+		if err := a.storageService.LoadUserDatabase(accountID); err != nil {
+			fmt.Printf("[EVENT] Error loading user database: %v\n", err)
+		} else {
+			defer a.storageService.LoadUserDatabase("event-mode-shared")
+
+			activity := domain.Activity{
+				RouteName:      "Event: " + mode,
+				Filename:       filename,
+				TotalDistance:  0,
+				Duration:       int64(duration),
+				AvgPower:       int(score),
+				TotalElevation: 0,
+				CreatedAt:      time.Now(),
+			}
+			if err := a.storageService.SaveActivity(activity); err != nil {
+				fmt.Printf("[EVENT] Error saving activity: %v\n", err)
+			}
+		}
+	} else {
+		fmt.Printf("[EVENT] No local account found for rider: %s\n", cleanName)
+	}
+
+	return nil
 }
 
 // GetEventLeaderboard fetches the top N records for a specific mode.
@@ -1801,4 +1869,71 @@ func (a *App) GetEventLeaderboard(mode string) []domain.EventRecord {
 // ResetEventLeaderboard clears the rankings for a mode (or "all").
 func (a *App) ResetEventLeaderboard(mode string) error {
 	return a.storageService.ResetEventLeaderboard(mode)
+}
+
+// GetRaceHistory returns the recent event records for the specified rider.
+func (a *App) GetRaceHistory(riderName string) ([]domain.EventRecord, error) {
+	return a.storageService.GetRaceHistory(riderName)
+}
+
+func (a *App) DeleteEventRecord(id uint) error {
+	return a.storageService.DeleteEventRecord(id)
+}
+
+// ExportEventRecordsToStrava uploads selected events to Strava.
+// DownloadEventRecords merges selected FIT files and lets the user save the result locally.
+func (a *App) DownloadEventRecords(recordIDs []uint) (string, error) {
+	records, err := a.storageService.GetEventRecordsByID(recordIDs)
+	if err != nil || len(records) == 0 {
+		return "", fmt.Errorf("no records found to export")
+	}
+
+	var fitPaths []string
+	for _, rec := range records {
+		if rec.Filename != "" {
+			fitPaths = append(fitPaths, rec.Filename)
+		}
+	}
+
+	if len(fitPaths) == 0 {
+		return "", fmt.Errorf("selected records have no associated .fit files")
+	}
+
+	// Open Save Dialog
+	defaultFilename := "merged_workout.fit"
+	if len(records) == 1 {
+		timestamp := records[0].CreatedAt.Format("2006-01-02_150405")
+		defaultFilename = fmt.Sprintf("workout_%s.fit", timestamp)
+	}
+
+	savePath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Save FIT File",
+		DefaultFilename: defaultFilename,
+		Filters: []runtime.FileFilter{
+			{DisplayName: "FIT Files (*.fit)", Pattern: "*.fit"},
+		},
+	})
+
+	if err != nil {
+		return "", err
+	}
+	if savePath == "" {
+		return "Cancelled", nil
+	}
+
+	if len(fitPaths) == 1 {
+		data, err := os.ReadFile(fitPaths[0])
+		if err != nil {
+			return "", fmt.Errorf("failed to read source file: %v", err)
+		}
+		if err := os.WriteFile(savePath, data, 0644); err != nil {
+			return "", fmt.Errorf("failed to save file: %v", err)
+		}
+	} else {
+		if err := a.fitService.MergeFiles(fitPaths, savePath); err != nil {
+			return "", fmt.Errorf("failed to merge files: %v", err)
+		}
+	}
+
+	return "File saved successfully", nil
 }

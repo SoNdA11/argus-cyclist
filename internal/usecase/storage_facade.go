@@ -83,6 +83,10 @@ func (s *StorageFacade) ClearStravaTokens() error {
 	return s.UserRepo.ClearStravaTokens()
 }
 
+func (s *StorageFacade) SaveSyncQueue(item domain.SyncQueue) error {
+	return s.UserRepo.SaveSyncQueue(item)
+}
+
 // ===================
 // Activity Repository
 // ===================
@@ -153,4 +157,20 @@ func (s *StorageFacade) GetTopEventRecords(mode string, limit int) ([]domain.Eve
 
 func (s *StorageFacade) ResetEventLeaderboard(mode string) error {
 	return s.EventRepo.ResetEventLeaderboard(mode)
+}
+
+func (s *StorageFacade) GetRaceHistory(riderName string) ([]domain.EventRecord, error) {
+	return s.EventRepo.GetRaceHistory(riderName)
+}
+
+func (s *StorageFacade) GetEventRecordsByID(ids []uint) ([]domain.EventRecord, error) {
+	return s.EventRepo.GetEventRecordsByID(ids)
+}
+
+func (s *StorageFacade) UpdateEventRecordStatus(id uint, uploaded bool) error {
+	return s.EventRepo.UpdateEventRecordStatus(id, uploaded)
+}
+
+func (s *StorageFacade) DeleteEventRecord(id uint) error {
+	return s.EventRepo.DeleteEventRecord(id)
 }

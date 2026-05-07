@@ -34,6 +34,10 @@ export function DeleteActivityHistory(arg1) {
   return window['go']['main']['App']['DeleteActivityHistory'](arg1);
 }
 
+export function DeleteEventRecord(arg1) {
+  return window['go']['main']['App']['DeleteEventRecord'](arg1);
+}
+
 export function DeleteLocalAccount(arg1) {
   return window['go']['main']['App']['DeleteLocalAccount'](arg1);
 }
@@ -56,6 +60,10 @@ export function DisconnectStrava() {
 
 export function DisconnectTrainer() {
   return window['go']['main']['App']['DisconnectTrainer']();
+}
+
+export function DownloadEventRecords(arg1) {
+  return window['go']['main']['App']['DownloadEventRecords'](arg1);
 }
 
 export function EnsureEventModeProfile() {
@@ -104,6 +112,10 @@ export function GetMonthlyActivities(arg1, arg2) {
 
 export function GetPowerCurve() {
   return window['go']['main']['App']['GetPowerCurve']();
+}
+
+export function GetRaceHistory(arg1) {
+  return window['go']['main']['App']['GetRaceHistory'](arg1);
 }
 
 export function GetRoutePath() {

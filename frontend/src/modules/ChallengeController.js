@@ -117,6 +117,10 @@ export class ChallengeController {
         document.getElementById('btnHomeEventMode')?.addEventListener('click', () => this.enterEventMode());
         document.getElementById('btnHomeLeaderboard')?.addEventListener('click', () => this.openLeaderboard());
         document.getElementById('btnEventLeaderboard')?.addEventListener('click', () => this.openLeaderboard());
+        document.getElementById('btnRaceHistory')?.addEventListener('click', () => {
+            this.closeModal(this.els.eventHubModal);
+            this.openRaceHistoryModal();
+        });
         document.getElementById('btnEventClose')?.addEventListener('click', () => this.closeModal(this.els.eventHubModal));
         document.getElementById('btnCloseEventHub')?.addEventListener('click', () => {
             this.closeModal(this.els.eventHubModal);
@@ -129,7 +133,16 @@ export class ChallengeController {
             }
         });
 
-        document.getElementById('btnCloseEventLeaderboard')?.addEventListener('click', () => this.closeModal(this.els.leaderboardModal));
+        document.getElementById('btnCloseEventLeaderboard')?.addEventListener('click', () => {
+            this.closeModal(this.els.leaderboardModal);
+            this.openEventHub();
+        });
+
+        document.getElementById('btnCloseRaceHistory')?.addEventListener('click', () => {
+            this.closeModal(document.getElementById('raceHistoryModal'));
+            this.openEventHub();
+        });
+
         document.getElementById('btnChallengeResultClose')?.addEventListener('click', () => this.returnToEventHub());
         document.getElementById('btnChallengeResultLeaderboard')?.addEventListener('click', () => {
             this.closeModal(this.els.resultModal);
@@ -1438,5 +1451,108 @@ export class ChallengeController {
     returnToEventHub() {
         this.closeModal(this.els.resultModal);
         this.openEventHub();
+    }
+
+    async openRaceHistoryModal() {
+        const modal = document.getElementById('raceHistoryModal');
+        if (!modal) return;
+
+        const listEl = document.getElementById('raceHistoryList');
+        listEl.innerHTML = '<div style="color: #ccc; text-align: center; padding: 20px;">Loading history...</div>';
+        this.openModal(modal);
+
+        const riderName = this.getRiderName();
+        if (!riderName) {
+            listEl.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 20px;">Please enter your Cyclist Name first.</div>';
+            return;
+        }
+
+        try {
+            const records = await window.go.main.App.GetRaceHistory(riderName);
+            if (!records || records.length === 0) {
+                listEl.innerHTML = '<div style="color: #ccc; text-align: center; padding: 20px;">No events completed yet.</div>';
+                return;
+            }
+
+            listEl.innerHTML = records.map(r => {
+                const date = new Date(r.created_at).toLocaleString();
+                const isExportable = r.duration >= 5 && r.filename;
+                const statusHtml = r.duration < 5
+                        ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">Too short (<5s)</span>'
+                        : (!r.filename ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">No FIT data</span>' : '');
+                
+                return `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <label class="race-history-item" style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: ${isExportable ? 'pointer' : 'default'}; opacity: ${isExportable ? '1' : '0.6'}; transition: background 0.2s;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" class="export-checkbox" value="${r.id}" ${!isExportable ? 'disabled' : ''} style="width: 18px; height: 18px;">
+                                <div>
+                                    <div style="font-weight: 700; color: #fff;">${this.modeMeta[r.event_mode]?.fullTitle || r.event_mode} - ${this.formatResultValue(r.event_mode, r.score)}</div>
+                                    <div style="font-size: 0.8rem; color: #aaa;">${date} &bull; ${r.duration}s</div>
+                                </div>
+                            </div>
+                            <div>${statusHtml}</div>
+                        </label>
+                        <button class="btn-delete-event" data-id="${r.id}" title="Delete Record" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach delete listeners
+            document.querySelectorAll('.btn-delete-event').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const id = parseInt(btn.getAttribute('data-id'));
+                    if (confirm("Are you sure you want to delete this record? This will NOT delete the associated .fit file from your disk, but it will remove it from this list.")) {
+                        try {
+                            await window.go.main.App.DeleteEventRecord(id);
+                            this.openRaceHistoryModal(); // Refresh
+                        } catch (err) {
+                            alert("Failed to delete: " + err);
+                        }
+                    }
+                });
+            });
+
+            // Attach download button handler
+            const btnDownload = document.getElementById('btnDownloadFit');
+            const newBtn = btnDownload.cloneNode(true);
+            btnDownload.parentNode.replaceChild(newBtn, btnDownload);
+            
+            newBtn.addEventListener('click', async () => {
+                const checkboxes = document.querySelectorAll('.export-checkbox:checked');
+                const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+                if (selectedIds.length === 0) {
+                    alert("Please select at least one event to download.");
+                    return;
+                }
+
+                newBtn.disabled = true;
+                const statusDiv = document.getElementById('exportStatus');
+                statusDiv.style.display = 'flex';
+                statusDiv.innerHTML = '<span class="cyclist-spinner">💾</span> Exporting...';
+
+                try {
+                    const result = await window.go.main.App.DownloadEventRecords(selectedIds);
+                    if (result === "Cancelled") {
+                        statusDiv.style.display = 'none';
+                    } else {
+                        statusDiv.innerHTML = `<span style="color: #22c55e;">${result}</span>`;
+                        setTimeout(() => statusDiv.style.display = 'none', 3000);
+                    }
+                } catch (err) {
+                    alert("Download Failed: " + err);
+                    statusDiv.style.display = 'none';
+                } finally {
+                    newBtn.disabled = false;
+                }
+            });
+
+        } catch (e) {
+            listEl.innerHTML = `<div style="color: #ef4444; text-align: center; padding: 20px;">Failed to load history: ${e}</div>`;
+        }
     }
 }
