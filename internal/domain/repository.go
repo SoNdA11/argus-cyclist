@@ -59,6 +59,7 @@ type UserRepository interface {
 	GetProfile() (UserProfile, error)
 	UpdateProfile(u UserProfile) error
 	ClearStravaTokens() error
+	SaveSyncQueue(item SyncQueue) error
 }
 
 // ActivityRepository handles activity persistence.
@@ -86,4 +87,8 @@ type EventRepository interface {
 	SaveEventRecord(record EventRecord) error
 	GetTopEventRecords(mode string, limit int) ([]EventRecord, error)
 	ResetEventLeaderboard(mode string) error
+	GetRaceHistory(riderName string) ([]EventRecord, error)
+	GetEventRecordsByID(ids []uint) ([]EventRecord, error)
+	UpdateEventRecordStatus(id uint, uploaded bool) error
+	DeleteEventRecord(id uint) error
 }

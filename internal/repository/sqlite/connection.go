@@ -78,7 +78,7 @@ func (s *ConnectionManager) LoadUserDatabase(userID string) error {
 		return fmt.Errorf("Failed to open SQLite database: %v", err)
 	}
 
-	err = db.AutoMigrate(&domain.UserProfile{}, &domain.Activity{}, &domain.PowerRecord{})
+	err = db.AutoMigrate(&domain.UserProfile{}, &domain.Activity{}, &domain.PowerRecord{}, &domain.SyncQueue{})
 	if err != nil {
 		return fmt.Errorf("Table migration failed: %v", err)
 	}

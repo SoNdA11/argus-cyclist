@@ -255,6 +255,9 @@ export namespace domain {
 	    status: string;
 	    // Go type: time
 	    created_at: any;
+	    filename: string;
+	    duration: number;
+	    uploaded_to_strava: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new EventRecord(source);
@@ -268,6 +271,9 @@ export namespace domain {
 	        this.score = source["score"];
 	        this.status = source["status"];
 	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.filename = source["filename"];
+	        this.duration = source["duration"];
+	        this.uploaded_to_strava = source["uploaded_to_strava"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -71,3 +71,10 @@ func (r *UserRepo) ClearStravaTokens() error {
 
 	return err
 }
+
+func (r *UserRepo) SaveSyncQueue(item domain.SyncQueue) error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+	return r.state.UserDB.Create(&item).Error
+}

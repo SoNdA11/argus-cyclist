@@ -1,0 +1,46 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="raceHistoryModal" class="modal-overlay hidden" style="z-index: 10005;">
+    <div class="modal-content challenge-leaderboard-content" style="max-width: 800px; padding: 30px;">
+        <div class="challenge-hub-header" style="flex-direction: row; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
+            <div style="text-align: left;">
+                <div class="challenge-hub-kicker" style="color: #38bdf8;">Data Export</div>
+                <h2 style="font-size: 1.8rem; margin: 0;">Race History</h2>
+            </div>
+            <button class="btn-icon-small" id="btnCloseRaceHistory" title="Close" style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.1); border: none; color: white;">✕</button>
+        </div>
+
+        <div style="margin-top: 20px; color: #ccc; font-size: 0.95rem;">
+            Select the records you want to download. If you select multiple, they will be merged into a single continuous .fit file.
+        </div>
+
+        <div id="raceHistoryList" style="margin-top: 20px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            <!-- Rendered via JS -->
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
+            <div id="exportStatus" style="color: #38bdf8; font-weight: 600; font-size: 0.9rem; display: none; align-items: center; gap: 8px;">
+                <span class="cyclist-spinner">💾</span> Exporting...
+            </div>
+            <button id="btnDownloadFit" class="btn-primary" style="background-color: #38bdf8; border: none; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Download FIT File
+            </button>
+        </div>
+    </div>
+</div>

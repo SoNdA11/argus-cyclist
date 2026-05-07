@@ -55,6 +55,11 @@ func NewService() *Service {
 	}
 }
 
+// GetRecordCount returns the number of telemetry records stored.
+func (s *Service) GetRecordCount() int {
+	return len(s.records)
+}
+
 // StartSession marks the beginning of the workout
 func (s *Service) StartSession(startTime time.Time) {
 	s.startTime = startTime
@@ -173,6 +178,78 @@ func (s *Service) Save(filepath string) error {
 	}
 
 	return nil
+}
+
+// MergeFiles combines multiple FIT files into a single one
+func (s *Service) MergeFiles(inputPaths []string, outputPath string) error {
+	if len(inputPaths) == 0 {
+		return fmt.Errorf("no input files provided")
+	}
+
+	allRecords := []*mesgdef.Record{}
+	var firstStartTime time.Time
+	var totalDistance uint32 = 0
+
+	for _, path := range inputPaths {
+		file, err := os.Open(path)
+		if err != nil {
+			continue
+		}
+		
+		dec := decoder.New(file)
+		fitFile, err := dec.Decode()
+		file.Close()
+		if err != nil {
+			continue
+		}
+
+		var fileStartTime time.Time
+		fileRecords := []*mesgdef.Record{}
+
+		for _, msg := range fitFile.Messages {
+			if msg.Num == mesgnum.FileId {
+				fid := mesgdef.NewFileId(&msg)
+				fileStartTime = fid.TimeCreated
+			}
+			if msg.Num == mesgnum.Record {
+				rec := mesgdef.NewRecord(&msg)
+				fileRecords = append(fileRecords, rec)
+			}
+		}
+
+		if firstStartTime.IsZero() {
+			firstStartTime = fileStartTime
+		}
+
+		// Adjust distance to be continuous
+		for _, rec := range fileRecords {
+			// Offset the distance by the previous total
+			rec.Distance += totalDistance
+			allRecords = append(allRecords, rec)
+		}
+
+		if len(fileRecords) > 0 {
+			totalDistance = fileRecords[len(fileRecords)-1].Distance
+		}
+	}
+
+	if len(allRecords) == 0 {
+		return fmt.Errorf("no records found in input files")
+	}
+
+	oldRecords := s.records
+	oldStartTime := s.startTime
+	
+	s.records = allRecords
+	s.startTime = firstStartTime
+	
+	err := s.Save(outputPath)
+	
+	// Restore state
+	s.records = oldRecords
+	s.startTime = oldStartTime
+	
+	return err
 }
 
 // Helpers

@@ -59,3 +59,41 @@ func (r *EventRepo) ResetEventLeaderboard(mode string) error {
 	}
 	return r.state.EventDB.Where("event_mode = ?", mode).Delete(&domain.EventRecord{}).Error
 }
+
+func (r *EventRepo) GetRaceHistory(riderName string) ([]domain.EventRecord, error) {
+	var records []domain.EventRecord
+	if r.state.EventDB == nil {
+		return records, fmt.Errorf("Event database not initialized")
+	}
+
+	err := r.state.EventDB.Where("rider_name = ?", riderName).
+		Order("created_at desc").
+		Limit(50).
+		Find(&records).Error
+
+	return records, err
+}
+
+func (r *EventRepo) GetEventRecordsByID(ids []uint) ([]domain.EventRecord, error) {
+	var records []domain.EventRecord
+	if r.state.EventDB == nil {
+		return records, fmt.Errorf("Event database not initialized")
+	}
+
+	err := r.state.EventDB.Where("id IN ?", ids).Find(&records).Error
+	return records, err
+}
+
+func (r *EventRepo) UpdateEventRecordStatus(id uint, uploaded bool) error {
+	if r.state.EventDB == nil {
+		return fmt.Errorf("Event database not initialized")
+	}
+	return r.state.EventDB.Model(&domain.EventRecord{}).Where("id = ?", id).Update("uploaded_to_strava", uploaded).Error
+}
+
+func (r *EventRepo) DeleteEventRecord(id uint) error {
+	if r.state.EventDB == nil {
+		return fmt.Errorf("Event database not initialized")
+	}
+	return r.state.EventDB.Delete(&domain.EventRecord{}, id).Error
+}

@@ -20,6 +20,8 @@ export function CreateLocalAccount(arg1:string,arg2:string,arg3:number,arg4:numb
 
 export function DeleteActivityHistory(arg1:number):Promise<void>;
 
+export function DeleteEventRecord(arg1:number):Promise<void>;
+
 export function DeleteLocalAccount(arg1:string):Promise<void>;
 
 export function DiscardSession():Promise<string>;
@@ -31,6 +33,8 @@ export function DisconnectHeartRate():Promise<string>;
 export function DisconnectStrava():Promise<void>;
 
 export function DisconnectTrainer():Promise<string>;
+
+export function DownloadEventRecords(arg1:Array<number>):Promise<string>;
 
 export function EnsureEventModeProfile():Promise<string>;
 
@@ -55,6 +59,8 @@ export function GetLocalAccounts():Promise<Array<domain.ProfileSummary>>;
 export function GetMonthlyActivities(arg1:number,arg2:number):Promise<Array<domain.Activity>>;
 
 export function GetPowerCurve():Promise<Array<domain.PowerRecord>>;
+
+export function GetRaceHistory(arg1:string):Promise<Array<domain.EventRecord>>;
 
 export function GetRoutePath():Promise<Array<domain.RoutePoint>>;
 
