@@ -76,6 +76,9 @@ type UserProfile struct {
 	Level      int   `json:"level"`
 	CurrentXP  int64 `json:"current_xp"`
 	TotalCoins int   `json:"total_coins"`
+	
+	CurrentStreak   int       `json:"current_streak"`
+	LastWorkoutDate time.Time `json:"last_workout_date"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -83,6 +86,27 @@ type UserProfile struct {
 	StravaAccessToken  string `json:"strava_access_token"`
 	StravaRefreshToken string `json:"strava_refresh_token"`
 	StravaExpiresAt    int64  `json:"strava_expires_at"`
+}
+
+// UserBadge represents an achievement unlocked by the user.
+type UserBadge struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	BadgeType  string    `json:"badge_type"` // e.g., "distance", "elevation", "time"
+	Tier       int       `json:"tier"`       // e.g., 250, 500, 1000
+	Name       string    `json:"name"`
+	AchievedAt time.Time `json:"achieved_at"`
+}
+
+// CustomGoal represents a user-defined goal.
+type CustomGoal struct {
+	ID              uint      `json:"id" gorm:"primaryKey"`
+	Metric          string    `json:"metric"` // "distance", "time", "elevation"
+	TargetValue     float64   `json:"target_value"`
+	CurrentProgress float64   `json:"current_progress"`
+	Deadline        time.Time `json:"deadline"`
+	Status          string    `json:"status"` // "active", "completed", "failed"
+	CreatedAt       time.Time `json:"created_at"`
+	CompletedAt     *time.Time `json:"completed_at"`
 }
 
 // Activity represents a completed training session.

@@ -16,9 +16,13 @@ export function ConnectTrainer(arg1:string):Promise<string>;
 
 export function ConnectVirtualTrainer():Promise<string>;
 
+export function CreateCustomGoal(arg1:string,arg2:number,arg3:string):Promise<void>;
+
 export function CreateLocalAccount(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
 
 export function DeleteActivityHistory(arg1:number):Promise<void>;
+
+export function DeleteCustomGoal(arg1:number):Promise<void>;
 
 export function DeleteEventRecord(arg1:number):Promise<void>;
 
@@ -46,6 +50,8 @@ export function GetActivityDetails(arg1:string):Promise<fit.ActivityDetails>;
 
 export function GetCareerDashboard():Promise<main.CareerDashboard>;
 
+export function GetCustomGoals():Promise<Array<domain.CustomGoal>>;
+
 export function GetDeviceConnectionState():Promise<Record<string, any>>;
 
 export function GetElevationProfile():Promise<Array<number>>;
@@ -66,6 +72,8 @@ export function GetRoutePath():Promise<Array<domain.RoutePoint>>;
 
 export function GetTotalStats():Promise<Record<string, number>>;
 
+export function GetUserBadges():Promise<Array<domain.UserBadge>>;
+
 export function GetUserProfile():Promise<domain.UserProfile>;
 
 export function InitiateCooldown():Promise<string>;
@@ -77,6 +85,8 @@ export function LoadPredefinedKOMSegment():Promise<string>;
 export function LoadWorkout():Promise<string>;
 
 export function OpenFileFolder(arg1:string):Promise<void>;
+
+export function ProcessGamification(arg1:domain.Activity):Promise<main.GamificationResult>;
 
 export function RepeatWorkout():Promise<string>;
 

@@ -87,6 +87,30 @@ func (s *StorageFacade) SaveSyncQueue(item domain.SyncQueue) error {
 	return s.UserRepo.SaveSyncQueue(item)
 }
 
+func (s *StorageFacade) GetActiveGoals() []domain.CustomGoal {
+	return s.UserRepo.GetActiveGoals()
+}
+
+func (s *StorageFacade) GetAllGoals() []domain.CustomGoal {
+	return s.UserRepo.GetAllGoals()
+}
+
+func (s *StorageFacade) SaveGoal(g domain.CustomGoal) error {
+	return s.UserRepo.SaveGoal(g)
+}
+
+func (s *StorageFacade) DeleteGoal(id uint) error {
+	return s.UserRepo.DeleteGoal(id)
+}
+
+func (s *StorageFacade) GetUserBadges() []domain.UserBadge {
+	return s.UserRepo.GetUserBadges()
+}
+
+func (s *StorageFacade) SaveBadge(b domain.UserBadge) error {
+	return s.UserRepo.SaveBadge(b)
+}
+
 // ===================
 // Activity Repository
 // ===================
@@ -105,6 +129,10 @@ func (s *StorageFacade) GetTotalDistance() float64 {
 
 func (s *StorageFacade) GetTotalDuration() int64 {
 	return s.ActivityRepo.GetTotalDuration()
+}
+
+func (s *StorageFacade) GetTotalElevation() float64 {
+	return s.ActivityRepo.GetTotalElevation()
 }
 
 func (s *StorageFacade) GetActivitiesByMonth(monthStr string) ([]domain.Activity, error) {

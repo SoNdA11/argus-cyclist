@@ -1,0 +1,359 @@
+/*
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.02);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --accent-primary: #00f2fe;
+    --accent-secondary: #00ff88;
+    --star-gold: #ffcc00;
+}
+
+.trophy-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 0 5px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.trophy-main-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 20px;
+}
+
+.trophy-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.trophy-card:hover {
+    border-color: rgba(0, 242, 254, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.streak-card {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 220px;
+}
+
+.card-icon-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+}
+
+.streak-star {
+    font-size: 1.5rem;
+    color: var(--star-gold);
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.3));
+}
+
+.streak-value {
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 2;
+}
+
+.streak-active .streak-value {
+    animation: streakPulse 2s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(180deg, #fff 30%, var(--accent-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes streakPulse {
+    from { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.2)); }
+    to { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.5)); }
+}
+
+.streak-active .card-icon-glow {
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, transparent 70%);
+    animation: glowBreath 4s infinite ease-in-out;
+}
+
+@keyframes glowBreath {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.streak-label {
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.goals-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.goals-card h4 {
+    margin: 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-add-goal-premium {
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(0, 242, 254, 0.05));
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    color: var(--accent-primary);
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+.btn-add-goal-premium svg {
+    display: block;
+}
+
+.btn-add-goal-premium:hover {
+    background: var(--accent-primary);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+}
+
+.compact-goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.goal-card-premium {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 15px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s;
+}
+
+.goal-card-premium:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-delete-goal {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-delete-goal:hover {
+    background: rgba(255, 77, 77, 0.2);
+    color: #ff4d4d;
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.2);
+}
+
+.goal-header-wrap {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+}
+
+.goal-metric-badge {
+    color: var(--accent-primary);
+    font-weight: 800;
+}
+
+.premium-progress-bar {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+}
+
+.premium-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.completed-section h5 {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 15px 0 8px 0;
+    letter-spacing: 1px;
+}
+
+.tiny-goals-list {
+    max-height: 80px;
+    overflow-y: auto;
+    font-size: 0.75rem;
+}
+
+.tiny-goal-item {
+    padding: 6px 10px;
+    background: rgba(0, 255, 136, 0.03);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.badges-section {
+    margin-top: 5px;
+}
+
+.badges-section h4 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.badges-scroll-container {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.badges-scroll-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.badges-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.badges-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.badges-minimal-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.minimalist-badge {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px;
+    padding: 15px 10px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.badge-locked {
+    opacity: 0.3;
+    filter: grayscale(1);
+    border-style: dashed !important;
+}
+
+.badge-locked .badge-icon-wrap {
+    background: rgba(255, 255, 255, 0.05);
+    color: #444;
+}
+
+.minimalist-badge:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-4px);
+}
+
+.badge-icon-wrap {
+    width: 45px;
+    height: 45px;
+    margin: 0 auto 10px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 242, 254, 0.05);
+    color: var(--accent-primary);
+    border-radius: 12px;
+    font-size: 1.2rem;
+}
+
+.badge-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.badge-date {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.compact-goals-list::-webkit-scrollbar,
+.tiny-goals-list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.compact-goals-list::-webkit-scrollbar-thumb,
+.tiny-goals-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+@media (max-height: 800px) {
+    .streak-value { font-size: 4rem; }
+    .streak-card { min-height: 180px; }
+}

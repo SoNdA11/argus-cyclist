@@ -247,6 +247,53 @@ export namespace domain {
 	        this.address = source["address"];
 	    }
 	}
+	export class CustomGoal {
+	    id: number;
+	    metric: string;
+	    target_value: number;
+	    current_progress: number;
+	    // Go type: time
+	    deadline: any;
+	    status: string;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    completed_at?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new CustomGoal(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.metric = source["metric"];
+	        this.target_value = source["target_value"];
+	        this.current_progress = source["current_progress"];
+	        this.deadline = this.convertValues(source["deadline"], null);
+	        this.status = source["status"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.completed_at = this.convertValues(source["completed_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class EventRecord {
 	    id: number;
 	    rider_name: string;
@@ -375,6 +422,45 @@ export namespace domain {
 	        this.grade = source["grade"];
 	    }
 	}
+	export class UserBadge {
+	    id: number;
+	    badge_type: string;
+	    tier: number;
+	    name: string;
+	    // Go type: time
+	    achieved_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new UserBadge(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.badge_type = source["badge_type"];
+	        this.tier = source["tier"];
+	        this.name = source["name"];
+	        this.achieved_at = this.convertValues(source["achieved_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class UserProfile {
 	    id: number;
 	    name: string;
@@ -390,6 +476,9 @@ export namespace domain {
 	    level: number;
 	    current_xp: number;
 	    total_coins: number;
+	    current_streak: number;
+	    // Go type: time
+	    last_workout_date: any;
 	    // Go type: time
 	    created_at: any;
 	    // Go type: time
@@ -418,6 +507,8 @@ export namespace domain {
 	        this.level = source["level"];
 	        this.current_xp = source["current_xp"];
 	        this.total_coins = source["total_coins"];
+	        this.current_streak = source["current_streak"];
+	        this.last_workout_date = this.convertValues(source["last_workout_date"], null);
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
 	        this.strava_access_token = source["strava_access_token"];
@@ -583,11 +674,58 @@ export namespace main {
 	        this.ele = source["ele"];
 	    }
 	}
+	export class GamificationResult {
+	    time_xp: number;
+	    distance_xp: number;
+	    elevation_xp: number;
+	    streak_bonus_xp: number;
+	    total_xp_earned: number;
+	    new_level: number;
+	    level_up: boolean;
+	    badges_unlocked: domain.UserBadge[];
+	    goals_completed: domain.CustomGoal[];
+	
+	    static createFrom(source: any = {}) {
+	        return new GamificationResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.time_xp = source["time_xp"];
+	        this.distance_xp = source["distance_xp"];
+	        this.elevation_xp = source["elevation_xp"];
+	        this.streak_bonus_xp = source["streak_bonus_xp"];
+	        this.total_xp_earned = source["total_xp_earned"];
+	        this.new_level = source["new_level"];
+	        this.level_up = source["level_up"];
+	        this.badges_unlocked = this.convertValues(source["badges_unlocked"], domain.UserBadge);
+	        this.goals_completed = this.convertValues(source["goals_completed"], domain.CustomGoal);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class SessionSummary {
 	    activity: domain.Activity;
 	    zones: fit.TimeInZones;
 	    new_ftp: number;
 	    new_max_hr: number;
+	    gamification: GamificationResult;
 	
 	    static createFrom(source: any = {}) {
 	        return new SessionSummary(source);
@@ -599,6 +737,7 @@ export namespace main {
 	        this.zones = this.convertValues(source["zones"], fit.TimeInZones);
 	        this.new_ftp = source["new_ftp"];
 	        this.new_max_hr = source["new_max_hr"];
+	        this.gamification = this.convertValues(source["gamification"], GamificationResult);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
