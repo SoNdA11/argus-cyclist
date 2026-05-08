@@ -78,3 +78,47 @@ func (r *UserRepo) SaveSyncQueue(item domain.SyncQueue) error {
 	}
 	return r.state.UserDB.Create(&item).Error
 }
+
+func (r *UserRepo) GetActiveGoals() []domain.CustomGoal {
+	var goals []domain.CustomGoal
+	if r.state.UserDB != nil {
+		r.state.UserDB.Where("status = ?", "active").Find(&goals)
+	}
+	return goals
+}
+
+func (r *UserRepo) SaveGoal(g domain.CustomGoal) error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+	return r.state.UserDB.Save(&g).Error
+}
+
+func (r *UserRepo) GetUserBadges() []domain.UserBadge {
+	var badges []domain.UserBadge
+	if r.state.UserDB != nil {
+		r.state.UserDB.Find(&badges)
+	}
+	return badges
+}
+
+func (r *UserRepo) SaveBadge(b domain.UserBadge) error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+	return r.state.UserDB.Save(&b).Error
+}
+func (r *UserRepo) GetAllGoals() []domain.CustomGoal {
+	var goals []domain.CustomGoal
+	if r.state.UserDB != nil {
+		r.state.UserDB.Find(&goals)
+	}
+	return goals
+}
+
+func (r *UserRepo) DeleteGoal(id uint) error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+	return r.state.UserDB.Delete(&domain.CustomGoal{}, id).Error
+}

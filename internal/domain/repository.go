@@ -60,6 +60,12 @@ type UserRepository interface {
 	UpdateProfile(u UserProfile) error
 	ClearStravaTokens() error
 	SaveSyncQueue(item SyncQueue) error
+	GetActiveGoals() []CustomGoal
+	GetAllGoals() []CustomGoal
+	SaveGoal(g CustomGoal) error
+	GetUserBadges() []UserBadge
+	SaveBadge(b UserBadge) error
+	DeleteGoal(id uint) error
 }
 
 // ActivityRepository handles activity persistence.
@@ -68,6 +74,7 @@ type ActivityRepository interface {
 	GetRecentActivities(limit int) ([]Activity, error)
 	GetTotalDistance() float64
 	GetTotalDuration() int64
+	GetTotalElevation() float64
 	GetActivitiesByMonth(monthStr string) ([]Activity, error)
 	GetAllActivities() ([]Activity, error)
 	GetActivityByID(id uint) (Activity, error)

@@ -95,11 +95,24 @@ type ExportPoint struct {
 	Ele float64 `json:"ele"`
 }
 
+type GamificationResult struct {
+	TimeXP         int64                `json:"time_xp"`
+	DistanceXP     int64                `json:"distance_xp"`
+	ElevationXP    int64                `json:"elevation_xp"`
+	StreakBonusXP  int64                `json:"streak_bonus_xp"`
+	TotalXPEarned  int64                `json:"total_xp_earned"`
+	NewLevel       int                  `json:"new_level"`
+	LevelUp        bool                 `json:"level_up"`
+	BadgesUnlocked []domain.UserBadge   `json:"badges_unlocked"`
+	GoalsCompleted []domain.CustomGoal  `json:"goals_completed"`
+}
+
 type SessionSummary struct {
-	Activity domain.Activity `json:"activity"`
-	Zones    fit.TimeInZones `json:"zones"`
-	NewFTP   int             `json:"new_ftp"`
-	NewMaxHR int             `json:"new_max_hr"`
+	Activity     domain.Activity    `json:"activity"`
+	Zones        fit.TimeInZones    `json:"zones"`
+	NewFTP       int                `json:"new_ftp"`
+	NewMaxHR     int                `json:"new_max_hr"`
+	Gamification GamificationResult `json:"gamification"`
 }
 
 // ActivityDetails contains the time-series data for the charts
@@ -894,6 +907,8 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		UploadedToStrava:  false,
 	}
 
+	gamificationResult := a.ProcessGamification(activity)
+
 	if err := a.storageService.SaveActivity(activity); err != nil {
 		fmt.Println("Database save error:", err)
 	}
@@ -918,10 +933,11 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 
 	return SessionSummary{
-		Activity: activity,
-		Zones:    zones,
-		NewFTP:   newFTP,
-		NewMaxHR: sessionMaxHR,
+		Activity:     activity,
+		Zones:        zones,
+		NewFTP:       newFTP,
+		NewMaxHR:     sessionMaxHR,
+		Gamification: gamificationResult,
 	}, nil
 }
 

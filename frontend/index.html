@@ -139,14 +139,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     </div>
                 </div>
 
-                <div class="dash-chart-section">
-                    <div class="dash-chart-header">
-                        <h3
-                            style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
-                            Live Telemetry</h3>
+                <div class="dash-chart-section" style="display: flex; gap: 20px;">
+                    <div style="flex: 2; display: flex; flex-direction: column;">
+                        <div class="dash-chart-header">
+                            <h3
+                                style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                                Live Telemetry</h3>
+                        </div>
+                        <div class="dash-chart-body">
+                            <div id="liveDashboardChart" style="width: 100%; height: 100%;"></div>
+                        </div>
                     </div>
-                    <div class="dash-chart-body">
-                        <div id="liveDashboardChart" style="width: 100%; height: 100%;"></div>
+                    
+                    <div class="dash-goals-widget" style="flex: 1; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;">
+                        <h3 style="margin: 0 0 15px 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Active Goals</h3>
+                        <div id="dashboardGoalsList" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                            <div style="color: #888; font-size: 0.85rem; text-align: center; padding-top: 20px;">No active goals</div>
+                        </div>
                     </div>
                 </div>
 
@@ -410,6 +419,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <span style="color: var(--zone-6);">Z6</span>
                 </div>
             </div>
+            
+            <div class="xp-breakdown-container" style="margin-top: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                <h4 style="margin: 0 0 10px 0; color: #fff;">XP Earned</h4>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ccc; margin-bottom: 5px;">
+                    <span>Time</span>
+                    <span id="finish-time-xp">0 XP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ccc; margin-bottom: 5px;">
+                    <span>Distance</span>
+                    <span id="finish-dist-xp">0 XP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ccc; margin-bottom: 5px;">
+                    <span>Elevation Bonus</span>
+                    <span id="finish-elev-xp" style="color: #3498db;">0 XP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ccc; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Streak Multiplier Bonus</span>
+                    <span id="finish-streak-xp" style="color: gold;">+0 XP</span>
+                </div>
+                <div id="finish-goal-bonus-row" style="display: none; justify-content: space-between; font-size: 0.85rem; color: #ccc; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Goal Completion Bonus</span>
+                    <span id="finish-goal-xp" style="color: #2ecc71;">+0 XP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #fff; margin-top: 5px;">
+                    <span>Total XP</span>
+                    <span id="finish-total-xp" style="color: var(--argus-safe);">0 XP</span>
+                </div>
+                
+                <div id="finish-level-up" style="display: none; text-align: center; margin-top: 15px; padding: 10px; background: rgba(46, 204, 113, 0.2); border-radius: 6px; color: #2ecc71; font-weight: bold;">
+                    🎉 Level Up! You reached Level <span id="finish-new-level"></span>!
+                </div>
+            </div>
 
             <div class="modal-actions centered" style="margin-top: 25px; gap: 15px;">
                 <button id="btnUploadStrava" class="btn-strava hidden" onclick="window.uploadToStrava()">
@@ -506,6 +547,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <div id="progressCursor"></div>
         </div>
     </footer>
+    <div id="customGoalModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; width: 90%;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Set Custom Goal</h3>
+                <button class="close-btn" onclick="window.ui.closeCustomGoalModal()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Metric</label>
+                <select id="goalMetric" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                    <option value="distance">Distance (km)</option>
+                    <option value="elevation">Elevation Gain (m)</option>
+                    <option value="time">Saddle Time (hours)</option>
+                </select>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Target Value</label>
+                <input type="number" id="goalTargetValue" placeholder="e.g., 200" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 25px;">
+                <label>Deadline</label>
+                <input type="date" id="goalDeadline" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+            </div>
+            
+            <button class="btn-primary" style="width: 100%; padding: 10px;" onclick="window.ui.saveCustomGoal()">Create Goal</button>
+        </div>
+    </div>
+
     <div id="toast-notification" class="toast hidden"></div>
     <script type="module" src="/src/main.js"></script>
 </body>

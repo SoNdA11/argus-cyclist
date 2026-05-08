@@ -821,9 +821,228 @@ export class UIManager {
                 this.currentPhotoData = profile.photo;
             }
 
+            // Load Trophy Room goals and badges
+            await this.loadTrophyRoom();
+
             console.log("Profile Loaded:", profile);
         } catch (e) {
             console.error("Error loading profile:", e);
+        }
+    }
+
+    async loadTrophyRoom() {
+        try {
+            const profile = await window.go.main.App.GetUserProfile();
+            const streakCount = document.getElementById('streakCount');
+            const streakCard = document.querySelector('.streak-card');
+            if (streakCount) {
+                const count = profile.current_streak || 0;
+                streakCount.innerText = count;
+                if (streakCard) {
+                    if (count > 0) streakCard.classList.add('streak-active');
+                    else streakCard.classList.remove('streak-active');
+                }
+            }
+
+            const badges = await window.go.main.App.GetUserBadges();
+            const badgesContainer = document.getElementById('badgesContainer');
+            if (badgesContainer) {
+                badgesContainer.innerHTML = '';
+                if (!badges || badges.length === 0) {
+                    badgesContainer.innerHTML = '<div class="history-item" style="grid-column: 1 / -1; text-align: center;"><span>No badges yet. Keep riding!</span></div>';
+                } else {
+                    badges.forEach(b => {
+                        const bDiv = document.createElement('div');
+                        bDiv.className = 'badge-item minimalist-badge';
+                        
+                        let iconSvg = '';
+                        if (b.badge_type === 'distance') {
+                            // Flag/Finish Line Icon
+                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>`;
+                        } else if (b.badge_type === 'elevation') {
+                            // Mountain Peak Icon
+                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 18L12 3L16 18"></path><path d="M10 11L12 14L14 11"></path><path d="M2 20L22 20"></path></svg>`;
+                        } else {
+                            // Stopwatch Icon
+                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
+                        }
+
+                        const tierColor = b.tier >= 1000 || b.tier >= 50 ? 'var(--argus-safe)' : (b.tier >= 500 || b.tier >= 25 ? '#3498db' : '#94a3b8');
+                        
+                        // Set border consistently
+                        bDiv.style.border = `1px solid rgba(255, 255, 255, 0.08)`;
+                        bDiv.style.background = `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)`;
+
+                        bDiv.innerHTML = `
+                            <div class="badge-icon-wrap" style="color: ${tierColor};">${iconSvg}</div>
+                            <strong style="font-size: 0.75rem; display: block; margin-top: 12px; color: #fff;">${b.name}</strong>
+                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 6px;">${new Date(b.achieved_at).toLocaleDateString()}</div>
+                        `;
+                        badgesContainer.appendChild(bDiv);
+                    });
+
+                    const saddleBadges = badges.filter(b => b.name.includes('Saddle Time'));
+                    const has75h = saddleBadges.some(b => b.name.includes('75'));
+                    const has100h = saddleBadges.some(b => b.name.includes('100'));
+
+                    const lockedBadges = [];
+                    if (!has75h) lockedBadges.push({ name: '75 hours Saddle Time', type: 'time' });
+                    if (!has100h) lockedBadges.push({ name: '100 hours Saddle Time', type: 'time' });
+
+                    lockedBadges.forEach(lb => {
+                        const bDiv = document.createElement('div');
+                        bDiv.className = 'badge-item minimalist-badge badge-locked';
+                        const iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
+                        
+                        bDiv.innerHTML = `
+                            <div class="badge-icon-wrap">${iconSvg}</div>
+                            <strong style="font-size: 0.75rem; display: block; margin-top: 12px;">${lb.name}</strong>
+                            <div style="font-size: 0.65rem; margin-top: 6px;">Locked</div>
+                        `;
+                        badgesContainer.appendChild(bDiv);
+                    });
+                }
+            }
+
+            const goals = await window.go.main.App.GetCustomGoals();
+            const goalsList = document.getElementById('customGoalsList');
+            const dashGoalsList = document.getElementById('dashboardGoalsList');
+            const completedGoalsList = document.getElementById('completedGoalsList');
+            
+            const activeGoals = goals ? goals.filter(g => g.status === 'active') : [];
+            const completedGoals = goals ? goals.filter(g => g.status === 'completed').sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at)) : [];
+            
+            if (goalsList) {
+                goalsList.innerHTML = '';
+                if (activeGoals.length === 0) {
+                    goalsList.innerHTML = '<div style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No active goals.</div>';
+                } else {
+                    activeGoals.forEach(g => {
+                        const progressPct = Math.min((g.current_progress / g.target_value) * 100, 100);
+                        const gDiv = document.createElement('div');
+                        gDiv.className = 'goal-card-premium';
+                        gDiv.innerHTML = `
+                            <div class="goal-header-wrap">
+                                <div class="goal-info">
+                                    <span class="goal-metric-badge">${g.metric}</span>
+                                    <span class="goal-deadline-text">${new Date(g.deadline).toLocaleDateString()}</span>
+                                </div>
+                                <button class="btn-delete-goal" onclick="window.ui.deleteCustomGoal(${g.id})">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="goal-progress-container">
+                                <div class="goal-progress-stats">
+                                    <span class="goal-progress-val">${g.current_progress.toFixed(1)} / ${g.target_value}</span>
+                                    <span class="goal-progress-pct">${Math.round(progressPct)}%</span>
+                                </div>
+                                <div class="premium-progress-bar">
+                                    <div class="premium-progress-fill" style="width: ${progressPct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                        goalsList.appendChild(gDiv);
+                    });
+                }
+            }
+
+            if (completedGoalsList) {
+                completedGoalsList.innerHTML = '';
+                if (completedGoals.length === 0) {
+                    completedGoalsList.innerHTML = '<div style="color: #555; text-align: center; font-style: italic;">No goals completed yet.</div>';
+                } else {
+                    completedGoals.slice(0, 3).forEach(g => {
+                        const gDiv = document.createElement('div');
+                        gDiv.style.cssText = 'display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(46, 204, 113, 0.1); border-radius: 4px; margin-bottom: 4px; border-left: 3px solid #2ecc71;';
+                        gDiv.innerHTML = `
+                            <span>${g.metric.charAt(0).toUpperCase() + g.metric.slice(1)} (${g.target_value})</span>
+                            <span style="color: #2ecc71;">✓ Done</span>
+                        `;
+                        completedGoalsList.appendChild(gDiv);
+                    });
+                }
+            }
+
+            if (dashGoalsList) {
+                dashGoalsList.innerHTML = '';
+                if (!activeGoals || activeGoals.length === 0) {
+                    dashGoalsList.innerHTML = '<div style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 20px;">No active goals</div>';
+                } else {
+                    activeGoals.forEach(g => {
+                        const progressPct = Math.min((g.current_progress / g.target_value) * 100, 100);
+                        const unit = g.metric === 'distance' ? 'km' : g.metric === 'elevation' ? 'm' : 'h';
+                        const gDiv = document.createElement('div');
+                        gDiv.style.cssText = 'background: rgba(255,255,255,0.02); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;';
+                        gDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px;">
+                                <span style="color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${g.metric}</span>
+                                <span style="color: var(--argus-safe);">${Math.round(progressPct)}%</span>
+                            </div>
+                            <div class="xp-bar-bg" style="height: 3px; border-radius: 1.5px; background: rgba(0,0,0,0.2);">
+                                <div style="width: ${progressPct}%; height: 100%; background: var(--argus-safe); border-radius: 1.5px; box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);"></div>
+                            </div>
+                            <div style="font-size: 0.65rem; color: #64748b; text-align: right; margin-top: 6px;">
+                                ${g.current_progress.toFixed(1)} / ${g.target_value}${unit}
+                            </div>
+                        `;
+                        dashGoalsList.appendChild(gDiv);
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("Error loading trophy room:", e);
+        }
+    }
+
+    openCustomGoalModal() {
+        const modal = document.getElementById('customGoalModal');
+        if (modal) modal.classList.add('active');
+    }
+
+    closeCustomGoalModal() {
+        const modal = document.getElementById('customGoalModal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    async saveCustomGoal() {
+        const metric = document.getElementById('goalMetric').value;
+        const targetStr = document.getElementById('goalTargetValue').value;
+        const deadline = document.getElementById('goalDeadline').value; // YYYY-MM-DD
+
+        if (!targetStr || !deadline) {
+            alert("Please fill all fields.");
+            return;
+        }
+
+        const target = parseFloat(targetStr);
+        if (isNaN(target) || target <= 0) {
+            alert("Target value must be a valid number greater than 0.");
+            return;
+        }
+
+        const parts = deadline.split('-');
+        const goalDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        goalDate.setHours(23, 59, 59, 999);
+
+        try {
+            await window.go.main.App.CreateCustomGoal(metric, target, goalDate.toISOString());
+            this.closeCustomGoalModal();
+            this.loadTrophyRoom();
+        } catch (e) {
+            alert("Error creating goal: " + e);
+        }
+    }
+
+    async deleteCustomGoal(id) {
+        if (!confirm("Are you sure you want to delete this goal?")) return;
+        try {
+            await window.go.main.App.DeleteCustomGoal(id);
+            this.loadTrophyRoom();
+        } catch (e) {
+            alert("Error deleting goal: " + e);
         }
     }
 
@@ -1176,6 +1395,62 @@ export class UIManager {
 
             if (summary.zones && summary.activity.duration > 0) {
                 this.renderZoneBar(summary.zones, summary.activity.duration);
+            }
+            
+            // Gamification Logic
+            if (summary.gamification) {
+                const g = summary.gamification;
+                document.getElementById('finish-time-xp').innerText = `${g.time_xp} XP`;
+                document.getElementById('finish-dist-xp').innerText = `${g.distance_xp} XP`;
+                document.getElementById('finish-elev-xp').innerText = `${g.elevation_xp} XP`;
+                document.getElementById('finish-streak-xp').innerText = `+${g.streak_bonus_xp} XP`;
+                
+                // Calculate Goal Bonus (Total - Sum of components)
+                const componentsSum = g.time_xp + g.distance_xp + g.elevation_xp + g.streak_bonus_xp;
+                const goalBonus = g.total_xp_earned - componentsSum;
+                
+                const goalRow = document.getElementById('finish-goal-bonus-row');
+                if (goalBonus > 0) {
+                    document.getElementById('finish-goal-xp').innerText = `+${goalBonus} XP`;
+                    goalRow.style.display = 'flex';
+                } else {
+                    goalRow.style.display = 'none';
+                }
+
+                document.getElementById('finish-total-xp').innerText = `${g.total_xp_earned} XP`;
+                
+                if (g.level_up) {
+                    const levelUpDiv = document.getElementById('finish-level-up');
+                    document.getElementById('finish-new-level').innerText = summary.gamification.new_level;
+                    levelUpDiv.style.display = 'block';
+                } else {
+                    document.getElementById('finish-level-up').style.display = 'none';
+                }
+                
+                // Show notification for goals/badges if any
+                if (summary.gamification.goals_completed && summary.gamification.goals_completed.length > 0) {
+                    setTimeout(() => {
+                        window.ui.showToast(`🎯 Goal Completed: ${summary.gamification.goals_completed[0].metric} target reached!`);
+                    }, 1000);
+                }
+                if (summary.gamification.badges_earned && summary.gamification.badges_earned.length > 0) {
+                    setTimeout(() => {
+                        window.ui.showToast(`🏆 Badge Unlocked: ${summary.gamification.badges_earned[0].name}!`);
+                    }, 2500);
+                }
+                
+                // Update local model
+                this.level = summary.gamification.new_level;
+                this.xp = summary.gamification.new_xp;
+                this.loadTrophyRoom();
+            } else {
+                // Hide or reset if gamification is missing
+                document.getElementById('finish-time-xp').innerText = '0 XP';
+                document.getElementById('finish-dist-xp').innerText = '0 XP';
+                document.getElementById('finish-elev-xp').innerText = '0 XP';
+                document.getElementById('finish-streak-xp').innerText = '+0 XP';
+                document.getElementById('finish-total-xp').innerText = '0 XP';
+                document.getElementById('finish-level-up').style.display = 'none';
             }
         }
 
@@ -2026,15 +2301,25 @@ export class UIManager {
                 trigger: 'axis',
                 formatter: '{b}: {c}% Drift'
             },
-            grid: { left: '5%', right: '5%', bottom: '15%', top: '15%', containLabel: true },
+            grid: { left: 40, right: 10, bottom: 40, top: 30, containLabel: true },
             xAxis: {
                 type: 'category',
-                data: labels,
-                axisLabel: { color: '#888' }
+                data: labels.map(l => {
+                    const d = new Date(l);
+                    return `${d.getDate()}/${d.getMonth()+1}`;
+                }),
+                axisLabel: { 
+                    color: '#64748b',
+                    fontSize: 11,
+                    margin: 10
+                },
+                axisTick: { show: false },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
             },
             yAxis: {
                 type: 'value',
                 name: 'Drift (%)',
+                min: 0, // Force start at 0
                 splitLine: { lineStyle: { color: '#333' } }
             },
             // Dynamically color the bars: Green if <= 5% (Good base), Red if > 5% (Needs work)
@@ -2049,14 +2334,48 @@ export class UIManager {
                 name: 'Pw:HR Decoupling',
                 data: drift,
                 type: 'bar',
-                itemStyle: { borderRadius: [4, 4, 0, 0] },
-                label: { show: true, position: 'top', formatter: '{c}%', color: '#fff' },
+                barWidth: 35,
+                itemStyle: { 
+                    borderRadius: [6, 6, 0, 0],
+                    color: (params) => {
+                        if (params.value <= 5) {
+                            return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(46, 204, 113, 0.8)' },
+                                { offset: 1, color: 'rgba(46, 204, 113, 0.2)' }
+                            ]);
+                        } else {
+                            return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(231, 76, 60, 0.8)' },
+                                { offset: 1, color: 'rgba(231, 76, 60, 0.2)' }
+                            ]);
+                        }
+                    }
+                },
+                label: { 
+                    show: true, 
+                    position: 'top', 
+                    formatter: '{c}%', 
+                    color: '#fff',
+                    fontSize: 14,
+                    fontWeight: 'bold',
+                    distance: 10
+                },
+                markArea: {
+                    silent: true,
+                    data: [[{
+                        yAxis: 0,
+                        itemStyle: { color: 'rgba(46, 204, 113, 0.03)' }
+                    }, {
+                        yAxis: 5
+                    }]]
+                },
                 markLine: {
                     data: [
                         { yAxis: 5, name: 'Threshold' }
                     ],
-                    lineStyle: { color: '#f1c40f', type: 'dashed', width: 2 },
-                    label: { position: 'insideEndTop', formatter: '5% Target', color: '#f1c40f' }
+                    lineStyle: { color: 'rgba(241, 196, 15, 0.2)', type: 'dashed', width: 1 },
+                    label: { show: false },
+                    symbol: ['none', 'none']
                 }
             }]
         };

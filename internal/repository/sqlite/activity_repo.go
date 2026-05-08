@@ -76,6 +76,18 @@ func (r *ActivityRepo) GetTotalDuration() int64 {
 	return *total
 }
 
+func (r *ActivityRepo) GetTotalElevation() float64 {
+	var total *float64
+	if r.state.UserDB == nil {
+		return 0
+	}
+	r.state.UserDB.Model(&domain.Activity{}).Select("sum(elevation_gain)").Scan(&total)
+	if total == nil {
+		return 0
+	}
+	return *total
+}
+
 func (r *ActivityRepo) GetActivitiesByMonth(monthStr string) ([]domain.Activity, error) {
 	var activities []domain.Activity
 	if r.state.UserDB == nil {
