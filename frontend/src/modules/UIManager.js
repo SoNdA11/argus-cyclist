@@ -848,60 +848,90 @@ export class UIManager {
             const badgesContainer = document.getElementById('badgesContainer');
             if (badgesContainer) {
                 badgesContainer.innerHTML = '';
-                if (!badges || badges.length === 0) {
-                    badgesContainer.innerHTML = '<div class="history-item" style="grid-column: 1 / -1; text-align: center;"><span>No badges yet. Keep riding!</span></div>';
-                } else {
-                    badges.forEach(b => {
-                        const bDiv = document.createElement('div');
+                
+                // Define all possible milestones
+                const allMilestones = [
+                    // Distance (km)
+                    { id: 'dist250', name: '250 km Distance', type: 'distance', val: 250 },
+                    { id: 'dist500', name: '500 km Distance', type: 'distance', val: 500 },
+                    { id: 'dist1000', name: '1000 km Distance', type: 'distance', val: 1000 },
+                    { id: 'dist2500', name: '2500 km Distance', type: 'distance', val: 2500 },
+                    { id: 'dist5000', name: '5000 km Distance', type: 'distance', val: 5000 },
+                    { id: 'dist10000', name: '10000 km Distance', type: 'distance', val: 10000 },
+                    
+                    // Elevation (m)
+                    { id: 'elev2000', name: '2000 m Elevation', type: 'elevation', val: 2000 },
+                    { id: 'elev5000', name: '5000 m Elevation', type: 'elevation', val: 5000 },
+                    { id: 'elev10000', name: '10000 m Elevation', type: 'elevation', val: 10000 },
+                    { id: 'elev25000', name: '25000 m Elevation', type: 'elevation', val: 25000 },
+                    
+                    // Time (h)
+                    { id: 'time10', name: '10 hours Saddle Time', type: 'time', val: 10 },
+                    { id: 'time25', name: '25 hours Saddle Time', type: 'time', val: 25 },
+                    { id: 'time50', name: '50 hours Saddle Time', type: 'time', val: 50 },
+                    { id: 'time75', name: '75 hours Saddle Time', type: 'time', val: 75 },
+                    { id: 'time100', name: '100 hours Saddle Time', type: 'time', val: 100 },
+                    { id: 'time250', name: '250 hours Saddle Time', type: 'time', val: 250 },
+                    { id: 'time500', name: '500 hours Saddle Time', type: 'time', val: 500 },
+                    
+                    // Activities
+                    { id: 'act10', name: '10 Activities', type: 'activities', val: 10 },
+                    { id: 'act50', name: '50 Activities', type: 'activities', val: 50 },
+                    { id: 'act100', name: '100 Activities', type: 'activities', val: 100 },
+                    { id: 'act250', name: '250 Activities', type: 'activities', val: 250 },
+                    
+                    // Power (W)
+                    { id: 'pow500', name: '500W Max Power', type: 'power', val: 500 },
+                    { id: 'pow1000', name: '1000W Max Power', type: 'power', val: 1000 },
+                    { id: 'pow1500', name: '1500W Max Power', type: 'power', val: 1500 },
+                    
+                    // MMP
+                    { id: 'mmp1', name: '1min MMP Power', type: 'power_time', val: 1 },
+                    { id: 'mmp5', name: '5min MMP Power', type: 'power_time', val: 5 },
+                    { id: 'mmp20', name: '20min MMP Power', type: 'power_time', val: 20 },
+
+                    // Heroic Deeds (Single Activity)
+                    { id: 'century', name: 'Century Club', type: 'epic_ride', val: 100 },
+                    { id: 'mtngoat', name: 'Mountain Goat', type: 'epic_climb', val: 1000 },
+                    { id: 'calories', name: 'Calories Burner', type: 'calories', val: 50000 }
+                ];
+
+                const getIcon = (type) => {
+                    switch(type) {
+                        case 'distance': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>`;
+                        case 'elevation': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 18L12 3L16 18"></path><path d="M10 11L12 14L14 11"></path><path d="M2 20L22 20"></path></svg>`;
+                        case 'activities': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5.5 17.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"></path><path d="M18.5 17.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"></path><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-2-1.5L8 14v3.5m-5 0h18M15 6l-1.5 3L11 8"></path></svg>`;
+                        case 'power':
+                        case 'power_time': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`;
+                        case 'calories': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1 2 2 3.5 4 5.5s2 4 2 6.5c0 4.5-2.5 7-6 7s-6-2.5-6-7c0-2.5 0.5-4.5 2.5-6.5S11 4 12 2z"></path></svg>`;
+                        case 'epic_ride': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path></svg>`;
+                        case 'epic_climb': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857C17.135 15.828 17 15.422 17 15s-.135-.828-.356-1.143A3 3 0 1 0 12 15c0 .422-.135.828-.356 1.143A3 3 0 1 0 7 15c0 .422-.135.828-.356 1.143A3 3 0 0 0 2 18v2h5m5 0h5"></path><path d="M12 10L12 2"></path><path d="M9 5l3-3 3 3"></path></svg>`;
+                        default: return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
+                    }
+                };
+
+                allMilestones.forEach(m => {
+                    const achieved = (badges || []).find(b => b.name === m.name);
+                    const bDiv = document.createElement('div');
+                    
+                    if (achieved) {
                         bDiv.className = 'badge-item minimalist-badge';
-                        
-                        let iconSvg = '';
-                        if (b.badge_type === 'distance') {
-                            // Flag/Finish Line Icon
-                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>`;
-                        } else if (b.badge_type === 'elevation') {
-                            // Mountain Peak Icon
-                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 18L12 3L16 18"></path><path d="M10 11L12 14L14 11"></path><path d="M2 20L22 20"></path></svg>`;
-                        } else {
-                            // Stopwatch Icon
-                            iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
-                        }
-
-                        const tierColor = b.tier >= 1000 || b.tier >= 50 ? 'var(--argus-safe)' : (b.tier >= 500 || b.tier >= 25 ? '#3498db' : '#94a3b8');
-                        
-                        // Set border consistently
-                        bDiv.style.border = `1px solid rgba(255, 255, 255, 0.08)`;
-                        bDiv.style.background = `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)`;
-
+                        const tierColor = m.val >= 1000 || m.val >= 50 ? 'var(--argus-safe)' : (m.val >= 500 || m.val >= 25 ? '#3498db' : '#94a3b8');
                         bDiv.innerHTML = `
-                            <div class="badge-icon-wrap" style="color: ${tierColor};">${iconSvg}</div>
-                            <strong style="font-size: 0.75rem; display: block; margin-top: 12px; color: #fff;">${b.name}</strong>
-                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 6px;">${new Date(b.achieved_at).toLocaleDateString()}</div>
+                            <div class="badge-icon-wrap" style="color: ${tierColor};">${getIcon(m.type)}</div>
+                            <strong style="font-size: 0.9rem; display: block; margin-top: 10px; color: #fff;">${m.name}</strong>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">${new Date(achieved.achieved_at).toLocaleDateString()}</div>
                         `;
-                        badgesContainer.appendChild(bDiv);
-                    });
-
-                    const saddleBadges = badges.filter(b => b.name.includes('Saddle Time'));
-                    const has75h = saddleBadges.some(b => b.name.includes('75'));
-                    const has100h = saddleBadges.some(b => b.name.includes('100'));
-
-                    const lockedBadges = [];
-                    if (!has75h) lockedBadges.push({ name: '75 hours Saddle Time', type: 'time' });
-                    if (!has100h) lockedBadges.push({ name: '100 hours Saddle Time', type: 'time' });
-
-                    lockedBadges.forEach(lb => {
-                        const bDiv = document.createElement('div');
+                    } else {
                         bDiv.className = 'badge-item minimalist-badge badge-locked';
-                        const iconSvg = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
-                        
                         bDiv.innerHTML = `
-                            <div class="badge-icon-wrap">${iconSvg}</div>
-                            <strong style="font-size: 0.75rem; display: block; margin-top: 12px;">${lb.name}</strong>
-                            <div style="font-size: 0.65rem; margin-top: 6px;">Locked</div>
+                            <div class="badge-icon-wrap">${getIcon(m.type)}</div>
+                            <strong style="font-size: 0.9rem; display: block; margin-top: 10px;">${m.name}</strong>
+                            <div style="font-size: 0.8rem; margin-top: 4px;">Locked</div>
                         `;
-                        badgesContainer.appendChild(bDiv);
-                    });
-                }
+                    }
+                    badgesContainer.appendChild(bDiv);
+                });
             }
 
             const goals = await window.go.main.App.GetCustomGoals();

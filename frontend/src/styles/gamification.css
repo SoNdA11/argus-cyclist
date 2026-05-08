@@ -263,8 +263,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .badges-section h4 {
     font-size: 1rem;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: rgba(255, 255, 255, 0.6);
+}
+
+.badges-scroll-container {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.badges-scroll-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.badges-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.badges-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .badges-minimal-grid {

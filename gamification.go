@@ -153,33 +153,46 @@ func (a *App) updateAndCheckBadges(totalXP *int64) []domain.UserBadge {
 	totalTimeHrs := float64(a.storageService.GetTotalDuration()) / 3600.0
 	totalElev := a.storageService.GetTotalElevation()
 	
+	allActivities, _ := a.storageService.GetAllActivities()
+	activityCount := len(allActivities)
+	
+	powerCurve := a.storageService.GetPowerCurve()
+	maxPower := 0
+	mmpMap := make(map[int]int) // duration -> watts
+	for _, pr := range powerCurve {
+		if pr.Duration == 1 && pr.Watts > maxPower {
+			maxPower = pr.Watts
+		}
+		mmpMap[pr.Duration] = pr.Watts
+	}
+	
 	// Fetch already unlocked badges
 	existingBadges := a.storageService.GetUserBadges()
 	badgeMap := make(map[string]bool)
 	for _, b := range existingBadges {
-		badgeMap[b.BadgeType+"_"+fmt.Sprint(b.Tier)] = true
+		badgeMap[b.Name] = true
 	}
 	
-	// Define thresholds
-	distTiers := []int{250, 500, 1000, 1500}
+	// 1. Distance Tiers
+	distTiers := []int{250, 500, 1000, 2500, 5000, 10000}
 	for _, t := range distTiers {
-		key := "distance_" + fmt.Sprint(t)
-		if !badgeMap[key] && totalDistKm >= float64(t) {
-			b := domain.UserBadge{BadgeType: "distance", Tier: t, Name: fmt.Sprintf("%d km Distance", t), AchievedAt: time.Now()}
+		name := fmt.Sprintf("%d km Distance", t)
+		if !badgeMap[name] && totalDistKm >= float64(t) {
+			b := domain.UserBadge{BadgeType: "distance", Tier: t, Name: name, AchievedAt: time.Now()}
 			a.storageService.SaveBadge(b)
 			unlocked = append(unlocked, b)
-			*totalXP += 1000 // massive one-time XP burst
+			*totalXP += 1000
 		}
 	}
 	
-	elevTiers := []int{2000, 5000, 8848, 10000}
+	// 2. Elevation Tiers
+	elevTiers := []int{2000, 5000, 8848, 10000, 25000}
 	for _, t := range elevTiers {
-		key := "elevation_" + fmt.Sprint(t)
-		if !badgeMap[key] && totalElev >= float64(t) {
-			name := fmt.Sprintf("%d m Elevation", t)
-			if t == 8848 {
-				name = "Everest (8848m)"
-			}
+		name := fmt.Sprintf("%d m Elevation", t)
+		if t == 8848 {
+			name = "Everest (8848m)"
+		}
+		if !badgeMap[name] && totalElev >= float64(t) {
 			b := domain.UserBadge{BadgeType: "elevation", Tier: t, Name: name, AchievedAt: time.Now()}
 			a.storageService.SaveBadge(b)
 			unlocked = append(unlocked, b)
@@ -187,23 +200,109 @@ func (a *App) updateAndCheckBadges(totalXP *int64) []domain.UserBadge {
 		}
 	}
 	
-	timeTiers := []int{10, 25, 50}
+	// 3. Time Tiers
+	timeTiers := []int{10, 25, 50, 75, 100, 250, 500}
 	for _, t := range timeTiers {
-		key := "time_" + fmt.Sprint(t)
-		if !badgeMap[key] && totalTimeHrs >= float64(t) {
-			b := domain.UserBadge{BadgeType: "time", Tier: t, Name: fmt.Sprintf("%d hours Saddle Time", t), AchievedAt: time.Now()}
+		name := fmt.Sprintf("%d hours Saddle Time", t)
+		if !badgeMap[name] && totalTimeHrs >= float64(t) {
+			b := domain.UserBadge{BadgeType: "time", Tier: t, Name: name, AchievedAt: time.Now()}
 			a.storageService.SaveBadge(b)
 			unlocked = append(unlocked, b)
 			*totalXP += 800
+		}
+	}
+
+	// 4. Activity Count Tiers
+	actTiers := []int{10, 50, 100, 250}
+	for _, t := range actTiers {
+		name := fmt.Sprintf("%d Activities", t)
+		if !badgeMap[name] && activityCount >= t {
+			b := domain.UserBadge{BadgeType: "activities", Tier: t, Name: name, AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 500
+		}
+	}
+
+	// 5. Max Power Tiers
+	powTiers := []int{500, 1000, 1500}
+	for _, t := range powTiers {
+		name := fmt.Sprintf("%dW Max Power", t)
+		if !badgeMap[name] && maxPower >= t {
+			b := domain.UserBadge{BadgeType: "power", Tier: t, Name: name, AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 1200
+		}
+	}
+
+	// 6. Single Activity Records (Century Ride & Mountain Goat)
+	maxSingleDist := 0.0
+	maxSingleElev := 0.0
+	totalCalories := 0
+	for _, act := range allActivities {
+		if act.TotalDistance > maxSingleDist {
+			maxSingleDist = act.TotalDistance
+		}
+		if act.ElevationGain > maxSingleElev {
+			maxSingleElev = act.ElevationGain
+		}
+		totalCalories += act.Calories
+	}
+
+	// Century Club (100km in one ride)
+	if !badgeMap["Century Club"] && maxSingleDist >= 100000 {
+		b := domain.UserBadge{BadgeType: "epic_ride", Tier: 100, Name: "Century Club", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 3000
+	}
+
+	// Mountain Goat (1000m elevation in one ride)
+	if !badgeMap["Mountain Goat"] && maxSingleElev >= 1000 {
+		b := domain.UserBadge{BadgeType: "epic_climb", Tier: 1000, Name: "Mountain Goat", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 2500
+	}
+
+	// Calories Burner (50k total)
+	if !badgeMap["Calories Burner"] && totalCalories >= 50000 {
+		b := domain.UserBadge{BadgeType: "calories", Tier: 50000, Name: "Calories Burner", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 2000
+	}
+
+	// 7. MMP Tiers (Just check if record exists for these durations)
+	mmpTiers := []int{1, 5, 20}
+	for _, t := range mmpTiers {
+		name := fmt.Sprintf("%dmin MMP Power", t)
+		// Special case for 1 min
+		if t == 1 {
+			if !badgeMap[name] && mmpMap[60] > 0 {
+				b := domain.UserBadge{BadgeType: "power_time", Tier: t, Name: name, AchievedAt: time.Now()}
+				a.storageService.SaveBadge(b)
+				unlocked = append(unlocked, b)
+				*totalXP += 600
+			}
+		} else {
+			durationSecs := t * 60
+			if !badgeMap[name] && mmpMap[durationSecs] > 0 {
+				b := domain.UserBadge{BadgeType: "power_time", Tier: t, Name: name, AchievedAt: time.Now()}
+				a.storageService.SaveBadge(b)
+				unlocked = append(unlocked, b)
+				*totalXP += 800
+			}
 		}
 	}
 	
 	return unlocked
 }
 
-// ========================
+// ==================
 // Frontend Endpoints
-// ========================
+// ==================
 
 func (a *App) CreateCustomGoal(metric string, targetValue float64, deadline string) error {
 	deadlineTime, err := time.Parse(time.RFC3339, deadline)
@@ -231,5 +330,9 @@ func (a *App) GetCustomGoals() []domain.CustomGoal {
 }
 
 func (a *App) GetUserBadges() []domain.UserBadge {
+	// Retroactively check for new badges before returning the list
+	var dummyXP int64
+	a.updateAndCheckBadges(&dummyXP)
+	
 	return a.storageService.GetUserBadges()
 }
