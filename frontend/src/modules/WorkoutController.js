@@ -42,6 +42,9 @@ export class WorkoutController {
         this.canvas = document.getElementById('workout-canvas');
         this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
 
+        this.studioCanvas = document.getElementById('studio-workout-canvas');
+        this.studioCtx = this.studioCanvas ? this.studioCanvas.getContext('2d') : null;
+
         this.lastWidth = 0;
 
         // Mobile (Capacitor) State
@@ -127,7 +130,9 @@ export class WorkoutController {
 
             const leftSidebar = document.querySelector('.hud-sidebar:not(#workout-panel)');
             if (leftSidebar) leftSidebar.style.display = '';
+
         }
+
 
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
@@ -168,11 +173,24 @@ export class WorkoutController {
         setTimeout(() => {
             if (window.mapController && window.mapController.map) {
                 window.mapController.map.resize();
-            }
-            else {
+            } else {
                 window.dispatchEvent(new Event('resize'));
             }
         }, 50);
+
+        if (window.ui) {
+            window.ui.toggleStudioMode(false);
+        }
+    }
+
+    initStudioChart() {
+        if (!this.studioCanvas) return;
+        setTimeout(() => {
+            const rect = this.studioCanvas.parentElement.getBoundingClientRect();
+            this.studioCanvas.width = rect.width;
+            this.studioCanvas.height = rect.height;
+            this.renderGraph(this.lastPct || 0);
+        }, 100);
     }
 
     // =================================
@@ -300,10 +318,20 @@ export class WorkoutController {
             this.elTarget.style.color = "#3498db";
             this.elMessage.innerText = "FREE RIDE - CONTROL YOUR GEARS";
             this.elMessage.style.color = "#3498db";
+            
+            if (window.ui && window.ui.els.studioTarget) {
+                window.ui.els.studioTarget.innerText = "FREE RIDE";
+                window.ui.els.studioTarget.style.color = "#3498db";
+            }
         } else {
             this.elTarget.innerText = `${targetPower}w`;
             this.elTarget.style.color = "";
             this.elMessage.style.color = "";
+
+            if (window.ui && window.ui.els.studioTarget) {
+                window.ui.els.studioTarget.innerText = `${targetPower}W`;
+                window.ui.els.studioTarget.style.color = "";
+            }
         }
 
         if (window.ui && window.ui.isDashboardMode) {
@@ -324,8 +352,13 @@ export class WorkoutController {
 
         const m = Math.floor(timeRemain / 60);
         const s = timeRemain % 60;
-        this.elTimer.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+        const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+        this.elTimer.innerText = timeStr;
         this.elCompletion.innerText = Math.floor(completionPct) + "%";
+
+        if (window.ui && window.ui.els.studioTimer) {
+            window.ui.els.studioTimer.innerText = timeStr;
+        }
 
         if (this.currentSegIdx !== currentIdx) {
             const prevProg = document.getElementById(`prog-${this.currentSegIdx}`);
@@ -340,8 +373,26 @@ export class WorkoutController {
                 curr.classList.add('active');
                 curr.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 if (!isFreeRide) {
-                    this.elMessage.innerText = this.getSegmentTypeLabel(currentIdx);
+                    const label = this.getSegmentTypeLabel(currentIdx);
+                    this.elMessage.innerText = label;
+                    if (window.ui && window.ui.els.studioTimerLabel) {
+                        window.ui.els.studioTimerLabel.innerText = label;
+                    }
                 }
+            }
+        }
+
+        // Update Zone Visual Cue
+        if (window.ui && window.ui.isStudioMode) {
+            const segments = this.getProp(this.activeWorkout, ['segments', 'Segments']);
+            const seg = segments.find(s => this.getProp(s, ['index', 'Index']) === currentIdx);
+            if (seg) {
+                const factor = this.getProp(seg, ['start_factor', 'StartFactor']);
+                const zone = this.getZone(factor);
+                
+                // Clear previous zones
+                for (let i = 1; i <= 6; i++) window.ui.els.studioHud.classList.remove(`zone-${i}`);
+                window.ui.els.studioHud.classList.add(`zone-${zone}`);
             }
         }
 
@@ -355,7 +406,20 @@ export class WorkoutController {
     }
 
     renderGraph(completionPct) {
-        if (!this.canvas || !this.ctx) return;
+        this.lastPct = completionPct; // Store for re-renders
+        
+        // Render on Standard Canvas (Sidebar)
+        if (this.canvas && this.ctx && this.panel && !this.panel.classList.contains('hidden')) {
+            this._drawGraphOnCanvas(this.canvas, this.ctx, completionPct);
+        }
+
+        // Render on Studio Canvas
+        if (this.studioCanvas && this.studioCtx && window.ui && window.ui.isStudioMode) {
+            this._drawGraphOnCanvas(this.studioCanvas, this.studioCtx, completionPct);
+        }
+    }
+
+    _drawGraphOnCanvas(canvas, ctx, completionPct) {
         if (!this.activeWorkout) return;
 
         const segments = this.getProp(this.activeWorkout, ['segments', 'Segments']);
@@ -367,23 +431,19 @@ export class WorkoutController {
         }
         if (!totalDur || totalDur === 0) return;
 
-        const parent = this.canvas.parentElement;
-        const rect = parent.getBoundingClientRect();
-
-        if (this.canvas.width !== rect.width || this.canvas.height !== rect.height) {
-            this.canvas.width = rect.width;
-            this.canvas.height = rect.height;
-            this.lastWidth = rect.width;
-            this.lastHeight = rect.height;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (canvas.width !== rect.width || canvas.height !== rect.height) {
+            canvas.width = rect.width;
+            canvas.height = rect.height;
         } else {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        const w = this.canvas.width;
-        const h = this.canvas.height;
+        const w = canvas.width;
+        const h = canvas.height;
 
-        this.ctx.fillStyle = "rgba(0,0,0,0.2)";
-        this.ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.fillRect(0, 0, w, h);
 
         let x = 0;
         const maxFactor = 1.3;
@@ -399,35 +459,36 @@ export class WorkoutController {
             const yStart = h - (startFactor / maxFactor) * h;
             const yEnd = h - (endFactor / maxFactor) * h;
 
-            this.ctx.fillStyle = this.getZoneColor(startFactor);
+            ctx.fillStyle = this.getZoneColor(startFactor);
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, h);
-            this.ctx.lineTo(x, yStart);
-            this.ctx.lineTo(x + segW, yEnd);
-            this.ctx.lineTo(x + segW, h);
-            this.ctx.closePath();
-            this.ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x, h);
+            ctx.lineTo(x, yStart);
+            ctx.lineTo(x + segW, yEnd);
+            ctx.lineTo(x + segW, h);
+            ctx.closePath();
+            ctx.fill();
 
-            this.ctx.strokeStyle = "rgba(0,0,0,0.3)";
-            this.ctx.lineWidth = 1;
-            this.ctx.stroke();
+            ctx.strokeStyle = "rgba(0,0,0,0.3)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
 
             x += segW;
         });
 
         const cursorX = (completionPct / 100) * w;
         if (isFinite(cursorX)) {
-            this.ctx.fillStyle = "rgba(0,0,0,0.6)";
-            this.ctx.fillRect(0, 0, cursorX, h);
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(0, 0, cursorX, h);
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(cursorX, 0);
-            this.ctx.lineTo(cursorX, h);
-            this.ctx.strokeStyle = "#fff";
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cursorX, 0);
+            ctx.lineTo(cursorX, h);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
+
     }
 
     getZone(factor) {
