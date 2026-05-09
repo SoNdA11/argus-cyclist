@@ -18,6 +18,7 @@ import './styles/main.css';
 import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
+import './styles/studio-hud.css';
 import cooldownModalHtml from './components/cooldownModal.html?raw';
 import eventHubPageHtml from './components/eventHubPage.html?raw';
 import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
@@ -28,7 +29,7 @@ import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModa
 import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 
-document.body.insertAdjacentHTML('afterbegin', 
+document.body.insertAdjacentHTML('beforeend', 
     homeScreenHtml + 
     settingsModalHtml + 
     confirmModalHtml + 
@@ -293,6 +294,16 @@ document.getElementById('btnProceedAssessmentFTP').addEventListener('click', asy
 
 document.getElementById('btnToggleView').addEventListener('click', () => {
     window.ui.toggleDashboardMode();
+});
+
+document.getElementById('btnJustRide').addEventListener('click', () => {
+    window.totalRouteDistance = 0;
+    if (window.mapController) window.mapController.renderRoute({ type: 'FeatureCollection', features: [] });
+    if (window.workoutCtrl) window.workoutCtrl.hide();
+    
+    ui.showRoutePreview(0);
+    ui.els.btnAction.classList.remove('hidden');
+    ui.toggleStudioMode(true);
 });
 
 // ==================
@@ -987,6 +998,8 @@ function parseZWOForMobile(xmlString) {
 async function finishWorkout() {
     isFinishTriggered = true;
     window.isRecording = false;
+    if (window.ui) window.ui.resetTimer();
+    if (window.workoutCtrl) window.workoutCtrl.hide();
 
     if (Capacitor.isNativePlatform()) {
         ui.setRecordingState('IDLE');
@@ -1041,6 +1054,8 @@ async function finishWorkout() {
         }
     } catch (e) { alert("Error when saving: " + e); }
 }
+window.finishWorkout = finishWorkout;
+
 
 window.uploadToStrava = async () => {
     const btn = document.getElementById('btnUploadStrava');
@@ -1061,7 +1076,7 @@ window.uploadToStrava = async () => {
     }
 };
 
-document.getElementById('btnAction').addEventListener('click', async () => {
+window.toggleRecording = async () => {
     try {
         if (!window.isRecording) {
             isFinishTriggered = false;
@@ -1076,7 +1091,10 @@ document.getElementById('btnAction').addEventListener('click', async () => {
             await window.go.main.App.ToggleSession();
         }
     } catch (e) { alert("Error: " + e); }
-});
+};
+
+document.getElementById('btnAction').addEventListener('click', window.toggleRecording);
+
 
 document.getElementById('btnResume').addEventListener('click', async () => {
     window.isRecording = true;
@@ -1094,7 +1112,11 @@ document.getElementById('btnFinishSave').addEventListener('click', async () => {
             await finishWorkout();
         } else {
             document.getElementById('confirmModal').classList.remove('active');
-            document.getElementById('cooldownModal').classList.add('active');
+            const cdModal = document.getElementById('cooldownModal');
+            cdModal.classList.remove('hidden', 'hide');
+            cdModal.classList.add('active');
+            cdModal.style.display = 'flex';
+            cdModal.style.zIndex = '100000';
         }
     } catch (e) {
         await finishWorkout();
@@ -1102,7 +1124,9 @@ document.getElementById('btnFinishSave').addEventListener('click', async () => {
 });
 
 document.getElementById('btnSkipCooldown').addEventListener('click', async () => {
-    document.getElementById('cooldownModal').classList.remove('active');
+    const cdModal = document.getElementById('cooldownModal');
+    cdModal.classList.remove('active');
+    cdModal.style.display = 'none';
     await finishWorkout();
 });
 
@@ -1111,7 +1135,12 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
         if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
             await window.go.main.App.DiscardSession();
         }
-        ui.setRecordingState('IDLE');
+        if (window.ui) {
+            window.ui.setRecordingState('IDLE');
+            window.ui.resetTimer();
+            if (window.ui.isStudioMode) window.ui.toggleStudioMode(false);
+        }
+        if (window.workoutCtrl) window.workoutCtrl.hide();
         window.isRecording = false;
     }
 });
@@ -1264,7 +1293,9 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
     });
 
     window.runtime.EventsOn("cooldown_complete", async (summary) => {
-        document.getElementById('cooldownModal').classList.remove('active');
+        const cdModal = document.getElementById('cooldownModal');
+        cdModal.classList.remove('active');
+        cdModal.style.display = 'none';
         if (window.ui) {
             window.ui.showFinishModal(summary);
         }
@@ -1651,7 +1682,6 @@ function initTutorial() {
         btnSkip.addEventListener('click', finishTutorial);
     }
     
-    const btnViewTut = document.getElementById('btnViewTutorial');
     if (btnViewTut) {
         btnViewTut.addEventListener('click', () => {
             if (window.ui) window.ui.toggleSettings(false);

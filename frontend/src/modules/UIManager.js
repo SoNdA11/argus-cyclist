@@ -94,6 +94,28 @@ export class UIManager {
             dashSpeed: document.getElementById('dash-speed'),
             dashDist: document.getElementById('dash-dist'),
             dashTime: document.getElementById('dash-time'),
+
+            // --- Studio HUD Elements ---
+            studioHud: document.getElementById('studio-hud'),
+            studioPower: document.getElementById('studio-power'),
+            studioTarget: document.getElementById('studio-target'),
+            studioTimer: document.getElementById('studio-timer'),
+            studioTimerLabel: document.getElementById('studio-timer-label'),
+            studioHr: document.getElementById('studio-hr'),
+            studioRpm: document.getElementById('studio-rpm'),
+            studioWkg: document.getElementById('studio-wkg'),
+            studioGlow: document.getElementById('studio-glow'),
+            studioSpeed: document.getElementById('studio-speed'),
+            studioAvgSpeed: document.getElementById('studio-avg-speed'),
+            studioDist: document.getElementById('studio-dist'),
+            btnToggleStudio: document.getElementById('btnToggleStudio'),
+            footer: document.querySelector('footer'),
+            header: document.querySelector('header'),
+            workoutPanel: document.getElementById('workout-panel'),
+            btnStudioStop: document.getElementById('btnStudioStop'),
+            btnStudioStart: document.getElementById('btnStudioStart'),
+            btnStudioExit: document.getElementById('btnStudioExit'),
+            btnStudioLoadWorkout: document.getElementById('btnStudioLoadWorkout'),
         };
 
         // --- GLOBAL ACCESS ---
@@ -101,6 +123,7 @@ export class UIManager {
 
         // --- VIEW STATE ---
         this.isDashboardMode = false; // Tracks if map is hidden
+        this.isStudioMode = false;    // Tracks if Studio HUD is active
 
         // --- TIMER STATE ---
         this.timerInterval = null;
@@ -150,6 +173,36 @@ export class UIManager {
         }
 
         telemetryBus.subscribe((data) => this.updateTelemetry(data, window.totalRouteDistance));
+
+        if (this.els.btnToggleStudio) {
+            this.els.btnToggleStudio.addEventListener('click', () => this.toggleStudioMode());
+        }
+
+        if (this.els.btnStudioStop) {
+            this.els.btnStudioStop.addEventListener('click', () => {
+                // Pause the session and show the confirmation modal (Save/Resume/Discard)
+                if (window.toggleRecording) window.toggleRecording();
+            });
+        }
+
+        if (this.els.btnStudioStart) {
+            this.els.btnStudioStart.addEventListener('click', () => {
+                // Trigger the main action button logic (which starts recording)
+                if (window.toggleRecording) window.toggleRecording();
+            });
+        }
+
+        if (this.els.btnStudioExit) {
+            this.els.btnStudioExit.addEventListener('click', () => this.toggleStudioMode(false));
+        }
+
+        if (this.els.btnStudioLoadWorkout) {
+            this.els.btnStudioLoadWorkout.addEventListener('click', () => {
+                // Trigger the main workout loading logic (handles both Wails and Capacitor)
+                const mainBtn = document.getElementById('btnLoadWorkout');
+                if (mainBtn) mainBtn.click();
+            });
+        }
     }
 
     // ===========
@@ -166,6 +219,7 @@ export class UIManager {
             this.els.dashboardView.classList.remove('hidden');
             this.els.mapContainer.style.display = 'none';
             this.els.hudSidebar.style.display = 'none';
+            if (this.els.studioHud) this.els.studioHud.classList.add('hidden');
 
             // --- Initialize and resize chart ---
             this.initLiveChart();
@@ -181,6 +235,57 @@ export class UIManager {
                 if (window.mapController) {
                     window.mapController.forceResize();
                 }
+            }, 100);
+        }
+    }
+
+    /**
+     * Toggles between Map View and Studio HUD
+     */
+    toggleStudioMode(force = null) {
+        if (force !== null) this.isStudioMode = force;
+        else this.isStudioMode = !this.isStudioMode;
+
+        if (this.isStudioMode) {
+            this.els.studioHud.classList.remove('hidden');
+            this.els.header.style.display = 'none';
+            this.els.mapContainer.style.display = 'none';
+            this.els.hudSidebar.style.display = 'none';
+            this.els.dashboardView.classList.add('hidden');
+            if (this.els.footer) this.els.footer.style.display = 'none';
+            if (this.els.workoutPanel) this.els.workoutPanel.classList.add('hidden');
+            
+            if (window.workoutCtrl) {
+                // Ensure layout has reflowed for canvas sizing
+                setTimeout(() => window.workoutCtrl.initStudioChart(), 50);
+                setTimeout(() => window.workoutCtrl.initStudioChart(), 300);
+                setTimeout(() => window.workoutCtrl.initStudioChart(), 800);
+            }
+        } else {
+            this.els.studioHud.classList.add('hidden');
+            this.els.header.style.display = 'flex';
+            this.els.mapContainer.style.display = 'block';
+            if (this.els.footer) this.els.footer.style.display = '';
+
+            if (window.workoutCtrl) {
+                setTimeout(() => window.workoutCtrl.renderGraph(window.workoutCtrl.lastPct || 0), 100);
+            }
+
+            // Restore previous view state (Dashboard vs Map)
+            if (this.isDashboardMode) {
+                this.els.dashboardView.classList.remove('hidden');
+                this.els.hudSidebar.style.display = 'none';
+            } else {
+                this.els.dashboardView.classList.add('hidden');
+                this.els.hudSidebar.style.display = 'flex';
+                if (this.els.workoutPanel && window.workoutCtrl && window.workoutCtrl.activeWorkout) {
+                    this.els.workoutPanel.classList.remove('hidden');
+                }
+            }
+
+            setTimeout(() => {
+                if (window.mapController) window.mapController.forceResize();
+                window.dispatchEvent(new Event('resize'));
             }, 100);
         }
     }
@@ -474,6 +579,37 @@ export class UIManager {
         const wkgVal = (data.power / totalWeight).toFixed(2);
         this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;
 
+        // Update Studio HUD metrics
+        if (this.isStudioMode) {
+            if (this.els.studioHr) this.els.studioHr.innerText = data.heart_rate || '--';
+            if (this.els.studioRpm) this.els.studioRpm.innerText = data.cadence || '0';
+            if (this.els.studioWkg) this.els.studioWkg.innerText = (data.power / this.riderWeight).toFixed(1);
+            if (this.els.studioSpeed) this.els.studioSpeed.innerText = data.speed ? data.speed.toFixed(1) : '0.0';
+            if (this.els.studioDist) this.els.studioDist.innerText = (data.total_dist / 1000).toFixed(2);
+
+            // Average Speed
+            if (this.els.studioAvgSpeed) {
+                const totalDistKm = data.total_dist / 1000;
+                const totalHours = this.secondsElapsed / 3600;
+                if (totalHours > 0) {
+                    const avgSpeed = totalDistKm / totalHours;
+                    this.els.studioAvgSpeed.innerText = avgSpeed.toFixed(1);
+                }
+            }
+
+            // Power Zone Color for Studio
+            if (this.els.studioHud) {
+                // Remove all zone classes
+                for (let i = 0; i <= 6; i++) this.els.studioHud.classList.remove(`zone-${i}`);
+                
+                // Add current zone
+                if (window.workoutCtrl) {
+                    const zone = window.workoutCtrl.getZone(data.power / (window.workoutCtrl.riderFTP || 200));
+                    this.els.studioHud.classList.add(`zone-${zone}`);
+                }
+            }
+        }
+
         // Remaining distance and route progress cursor (Laps Support)
         if (totalRouteDistance > 0) {
             const lapDist = data.total_dist % totalRouteDistance;
@@ -530,6 +666,18 @@ export class UIManager {
                     ]
                 });
             }
+        }
+
+        // --- NEW: Update Studio Mode Data ---
+        if (this.isStudioMode) {
+            this.els.studioPower.innerText = data.power;
+            this.els.studioPower.style.color = powerColor;
+            
+            this.els.studioHr.innerText = data.heart_rate || "--";
+            this.els.studioHr.style.color = hrColor;
+            
+            this.els.studioRpm.innerText = data.cadence;
+            this.els.studioWkg.innerText = wkgVal;
         }
     }
 
@@ -636,6 +784,13 @@ export class UIManager {
         if (this.els.cursor) {
             this.els.cursor.style.left = '0%';
         }
+
+        // --- Route vs Route-less UI ---
+        if (totalDistance > 0) {
+            if (this.els.btnToggleStudio) this.els.btnToggleStudio.style.display = 'none';
+        } else {
+            if (this.els.btnToggleStudio) this.els.btnToggleStudio.style.display = 'flex';
+        }
     }
 
     // ===========
@@ -658,7 +813,8 @@ export class UIManager {
     resetTimer() {
         this.stopTimer();
         this.secondsElapsed = 0;
-        this.updateTimerDisplay();
+        this.updateTimerDisplay(0);
+        if (this.els.studioTimer) this.els.studioTimer.innerText = "00:00:00";
     }
 
     startRouteEditor() {
@@ -719,8 +875,18 @@ export class UIManager {
      * Open or close the confirmation modal.
      */
     toggleConfirmModal(show) {
-        if (show) this.els.confirmModal.classList.add('active');
-        else this.els.confirmModal.classList.remove('active');
+        if (!this.els.confirmModal) return;
+
+        if (show) {
+            this.els.confirmModal.classList.remove('hidden', 'hide');
+            this.els.confirmModal.classList.add('active');
+            // Force flex and high z-index to overcome any CSS conflicts
+            this.els.confirmModal.style.display = 'flex';
+            this.els.confirmModal.style.zIndex = '100000';
+        } else {
+            this.els.confirmModal.classList.remove('active');
+            this.els.confirmModal.style.display = 'none';
+        }
     }
 
     /**
@@ -766,6 +932,17 @@ export class UIManager {
             this.els.btnImport.disabled = false;
             this.resetTimer();
             this.toggleConfirmModal(false);
+        }
+
+        // Handle Studio Mode buttons
+        if (this.els.btnStudioStart && this.els.btnStudioStop) {
+            if (state === 'RECORDING') {
+                this.els.btnStudioStart.classList.add('hidden');
+                this.els.btnStudioStop.classList.remove('hidden');
+            } else {
+                this.els.btnStudioStart.classList.remove('hidden');
+                this.els.btnStudioStop.classList.add('hidden');
+            }
         }
     }
 
@@ -1484,7 +1661,11 @@ export class UIManager {
             }
         }
 
+        modal.classList.remove('hidden', 'hide');
         modal.classList.add('active');
+        // Force flex and high z-index to overcome any CSS conflicts
+        modal.style.display = 'flex';
+        modal.style.zIndex = '100000';
     }
 
     renderZoneBar(zones, totalDurationSec) {
@@ -1521,7 +1702,10 @@ export class UIManager {
 
     closeFinishModal() {
         const modal = document.getElementById('finishModal');
-        if (modal) modal.classList.remove('active');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
         this.setRecordingState('IDLE');
     }
 
