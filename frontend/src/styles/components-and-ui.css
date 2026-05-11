@@ -88,7 +88,16 @@ header {
     justify-content: space-between;
     padding: 0 24px;
     z-index: 6000; /* Above Studio HUD */
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+header.header-dimmed {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    backdrop-filter: brightness(0.4) blur(12px) !important;
+    opacity: 0.3;
+    pointer-events: none;
 }
 
 .brand {
