@@ -865,9 +865,11 @@ export class UIManager {
             this.loadUserProfile();
             this.loadHistory(); // Load history when opening settings
             this.els.settingsModal.classList.add('active');
+            if (this.els.header) this.els.header.classList.add('header-dimmed');
         } else {
             this.saveUserProfile();
             this.els.settingsModal.classList.remove('active');
+            if (this.els.header) this.els.header.classList.remove('header-dimmed');
         }
     }
 

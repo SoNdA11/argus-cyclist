@@ -20,6 +20,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
    ACTIVITY DETAIL MODAL
    =====================
 */
+#activityDetailModal {
+    z-index: 110000 !important;
+}
+
 .modern-detail-modal {
     max-width: 1600px;
     width: 95%;
