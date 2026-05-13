@@ -108,6 +108,7 @@ export class UIManager {
             studioSpeed: document.getElementById('studio-speed'),
             studioAvgSpeed: document.getElementById('studio-avg-speed'),
             studioDist: document.getElementById('studio-dist'),
+            studioElapsed: document.getElementById('studio-elapsed'),
             btnToggleStudio: document.getElementById('btnToggleStudio'),
             footer: document.querySelector('footer'),
             header: document.querySelector('header'),
@@ -846,6 +847,7 @@ export class UIManager {
         const timeStr = `${h}:${m}:${s}`;
 
         this.els.time.innerText = timeStr;
+        if (this.els.studioElapsed) this.els.studioElapsed.innerText = timeStr;
 
         // --- Update Dashboard Time ---
         if (this.els.dashTime) {

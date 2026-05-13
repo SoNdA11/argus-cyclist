@@ -159,6 +159,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     line-height: 1;
     background: linear-gradient(to bottom, #fff 40%, #94a3b8 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     font-variant-numeric: tabular-nums;
 }
@@ -215,6 +216,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         inset 0 1px 1px rgba(255, 255, 255, 0.1);
     position: relative;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    margin-top: 4vh;
 }
 
 .timer-value {
@@ -225,6 +227,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     letter-spacing: -0.04em;
     background: linear-gradient(to bottom, #fff 50%, #94a3b8 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -255,9 +258,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 18px 32px;
-    border-radius: 22px;
-    min-width: 180px;
+    padding: 24px 40px;
+    border-radius: 26px;
+    min-width: 220px;
     box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
@@ -268,13 +271,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .studio-metrics-row .studio-metric .label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: #64748b;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
 }
 
 .studio-metrics-row .studio-metric .value {
-    font-size: clamp(1.8rem, 4vh, 3.2rem);
+    font-size: clamp(2.2rem, 5vh, 3.8rem);
     color: #f1f5f9;
     font-weight: 900;
 }
@@ -287,12 +292,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .studio-metrics-row.secondary .studio-metric {
     background: rgba(15, 23, 42, 0.4);
-    padding: 16px 28px;
-    border-radius: 20px;
+    padding: 20px 32px;
+    border-radius: 22px;
 }
 
 .studio-metrics-row.secondary .studio-metric .value {
-    font-size: clamp(1.4rem, 3.5vh, 2.6rem);
+    font-size: clamp(1.6rem, 4vh, 3.0rem);
     color: #94a3b8;
 }
 
