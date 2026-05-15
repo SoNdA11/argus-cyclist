@@ -1664,7 +1664,7 @@ async function initHomeScreen() {
 // =========================
 
 let currentTutorialStep = 1;
-const totalTutorialSteps = 9;
+const totalTutorialSteps = 10;
 
 function initTutorial() {
     const tutorialSeen = localStorage.getItem('argus_tutorial_seen');
@@ -1682,6 +1682,7 @@ function initTutorial() {
         btnSkip.addEventListener('click', finishTutorial);
     }
     
+    const btnViewTut = document.getElementById('btnViewTutorial');
     if (btnViewTut) {
         btnViewTut.addEventListener('click', () => {
             if (window.ui) window.ui.toggleSettings(false);
