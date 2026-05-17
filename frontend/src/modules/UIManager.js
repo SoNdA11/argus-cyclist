@@ -2692,7 +2692,7 @@ export class UIManager {
 
         // 3. Build the HTML template using Glassmorphism styling 
         const modalHtml = `
-            <div id="kb-modal" class="modal-overlay active" style="z-index: 9999; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);" onclick="if(event.target === this) this.remove()">
+            <div id="kb-modal" class="modal-overlay active" style="z-index: 120000; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);" onclick="if(event.target === this) this.remove()">
                 
                 <div class="glass-panel" style="background: rgba(21, 32, 54, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 30px; max-width: 550px; width: 90%; color: var(--text-main); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: left; animation: fadeIn 0.3s ease;">
                     
