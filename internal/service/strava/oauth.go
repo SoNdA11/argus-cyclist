@@ -80,6 +80,10 @@ func RefreshToken(refreshToken string) (*TokenResponse, error) {
 	clientID := os.Getenv("STRAVA_CLIENT_ID")
 	clientSecret := os.Getenv("STRAVA_CLIENT_SECRET")
 
+	if clientID == "" || clientSecret == "" {
+		return nil, fmt.Errorf("strava credentials not found in environment variables")
+	}
+
 	data := url.Values{}
 	data.Set("client_id", clientID)
 	data.Set("client_secret", clientSecret)
@@ -97,9 +101,17 @@ func RefreshToken(refreshToken string) (*TokenResponse, error) {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("strava refresh API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
 	var tokenResp TokenResponse
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("failed to parse strava refresh response: %v", err)
+	}
+
+	if tokenResp.AccessToken == "" {
+		return nil, fmt.Errorf("strava refresh succeeded but returned empty access token")
 	}
 
 	return &tokenResp, nil
