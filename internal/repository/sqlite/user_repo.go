@@ -51,6 +51,21 @@ func (r *UserRepo) UpdateProfile(u domain.UserProfile) error {
 			u.StravaRefreshToken = existing.StravaRefreshToken
 			u.StravaExpiresAt = existing.StravaExpiresAt
 		}
+		if u.CurrentStreak == 0 {
+			u.CurrentStreak = existing.CurrentStreak
+		}
+		if u.LastWorkoutDate.IsZero() {
+			u.LastWorkoutDate = existing.LastWorkoutDate
+		}
+		if u.Theme == "" {
+			u.Theme = existing.Theme
+		}
+		if u.TotalCoins == 0 {
+			u.TotalCoins = existing.TotalCoins
+		}
+		if u.CreatedAt.IsZero() {
+			u.CreatedAt = existing.CreatedAt
+		}
 	}
 
 	// Always enforce ID 1 since it's an isolated DB per user
