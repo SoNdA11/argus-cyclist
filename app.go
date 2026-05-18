@@ -1690,7 +1690,28 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 
 	err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
 	if err != nil {
-		return "", err
+		if strings.Contains(err.Error(), "status 401") {
+			fmt.Println("[STRAVA] Access Token invalid (401). Forcing refresh...")
+			newTokens, refreshErr := strava.RefreshToken(profile.StravaRefreshToken)
+			if refreshErr != nil {
+				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
+			}
+			
+			profile.StravaAccessToken = newTokens.AccessToken
+			profile.StravaRefreshToken = newTokens.RefreshToken
+			profile.StravaExpiresAt = newTokens.ExpiresAt
+			if dbErr := a.storageService.UpdateProfile(profile); dbErr != nil {
+				return "", fmt.Errorf("failed to save refreshed token: %v", dbErr)
+			}
+			
+			// Retry upload
+			err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
 	}
 
 	// Mark the latest activity as uploaded in the database
@@ -1743,7 +1764,28 @@ func (a *App) UploadActivityToStrava(activityID uint) (string, error) {
 	// Upload to Strava API
 	err = strava.UploadFitFile(profile.StravaAccessToken, activity.Filename)
 	if err != nil {
-		return "", err
+		if strings.Contains(err.Error(), "status 401") {
+			fmt.Println("[STRAVA] Access Token invalid (401). Forcing refresh...")
+			newTokens, refreshErr := strava.RefreshToken(profile.StravaRefreshToken)
+			if refreshErr != nil {
+				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
+			}
+			
+			profile.StravaAccessToken = newTokens.AccessToken
+			profile.StravaRefreshToken = newTokens.RefreshToken
+			profile.StravaExpiresAt = newTokens.ExpiresAt
+			if dbErr := a.storageService.UpdateProfile(profile); dbErr != nil {
+				return "", fmt.Errorf("failed to save refreshed token: %v", dbErr)
+			}
+			
+			// Retry upload
+			err = strava.UploadFitFile(profile.StravaAccessToken, activity.Filename)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
 	}
 
 	// Mark as uploaded in the local database
