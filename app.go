@@ -1648,6 +1648,7 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 
 		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
 		if err != nil {
+			a.DisconnectStrava()
 			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
 		}
 
@@ -1694,6 +1695,7 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 			fmt.Println("[STRAVA] Access Token invalid (401). Forcing refresh...")
 			newTokens, refreshErr := strava.RefreshToken(profile.StravaRefreshToken)
 			if refreshErr != nil {
+				a.DisconnectStrava()
 				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
 			}
 			
@@ -1735,6 +1737,7 @@ func (a *App) UploadActivityToStrava(activityID uint) (string, error) {
 		fmt.Println("[STRAVA] Access Token Expired. Auto-refreshing...")
 		newTokens, err := strava.RefreshToken(profile.StravaRefreshToken)
 		if err != nil {
+			a.DisconnectStrava()
 			return "", fmt.Errorf("failed to auto-refresh token: %v", err)
 		}
 
@@ -1768,6 +1771,7 @@ func (a *App) UploadActivityToStrava(activityID uint) (string, error) {
 			fmt.Println("[STRAVA] Access Token invalid (401). Forcing refresh...")
 			newTokens, refreshErr := strava.RefreshToken(profile.StravaRefreshToken)
 			if refreshErr != nil {
+				a.DisconnectStrava()
 				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
 			}
 			
