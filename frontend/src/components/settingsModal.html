@@ -42,18 +42,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         </svg>
                         <strong>Career Dashboard</strong>
                     </button>
-                    <button class="tab-btn" data-tab="tab-trophy" onclick="openTab('tab-trophy', event)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                            <path d="M4 22h16"></path>
-                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                        </svg>
-                        <strong>Trophy Room</strong>
-                    </button>
                 </aside>
 
                 <div class="settings-panels">
@@ -394,49 +382,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         </div>
                     </div>
                 </div>
-
-                    <div id="tab-trophy" class="tab-pane">
-                        <div class="trophy-layout">
-                            <div class="trophy-main-grid">
-                                <div class="trophy-card streak-card">
-                                    <div class="card-icon-glow"></div>
-                                    <div class="card-icon">
-                                        <!-- Star removed for better animation -->
-                                    </div>
-                                    <div class="card-content">
-                                        <div class="streak-value" id="streakCount">0</div>
-                                        <div class="streak-label">WEEKLY STREAK</div>
-                                    </div>
-                                </div>
-
-                                <div class="trophy-card goals-card">
-                                    <div class="card-header">
-                                        <h4>Custom Goals</h4>
-                                        <button class="btn-add-goal-premium" onclick="window.ui.openCustomGoalModal()">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                            NEW GOAL
-                                        </button>
-                                    </div>
-                                    <div id="customGoalsList" class="compact-goals-list">
-                                        <div class="empty-state">Loading goals...</div>
-                                    </div>
-                                    <div class="completed-section">
-                                        <h5>COMPLETED</h5>
-                                        <div id="completedGoalsList" class="tiny-goals-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="badges-section">
-                                <h4>Achievements</h4>
-                                <div class="badges-scroll-container">
-                                    <div id="badgesContainer" class="badges-minimal-grid">
-                                        <div class="empty-state">Loading badges...</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="modal-actions" style="justify-content: space-between;">
                         <button id="btnLogout" class="btn-danger" onclick="window.logoutProfile()">

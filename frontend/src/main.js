@@ -28,6 +28,7 @@ import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
 import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
+import trophyModalHtml from './components/trophyModal.html?raw';
 
 document.body.insertAdjacentHTML('beforeend', 
     homeScreenHtml + 
@@ -41,7 +42,8 @@ document.body.insertAdjacentHTML('beforeend',
     fitnessTestModalHtml + 
     ftpAssessmentConfirmModalHtml +
     tutorialModalHtml +
-    raceHistoryModalHtml
+    raceHistoryModalHtml +
+    trophyModalHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
@@ -274,6 +276,14 @@ document.getElementById('btnCloseSettings').addEventListener('click', () => ui.t
 document.getElementById('btnOpenSettings').addEventListener('click', async () => {
     ui.toggleSettings(true);
     await window.checkStravaStatus();
+});
+
+document.getElementById('btnTrophy').addEventListener('click', () => {
+    ui.toggleTrophyModal(true);
+});
+
+document.getElementById('btnCloseTrophy').addEventListener('click', () => {
+    ui.toggleTrophyModal(false);
 });
 
 document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
