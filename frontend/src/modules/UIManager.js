@@ -55,6 +55,8 @@ export class UIManager {
             // Settings Modal Elements
             settingsModal: document.getElementById('settingsModal'),
             btnCloseSettings: document.getElementById('btnCloseSettings'),
+            trophyModal: document.getElementById('trophyModal'),
+            btnCloseTrophy: document.getElementById('btnCloseTrophy'),
             inputRiderWeight: document.getElementById('inputRiderWeight'),
             inputBikeWeight: document.getElementById('inputBikeWeight'),
             selectUnits: document.getElementById('selectUnits'),
@@ -871,6 +873,30 @@ export class UIManager {
         } else {
             this.saveUserProfile();
             this.els.settingsModal.classList.remove('active');
+            if (this.els.header) this.els.header.classList.remove('header-dimmed');
+        }
+    }
+
+    /**
+     * Open or close the trophy modal.
+     */
+    toggleTrophyModal(show) {
+        if (!this.els.trophyModal) {
+            this.els.trophyModal = document.getElementById('trophyModal');
+            this.els.btnCloseTrophy = document.getElementById('btnCloseTrophy');
+        }
+        if (show) {
+            this.loadTrophyRoom();
+            if (this.els.trophyModal) {
+                this.els.trophyModal.classList.remove('hidden', 'hide');
+                this.els.trophyModal.classList.add('active');
+            }
+            if (this.els.header) this.els.header.classList.add('header-dimmed');
+        } else {
+            if (this.els.trophyModal) {
+                this.els.trophyModal.classList.remove('active');
+                this.els.trophyModal.classList.add('hidden');
+            }
             if (this.els.header) this.els.header.classList.remove('header-dimmed');
         }
     }

@@ -174,7 +174,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 12px;
     max-height: 140px;
     overflow-y: auto;
-    padding-right: 5px;
+    padding: 4px 10px 4px 4px;
+    box-sizing: border-box;
 }
 
 .goal-card-premium {
@@ -183,6 +184,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 15px 18px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s;
+    box-sizing: border-box;
 }
 
 .goal-card-premium:hover {
@@ -214,12 +216,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .goal-header-wrap {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 8px;
     font-size: 0.75rem;
 }
 
+.goal-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.goal-deadline-text {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+}
+
 .goal-metric-badge {
     color: var(--accent-primary);
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.goal-progress-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    color: #fff;
+}
+
+.goal-progress-val {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.goal-progress-pct {
+    color: var(--accent-secondary);
     font-weight: 800;
 }
 
@@ -268,9 +302,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .badges-scroll-container {
-    max-height: 280px;
+    max-height: 290px;
     overflow-y: auto;
-    padding-right: 8px;
+    padding: 8px 16px 8px 8px;
+    box-sizing: border-box;
 }
 
 .badges-scroll-container::-webkit-scrollbar {
@@ -290,6 +325,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
+    box-sizing: border-box;
 }
 
 .minimalist-badge {
@@ -299,6 +335,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 15px 10px;
     text-align: center;
     transition: all 0.3s;
+    box-sizing: border-box;
 }
 
 .badge-locked {
