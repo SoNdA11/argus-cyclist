@@ -14,21 +14,13 @@
 
 ### Desktop Experience
 
-| Home & Profile Selection | Virtual Ride & HUD |
-| :---: | :---: |
-| ![Home Screen](./frontend/screenshots/new-print-home.png) | ![Virtual HUD](./frontend/screenshots/new-print-virtual-HUD.png) |
-| **Profile & Cloud Integrations** | **History & Stats** |
-| ![Profile and Devices](./frontend/screenshots/new-print-profile.png) | ![History and Calendar](./frontend/screenshots/new-print-history.png) |
-| **Career Dashboard (PMC)** | **Activity Telemetry & Analysis** |
-| ![Career Dashboard](./frontend/screenshots/new-print-career-dashboard.png) | ![Activity Telemetry](./frontend/screenshots/new-print-act.png) |
-| **Post-Ride Summary** | **Structured Workout Plan** |
-| ![Post-Ride Summary](./frontend/screenshots/new-print-post-ride.png) | ![Workout Plan](./frontend/screenshots/new-print-workout-plan.png) |
-| **Dark Theme Map** | **Light Theme Map** |
-| ![Dark Theme](./frontend/screenshots/new-print-dark-theme.png) | ![Light Theme](./frontend/screenshots/new-print-white-theme.png) |
-
-| Mobile Gaming HUD |
-| :---: |
-| ![Mobile landscape view showing 3D map, telemetry data, and elevation profile](./frontend/screenshots/mobile-landscape-hud.jpg) |
+| Home & Profile Selection | Profile & Cloud Integrations | History & Stats |
+| :---: | :---: | :---: |
+| ![Home Screen](./frontend/screenshots/screenshot-01-home.png) | ![Profile & Devices](./frontend/screenshots/screenshot-02-profile.png) | ![History & Calendar](./frontend/screenshots/screenshot-03-history.png) |
+| **Career Dashboard (PMC)** | **Activity Telemetry & Analysis** | **Structured Workout Plan** |
+| ![Career Dashboard](./frontend/screenshots/screenshot-04-career.png) | ![Activity Telemetry](./frontend/screenshots/screenshot-05-telemetry.png) | ![Workout Plan](./frontend/screenshots/screenshot-06-workout.png) |
+| **Trophy Room** | **Studio Mode** | **Event Mode** |
+| ![Trophy Room](./frontend/screenshots/screenshot-07-trophy.png) | ![Studio Mode](./frontend/screenshots/screenshot-08-studio.png) | ![Event Mode](./frontend/screenshots/screenshot-09-event.png) |
 
 ## Cross-Platform: Now on Mobile (Android)
 
@@ -50,7 +42,9 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 * **Permissions**: typically you do **not** need to run as Administrator to scan BLE, but you must have Bluetooth enabled and allow the app to use Bluetooth in Windows privacy settings.
 * **Physics Engine:** Real-time speed calculation based on power (Watts), rider weight, bike weight, rolling resistance, and aerodynamic drag.
 * **Grade Simulation:** The trainer automatically adjusts resistance based on the virtual terrain slope.
-* **Cloud Integrations:** Direct connection to Strava for automatic or manual upload of your finished sessions.
+* **Cloud Integrations:** Direct connection to Strava. Features an **Automatic Sync Queue** database model to gracefully handle expired tokens, refresh credentials, and schedule retry attempts on network failures.
+* **Studio Mode:** A dedicated trainer-focused view with a clean, telemetry-only HUD dashboard. Optimized for indoor studio workouts, featuring real-time interval targets, power zones, and countdowns without the 3D map.
+* **Event Mode:** Compete in virtual challenges (Sprints, KOMs, or Time Trials) with strict validation rules and local leaderboard rankings.
 
 ### Gamification & Progression
 
@@ -59,6 +53,8 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 * **Dynamic Rewards:** Gain more XP for climbing and covering long distances.
 * **Persistent Profile:** Your stats (Level, Total XP, FTP, Weight) are saved locally using SQLite.
 * **Visual HUD:** Real-time XP bar and power zones.
+* **Trophy Room & Custom Goals:** Setup personal training targets (Distance, Elevation, or Saddle Time) with specific deadlines and track progress in real-time. Unlocked achievements are colorfully rendered in the interactive Trophy Room.
+* **Balanced Achievement System:** 11 consistency, recovery, routine, exploration, balance, and health cardiovascular milestones (Daily Habit, Consistency Champion, Rest is Training, Active Recovery, Early Bird, Night Owl, Quick Spin, Explorer, Master Explorer, Perfect Harmony, Cardio Recovery Master) with live toast notifications.
 
 ### Immersive 3D Map
 
@@ -70,11 +66,12 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 
 ### Advanced Analytics & Tools
 
-* **Career Dashboard:** Track your long-term evolution with the Performance Management Chart (PMC), mapping your Fitness (CTL), Fatigue (ATL), and Form (TSB). Also features an Aerobic Decoupling (Pw:HR) tracker to monitor your aerobic base.
-* **Deep Activity Analysis:** Review your rides with advanced metrics including Normalized Power (NP), Intensity Factor (IF), TSS, and TRIMP. Dive into live telemetry charts with VT1/VT2 markers and detailed Power Curve (MMP) bar charts.
+* **Career Dashboard:** Track your long-term evolution with the Performance Management Chart (PMC), mapping your Fitness (CTL), Fatigue (ATL), and Form (TSB). Also features an Aerobic Decoupling (Pw:HR) tracker to monitor your aerobic base. Includes visual warning indicators (⚠️) for high cardiovascular drift (> 5%) during steady-state workouts.
+* **Deep Activity Analysis:** Review your rides with advanced metrics including Normalized Power (NP), Intensity Factor (IF), TSS, TRIMP, and Heart Rate Recovery (HRR1/HRR2 in 1 and 2 minutes post-workout). Dive into live telemetry charts with VT1/VT2 markers and detailed Power Curve (MMP) bar charts.
 * **Post-Ride Summary:** Instant feedback upon workout completion with core stats and a quick "Upload to Strava" action.
 * **Route Editor:** Create custom routes directly inside the app by clicking points on the map.
 * **GPX & Structured Workouts:** Ride real-world routes by importing `.GPX` files or train efficiently with visual ERG mode targets using imported plans.
+* **Fitness Assessments:** Take structured fitness tests (such as Ramp Test and standard FTP Test) to assess your performance zones.
 * **Activity History:** Calendar view, monthly stats, and recent rides list.
 * **Data Export:** Automatically generates `.FIT` files compatible with Strava, Garmin Connect, and TrainingPeaks.
 
