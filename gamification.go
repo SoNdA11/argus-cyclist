@@ -297,6 +297,208 @@ func (a *App) updateAndCheckBadges(totalXP *int64) []domain.UserBadge {
 		}
 	}
 	
+	// ====================================
+	// New Habit, Balance & Recovery Badges
+	// ====================================
+	profile, _ := a.storageService.GetProfile()
+
+	// 8. Daily Consistency Streaks
+	if len(allActivities) > 0 {
+		activityDays := make(map[string]bool)
+		var uniqueDays []time.Time
+		for _, act := range allActivities {
+			dateStr := act.CreatedAt.Format("2006-01-02")
+			if !activityDays[dateStr] {
+				activityDays[dateStr] = true
+				t, _ := time.Parse("2006-01-02", dateStr)
+				uniqueDays = append(uniqueDays, t)
+			}
+		}
+
+		maxConsecutive := 0
+		currentConsecutive := 0
+		var lastDay time.Time
+		for i, day := range uniqueDays {
+			if i == 0 {
+				currentConsecutive = 1
+			} else {
+				diffDays := day.Sub(lastDay).Hours() / 24.0
+				if diffDays >= 0.8 && diffDays <= 1.2 {
+					currentConsecutive++
+				} else if diffDays > 1.2 {
+					if currentConsecutive > maxConsecutive {
+						maxConsecutive = currentConsecutive
+					}
+					currentConsecutive = 1
+				}
+			}
+			lastDay = day
+		}
+		if currentConsecutive > maxConsecutive {
+			maxConsecutive = currentConsecutive
+		}
+
+		if !badgeMap["Daily Habit (3 Days)"] && maxConsecutive >= 3 {
+			b := domain.UserBadge{BadgeType: "consistency", Tier: 3, Name: "Daily Habit (3 Days)", AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 800
+		}
+		if !badgeMap["Consistency Champion (5 Days)"] && maxConsecutive >= 5 {
+			b := domain.UserBadge{BadgeType: "consistency", Tier: 5, Name: "Consistency Champion (5 Days)", AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 1500
+		}
+	}
+
+	// 9. Rest is Training & Overtraining Prevention
+	if !badgeMap["Rest is Training"] && len(allActivities) >= 2 {
+		for i := 0; i < len(allActivities)-1; i++ {
+			actA := allActivities[i]
+			actB := allActivities[i+1]
+			isHard := actA.TSS >= 100 || actA.TRIMP >= 120
+			if isHard {
+				hoursGap := actB.CreatedAt.Sub(actA.CreatedAt).Hours()
+				// 32 to 60 hours implies at least one full calendar day of rest between activities
+				if hoursGap >= 32.0 && hoursGap <= 60.0 {
+					b := domain.UserBadge{BadgeType: "recovery", Tier: 1, Name: "Rest is Training", AchievedAt: time.Now()}
+					a.storageService.SaveBadge(b)
+					unlocked = append(unlocked, b)
+					*totalXP += 1000
+					break
+				}
+			}
+		}
+	}
+
+	// 10. Active Recovery (Easy recovery spins)
+	if !badgeMap["Active Recovery"] {
+		for _, act := range allActivities {
+			if act.Duration >= 900 {
+				isLowHR := profile.MaxHR > 0 && act.AvgHR > 0 && act.AvgHR < int(0.60*float64(profile.MaxHR))
+				isLowPower := profile.FTP > 0 && act.AvgPower > 0 && act.AvgPower < int(0.55*float64(profile.FTP))
+				if isLowHR || isLowPower {
+					b := domain.UserBadge{BadgeType: "recovery", Tier: 2, Name: "Active Recovery", AchievedAt: time.Now()}
+					a.storageService.SaveBadge(b)
+					unlocked = append(unlocked, b)
+					*totalXP += 800
+					break
+				}
+			}
+		}
+	}
+
+	// 11. Time-of-day Routines (Early Bird / Night Owl) & Coffee Ride (Quick Spin)
+	hasEarlyBird := false
+	hasNightOwl := false
+	hasQuickSpin := false
+	for _, act := range allActivities {
+		hour := act.CreatedAt.Hour()
+		if hour >= 5 && hour < 8 {
+			hasEarlyBird = true
+		}
+		if hour >= 20 || hour < 4 {
+			hasNightOwl = true
+		}
+		if act.Duration >= 900 && act.Duration <= 1800 {
+			hasQuickSpin = true
+		}
+	}
+
+	if !badgeMap["Early Bird"] && hasEarlyBird {
+		b := domain.UserBadge{BadgeType: "routine", Tier: 1, Name: "Early Bird", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 500
+	}
+	if !badgeMap["Night Owl"] && hasNightOwl {
+		b := domain.UserBadge{BadgeType: "routine", Tier: 2, Name: "Night Owl", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 500
+	}
+	if !badgeMap["Quick Spin"] && hasQuickSpin {
+		b := domain.UserBadge{BadgeType: "routine", Tier: 3, Name: "Quick Spin", AchievedAt: time.Now()}
+		a.storageService.SaveBadge(b)
+		unlocked = append(unlocked, b)
+		*totalXP += 600
+	}
+
+	// 12. Route Explorer
+	if len(allActivities) > 0 {
+		uniqueRoutes := make(map[string]bool)
+		for _, act := range allActivities {
+			if act.RouteName != "" && act.RouteName != "Free Training" && act.RouteName != "KOM Event Segment" {
+				uniqueRoutes[act.RouteName] = true
+			}
+		}
+		numRoutes := len(uniqueRoutes)
+		if !badgeMap["Explorer"] && numRoutes >= 3 {
+			b := domain.UserBadge{BadgeType: "explorer", Tier: 3, Name: "Explorer", AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 800
+		}
+		if !badgeMap["Master Explorer"] && numRoutes >= 6 {
+			b := domain.UserBadge{BadgeType: "explorer", Tier: 6, Name: "Master Explorer", AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 1500
+		}
+	}
+
+	// 13. Perfect Harmony (Weekly balance)
+	if !badgeMap["Perfect Harmony"] && len(allActivities) >= 4 {
+		type weekKey struct {
+			year int
+			week int
+		}
+		weekActivityDays := make(map[weekKey]map[string]bool)
+		for _, act := range allActivities {
+			y, w := act.CreatedAt.ISOWeek()
+			key := weekKey{year: y, week: w}
+			if weekActivityDays[key] == nil {
+				weekActivityDays[key] = make(map[string]bool)
+			}
+			dateStr := act.CreatedAt.Format("2006-01-02")
+			weekActivityDays[key][dateStr] = true
+		}
+
+		hasPerfectHarmony := false
+		for _, daysMap := range weekActivityDays {
+			numActiveDays := len(daysMap)
+			if numActiveDays >= 4 && numActiveDays <= 5 {
+				hasPerfectHarmony = true
+				break
+			}
+		}
+
+		if hasPerfectHarmony {
+			b := domain.UserBadge{BadgeType: "balance", Tier: 1, Name: "Perfect Harmony", AchievedAt: time.Now()}
+			a.storageService.SaveBadge(b)
+			unlocked = append(unlocked, b)
+			*totalXP += 1200
+		}
+	}
+
+	// 14. Cardio Recovery Master
+	if !badgeMap["Cardio Recovery Master"] {
+		for _, act := range allActivities {
+			targetMaxHR := 150.0
+			if profile.MaxHR > 0 {
+				targetMaxHR = 0.80 * float64(profile.MaxHR)
+			}
+			if act.MaxHR >= int(targetMaxHR) && act.HRR1 >= 30 {
+				b := domain.UserBadge{BadgeType: "cardio", Tier: 30, Name: "Cardio Recovery Master", AchievedAt: time.Now()}
+				a.storageService.SaveBadge(b)
+				unlocked = append(unlocked, b)
+				*totalXP += 1000
+				break
+			}
+		}
+	}
+	
 	return unlocked
 }
 
