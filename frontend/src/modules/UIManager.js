@@ -1100,7 +1100,30 @@ export class UIManager {
                     // Heroic Deeds (Single Activity)
                     { id: 'century', name: 'Century Club', type: 'epic_ride', val: 100 },
                     { id: 'mtngoat', name: 'Mountain Goat', type: 'epic_climb', val: 1000 },
-                    { id: 'calories', name: 'Calories Burner', type: 'calories', val: 50000 }
+                    { id: 'calories', name: 'Calories Burner', type: 'calories', val: 50000 },
+
+                    // Daily Consistency (Streaks)
+                    { id: 'streak3d', name: 'Daily Habit (3 Days)', type: 'consistency', val: 3 },
+                    { id: 'streak5d', name: 'Consistency Champion (5 Days)', type: 'consistency', val: 5 },
+
+                    // Recovery & Rest
+                    { id: 'rest_is_training', name: 'Rest is Training', type: 'recovery', val: 1 },
+                    { id: 'active_recovery', name: 'Active Recovery', type: 'recovery', val: 2 },
+
+                    // Routines
+                    { id: 'early_bird', name: 'Early Bird', type: 'routine', val: 1 },
+                    { id: 'night_owl', name: 'Night Owl', type: 'routine', val: 2 },
+                    { id: 'quick_spin', name: 'Quick Spin', type: 'routine', val: 3 },
+
+                    // Explorer
+                    { id: 'explorer3', name: 'Explorer', type: 'explorer', val: 3 },
+                    { id: 'explorer6', name: 'Master Explorer', type: 'explorer', val: 6 },
+
+                    // Balance
+                    { id: 'perfect_harmony', name: 'Perfect Harmony', type: 'balance', val: 1 },
+
+                    // Cardio
+                    { id: 'cardio_recovery', name: 'Cardio Recovery Master', type: 'cardio', val: 30 }
                 ];
 
                 const getIcon = (type) => {
@@ -1113,6 +1136,12 @@ export class UIManager {
                         case 'calories': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1 2 2 3.5 4 5.5s2 4 2 6.5c0 4.5-2.5 7-6 7s-6-2.5-6-7c0-2.5 0.5-4.5 2.5-6.5S11 4 12 2z"></path></svg>`;
                         case 'epic_ride': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path></svg>`;
                         case 'epic_climb': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857C17.135 15.828 17 15.422 17 15s-.135-.828-.356-1.143A3 3 0 1 0 12 15c0 .422-.135.828-.356 1.143A3 3 0 1 0 7 15c0 .422-.135.828-.356 1.143A3 3 0 0 0 2 18v2h5m5 0h5"></path><path d="M12 10L12 2"></path><path d="M9 5l3-3 3 3"></path></svg>`;
+                        case 'consistency': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`;
+                        case 'recovery': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>`;
+                        case 'routine': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3L2 6"></path><path d="M19 3l3 3"></path></svg>`;
+                        case 'explorer': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`;
+                        case 'balance': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="5" y1="7" x2="19" y2="7"></line><path d="M5 7L3 17h4L5 7zM19 7l-2 10h4l-2-10z"></path></svg>`;
+                        case 'cardio': return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>`;
                         default: return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M10 2h4"></path></svg>`;
                     }
                 };
@@ -1123,7 +1152,16 @@ export class UIManager {
                     
                     if (achieved) {
                         bDiv.className = 'badge-item minimalist-badge';
-                        const tierColor = m.val >= 1000 || m.val >= 50 ? 'var(--argus-safe)' : (m.val >= 500 || m.val >= 25 ? '#3498db' : '#94a3b8');
+                        let tierColor = '#94a3b8';
+                        if (m.type === 'consistency') tierColor = '#e67e22';
+                        else if (m.type === 'recovery') tierColor = '#2ecc71';
+                        else if (m.type === 'routine') tierColor = '#f1c40f';
+                        else if (m.type === 'explorer') tierColor = '#9b59b6';
+                        else if (m.type === 'balance') tierColor = '#1abc9c';
+                        else if (m.type === 'cardio') tierColor = '#e74c3c';
+                        else if (m.val >= 1000 || m.val >= 50) tierColor = 'var(--argus-safe)';
+                        else if (m.val >= 500 || m.val >= 25) tierColor = '#3498db';
+
                         bDiv.innerHTML = `
                             <div class="badge-icon-wrap" style="color: ${tierColor};">${getIcon(m.type)}</div>
                             <strong style="font-size: 0.9rem; display: block; margin-top: 10px; color: #fff;">${m.name}</strong>
@@ -1670,9 +1708,9 @@ export class UIManager {
                         window.ui.showToast(`🎯 Goal Completed: ${summary.gamification.goals_completed[0].metric} target reached!`);
                     }, 1000);
                 }
-                if (summary.gamification.badges_earned && summary.gamification.badges_earned.length > 0) {
+                if (summary.gamification.badges_unlocked && summary.gamification.badges_unlocked.length > 0) {
                     setTimeout(() => {
-                        window.ui.showToast(`🏆 Badge Unlocked: ${summary.gamification.badges_earned[0].name}!`);
+                        window.ui.showToast(`🏆 Badge Unlocked: ${summary.gamification.badges_unlocked[0].name}!`);
                     }, 2500);
                 }
                 

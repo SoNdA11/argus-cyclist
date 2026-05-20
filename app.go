@@ -533,12 +533,13 @@ func (a *App) SaveGeneratedGPX(name string, points []ExportPoint) string {
 		name = fmt.Sprintf("route_%s", time.Now().Format("20060102_1504"))
 	}
 
-	// 1. Create the XML content.
 	var sb strings.Builder
 	sb.WriteString(`<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="Argus Cyclist">
   <trk>
-    <name>` + name + `</name>
+    <name>`)
+	sb.WriteString(name)
+	sb.WriteString(`</name>
     <trkseg>
 `)
 
