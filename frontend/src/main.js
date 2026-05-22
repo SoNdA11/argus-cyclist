@@ -30,16 +30,16 @@ import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
 
-document.body.insertAdjacentHTML('beforeend', 
-    homeScreenHtml + 
-    settingsModalHtml + 
-    confirmModalHtml + 
-    cooldownModalHtml + 
-    eventHubPageHtml + 
-    eventLeaderboardModalHtml + 
-    challengeOverlayHtml + 
-    challengeResultModalHtml + 
-    fitnessTestModalHtml + 
+document.body.insertAdjacentHTML('beforeend',
+    homeScreenHtml +
+    settingsModalHtml +
+    confirmModalHtml +
+    cooldownModalHtml +
+    eventHubPageHtml +
+    eventLeaderboardModalHtml +
+    challengeOverlayHtml +
+    challengeResultModalHtml +
+    fitnessTestModalHtml +
     ftpAssessmentConfirmModalHtml +
     tutorialModalHtml +
     raceHistoryModalHtml +
@@ -309,8 +309,10 @@ document.getElementById('btnToggleView').addEventListener('click', () => {
 document.getElementById('btnJustRide').addEventListener('click', () => {
     window.totalRouteDistance = 0;
     if (window.mapController) window.mapController.renderRoute({ type: 'FeatureCollection', features: [] });
-    if (window.workoutCtrl) window.workoutCtrl.hide();
-    
+    if (window.workoutCtrl && window.workoutCtrl.activeWorkout) {
+        window.workoutCtrl.panel.classList.add('hidden');
+    }
+
     ui.showRoutePreview(0);
     ui.els.btnAction.classList.remove('hidden');
     ui.toggleStudioMode(true);
@@ -1686,12 +1688,12 @@ function initTutorial() {
     document.getElementById('btnNextStep').addEventListener('click', nextTutorialStep);
     document.getElementById('btnPrevStep').addEventListener('click', prevTutorialStep);
     document.getElementById('btnFinishTutorial').addEventListener('click', finishTutorial);
-    
+
     const btnSkip = document.getElementById('btnSkipTutorial');
     if (btnSkip) {
         btnSkip.addEventListener('click', finishTutorial);
     }
-    
+
     const btnViewTut = document.getElementById('btnViewTutorial');
     if (btnViewTut) {
         btnViewTut.addEventListener('click', () => {
@@ -1782,7 +1784,7 @@ function finishTutorial() {
     }
 }
 
-window.closeTutorial = function() {
+window.closeTutorial = function () {
     finishTutorial();
 }
 
