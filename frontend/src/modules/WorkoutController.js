@@ -346,8 +346,12 @@ export class WorkoutController {
         }
 
         const intensityPct = this.getProp(state, ['intensity_pct', 'IntensityPct']);
-        if (intensityPct && this.elIntensity) {
-            this.elIntensity.innerText = `${intensityPct}%`;
+        if (intensityPct) {
+            const text = `${intensityPct}%`;
+            if (this.elIntensity) this.elIntensity.innerText = text;
+            if (window.ui && window.ui.els.studioIntensity) {
+                window.ui.els.studioIntensity.innerText = text;
+            }
         }
 
         const m = Math.floor(timeRemain / 60);
@@ -581,12 +585,20 @@ export class WorkoutController {
     async adjustIntensity(delta) {
         if (!this.activeWorkout) return;
 
+        const updateDisplay = (pct) => {
+            const text = `${pct}%`;
+            if (this.elIntensity) this.elIntensity.innerText = text;
+            if (window.ui && window.ui.els.studioIntensity) {
+                window.ui.els.studioIntensity.innerText = text;
+            }
+        };
+
         // Mobile Logic
         if (Capacitor.isNativePlatform()) {
             this.intensityPct += delta;
             if (this.intensityPct < 50) this.intensityPct = 50;
             if (this.intensityPct > 150) this.intensityPct = 150;
-            if (this.elIntensity) this.elIntensity.innerText = `${this.intensityPct}%`;
+            updateDisplay(this.intensityPct);
             return;
         }
 
@@ -594,7 +606,7 @@ export class WorkoutController {
         try {
             if (window.go && window.go.main) {
                 const newPct = await window.go.main.App.ChangeWorkoutIntensity(delta);
-                if (this.elIntensity) this.elIntensity.innerText = `${newPct}%`;
+                updateDisplay(newPct);
             }
         } catch (err) {
             console.error("Error adjusting intensity:", err);
