@@ -111,6 +111,7 @@ export class UIManager {
             studioAvgSpeed: document.getElementById('studio-avg-speed'),
             studioDist: document.getElementById('studio-dist'),
             studioElapsed: document.getElementById('studio-elapsed'),
+            studioIntensity: document.getElementById('studio-intensity'),
             btnToggleStudio: document.getElementById('btnToggleStudio'),
             footer: document.querySelector('footer'),
             header: document.querySelector('header'),
@@ -204,6 +205,19 @@ export class UIManager {
                 // Trigger the main workout loading logic (handles both Wails and Capacitor)
                 const mainBtn = document.getElementById('btnLoadWorkout');
                 if (mainBtn) mainBtn.click();
+            });
+        }
+
+        const btnStudioIntensityUp = document.getElementById('btnStudioIntensityUp');
+        const btnStudioIntensityDown = document.getElementById('btnStudioIntensityDown');
+        if (btnStudioIntensityUp) {
+            btnStudioIntensityUp.addEventListener('click', () => {
+                if (window.workoutCtrl) window.workoutCtrl.adjustIntensity(5);
+            });
+        }
+        if (btnStudioIntensityDown) {
+            btnStudioIntensityDown.addEventListener('click', () => {
+                if (window.workoutCtrl) window.workoutCtrl.adjustIntensity(-5);
             });
         }
     }

@@ -51,19 +51,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @keyframes glowPulse {
-    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
 }
 
 .studio-header {
     display: grid;
     grid-template-columns: 1fr 1.5fr 1fr;
     align-items: center;
-    height: 12vh; 
+    height: 12vh;
     padding: 0 10px;
 }
 
-.studio-controls-left, 
+.studio-controls-left,
 .studio-controls-right {
     display: flex;
     gap: 12px;
@@ -199,24 +208,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 2vh 0;
 }
 
 .countdown-timer {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 16px;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
     backdrop-filter: blur(50px);
     -webkit-backdrop-filter: blur(50px);
     border: 1px solid rgba(255, 255, 255, 0.07);
-    padding: 45px 90px;
-    border-radius: 48px;
-    box-shadow: 
+    padding: 24px 70px;
+    border-radius: 40px;
+    box-shadow:
         0 40px 100px -20px rgba(0, 0, 0, 0.6),
         inset 0 1px 1px rgba(255, 255, 255, 0.1);
     position: relative;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    margin-top: 4vh;
+    margin: 0 auto;
 }
 
 .timer-value {
@@ -232,7 +243,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .timer-label {
-    margin-top: 15px;
     font-size: clamp(0.7rem, 1.8vh, 1.1rem);
     font-weight: 800;
     color: #475569;
@@ -243,7 +253,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .studio-footer {
     display: flex;
     flex-direction: column;
-    gap: 2.5vh;
+    gap: 1.5vh;
 }
 
 .studio-metrics-row {
@@ -258,7 +268,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 24px 40px;
+    padding: 16px 32px;
     border-radius: 26px;
     min-width: 220px;
     box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5);
@@ -292,7 +302,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .studio-metrics-row.secondary .studio-metric {
     background: rgba(15, 23, 42, 0.4);
-    padding: 20px 32px;
+    padding: 12px 24px;
     border-radius: 22px;
 }
 
@@ -301,17 +311,87 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #94a3b8;
 }
 
-.studio-hud.zone-1 .studio-metric[id*="hr"] .value, .studio-hud.zone-1 .value { color: #94a3b8; }
-.studio-hud.zone-2 .value { color: #38bdf8; }
-.studio-hud.zone-3 .value { color: #22c55e; }
-.studio-hud.zone-4 .value { color: #eab308; }
-.studio-hud.zone-5 .value { color: #ef4444; }
-.studio-hud.zone-6 .value { color: #a855f7; }
+.studio-hud.zone-1 .studio-metric[id*="hr"] .value,
+.studio-hud.zone-1 .value {
+    color: #94a3b8;
+}
+
+.studio-hud.zone-2 .value {
+    color: #38bdf8;
+}
+
+.studio-hud.zone-3 .value {
+    color: #22c55e;
+}
+
+.studio-hud.zone-4 .value {
+    color: #eab308;
+}
+
+.studio-hud.zone-5 .value {
+    color: #ef4444;
+}
+
+.studio-hud.zone-6 .value {
+    color: #a855f7;
+}
 
 .studio-hud:not(.zone-0) .main-metric .value,
 .studio-hud:not(.zone-0) .timer-value {
     -webkit-text-fill-color: currentColor;
     background: none;
+}
+
+.studio-intensity-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 10px 0;
+}
+
+.studio-intensity-row .target-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.15em;
+}
+
+.studio-intensity-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.studio-intensity-actions .btn-intensity {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.studio-intensity-actions .btn-intensity:hover {
+    background: #fbbf24;
+    border-color: #fbbf24;
+    color: #000;
+}
+
+.studio-intensity-actions .target-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fbbf24;
+    min-width: 56px;
+    text-align: center;
 }
 
 .studio-graph-container {
@@ -323,7 +403,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 #studio-workout-canvas {
@@ -332,25 +412,71 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: 0.9;
 }
 
-.studio-hud.zone-1 .studio-background-glow { background: radial-gradient(circle, rgba(148, 163, 184, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
-.studio-hud.zone-2 .studio-background-glow { background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
-.studio-hud.zone-3 .studio-background-glow { background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
-.studio-hud.zone-4 .studio-background-glow { background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
-.studio-hud.zone-5 .studio-background-glow { background: radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
-.studio-hud.zone-6 .studio-background-glow { background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(2, 6, 23, 0) 70%); }
+.studio-hud.zone-1 .studio-background-glow {
+    background: radial-gradient(circle, rgba(148, 163, 184, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+.studio-hud.zone-2 .studio-background-glow {
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+.studio-hud.zone-3 .studio-background-glow {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+.studio-hud.zone-4 .studio-background-glow {
+    background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+.studio-hud.zone-5 .studio-background-glow {
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+.studio-hud.zone-6 .studio-background-glow {
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+}
 
 @media (max-width: 1024px) {
-    .studio-header { grid-template-columns: 1fr 1fr; }
-    .studio-controls-left { display: none; }
-    .countdown-timer { padding: 30px 50px; }
-    .studio-metrics-row { gap: 12px; }
-    .studio-metrics-row .studio-metric { min-width: 150px; padding: 12px 20px; }
+    .studio-header {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .studio-controls-left {
+        display: none;
+    }
+
+    .countdown-timer {
+        padding: 16px 40px;
+        border-radius: 24px;
+        gap: 10px;
+    }
+
+    .studio-metrics-row {
+        gap: 12px;
+    }
+
+    .studio-metrics-row .studio-metric {
+        min-width: 150px;
+        padding: 12px 20px;
+    }
 }
 
 @media (max-height: 600px) {
-    .studio-header { height: 60px; }
-    .studio-graph-container { height: 100px; }
-    .timer-value { font-size: 4rem; }
+    .studio-header {
+        height: 60px;
+    }
+
+    .studio-graph-container {
+        height: 100px;
+    }
+
+    .timer-value {
+        font-size: 4rem;
+    }
+
+    .countdown-timer {
+        padding: 12px 30px;
+        border-radius: 20px;
+        gap: 8px;
+    }
 }
-
-
