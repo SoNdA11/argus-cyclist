@@ -117,6 +117,9 @@ export class WorkoutController {
 
             document.getElementById('dashboard-view').classList.remove('hidden');
 
+            const goalsWidget = document.getElementById('dashGoalsWidget');
+            if (goalsWidget) goalsWidget.style.display = 'none';
+
             if (window.ui) {
                 window.ui.isDashboardMode = true;
                 window.ui.initLiveChart();
@@ -165,6 +168,9 @@ export class WorkoutController {
 
         const leftSidebar = document.querySelector('.hud-sidebar:not(#workout-panel)');
         if (leftSidebar) leftSidebar.style.display = '';
+
+        const goalsWidget = document.getElementById('dashGoalsWidget');
+        if (goalsWidget) goalsWidget.style.display = '';
 
         if (window.ui) {
             window.ui.isDashboardMode = false;
