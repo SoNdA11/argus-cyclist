@@ -914,6 +914,12 @@ func (a *App) FinishSession() (SessionSummary, error) {
 		fmt.Println("Database save error:", err)
 	}
 
+	// Auto-update component wear based on activity distance
+	distKm := a.currentDist / 1000.0
+	if distKm > 0 {
+		a.updateComponentUsage(distKm)
+	}
+
 	if err := a.fitService.Save(fullPath); err != nil {
 		runtime.EventsEmit(a.ctx, "error", "Error saving FIT file")
 	} else {
@@ -1469,6 +1475,169 @@ func (a *App) GetCareerDashboard() (CareerDashboard, error) {
 		PMC:        pmcData,
 		Decoupling: decouplingData,
 	}, nil
+}
+
+// ========================
+// BIKE COMPONENT BINDINGS
+// ========================
+
+// GetBikeComponents returns all bike components for the current user.
+func (a *App) GetBikeComponents() []domain.BikeComponent {
+	components, err := a.storageService.GetComponents()
+	if err != nil {
+		return []domain.BikeComponent{}
+	}
+	return components
+}
+
+// AddBikeComponent creates a new bike component.
+func (a *App) AddBikeComponent(componentType string, brand string, model string, installDate string, expectedLifespanKm float64, notes string) (domain.BikeComponent, error) {
+	usageKm := 0.0
+	if installDate != "" {
+		usageKm = a.calculateHistoricalUsageKm(installDate)
+	}
+
+	c := domain.BikeComponent{
+		ComponentType:      componentType,
+		Brand:              brand,
+		Model:              model,
+		InstallDate:        installDate,
+		ExpectedLifespanKm: expectedLifespanKm,
+		CurrentUsageKm:     usageKm,
+		WearPercent:        calculateWearPercent(usageKm, expectedLifespanKm),
+		Status:             "active",
+		Notes:              notes,
+		CreatedAt:          time.Now(),
+		UpdatedAt:          time.Now(),
+	}
+	if err := a.storageService.SaveComponent(c); err != nil {
+		return domain.BikeComponent{}, err
+	}
+	return c, nil
+}
+
+// UpdateBikeComponent updates an existing bike component.
+func (a *App) UpdateBikeComponent(id uint, componentType string, brand string, model string, installDate string, expectedLifespanKm float64, notes string) error {
+	c, err := a.storageService.GetComponentByID(id)
+	if err != nil {
+		return err
+	}
+	c.ComponentType = componentType
+	c.Brand = brand
+	c.Model = model
+	c.InstallDate = installDate
+	c.ExpectedLifespanKm = expectedLifespanKm
+	c.Notes = notes
+	c.UpdatedAt = time.Now()
+
+	if installDate != "" {
+		c.CurrentUsageKm = a.calculateHistoricalUsageKm(installDate)
+	}
+
+	c.WearPercent = calculateWearPercent(c.CurrentUsageKm, c.ExpectedLifespanKm)
+	return a.storageService.UpdateComponent(c)
+}
+
+// ReplaceBikeComponent marks a component as replaced, archives it, and logs the replacement.
+func (a *App) ReplaceBikeComponent(id uint, reason string) error {
+	c, err := a.storageService.GetComponentByID(id)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	rep := domain.ComponentReplacement{
+		ComponentID:    id,
+		ReplacedAt:     now,
+		Reason:         reason,
+		UsageAtReplace: c.CurrentUsageKm,
+		Notes:          c.Notes,
+	}
+	if err := a.storageService.SaveReplacement(rep); err != nil {
+		return err
+	}
+
+	c.Status = "archived"
+	c.ReplacedAt = &now
+	c.UpdatedAt = now
+	return a.storageService.UpdateComponent(c)
+}
+
+// ArchiveBikeComponent sets a component's status to archived.
+func (a *App) ArchiveBikeComponent(id uint) error {
+	c, err := a.storageService.GetComponentByID(id)
+	if err != nil {
+		return err
+	}
+	c.Status = "archived"
+	c.UpdatedAt = time.Now()
+	return a.storageService.UpdateComponent(c)
+}
+
+// DeleteBikeComponent permanently removes a component and its replacement history.
+func (a *App) DeleteBikeComponent(id uint) error {
+	return a.storageService.DeleteComponent(id)
+}
+
+// GetComponentReplacements returns the replacement history for a component.
+func (a *App) GetComponentReplacements(componentID uint) []domain.ComponentReplacement {
+	reps, err := a.storageService.GetComponentReplacements(componentID)
+	if err != nil {
+		return []domain.ComponentReplacement{}
+	}
+	return reps
+}
+
+// updateComponentUsage adds distance to all active components and recalculates wear.
+func (a *App) updateComponentUsage(distanceKm float64) {
+	components, err := a.storageService.GetComponents()
+	if err != nil {
+		return
+	}
+	for _, c := range components {
+		if c.Status != "active" {
+			continue
+		}
+		c.CurrentUsageKm += distanceKm
+		c.WearPercent = calculateWearPercent(c.CurrentUsageKm, c.ExpectedLifespanKm)
+		c.UpdatedAt = time.Now()
+		a.storageService.UpdateComponent(c)
+	}
+}
+
+func calculateWearPercent(usageKm, expectedKm float64) float64 {
+	if expectedKm <= 0 {
+		return 0
+	}
+	pct := (usageKm / expectedKm) * 100
+	if pct > 100 {
+		pct = 100
+	}
+	return math.Round(pct*10) / 10
+}
+
+// calculateHistoricalUsageKm sums all activity distances (converted to km) from the install date onward.
+func (a *App) calculateHistoricalUsageKm(installDate string) float64 {
+	parsed, err := time.Parse("2006-01-02", installDate)
+	if err != nil {
+		return 0
+	}
+	if !parsed.Before(time.Now()) {
+		return 0
+	}
+
+	activities, err := a.storageService.GetAllActivities()
+	if err != nil {
+		return 0
+	}
+
+	var totalMeters float64
+	for _, act := range activities {
+		if !act.CreatedAt.Before(parsed) {
+			totalMeters += act.TotalDistance
+		}
+	}
+	return math.Round(totalMeters/1000*10) / 10
 }
 
 // DeleteActivityHistory deletes the workout from the database and removes the .fit file from disk

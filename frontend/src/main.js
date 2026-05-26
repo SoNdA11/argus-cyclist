@@ -29,6 +29,7 @@ import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModa
 import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
+import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
 
 document.body.insertAdjacentHTML('beforeend',
     homeScreenHtml +
@@ -43,7 +44,8 @@ document.body.insertAdjacentHTML('beforeend',
     ftpAssessmentConfirmModalHtml +
     tutorialModalHtml +
     raceHistoryModalHtml +
-    trophyModalHtml
+    trophyModalHtml +
+    bikeComponentsModalHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
@@ -284,6 +286,10 @@ document.getElementById('btnTrophy').addEventListener('click', () => {
 
 document.getElementById('btnCloseTrophy').addEventListener('click', () => {
     ui.toggleTrophyModal(false);
+});
+
+document.getElementById('btnCloseBikeComponents').addEventListener('click', () => {
+    ui.toggleBikeComponentsModal(false);
 });
 
 document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
@@ -1233,10 +1239,15 @@ document.addEventListener('keydown', async (e) => {
 // =======================
 
 function openTab(tabId, event) {
-    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(el => {
+        el.classList.remove('active');
+        el.style.display = 'none';
+    });
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
-    document.getElementById(tabId).classList.add('active');
+    const pane = document.getElementById(tabId);
+    pane.classList.add('active');
+    pane.style.display = 'flex';
     event.currentTarget.classList.add('active');
 
     if (tabId === 'tab-career') {

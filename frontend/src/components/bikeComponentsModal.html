@@ -1,0 +1,88 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="bikeComponentsModal" class="modal-overlay hidden" style="z-index: 10005;">
+    <div class="settings-content" style="max-width: 1000px; height: auto; max-height: 85vh; overflow-y: auto;">
+        <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; margin-bottom: 15px;">
+            <div style="text-align: left;">
+                <div style="color: var(--power-color); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 800;">MAINTENANCE</div>
+                <h2 style="font-size: 1.8rem; margin: 0; font-weight: 800; color: #fff;">Bike Components</h2>
+            </div>
+            <button class="btn-icon-small" id="btnCloseBikeComponents" title="Close" style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer;">✕</button>
+        </div>
+
+        <div class="components-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Track wear on your bike parts. Usage is automatically updated after each workout.</p>
+            <button class="btn-primary" onclick="window.ui.showAddComponentFormBike()">+ Add Component</button>
+        </div>
+
+        <div id="componentFormBike" class="component-form hidden" style="background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+            <h4 id="componentFormTitleBike" style="margin: 0 0 12px 0; color: var(--text-main);">New Component</h4>
+            <input type="hidden" id="compEditIdBike" value="">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Type</label>
+                    <select id="compTypeBike">
+                        <option value="Chain">Chain</option>
+                        <option value="Cassette / Freehub">Cassette / Freehub</option>
+                        <option value="Chainrings">Chainrings</option>
+                        <option value="Bottom bracket">Bottom bracket</option>
+                        <option value="Jockey wheels">Jockey wheels</option>
+                        <option value="Trainer tires">Trainer tires</option>
+                        <option value="Pedals">Pedals</option>
+                        <option value="Handlebars / Stem">Handlebars / Stem</option>
+                        <option value="Saddle / Seatpost">Saddle / Seatpost</option>
+                        <option value="Shift cables &amp; housing">Shift cables &amp; housing</option>
+                        <option value="Derailleurs">Derailleurs</option>
+                        <option value="Handlebar tape / Grips">Handlebar tape / Grips</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Brand</label>
+                    <input type="text" id="compBrandBike" placeholder="e.g. Shimano" style="width: 100%;">
+                </div>
+                <div class="input-group">
+                    <label>Model</label>
+                    <input type="text" id="compModelBike" placeholder="e.g. Ultegra R8100" style="width: 100%;">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Install Date</label>
+                    <input type="date" id="compInstallDateBike">
+                </div>
+                <div class="input-group">
+                    <label>Expected Lifespan (km)</label>
+                    <input type="number" id="compLifespanBike" step="100" placeholder="e.g. 5000">
+                </div>
+                <div class="input-group">
+                    <label>Notes</label>
+                    <input type="text" id="compNotesBike" placeholder="Optional notes">
+                </div>
+            </div>
+            <div class="component-form-actions" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px;">
+                <button class="btn-secondary" onclick="window.ui.hideComponentFormBike()">Cancel</button>
+                <button class="btn-primary" onclick="window.ui.saveComponentBike()">Save</button>
+            </div>
+        </div>
+
+        <div id="componentsListBike" class="components-list" style="display: flex; flex-direction: column; gap: 4px;">
+            <div class="history-item"><span>Loading components...</span></div>
+        </div>
+    </div>
+</div>

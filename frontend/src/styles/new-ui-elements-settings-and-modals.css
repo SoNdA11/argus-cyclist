@@ -724,3 +724,108 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 8px;
     border-radius: 4px;
 }
+
+.components-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.components-header h3 {
+    margin: 0;
+    color: var(--text-main);
+}
+
+.component-form {
+    background: var(--bg-elevated);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+}
+
+.component-form h4 {
+    margin: 0 0 12px 0;
+    color: var(--text-main);
+}
+
+.component-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.components-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.component-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-elevated);
+    border-radius: 6px;
+    gap: 8px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.2s;
+}
+
+.component-item:hover {
+    background: rgba(255,255,255,0.04);
+}
+
+.component-item.archived {
+    opacity: 0.55;
+}
+
+.wear-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wear-bar-bg {
+    width: 60px;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.wear-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: rgba(46, 204, 113, 0.2);
+    color: var(--argus-safe);
+}
+
+.status-badge.archived {
+    background: rgba(150, 150, 150, 0.2);
+    color: #999;
+}
+
+.btn-icon-small.danger {
+    color: var(--argus-alert);
+}
+
+.btn-icon-small.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
