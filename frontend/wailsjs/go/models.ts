@@ -247,6 +247,104 @@ export namespace domain {
 	        this.address = source["address"];
 	    }
 	}
+	export class BikeComponent {
+	    id: number;
+	    component_type: string;
+	    brand: string;
+	    model: string;
+	    install_date: string;
+	    expected_lifespan_km: number;
+	    current_usage_km: number;
+	    wear_percent: number;
+	    status: string;
+	    notes: string;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	    // Go type: time
+	    replaced_at?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new BikeComponent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.component_type = source["component_type"];
+	        this.brand = source["brand"];
+	        this.model = source["model"];
+	        this.install_date = source["install_date"];
+	        this.expected_lifespan_km = source["expected_lifespan_km"];
+	        this.current_usage_km = source["current_usage_km"];
+	        this.wear_percent = source["wear_percent"];
+	        this.status = source["status"];
+	        this.notes = source["notes"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.replaced_at = this.convertValues(source["replaced_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ComponentReplacement {
+	    id: number;
+	    component_id: number;
+	    // Go type: time
+	    replaced_at: any;
+	    reason: string;
+	    usage_at_replace: number;
+	    notes: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ComponentReplacement(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.component_id = source["component_id"];
+	        this.replaced_at = this.convertValues(source["replaced_at"], null);
+	        this.reason = source["reason"];
+	        this.usage_at_replace = source["usage_at_replace"];
+	        this.notes = source["notes"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class CustomGoal {
 	    id: number;
 	    metric: string;

@@ -881,9 +881,12 @@ export class UIManager {
     toggleSettings(show) {
         if (show) {
             this.loadUserProfile();
-            this.loadHistory(); // Load history when opening settings
+            this.loadHistory();
             this.els.settingsModal.classList.add('active');
             if (this.els.header) this.els.header.classList.add('header-dimmed');
+            document.querySelectorAll('.tab-pane').forEach(el => el.style.display = '');
+            const activePane = document.querySelector('.tab-pane.active');
+            if (activePane) activePane.style.display = 'flex';
         } else {
             this.saveUserProfile();
             this.els.settingsModal.classList.remove('active');
@@ -913,6 +916,37 @@ export class UIManager {
             }
             if (this.els.header) this.els.header.classList.remove('header-dimmed');
         }
+    }
+
+    toggleBikeComponentsModal(show) {
+        if (!this.els.bikeComponentsModal) {
+            this.els.bikeComponentsModal = document.getElementById('bikeComponentsModal');
+            this.els.btnCloseBikeComponents = document.getElementById('btnCloseBikeComponents');
+        }
+        if (show) {
+            this.loadBikeComponentsBike();
+            if (this.els.bikeComponentsModal) {
+                this.els.bikeComponentsModal.classList.remove('hidden', 'hide');
+                this.els.bikeComponentsModal.classList.add('active');
+            }
+            if (this.els.header) this.els.header.classList.add('header-dimmed');
+        } else {
+            if (this.els.bikeComponentsModal) {
+                this.els.bikeComponentsModal.classList.remove('active');
+                this.els.bikeComponentsModal.classList.add('hidden');
+            }
+            if (this.els.header && !this.isAnyOverlayActive()) {
+                this.els.header.classList.remove('header-dimmed');
+            }
+        }
+    }
+
+    isAnyOverlayActive() {
+        return (
+            (this.els.settingsModal && this.els.settingsModal.classList.contains('active')) ||
+            (this.els.trophyModal && this.els.trophyModal.classList.contains('active')) ||
+            (this.els.bikeComponentsModal && this.els.bikeComponentsModal.classList.contains('active'))
+        );
     }
 
     /**
@@ -3002,6 +3036,203 @@ export class UIManager {
         } catch (error) {
             console.error("Export PNG Error:", error);
             this.showToast("Failed to export PNG: " + error.message, 4000);
+        }
+    }
+
+    // ========================
+    // BIKE COMPONENTS METHODS
+    // ========================
+
+    async loadBikeComponentsBike() {
+        const container = document.getElementById('componentsListBike');
+        if (!container) return;
+
+        try {
+            const components = await window.go.main.App.GetBikeComponents();
+
+            if (!components || components.length === 0) {
+                container.innerHTML = `<div class="history-item"><span style="color: var(--text-muted);">No components registered yet. Click "+ Add Component" to get started.</span></div>`;
+                return;
+            }
+
+            let html = `<div class="history-item history-header">
+                <span style="flex: 1.5;">Component</span>
+                <span style="flex: 1; text-align: center;">Usage</span>
+                <span style="flex: 1; text-align: center;">Wear</span>
+                <span style="flex: 1; text-align: center;">Status</span>
+                <span style="width: 120px; text-align: center;">Actions</span>
+            </div>`;
+
+            components.forEach(c => {
+                const wearPct = c.wear_percent || 0;
+                let wearColor = 'var(--argus-safe)';
+                let wearLabel = 'Good';
+                if (wearPct >= 80) {
+                    wearColor = 'var(--argus-alert)';
+                    wearLabel = 'Critical';
+                } else if (wearPct >= 50) {
+                    wearColor = '#f1c40f';
+                    wearLabel = 'Worn';
+                }
+
+                const usageKm = (c.current_usage_km || 0).toFixed(0);
+                const lifespanKm = c.expected_lifespan_km || 0;
+
+                html += `<div class="component-item ${c.status === 'archived' ? 'archived' : ''}">
+                    <div style="flex: 1.5;">
+                        <strong>${c.component_type}</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${c.brand || ''} ${c.model || ''}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Installed: ${c.install_date || '--'}</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; font-size: 0.85rem;">
+                        ${usageKm} / ${lifespanKm} km
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div class="wear-bar-container">
+                            <div class="wear-bar-bg">
+                                <div class="wear-bar-fill" style="width: ${wearPct}%; background: ${wearColor};"></div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: ${wearColor}; font-weight: bold;">${wearPct}%</span>
+                        </div>
+                        ${wearPct >= 80 ? '<div style="color: var(--argus-alert); font-size: 0.7rem; margin-top: 2px;">⚠ Replace soon</div>' : ''}
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <span class="status-badge ${c.status}">${c.status}</span>
+                    </div>
+                    <div style="width: 120px; text-align: center; display: flex; gap: 4px; justify-content: center;">
+                        ${c.status === 'active' ? `
+                            <button class="btn-icon-small" title="Replace" onclick="window.ui.replaceComponentBike(${c.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            </button>
+                            <button class="btn-icon-small" title="Archive" onclick="window.ui.archiveComponentBike(${c.id})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                            </button>
+                        ` : ''}
+                        <button class="btn-icon-small" title="History" onclick="window.ui.showComponentHistoryBike(${c.id})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </button>
+                        <button class="btn-icon-small danger" title="Delete" onclick="window.ui.deleteComponentBike(${c.id})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        } catch (err) {
+            console.error("Error loading components:", err);
+            container.innerHTML = `<div class="history-item"><span style="color: var(--argus-alert);">Error loading components: ${err}</span></div>`;
+        }
+    }
+
+    showAddComponentFormBike(component) {
+        const form = document.getElementById('componentFormBike');
+        const title = document.getElementById('componentFormTitleBike');
+        const editId = document.getElementById('compEditIdBike');
+
+        if (component) {
+            title.textContent = 'Edit Component';
+            editId.value = component.id || '';
+            document.getElementById('compTypeBike').value = component.component_type || 'Chain';
+            document.getElementById('compBrandBike').value = component.brand || '';
+            document.getElementById('compModelBike').value = component.model || '';
+            document.getElementById('compInstallDateBike').value = component.install_date || '';
+            document.getElementById('compLifespanBike').value = component.expected_lifespan_km || '';
+            document.getElementById('compNotesBike').value = component.notes || '';
+        } else {
+            title.textContent = 'New Component';
+            editId.value = '';
+            document.getElementById('compTypeBike').value = 'Chain';
+            document.getElementById('compBrandBike').value = '';
+            document.getElementById('compModelBike').value = '';
+            document.getElementById('compInstallDateBike').value = new Date().toISOString().split('T')[0];
+            document.getElementById('compLifespanBike').value = '';
+            document.getElementById('compNotesBike').value = '';
+        }
+
+        form.classList.remove('hidden');
+    }
+
+    hideComponentFormBike() {
+        document.getElementById('componentFormBike').classList.add('hidden');
+    }
+
+    async saveComponentBike() {
+        const editId = document.getElementById('compEditIdBike').value;
+        const compType = document.getElementById('compTypeBike').value;
+        const brand = document.getElementById('compBrandBike').value;
+        const model = document.getElementById('compModelBike').value;
+        const installDate = document.getElementById('compInstallDateBike').value;
+        const lifespan = parseFloat(document.getElementById('compLifespanBike').value) || 0;
+        const notes = document.getElementById('compNotesBike').value;
+
+        try {
+            if (editId) {
+                await window.go.main.App.UpdateBikeComponent(parseInt(editId), compType, brand, model, installDate, lifespan, notes);
+            } else {
+                await window.go.main.App.AddBikeComponent(compType, brand, model, installDate, lifespan, notes);
+            }
+            this.hideComponentFormBike();
+            this.loadBikeComponentsBike();
+            this.showToast("Component saved!", 2000);
+        } catch (err) {
+            console.error("Error saving component:", err);
+            alert("Error saving component: " + err);
+        }
+    }
+
+    async replaceComponentBike(id) {
+        const reason = prompt("Reason for replacement (optional):");
+        if (reason === null) return;
+        try {
+            await window.go.main.App.ReplaceBikeComponent(id, reason || "");
+            this.loadBikeComponentsBike();
+            this.showToast("Component replaced and archived.", 2000);
+        } catch (err) {
+            console.error("Error replacing component:", err);
+            alert("Error: " + err);
+        }
+    }
+
+    async archiveComponentBike(id) {
+        if (!confirm("Archive this component? It will be marked as archived.")) return;
+        try {
+            await window.go.main.App.ArchiveBikeComponent(id);
+            this.loadBikeComponentsBike();
+            this.showToast("Component archived.", 2000);
+        } catch (err) {
+            console.error("Error archiving component:", err);
+        }
+    }
+
+    async deleteComponentBike(id) {
+        if (!confirm("Permanently delete this component and its history?")) return;
+        try {
+            await window.go.main.App.DeleteBikeComponent(id);
+            this.loadBikeComponentsBike();
+            this.showToast("Component deleted.", 2000);
+        } catch (err) {
+            console.error("Error deleting component:", err);
+        }
+    }
+
+    async showComponentHistoryBike(componentId) {
+        try {
+            const reps = await window.go.main.App.GetComponentReplacements(componentId);
+            if (!reps || reps.length === 0) {
+                alert("No replacement history for this component.");
+                return;
+            }
+
+            let msg = "Replacement History:\n";
+            reps.forEach(r => {
+                const date = new Date(r.replaced_at).toLocaleDateString();
+                msg += `\n${date} - Usage: ${(r.usage_at_replace || 0).toFixed(0)} km`;
+                if (r.reason) msg += ` - Reason: ${r.reason}`;
+            });
+            alert(msg);
+        } catch (err) {
+            console.error("Error loading history:", err);
         }
     }
 }

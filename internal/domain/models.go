@@ -165,6 +165,49 @@ type SyncQueue struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+// BikeComponent represents a bike part with wear tracking.
+type BikeComponent struct {
+	ID                uint      `json:"id" gorm:"primaryKey"`
+	ComponentType     string    `json:"component_type"`
+	Brand             string    `json:"brand"`
+	Model             string    `json:"model"`
+	InstallDate       string    `json:"install_date"`
+	ExpectedLifespanKm float64  `json:"expected_lifespan_km"`
+	CurrentUsageKm    float64   `json:"current_usage_km"`
+	WearPercent       float64   `json:"wear_percent"`
+	Status            string    `json:"status"` // "active", "archived"
+	Notes             string    `json:"notes"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	ReplacedAt        *time.Time `json:"replaced_at"`
+}
+
+// ComponentReplacement records a replacement event in the component's history.
+type ComponentReplacement struct {
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	ComponentID    uint      `json:"component_id" gorm:"index"`
+	ReplacedAt     time.Time `json:"replaced_at"`
+	Reason         string    `json:"reason"`
+	UsageAtReplace float64   `json:"usage_at_replace"`
+	Notes          string    `json:"notes"`
+}
+
+// Component types constants.
+const (
+	CompChain             = "Chain"
+	CompCassette          = "Cassette / Freehub"
+	CompChainrings        = "Chainrings"
+	CompBottomBracket     = "Bottom bracket"
+	CompJockeyWheels      = "Jockey wheels"
+	CompTrainerTires      = "Trainer tires"
+	CompPedals            = "Pedals"
+	CompHandlebarsStem    = "Handlebars / Stem"
+	CompSaddleSeatpost    = "Saddle / Seatpost"
+	CompShiftCables       = "Shift cables & housing"
+	CompDerailleurs       = "Derailleurs"
+	CompHandlebarTape     = "Handlebar tape / Grips"
+)
+
 // BLEDevice represents a Bluetooth device found during the scan.
 type BLEDevice struct {
 	Name    string `json:"name"`

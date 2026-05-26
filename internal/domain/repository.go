@@ -89,6 +89,17 @@ type PowerRepository interface {
 	GetPowerRecords() ([]PowerRecord, error)
 }
 
+// ComponentRepository manages bike component wear tracking.
+type ComponentRepository interface {
+	GetComponents() ([]BikeComponent, error)
+	GetComponentByID(id uint) (BikeComponent, error)
+	SaveComponent(c BikeComponent) error
+	UpdateComponent(c BikeComponent) error
+	DeleteComponent(id uint) error
+	GetComponentReplacements(componentID uint) ([]ComponentReplacement, error)
+	SaveReplacement(r ComponentReplacement) error
+}
+
 // EventRepository manages the global event leaderboard.
 type EventRepository interface {
 	SaveEventRecord(record EventRecord) error

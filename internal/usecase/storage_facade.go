@@ -24,22 +24,24 @@ import (
 // StorageFacade acts as a use-case/service layer to orchestrate the repositories.
 // It exposes the exact methods app.go expects, keeping the UI layer decoupled from the DB implementations.
 type StorageFacade struct {
-	ConnManager  domain.ConnectionManager
-	UserRepo     domain.UserRepository
-	ActivityRepo domain.ActivityRepository
-	PowerRepo    domain.PowerRepository
-	EventRepo    domain.EventRepository
+	ConnManager   domain.ConnectionManager
+	UserRepo      domain.UserRepository
+	ActivityRepo  domain.ActivityRepository
+	PowerRepo     domain.PowerRepository
+	EventRepo     domain.EventRepository
+	ComponentRepo domain.ComponentRepository
 }
 
 func NewStorageFacade() *StorageFacade {
 	state := sqlite.NewDBState()
 
 	return &StorageFacade{
-		ConnManager:  sqlite.NewConnectionManager(state),
-		UserRepo:     sqlite.NewUserRepository(state),
-		ActivityRepo: sqlite.NewActivityRepository(state),
-		PowerRepo:    sqlite.NewPowerRepository(state),
-		EventRepo:    sqlite.NewEventRepository(state),
+		ConnManager:   sqlite.NewConnectionManager(state),
+		UserRepo:      sqlite.NewUserRepository(state),
+		ActivityRepo:  sqlite.NewActivityRepository(state),
+		PowerRepo:     sqlite.NewPowerRepository(state),
+		EventRepo:     sqlite.NewEventRepository(state),
+		ComponentRepo: sqlite.NewComponentRepository(state),
 	}
 }
 
@@ -169,6 +171,38 @@ func (s *StorageFacade) CheckAndUpdateRecord(newRec domain.PowerRecord) bool {
 
 func (s *StorageFacade) GetPowerRecords() ([]domain.PowerRecord, error) {
 	return s.PowerRepo.GetPowerRecords()
+}
+
+// =====================
+// Component Repository
+// =====================
+
+func (s *StorageFacade) GetComponents() ([]domain.BikeComponent, error) {
+	return s.ComponentRepo.GetComponents()
+}
+
+func (s *StorageFacade) GetComponentByID(id uint) (domain.BikeComponent, error) {
+	return s.ComponentRepo.GetComponentByID(id)
+}
+
+func (s *StorageFacade) SaveComponent(c domain.BikeComponent) error {
+	return s.ComponentRepo.SaveComponent(c)
+}
+
+func (s *StorageFacade) UpdateComponent(c domain.BikeComponent) error {
+	return s.ComponentRepo.UpdateComponent(c)
+}
+
+func (s *StorageFacade) DeleteComponent(id uint) error {
+	return s.ComponentRepo.DeleteComponent(id)
+}
+
+func (s *StorageFacade) GetComponentReplacements(componentID uint) ([]domain.ComponentReplacement, error) {
+	return s.ComponentRepo.GetComponentReplacements(componentID)
+}
+
+func (s *StorageFacade) SaveReplacement(r domain.ComponentReplacement) error {
+	return s.ComponentRepo.SaveReplacement(r)
 }
 
 // ================
