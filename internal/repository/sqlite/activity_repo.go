@@ -51,6 +51,15 @@ func (r *ActivityRepo) GetRecentActivities(limit int) ([]domain.Activity, error)
 	return activities, result.Error
 }
 
+func (r *ActivityRepo) GetActivityCount() int {
+	var count int64
+	if r.state.UserDB == nil {
+		return 0
+	}
+	r.state.UserDB.Model(&domain.Activity{}).Count(&count)
+	return int(count)
+}
+
 func (r *ActivityRepo) GetTotalDistance() float64 {
 	var total *float64
 	if r.state.UserDB == nil {

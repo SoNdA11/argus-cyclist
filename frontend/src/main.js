@@ -19,6 +19,7 @@ import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
 import './styles/studio-hud.css';
+import './styles/ai-chat.css';
 import cooldownModalHtml from './components/cooldownModal.html?raw';
 import eventHubPageHtml from './components/eventHubPage.html?raw';
 import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
@@ -30,6 +31,7 @@ import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
 import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
+import aiChatPanelHtml from './components/aiChatPanel.html?raw';
 
 document.body.insertAdjacentHTML('beforeend',
     homeScreenHtml +
@@ -45,13 +47,15 @@ document.body.insertAdjacentHTML('beforeend',
     tutorialModalHtml +
     raceHistoryModalHtml +
     trophyModalHtml +
-    bikeComponentsModalHtml
+    bikeComponentsModalHtml +
+    aiChatPanelHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
 import { ChallengeController } from './modules/ChallengeController.js';
+import { AIChatController } from './modules/AIChatController.js';
 
 // Capacitor imports for the Mobile version
 import { Capacitor } from '@capacitor/core';
@@ -168,6 +172,9 @@ window.workoutCtrl = workoutCtrl;
 
 const challengeCtrl = new ChallengeController(ui, mapCtrl, chart);
 window.challengeCtrl = challengeCtrl;
+
+const aiChatCtrl = new AIChatController();
+window.aiChatCtrl = aiChatCtrl;
 
 // Global State
 window.totalRouteDistance = 0;
