@@ -72,6 +72,7 @@ type UserRepository interface {
 type ActivityRepository interface {
 	SaveActivity(a Activity) error
 	GetRecentActivities(limit int) ([]Activity, error)
+	GetActivityCount() int
 	GetTotalDistance() float64
 	GetTotalDuration() int64
 	GetTotalElevation() float64
@@ -98,6 +99,18 @@ type ComponentRepository interface {
 	DeleteComponent(id uint) error
 	GetComponentReplacements(componentID uint) ([]ComponentReplacement, error)
 	SaveReplacement(r ComponentReplacement) error
+}
+
+// AIRepository manages AI conversation persistence.
+type AIRepository interface {
+	NewConversation(title string, model string) (AIConversation, error)
+	ListConversations() ([]AIConversation, error)
+	GetConversation(id uint) (AIConversation, error)
+	DeleteConversation(id uint) error
+	SaveMessage(msg *AIMessage) error
+	GetMessageByID(id uint) (AIMessage, error)
+	GetMessages(conversationID uint) ([]AIMessage, error)
+	UpdateConversation(id uint, title string, updatedAt time.Time) error
 }
 
 // EventRepository manages the global event leaderboard.

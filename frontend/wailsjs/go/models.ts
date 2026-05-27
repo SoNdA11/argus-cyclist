@@ -1,5 +1,91 @@
 export namespace domain {
 	
+	export class AIMessage {
+	    ID: number;
+	    ConversationID: number;
+	    Role: string;
+	    Content: string;
+	    HasWorkout: boolean;
+	    WorkoutJSON: string;
+	    // Go type: time
+	    CreatedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AIMessage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.ConversationID = source["ConversationID"];
+	        this.Role = source["Role"];
+	        this.Content = source["Content"];
+	        this.HasWorkout = source["HasWorkout"];
+	        this.WorkoutJSON = source["WorkoutJSON"];
+	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AIConversation {
+	    ID: number;
+	    Title: string;
+	    Model: string;
+	    // Go type: time
+	    CreatedAt: any;
+	    // Go type: time
+	    UpdatedAt: any;
+	    Messages: AIMessage[];
+	
+	    static createFrom(source: any = {}) {
+	        return new AIConversation(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.Title = source["Title"];
+	        this.Model = source["Model"];
+	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
+	        this.UpdatedAt = this.convertValues(source["UpdatedAt"], null);
+	        this.Messages = this.convertValues(source["Messages"], AIMessage);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
 	export class WorkoutSegment {
 	    index: number;
 	    type: string;
@@ -574,6 +660,7 @@ export namespace domain {
 	    level: number;
 	    current_xp: number;
 	    total_coins: number;
+	    ai_model: string;
 	    current_streak: number;
 	    // Go type: time
 	    last_workout_date: any;
@@ -605,6 +692,7 @@ export namespace domain {
 	        this.level = source["level"];
 	        this.current_xp = source["current_xp"];
 	        this.total_coins = source["total_coins"];
+	        this.ai_model = source["ai_model"];
 	        this.current_streak = source["current_streak"];
 	        this.last_workout_date = this.convertValues(source["last_workout_date"], null);
 	        this.created_at = this.convertValues(source["created_at"], null);
@@ -709,6 +797,28 @@ export namespace fit {
 
 export namespace main {
 	
+	export class AIChatResult {
+	    response: string;
+	    message_id: number;
+	    has_workout: boolean;
+	    workout_name?: string;
+	    workout_json?: string;
+	    saved_workout_path?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AIChatResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.response = source["response"];
+	        this.message_id = source["message_id"];
+	        this.has_workout = source["has_workout"];
+	        this.workout_name = source["workout_name"];
+	        this.workout_json = source["workout_json"];
+	        this.saved_workout_path = source["saved_workout_path"];
+	    }
+	}
 	export class DecouplingRecord {
 	    date: string;
 	    decoupling: number;

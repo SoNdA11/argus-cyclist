@@ -19,6 +19,7 @@ package usecase
 import (
 	"argus-cyclist/internal/domain"
 	"argus-cyclist/internal/repository/sqlite"
+	"time"
 )
 
 // StorageFacade acts as a use-case/service layer to orchestrate the repositories.
@@ -30,6 +31,7 @@ type StorageFacade struct {
 	PowerRepo     domain.PowerRepository
 	EventRepo     domain.EventRepository
 	ComponentRepo domain.ComponentRepository
+	AIRepo        domain.AIRepository
 }
 
 func NewStorageFacade() *StorageFacade {
@@ -42,6 +44,7 @@ func NewStorageFacade() *StorageFacade {
 		PowerRepo:     sqlite.NewPowerRepository(state),
 		EventRepo:     sqlite.NewEventRepository(state),
 		ComponentRepo: sqlite.NewComponentRepository(state),
+		AIRepo:        sqlite.NewAIRepository(state),
 	}
 }
 
@@ -123,6 +126,10 @@ func (s *StorageFacade) SaveActivity(a domain.Activity) error {
 
 func (s *StorageFacade) GetRecentActivities(limit int) ([]domain.Activity, error) {
 	return s.ActivityRepo.GetRecentActivities(limit)
+}
+
+func (s *StorageFacade) GetActivityCount() int {
+	return s.ActivityRepo.GetActivityCount()
 }
 
 func (s *StorageFacade) GetTotalDistance() float64 {
@@ -235,4 +242,40 @@ func (s *StorageFacade) UpdateEventRecordStatus(id uint, uploaded bool) error {
 
 func (s *StorageFacade) DeleteEventRecord(id uint) error {
 	return s.EventRepo.DeleteEventRecord(id)
+}
+
+// ===============
+// AI Repository
+// ===============
+
+func (s *StorageFacade) AINewConversation(title string, model string) (domain.AIConversation, error) {
+	return s.AIRepo.NewConversation(title, model)
+}
+
+func (s *StorageFacade) AIListConversations() ([]domain.AIConversation, error) {
+	return s.AIRepo.ListConversations()
+}
+
+func (s *StorageFacade) AIGetConversation(id uint) (domain.AIConversation, error) {
+	return s.AIRepo.GetConversation(id)
+}
+
+func (s *StorageFacade) AIDeleteConversation(id uint) error {
+	return s.AIRepo.DeleteConversation(id)
+}
+
+func (s *StorageFacade) AISaveMessage(msg *domain.AIMessage) error {
+	return s.AIRepo.SaveMessage(msg)
+}
+
+func (s *StorageFacade) AIGetMessages(conversationID uint) ([]domain.AIMessage, error) {
+	return s.AIRepo.GetMessages(conversationID)
+}
+
+func (s *StorageFacade) AIGetMessageByID(id uint) (domain.AIMessage, error) {
+	return s.AIRepo.GetMessageByID(id)
+}
+
+func (s *StorageFacade) AIUpdateConversation(id uint, title string, updatedAt time.Time) error {
+	return s.AIRepo.UpdateConversation(id, title, updatedAt)
 }

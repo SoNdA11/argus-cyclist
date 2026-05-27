@@ -31,13 +31,14 @@ import (
 	"time"
 
 	"argus-cyclist/internal/domain"
+	"argus-cyclist/internal/service/ai"
 	"argus-cyclist/internal/service/ble"
 	"argus-cyclist/internal/service/fit"
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/sim"
-	"argus-cyclist/internal/usecase"
 	"argus-cyclist/internal/service/strava"
 	"argus-cyclist/internal/service/workout"
+	"argus-cyclist/internal/usecase"
 
 	"github.com/joho/godotenv"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -87,6 +88,8 @@ type App struct {
 	peakHR               int
 	hrAt1Min             int
 	hrAt2Min             int
+
+	aiService *ai.Service
 }
 
 type ExportPoint struct {
@@ -96,15 +99,15 @@ type ExportPoint struct {
 }
 
 type GamificationResult struct {
-	TimeXP         int64                `json:"time_xp"`
-	DistanceXP     int64                `json:"distance_xp"`
-	ElevationXP    int64                `json:"elevation_xp"`
-	StreakBonusXP  int64                `json:"streak_bonus_xp"`
-	TotalXPEarned  int64                `json:"total_xp_earned"`
-	NewLevel       int                  `json:"new_level"`
-	LevelUp        bool                 `json:"level_up"`
-	BadgesUnlocked []domain.UserBadge   `json:"badges_unlocked"`
-	GoalsCompleted []domain.CustomGoal  `json:"goals_completed"`
+	TimeXP         int64               `json:"time_xp"`
+	DistanceXP     int64               `json:"distance_xp"`
+	ElevationXP    int64               `json:"elevation_xp"`
+	StreakBonusXP  int64               `json:"streak_bonus_xp"`
+	TotalXPEarned  int64               `json:"total_xp_earned"`
+	NewLevel       int                 `json:"new_level"`
+	LevelUp        bool                `json:"level_up"`
+	BadgesUnlocked []domain.UserBadge  `json:"badges_unlocked"`
+	GoalsCompleted []domain.CustomGoal `json:"goals_completed"`
 }
 
 type SessionSummary struct {
@@ -150,6 +153,7 @@ func NewApp() *App {
 		physicsEngine:  sim.NewEngine(defaultRiderWeight, defaultBikeWeight),
 		trainerService: ble.NewRealService(),
 		workoutService: workout.NewService(),
+		aiService:      ai.NewService(),
 
 		storageService: store,
 		telemetryChan:  make(chan domain.Telemetry),
@@ -1868,14 +1872,14 @@ func (a *App) UploadLastWorkoutToStrava() (string, error) {
 				a.DisconnectStrava()
 				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
 			}
-			
+
 			profile.StravaAccessToken = newTokens.AccessToken
 			profile.StravaRefreshToken = newTokens.RefreshToken
 			profile.StravaExpiresAt = newTokens.ExpiresAt
 			if dbErr := a.storageService.UpdateProfile(profile); dbErr != nil {
 				return "", fmt.Errorf("failed to save refreshed token: %v", dbErr)
 			}
-			
+
 			// Retry upload
 			err = strava.UploadFitFile(profile.StravaAccessToken, latestFitFilePath)
 			if err != nil {
@@ -1944,14 +1948,14 @@ func (a *App) UploadActivityToStrava(activityID uint) (string, error) {
 				a.DisconnectStrava()
 				return "", fmt.Errorf("failed to refresh token after 401: %v", refreshErr)
 			}
-			
+
 			profile.StravaAccessToken = newTokens.AccessToken
 			profile.StravaRefreshToken = newTokens.RefreshToken
 			profile.StravaExpiresAt = newTokens.ExpiresAt
 			if dbErr := a.storageService.UpdateProfile(profile); dbErr != nil {
 				return "", fmt.Errorf("failed to save refreshed token: %v", dbErr)
 			}
-			
+
 			// Retry upload
 			err = strava.UploadFitFile(profile.StravaAccessToken, activity.Filename)
 			if err != nil {
@@ -2168,4 +2172,436 @@ func (a *App) DownloadEventRecords(recordIDs []uint) (string, error) {
 	}
 
 	return "File saved successfully", nil
+}
+
+// =================
+// AI COACH BINDINGS
+// =================
+
+// AIChatResult represents the response returned to the frontend after an AI chat call.
+type AIChatResult struct {
+	Response         string `json:"response"`
+	MessageID        uint   `json:"message_id"`
+	HasWorkout       bool   `json:"has_workout"`
+	WorkoutName      string `json:"workout_name,omitempty"`
+	WorkoutJSON      string `json:"workout_json,omitempty"`
+	SavedWorkoutPath string `json:"saved_workout_path,omitempty"`
+}
+
+// AICheckConnection returns true if the Ollama server is reachable.
+func (a *App) AICheckConnection() bool {
+	return a.aiService.CheckConnection()
+}
+
+// AIListModels returns the list of available Ollama models.
+func (a *App) AIListModels() ([]string, error) {
+	return a.aiService.ListModels()
+}
+
+// AIGetActiveModel returns the first available model name from Ollama.
+func (a *App) AIGetActiveModel() string {
+	return a.aiService.GetActiveModel()
+}
+
+// AIGetDefaultModel returns the user's saved model preference.
+func (a *App) AIGetDefaultModel() string {
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return ""
+	}
+	return profile.AIModel
+}
+
+// AISetDefaultModel saves the user's model preference.
+func (a *App) AISetDefaultModel(model string) error {
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return err
+	}
+	profile.AIModel = model
+	return a.storageService.UpdateProfile(profile)
+}
+
+// AINewConversation creates a new AI conversation and returns it.
+func (a *App) AINewConversation(title string, model string) (domain.AIConversation, error) {
+	if model == "" {
+		model = a.AIGetDefaultModel()
+	}
+	if model == "" {
+		model = a.aiService.GetActiveModel()
+	}
+	if model == "" {
+		model = "qwen2.5:3b"
+	}
+	return a.storageService.AINewConversation(title, model)
+}
+
+// AIListConversations returns all AI conversations.
+func (a *App) AIListConversations() ([]domain.AIConversation, error) {
+	return a.storageService.AIListConversations()
+}
+
+// AIGetConversation returns a conversation with its messages.
+func (a *App) AIGetConversation(id uint) (domain.AIConversation, error) {
+	return a.storageService.AIGetConversation(id)
+}
+
+// AIDeleteConversation deletes an AI conversation and its messages.
+func (a *App) AIDeleteConversation(id uint) error {
+	return a.storageService.AIDeleteConversation(id)
+}
+
+// AIRenameConversation renames an AI conversation.
+func (a *App) AIRenameConversation(id uint, title string) error {
+	return a.storageService.AIUpdateConversation(id, title, time.Now())
+}
+
+// AIChat sends a user message to the AI coach within a conversation and returns the response.
+func (a *App) AIChat(conversationID uint, message string) (AIChatResult, error) {
+	conv, err := a.storageService.AIGetConversation(conversationID)
+	if err != nil {
+		return AIChatResult{}, fmt.Errorf("conversation not found: %w", err)
+	}
+
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		profile = domain.UserProfile{Name: "Ciclista", FTP: 200, Weight: 75, Level: 1}
+	}
+
+	recentActivities, _ := a.storageService.GetRecentActivities(3)
+	totalActivities := a.storageService.GetActivityCount()
+	totalKm := a.storageService.GetTotalDistance() / 1000.0
+	totalHours := float64(a.storageService.GetTotalDuration()) / 3600.0
+	systemPrompt := ai.BuildSystemPrompt(profile, recentActivities, totalActivities, totalKm, totalHours)
+
+	history, err := a.storageService.AIGetMessages(conversationID)
+	if err != nil {
+		history = []domain.AIMessage{}
+	}
+
+	userMsg := domain.AIMessage{
+		ConversationID: conversationID,
+		Role:           "user",
+		Content:        message,
+		CreatedAt:      time.Now(),
+	}
+	if err := a.storageService.AISaveMessage(&userMsg); err != nil {
+		return AIChatResult{}, fmt.Errorf("failed to save user message: %w", err)
+	}
+
+	ollamaMessages := []ai.OllamaMessage{
+		{Role: "system", Content: systemPrompt},
+	}
+	// Keep only the last 3 exchanges (6 messages) to limit context size
+	start := 0
+	if len(history) > 6 {
+		start = len(history) - 6
+	}
+	for _, h := range history[start:] {
+		ollamaMessages = append(ollamaMessages, ai.OllamaMessage{Role: h.Role, Content: h.Content})
+	}
+	ollamaMessages = append(ollamaMessages, ai.OllamaMessage{Role: "user", Content: message})
+
+	modelToUse := conv.Model
+	if modelToUse == "" {
+		modelToUse = a.AIGetDefaultModel()
+	}
+	if modelToUse == "" {
+		modelToUse = a.aiService.GetActiveModel()
+	}
+	resp, err := a.aiService.Chat(modelToUse, ollamaMessages)
+	if err != nil {
+		return AIChatResult{}, fmt.Errorf("AI request failed: %w", err)
+	}
+
+	cleanContent := stripJSONComments(resp.Message.Content)
+
+	var structured ai.AIStructuredResponse
+	hasWorkout := false
+	workoutName := ""
+	workoutJSON := ""
+	content := cleanContent
+
+	if err := json.Unmarshal([]byte(content), &structured); err == nil {
+		if structured.Workout != nil {
+			hasWorkout = true
+			workoutName = structured.Workout.Name
+			if wj, err := json.Marshal(structured.Workout); err == nil {
+				workoutJSON = string(wj)
+			}
+		}
+	} else {
+		if start := strings.Index(content, "```json"); start >= 0 {
+			start += 7
+			if end := strings.Index(content[start:], "```"); end >= 0 {
+				content = strings.TrimSpace(content[start : start+end])
+				if err := json.Unmarshal([]byte(content), &structured); err == nil {
+					if structured.Workout != nil {
+						hasWorkout = true
+						workoutName = structured.Workout.Name
+						if wj, err := json.Marshal(structured.Workout); err == nil {
+							workoutJSON = string(wj)
+						}
+					}
+				}
+			}
+		}
+		if structured.Response == "" {
+			if braceStart := strings.Index(content, "{"); braceStart >= 0 {
+				if braceEnd := strings.LastIndex(content, "}"); braceEnd > braceStart {
+					jsonPart := content[braceStart : braceEnd+1]
+					var temp ai.AIStructuredResponse
+					if err := json.Unmarshal([]byte(jsonPart), &temp); err == nil {
+						structured = temp
+						if structured.Workout != nil {
+							hasWorkout = true
+							workoutName = structured.Workout.Name
+						}
+						content = strings.TrimSpace(content[:braceStart] + content[braceEnd+1:])
+					}
+				}
+			}
+		}
+	}
+
+	// Normalize power values: if model output absolute watts instead of decimals, convert them
+	if hasWorkout && structured.Workout != nil {
+		normalizeWorkoutPower(structured.Workout, float64(profile.FTP))
+		workoutName = structured.Workout.Name
+		if wj, err := json.Marshal(structured.Workout); err == nil {
+			workoutJSON = string(wj)
+		}
+		// Debug: log total duration of parsed segments
+		totalSec := 0
+		for _, s := range structured.Workout.Segments {
+			if s.Type == "IntervalsT" {
+				rep := 1
+				if s.Repeat != nil {
+					rep = *s.Repeat
+				}
+				onD := 0
+				if s.OnDuration != nil {
+					onD = *s.OnDuration
+				}
+				offD := 0
+				if s.OffDuration != nil {
+					offD = *s.OffDuration
+				}
+				totalSec += rep * (onD + offD)
+			} else {
+				totalSec += s.Duration
+			}
+		}
+		fmt.Printf("[AI] workout total duration: %ds (%.1f min)\n", totalSec, float64(totalSec)/60.0)
+	}
+
+	displayResponse := structured.Response
+	if displayResponse == "" {
+		displayResponse = content
+	}
+
+	aiMsg := domain.AIMessage{
+		ConversationID: conversationID,
+		Role:           "assistant",
+		Content:        displayResponse,
+		HasWorkout:     hasWorkout,
+		WorkoutJSON:    workoutJSON,
+		CreatedAt:      time.Now(),
+	}
+	if err := a.storageService.AISaveMessage(&aiMsg); err != nil {
+		return AIChatResult{}, fmt.Errorf("failed to save AI message: %w", err)
+	}
+
+	if err := a.storageService.AIUpdateConversation(conversationID, conv.Title, time.Now()); err != nil {
+		fmt.Printf("[AI] failed to update conversation timestamp: %v\n", err)
+	}
+
+	savedWorkoutPath := ""
+	if hasWorkout && workoutJSON != "" {
+		var plan ai.AIWorkoutPlan
+		if err := json.Unmarshal([]byte(workoutJSON), &plan); err == nil {
+			if path, err := a.saveWorkoutZWO(plan); err == nil {
+				savedWorkoutPath = path
+				fmt.Printf("[AI] ZWO auto-saved: %s\n", path)
+			} else {
+				fmt.Printf("[AI] saveWorkoutZWO error: %v\n", err)
+			}
+		} else {
+			fmt.Printf("[AI] failed to unmarshal workout for ZWO: %v\n  JSON: %s\n", err, workoutJSON)
+		}
+	} else {
+		fmt.Printf("[AI] auto-save skipped: hasWorkout=%v, workoutJSON=%q\n", hasWorkout, workoutJSON)
+	}
+
+	return AIChatResult{
+		Response:         displayResponse,
+		MessageID:        aiMsg.ID,
+		HasWorkout:       hasWorkout,
+		WorkoutName:      workoutName,
+		WorkoutJSON:      workoutJSON,
+		SavedWorkoutPath: savedWorkoutPath,
+	}, nil
+}
+
+// saveWorkoutZWO generates a ZWO file from a workout plan and loads it into the trainer.
+func (a *App) saveWorkoutZWO(plan ai.AIWorkoutPlan) (string, error) {
+	zwoXML, err := generateZWOXML(plan)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate ZWO: %w", err)
+	}
+
+	safeName := strings.ReplaceAll(plan.Name, " ", "_")
+	safeName = strings.ReplaceAll(safeName, "/", "_")
+	filename := fmt.Sprintf("workouts/ai_%s.zwo", safeName)
+
+	os.MkdirAll("workouts", 0755)
+	if err := os.WriteFile(filename, []byte(zwoXML), 0644); err != nil {
+		return "", fmt.Errorf("failed to write ZWO file: %w", err)
+	}
+
+	wo, err := a.workoutService.LoadZWO(filename)
+	if err != nil {
+		return filename, nil
+	}
+
+	a.activeWorkout = wo
+	if a.isRecording {
+		a.workoutStartTimeOffset = a.sessionActiveTime
+		a.isInWorkout = true
+	} else {
+		a.workoutStartTimeOffset = 0
+	}
+
+	runtime.EventsEmit(a.ctx, "workout_loaded", wo)
+	return filename, nil
+}
+
+// AISaveWorkoutAsZWO saves an AI-generated workout from a message as a ZWO file and loads it.
+func (a *App) AISaveWorkoutAsZWO(messageID uint) (string, error) {
+	msg, err := a.storageService.AIGetMessageByID(messageID)
+	if err != nil {
+		return "", fmt.Errorf("message not found: %w", err)
+	}
+
+	if !msg.HasWorkout || msg.WorkoutJSON == "" {
+		return "", fmt.Errorf("this message has no associated workout")
+	}
+
+	var plan ai.AIWorkoutPlan
+	if err := json.Unmarshal([]byte(msg.WorkoutJSON), &plan); err != nil {
+		return "", fmt.Errorf("failed to parse workout data: %w", err)
+	}
+
+	return a.saveWorkoutZWO(plan)
+}
+
+// generateZWOXML converts an AIWorkoutPlan to ZWO XML format.
+func generateZWOXML(plan ai.AIWorkoutPlan) (string, error) {
+	var b strings.Builder
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
+	b.WriteString(fmt.Sprintf("<workout_file>\n\t<name>%s</name>\n", plan.Name))
+	fmt.Fprintf(&b, "\t<description>Generated by Argus Cyclist AI Coach</description>\n")
+	b.WriteString("\t<author>AI Coach</author>\n\t<workout>\n")
+
+	for _, seg := range plan.Segments {
+		switch seg.Type {
+		case "Warmup", "Cooldown", "Ramp":
+			powerLow := 0.5
+			powerHigh := 0.7
+			if seg.PowerLow != nil {
+				powerLow = *seg.PowerLow
+			}
+			if seg.PowerHigh != nil {
+				powerHigh = *seg.PowerHigh
+			}
+			b.WriteString(fmt.Sprintf("\t\t<%s Duration=\"%d\" PowerLow=\"%.2f\" PowerHigh=\"%.2f\" />\n",
+				seg.Type, seg.Duration, powerLow, powerHigh))
+		case "SteadyState", "FreeRide":
+			power := 0.75
+			if seg.Power != nil {
+				power = *seg.Power
+			}
+			b.WriteString(fmt.Sprintf("\t\t<%s Duration=\"%d\" Power=\"%.2f\" />\n",
+				seg.Type, seg.Duration, power))
+		case "IntervalsT":
+			repeat := 3
+			onDuration := 60
+			onPower := 1.1
+			offDuration := 120
+			offPower := 0.5
+			if seg.Repeat != nil {
+				repeat = *seg.Repeat
+			}
+			if seg.OnDuration != nil {
+				onDuration = *seg.OnDuration
+			}
+			if seg.OnPower != nil {
+				onPower = *seg.OnPower
+			}
+			if seg.OffDuration != nil {
+				offDuration = *seg.OffDuration
+			}
+			if seg.OffPower != nil {
+				offPower = *seg.OffPower
+			}
+			b.WriteString(fmt.Sprintf("\t\t<IntervalsT Repeat=\"%d\" OnDuration=\"%d\" OnPower=\"%.2f\" OffDuration=\"%d\" OffPower=\"%.2f\" />\n",
+				repeat, onDuration, onPower, offDuration, offPower))
+		default:
+			b.WriteString(fmt.Sprintf("\t\t<!-- Unknown segment type: %s, Duration=%d -->\n", seg.Type, seg.Duration))
+		}
+	}
+
+	b.WriteString("\t</workout>\n</workout_file>\n")
+	return b.String(), nil
+}
+
+// stripJSONComments removes # comments from model output that isn't valid JSON.
+func stripJSONComments(s string) string {
+	lines := strings.Split(s, "\n")
+	var out []string
+	for _, line := range lines {
+		inStr := false
+		for i := 0; i < len(line); i++ {
+			if line[i] == '"' && (i == 0 || line[i-1] != '\\') {
+				inStr = !inStr
+			}
+			if line[i] == '#' && !inStr {
+				out = append(out, line[:i])
+				goto next
+			}
+		}
+		out = append(out, line)
+	next:
+	}
+	return strings.Join(out, "\n")
+}
+
+// normalizeWorkoutPower converts absolute watt values (>5) to decimal percentages of FTP.
+func normalizeWorkoutPower(plan *ai.AIWorkoutPlan, ftp float64) {
+	if ftp <= 0 {
+		return
+	}
+	for i := range plan.Segments {
+		s := &plan.Segments[i]
+		if s.Power != nil && *s.Power > 5 {
+			v := *s.Power / ftp
+			s.Power = &v
+		}
+		if s.PowerLow != nil && *s.PowerLow > 5 {
+			v := *s.PowerLow / ftp
+			s.PowerLow = &v
+		}
+		if s.PowerHigh != nil && *s.PowerHigh > 5 {
+			v := *s.PowerHigh / ftp
+			s.PowerHigh = &v
+		}
+		if s.OnPower != nil && *s.OnPower > 5 {
+			v := *s.OnPower / ftp
+			s.OnPower = &v
+		}
+		if s.OffPower != nil && *s.OffPower > 5 {
+			v := *s.OffPower / ftp
+			s.OffPower = &v
+		}
+	}
 }
