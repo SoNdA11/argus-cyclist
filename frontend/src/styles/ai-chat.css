@@ -267,12 +267,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #e8edf5;
     font-size: 12px;
     font-family: inherit;
-    padding: 6px 8px;
+    padding: 6px 22px 6px 8px;
     cursor: pointer;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
-    appearance: auto;
-    -webkit-appearance: auto;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 10px;
 }
 
 #aiModelSelect:focus {
@@ -281,7 +286,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 #aiModelSelect option {
-    background: #1a1d24;
+    background: #1e2229;
     color: #e8edf5;
 }
 
