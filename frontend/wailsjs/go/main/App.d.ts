@@ -14,6 +14,8 @@ export function AIGetActiveModel():Promise<string>;
 
 export function AIGetConversation(arg1:number):Promise<domain.AIConversation>;
 
+export function AIGetDefaultModel():Promise<string>;
+
 export function AIListConversations():Promise<Array<domain.AIConversation>>;
 
 export function AIListModels():Promise<Array<string>>;
@@ -23,6 +25,8 @@ export function AINewConversation(arg1:string,arg2:string):Promise<domain.AIConv
 export function AIRenameConversation(arg1:number,arg2:string):Promise<void>;
 
 export function AISaveWorkoutAsZWO(arg1:number):Promise<string>;
+
+export function AISetDefaultModel(arg1:string):Promise<void>;
 
 export function AddBikeComponent(arg1:string,arg2:string,arg3:string,arg4:string,arg5:number,arg6:string):Promise<domain.BikeComponent>;
 

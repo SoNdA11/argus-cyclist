@@ -77,6 +77,8 @@ type UserProfile struct {
 	CurrentXP  int64 `json:"current_xp"`
 	TotalCoins int   `json:"total_coins"`
 	
+	AIModel string `json:"ai_model" gorm:"size:50"`
+	
 	CurrentStreak   int       `json:"current_streak"`
 	LastWorkoutDate time.Time `json:"last_workout_date"`
 

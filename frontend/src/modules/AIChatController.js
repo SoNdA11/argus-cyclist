@@ -27,7 +27,7 @@ export class AIChatController {
         this.workoutNameEl = document.getElementById('aiWorkoutName');
         this.saveWorkoutBtn = document.getElementById('btnAISaveWorkout');
         this.statusDot = document.getElementById('aiConnectionStatus');
-        this.modelLabel = document.getElementById('aiModelLabel');
+        this.modelSelect = document.getElementById('aiModelSelect');
 
         this.currentConversationID = null;
         this.pendingWorkoutMessageID = null;
@@ -58,6 +58,8 @@ export class AIChatController {
             });
         });
 
+        this.modelSelect.addEventListener('change', () => this.changeModel());
+
         this.checkConnection();
     }
 
@@ -66,16 +68,43 @@ export class AIChatController {
         this.overlay.classList.remove('hidden');
         this.loadConversations();
         this.checkConnection();
-        this.updateModelLabel();
+        this.updateModelList();
         setTimeout(() => this.inputEl.focus(), 100);
     }
 
-    async updateModelLabel() {
+    async updateModelList() {
         try {
-            const model = await window.go.main.App.AIGetActiveModel();
-            this.modelLabel.textContent = model || 'unknown';
+            const models = await window.go.main.App.AIListModels();
+            const saved = await window.go.main.App.AIGetDefaultModel();
+            this.modelSelect.innerHTML = '';
+            models.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                if (name === saved) opt.selected = true;
+                this.modelSelect.appendChild(opt);
+            });
+            if (this.modelSelect.options.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'no models';
+                this.modelSelect.appendChild(opt);
+            }
+            if (!saved && this.modelSelect.options.length > 0) {
+                this.modelSelect.value = this.modelSelect.options[0].value;
+            }
         } catch {
-            this.modelLabel.textContent = 'unknown';
+            this.modelSelect.innerHTML = '<option value="">error</option>';
+        }
+    }
+
+    async changeModel() {
+        const model = this.modelSelect.value;
+        if (!model) return;
+        try {
+            await window.go.main.App.AISetDefaultModel(model);
+        } catch (err) {
+            console.error('Failed to save model preference:', err);
         }
     }
 
@@ -193,7 +222,7 @@ export class AIChatController {
         const title = prompt('Conversation title (optional):');
         if (title === null) return;
         try {
-            const model = await window.go.main.App.AIGetActiveModel() || 'qwen2.5:3b';
+            const model = this.modelSelect.value || 'qwen2.5:3b';
             const conv = await window.go.main.App.AINewConversation(title || 'New Chat', model);
             this.currentConversationID = conv.ID;
             this.showWelcome();
@@ -276,7 +305,7 @@ export class AIChatController {
         if (!text || this.isLoading) return;
 
         if (!this.currentConversationID) {
-            const model = await window.go.main.App.AIGetActiveModel() || 'qwen2.5:3b';
+            const model = this.modelSelect.value || 'qwen2.5:3b';
             const conv = await window.go.main.App.AINewConversation('New Chat', model);
             this.currentConversationID = conv.ID;
             this.loadConversations();

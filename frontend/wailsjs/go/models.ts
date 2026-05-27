@@ -660,6 +660,7 @@ export namespace domain {
 	    level: number;
 	    current_xp: number;
 	    total_coins: number;
+	    ai_model: string;
 	    current_streak: number;
 	    // Go type: time
 	    last_workout_date: any;
@@ -691,6 +692,7 @@ export namespace domain {
 	        this.level = source["level"];
 	        this.current_xp = source["current_xp"];
 	        this.total_coins = source["total_coins"];
+	        this.ai_model = source["ai_model"];
 	        this.current_streak = source["current_streak"];
 	        this.last_workout_date = this.convertValues(source["last_workout_date"], null);
 	        this.created_at = this.convertValues(source["created_at"], null);

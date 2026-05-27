@@ -22,6 +22,10 @@ export function AIGetConversation(arg1) {
   return window['go']['main']['App']['AIGetConversation'](arg1);
 }
 
+export function AIGetDefaultModel() {
+  return window['go']['main']['App']['AIGetDefaultModel']();
+}
+
 export function AIListConversations() {
   return window['go']['main']['App']['AIListConversations']();
 }
@@ -40,6 +44,10 @@ export function AIRenameConversation(arg1, arg2) {
 
 export function AISaveWorkoutAsZWO(arg1) {
   return window['go']['main']['App']['AISaveWorkoutAsZWO'](arg1);
+}
+
+export function AISetDefaultModel(arg1) {
+  return window['go']['main']['App']['AISetDefaultModel'](arg1);
 }
 
 export function AddBikeComponent(arg1, arg2, arg3, arg4, arg5, arg6) {

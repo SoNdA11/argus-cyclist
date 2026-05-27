@@ -246,12 +246,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.ai-model-badge {
+.ai-model-select {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ai-model-label {
+    font-size: 10px;
+    font-weight: 600;
     color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+#aiModelSelect {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #e8edf5;
+    font-size: 12px;
+    font-family: inherit;
+    padding: 6px 8px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: auto;
+    -webkit-appearance: auto;
+}
+
+#aiModelSelect:focus {
+    border-color: rgba(53, 132, 228, 0.4);
+    box-shadow: 0 0 0 3px rgba(53, 132, 228, 0.1);
+}
+
+#aiModelSelect option {
+    background: #1a1d24;
+    color: #e8edf5;
 }
 
 /* =========

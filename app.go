@@ -2203,8 +2203,30 @@ func (a *App) AIGetActiveModel() string {
 	return a.aiService.GetActiveModel()
 }
 
+// AIGetDefaultModel returns the user's saved model preference.
+func (a *App) AIGetDefaultModel() string {
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return ""
+	}
+	return profile.AIModel
+}
+
+// AISetDefaultModel saves the user's model preference.
+func (a *App) AISetDefaultModel(model string) error {
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return err
+	}
+	profile.AIModel = model
+	return a.storageService.UpdateProfile(profile)
+}
+
 // AINewConversation creates a new AI conversation and returns it.
 func (a *App) AINewConversation(title string, model string) (domain.AIConversation, error) {
+	if model == "" {
+		model = a.AIGetDefaultModel()
+	}
 	if model == "" {
 		model = a.aiService.GetActiveModel()
 	}
@@ -2280,9 +2302,12 @@ func (a *App) AIChat(conversationID uint, message string) (AIChatResult, error) 
 	}
 	ollamaMessages = append(ollamaMessages, ai.OllamaMessage{Role: "user", Content: message})
 
-	modelToUse := a.aiService.GetActiveModel()
+	modelToUse := conv.Model
 	if modelToUse == "" {
-		modelToUse = conv.Model
+		modelToUse = a.AIGetDefaultModel()
+	}
+	if modelToUse == "" {
+		modelToUse = a.aiService.GetActiveModel()
 	}
 	resp, err := a.aiService.Chat(modelToUse, ollamaMessages)
 	if err != nil {
