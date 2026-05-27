@@ -71,7 +71,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #e8edf5;
     letter-spacing: 0.3px;
@@ -111,12 +111,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 8px;
     margin: 14px 14px 8px;
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: linear-gradient(135deg, #1a5fb4, #3584e4);
     color: #fff;
     border: none;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.15s;
@@ -133,7 +133,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .ai-sidebar-section-label {
     padding: 12px 18px 6px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     color: #6b7280;
     text-transform: uppercase;
@@ -178,7 +178,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-conv-item-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: #e8edf5;
     white-space: nowrap;
@@ -193,7 +193,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-conv-item-date {
-    font-size: 10px;
+    font-size: 11px;
     color: #6b7280;
     margin-top: 3px;
 }
@@ -235,7 +235,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-conv-empty {
-    font-size: 12px;
+    font-size: 13px;
     color: #6b7280;
     text-align: center;
     padding: 24px 12px;
@@ -250,7 +250,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: 12px;
     color: #6b7280;
 }
 
@@ -270,10 +270,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .ai-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 24px 32px 16px;
+    padding: 28px 36px 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
 }
 
 .ai-messages::-webkit-scrollbar {
@@ -329,7 +329,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-welcome h2 {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
     color: #e8edf5;
     margin: 0 0 8px;
@@ -337,10 +337,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-welcome p {
-    font-size: 14px;
-    color: #6b7280;
+    font-size: 15px;
+    color: #9ca3af;
     margin: 0 0 28px;
-    line-height: 1.6;
+    line-height: 1.7;
+    max-width: 480px;
 }
 
 .ai-suggestions {
@@ -348,19 +349,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
-    max-width: 520px;
+    max-width: 540px;
 }
 
 .ai-chip {
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 8px 16px;
+    padding: 10px 18px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     color: #9ca3af;
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -413,10 +414,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-msg-bubble {
-    padding: 12px 18px;
+    padding: 14px 20px;
     border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.7;
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -591,12 +592,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: none;
     padding: 8px 0;
     color: #e8edf5;
-    font-size: 14px;
+    font-size: 15px;
     font-family: inherit;
     resize: none;
     outline: none;
-    min-height: 22px;
-    max-height: 120px;
+    min-height: 24px;
+    max-height: 150px;
     line-height: 1.5;
 }
 
@@ -634,10 +635,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 .ai-workout-card {
-    margin-top: 12px;
+    margin-top: 14px;
     background: rgba(16, 185, 129, 0.06);
     border: 1px solid rgba(16, 185, 129, 0.15);
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
 }
 
@@ -645,7 +646,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: rgba(16, 185, 129, 0.08);
     border-bottom: 1px solid rgba(16, 185, 129, 0.1);
 }
@@ -657,20 +658,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-wk-header-info strong {
-    font-size: 13px;
+    font-size: 14px;
     color: #10b981;
 }
 
 .ai-wk-total {
-    font-size: 11px;
+    font-size: 12px;
     color: #6b7280;
     background: rgba(255, 255, 255, 0.05);
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: 4px;
 }
 
 .ai-wk-saved {
-    font-size: 10px;
+    font-size: 11px;
     color: #10b981;
     display: flex;
     align-items: center;
@@ -686,16 +687,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .ai-wk-segments {
-    padding: 8px;
+    padding: 10px;
 }
 
 .ai-wk-seg {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 13px;
     transition: background 0.15s;
 }
 
@@ -706,19 +707,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .ai-wk-seg-type {
     font-weight: 600;
     color: #e8edf5;
-    min-width: 80px;
-    font-size: 11px;
+    min-width: 90px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
 .ai-wk-seg-dur {
     color: #6b7280;
-    min-width: 40px;
+    min-width: 44px;
     text-align: right;
 }
 
 .ai-wk-seg-detail {
     color: #9ca3af;
-    font-size: 11px;
+    font-size: 12px;
 }

@@ -209,14 +209,39 @@ export class AIChatController {
         this.messagesEl.innerHTML = `
             <div class="ai-welcome">
                 <div class="ai-welcome-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--argus-primary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 8V4m0 4a4 4 0 0 1 4 4h-2a2 2 0 0 0-2-2M12 8a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2"/>
-                        <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/>
-                        <path d="M9 16h6"/>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3584e4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9.5"/>
+                        <polyline points="12,2.5 12,7 9,10" stroke-width="1.2"/>
+                        <polyline points="12,21.5 12,17 15,14" stroke-width="1.2"/>
+                        <polyline points="2.5,12 7,12 10,15" stroke-width="1.2"/>
+                        <polyline points="21.5,12 17,12 14,9" stroke-width="1.2"/>
+                        <polyline points="7,4 8,6 11,6" stroke-width=".8" opacity=".4"/>
+                        <polyline points="17,4 16,6 13,6" stroke-width=".8" opacity=".4"/>
+                        <polyline points="4,17 6,16 6,13" stroke-width=".8" opacity=".4"/>
+                        <polyline points="20,17 18,16 18,13" stroke-width=".8" opacity=".4"/>
+                        <circle cx="12" cy="2.5" r="1.4" fill="#3584e4"/>
+                        <circle cx="12" cy="21.5" r="1.4" fill="#3584e4"/>
+                        <circle cx="2.5" cy="12" r="1.4" fill="#3584e4"/>
+                        <circle cx="21.5" cy="12" r="1.4" fill="#3584e4"/>
+                        <circle cx="7" cy="4" r=".8" fill="#3584e4" opacity=".5"/>
+                        <circle cx="17" cy="4" r=".8" fill="#3584e4" opacity=".5"/>
+                        <circle cx="4" cy="17" r=".8" fill="#3584e4" opacity=".5"/>
+                        <circle cx="20" cy="17" r=".8" fill="#3584e4" opacity=".5"/>
+                        <rect x="9" y="9" width="6" height="6" rx="1.2" fill="rgba(53,132,228,0.08)"/>
+                        <line x1="9" y1="10" x2="7.5" y2="10" stroke-width=".8"/>
+                        <line x1="9" y1="12" x2="7.5" y2="12" stroke-width=".8"/>
+                        <line x1="9" y1="14" x2="7.5" y2="14" stroke-width=".8"/>
+                        <line x1="15" y1="10" x2="16.5" y2="10" stroke-width=".8"/>
+                        <line x1="15" y1="12" x2="16.5" y2="12" stroke-width=".8"/>
+                        <line x1="15" y1="14" x2="16.5" y2="14" stroke-width=".8"/>
                     </svg>
                 </div>
                 <h2>AI Cycling Coach</h2>
-                <p>Your intelligent training partner. Ask about performance,<br>training plans, or cycling science.</p>
+                <p>Your intelligent training partner powered by Argus Cyclist data.<br>
+                Ask me to create custom workouts, analyze your performance,<br>
+                explain training concepts, or plan your next session.<br>
+                I use your real FTP, activity history, and goals to personalize everything.<br>
+                <span style="color:#6b7280;font-size:13px;">Works in Portuguese or English — workouts auto-save as ZWO files.</span></p>
                 <div class="ai-suggestions">
                     <button class="ai-chip" data-prompt="Create a 45-minute endurance workout at 65% FTP">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -325,9 +350,9 @@ export class AIChatController {
         const avatar = document.createElement('div');
         avatar.className = 'ai-msg-avatar';
         if (role === 'user') {
-            avatar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+            avatar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3584e4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,3 12,8 9,11" stroke-width="1"/><polyline points="12,21 12,16 15,13" stroke-width="1"/><polyline points="3,12 8,12 11,15" stroke-width="1"/><polyline points="21,12 16,12 13,9" stroke-width="1"/><circle cx="12" cy="3" r="1.1" fill="#3584e4"/><circle cx="12" cy="21" r="1.1" fill="#3584e4"/><circle cx="3" cy="12" r="1.1" fill="#3584e4"/><circle cx="21" cy="12" r="1.1" fill="#3584e4"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="#3584e4" opacity=".5"/></svg>';
         } else {
-            avatar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4m0 4a4 4 0 0 1 4 4h-2a2 2 0 0 0-2-2M12 8a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2"/><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M9 16h6"/></svg>';
+            avatar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,3 12,8 9,11" stroke-width="1"/><polyline points="12,21 12,16 15,13" stroke-width="1"/><polyline points="3,12 8,12 11,15" stroke-width="1"/><polyline points="21,12 16,12 13,9" stroke-width="1"/><circle cx="12" cy="3" r="1.1" fill="#9ca3af"/><circle cx="12" cy="21" r="1.1" fill="#9ca3af"/><circle cx="3" cy="12" r="1.1" fill="#9ca3af"/><circle cx="21" cy="12" r="1.1" fill="#9ca3af"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="#9ca3af" opacity=".5"/></svg>';
         }
 
         const bubble = document.createElement('div');
@@ -412,10 +437,17 @@ export class AIChatController {
         div.id = 'aiLoadingMsg';
         div.innerHTML = `
             <div class="ai-msg-avatar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 8V4m0 4a4 4 0 0 1 4 4h-2a2 2 0 0 0-2-2M12 8a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2"/>
-                    <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/>
-                    <path d="M9 16h6"/>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <polyline points="12,3 12,8 9,11" stroke-width="1"/>
+                    <polyline points="12,21 12,16 15,13" stroke-width="1"/>
+                    <polyline points="3,12 8,12 11,15" stroke-width="1"/>
+                    <polyline points="21,12 16,12 13,9" stroke-width="1"/>
+                    <circle cx="12" cy="3" r="1.1" fill="#9ca3af"/>
+                    <circle cx="12" cy="21" r="1.1" fill="#9ca3af"/>
+                    <circle cx="3" cy="12" r="1.1" fill="#9ca3af"/>
+                    <circle cx="21" cy="12" r="1.1" fill="#9ca3af"/>
+                    <rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="#9ca3af" opacity=".5"/>
                 </svg>
             </div>
             <div class="ai-msg-bubble ai-thinking">
