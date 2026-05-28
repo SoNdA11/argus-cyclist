@@ -1229,7 +1229,6 @@ export class UIManager {
 
             const goals = await window.go.main.App.GetCustomGoals();
             const goalsList = document.getElementById('customGoalsList');
-            const dashGoalsList = document.getElementById('dashboardGoalsList');
             const completedGoalsList = document.getElementById('completedGoalsList');
             
             const activeGoals = goals ? goals.filter(g => g.status === 'active') : [];
@@ -1289,32 +1288,7 @@ export class UIManager {
                 }
             }
 
-            if (dashGoalsList) {
-                dashGoalsList.innerHTML = '';
-                if (!activeGoals || activeGoals.length === 0) {
-                    dashGoalsList.innerHTML = '<div style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 20px;">No active goals</div>';
-                } else {
-                    activeGoals.forEach(g => {
-                        const progressPct = Math.min((g.current_progress / g.target_value) * 100, 100);
-                        const unit = g.metric === 'distance' ? 'km' : g.metric === 'elevation' ? 'm' : 'h';
-                        const gDiv = document.createElement('div');
-                        gDiv.style.cssText = 'background: rgba(255,255,255,0.02); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;';
-                        gDiv.innerHTML = `
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px;">
-                                <span style="color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${g.metric}</span>
-                                <span style="color: var(--argus-safe);">${Math.round(progressPct)}%</span>
-                            </div>
-                            <div class="xp-bar-bg" style="height: 3px; border-radius: 1.5px; background: rgba(0,0,0,0.2);">
-                                <div style="width: ${progressPct}%; height: 100%; background: var(--argus-safe); border-radius: 1.5px; box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);"></div>
-                            </div>
-                            <div style="font-size: 0.65rem; color: #64748b; text-align: right; margin-top: 6px;">
-                                ${g.current_progress.toFixed(1)} / ${g.target_value}${unit}
-                            </div>
-                        `;
-                        dashGoalsList.appendChild(gDiv);
-                    });
-                }
-            }
+
         } catch (e) {
             console.error("Error loading trophy room:", e);
         }
