@@ -75,12 +75,29 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 * **Activity History:** Calendar view, monthly stats, and recent rides list.
 * **Data Export:** Automatically generates `.FIT` files compatible with Strava, Garmin Connect, and TrainingPeaks.
 
+### AI Coach — Local LLM Training Assistant
+
+* **Ollama Integration:** Connect to any locally running Ollama model (e.g., `qwen2.5:3b`) for a fully private, offline AI assistant.
+* **Personalized Workout Generation:** Ask the AI to create a structured workout, and it generates a complete ZWO plan tailored to your FTP, weight, level, and recent training history.
+* **Context-Aware Chat:** The assistant has access to your profile data (FTP, level, streak, recent activities) to give informed training advice.
+* **Conversation History:** All chats are saved per profile, allowing you to revisit past recommendations.
+* **One-Click Workout Loading:** AI-generated workouts can be saved as `.ZWO` files and loaded directly into the simulator with a single click.
+
+### Bike Component Wear Tracking
+
+* **Component Registry:** Add bike components (Chain, Cassette, Chainrings, Bottom Bracket, Tires, etc.) with brand, model, and install date.
+* **Automatic Wear Calculation:** Wear is calculated as `(accumulated distance / expected lifespan) × 100%` and updated automatically after every workout.
+* **Visual Wear Status:** Color-coded indicators — Green (< 50% wear), Yellow (50–80%), Red (≥ 80%) — with a "Replace soon" warning for critical components.
+* **Replacement History:** Log replacements with reason and mileage at time of replacement for full maintenance traceability.
+* **Customizable Lifespan:** Set expected lifespan in kilometers for each component type based on manufacturer recommendations or personal experience.
+
 ## Technologies
 
 * **Backend:** Go (Golang)
 * **Frontend:** JavaScript (ES6+), MapLibre GL JS + OSRM
 * **Native Wrappers:** Wails (Desktop) & Capacitor (Android)
 * **Database:** SQLite (for local user data)
+* **AI:** Ollama (local LLM inference)
 
 ## Prerequisites
 
