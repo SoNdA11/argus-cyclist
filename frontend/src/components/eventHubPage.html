@@ -99,24 +99,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="card-cta">CLICK TO LAUNCH</div>
                 </button>
 
-                <div class="challenge-card challenge-tt-card" style="cursor: default;">
-                    <span class="challenge-card-mode">Endurance Mode</span>
-                    <strong>Precision Pacing</strong>
-                    <span>Hold target power as closely as possible for 60s. Bank points based on pacing accuracy.</span>
-
-                    <div
-                        style="margin-top: auto; display: flex; gap: 12px; align-items: center; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative; z-index: 10;">
-                        <div style="text-align: left; flex: 1;">
-                            <label for="eventTargetPower"
-                                style="font-size: 0.7rem; color: #aaa; display: block; margin-bottom: 2px; font-weight: 700; text-transform: uppercase;">Target
-                                (W)</label>
-                            <input type="number" id="eventTargetPower" value="250" min="100" step="5"
-                                style="width: 100%; border: none; background: transparent; color: #fff; font-size: 1.5rem; font-weight: 800; font-family: monospace; outline: none; padding: 0;">
-                        </div>
-                        <button id="btnLaunchTimeTrial" class="btn-primary"
-                            style="padding: 14px 24px; border-radius: 12px; font-weight: 800; letter-spacing: 1px; background: #22c55e; color: #000; border: none; cursor: pointer; transition: transform 0.2s;">START</button>
-                    </div>
-                </div>
+                <button class="challenge-card challenge-tt-card" id="btnLaunchTimeTrial">
+                    <span class="challenge-card-mode">Power Accumulation Mode</span>
+                    <strong>Time Trial</strong>
+                    <span>Maximize your score by riding at higher power zones. The longer you sustain Z4-Z6, the more points you earn. No failure — just performance.</span>
+                </button>
 
             </div>
 
