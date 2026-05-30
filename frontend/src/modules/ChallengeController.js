@@ -40,15 +40,15 @@ export class ChallengeController {
             secondaryValue: document.getElementById('challengeSecondaryValue'),
             tertiaryLabel: document.getElementById('challengeTertiaryLabel'),
             tertiaryValue: document.getElementById('challengeTertiaryValue'),
-            graceMetric: document.getElementById('challengeGraceMetric'),
-            graceValue: document.getElementById('challengeGraceValue'),
+            multiplierValue: document.getElementById('challengeMultiplierValue'),
+            zoneValue: document.getElementById('challengeZoneValue'),
             inlineLeaderboard: document.getElementById('challengeLeaderboardPanel'),
             resultMode: document.getElementById('challengeResultMode'),
             resultTitle: document.getElementById('challengeResultTitle'),
             resultValue: document.getElementById('challengeResultValue'),
+            resultRank: document.getElementById('challengeResultRank'),
             resultDescription: document.getElementById('challengeResultDescription'),
             riderInput: document.getElementById('eventRiderName'),
-            targetPowerInput: document.getElementById('eventTargetPower'),
             eventTrainerStatus: document.getElementById('eventTrainerStatus'),
             backdropCanvas: document.getElementById('challengeBackdropCanvas'),
             telemetryCanvas: document.getElementById('challengeTelemetryCanvas'),
@@ -79,7 +79,7 @@ export class ChallengeController {
             },
             timeTrial: {
                 title: 'Time Trial',
-                fullTitle: 'Time Trial (Precision Pacing)',
+                fullTitle: 'Time Trial (Power Accumulation)',
                 metric: 'Score',
                 unit: 'pts'
             }
@@ -715,27 +715,27 @@ export class ChallengeController {
         const riderName = this.getRiderName();
         if (!riderName) return;
 
-        const targetPowerInput = this.els.targetPowerInput;
-        const rawValue = targetPowerInput?.value;
-        const parsedValue = parseInt(rawValue, 10);
-        const targetPower = (!isNaN(parsedValue) && parsedValue > 0) ? parsedValue : 250;
-
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
-        const calculatedTolerance = Math.max(targetPower * 0.12, 20);
+        const ftp = this.ui?.ftp || 200;
 
         await this.startChallenge({
             type: 'timeTrial',
             riderName,
             duration: 60,
             started: false,
-            targetPower,
-            tolerance: calculatedTolerance,
-            score: 0,
-            graceRemaining: 10,
             threshold: 5,
-            history: new Array(180).fill(targetPower),
-            isOutOfZone: false
+            ftp,
+            score: 0,
+            currentZone: 'z1',
+            currentMultiplier: 1.0,
+            consecutiveTimeInZ5Plus: 0,
+            isZ5PlusActive: false,
+            powerHistory: [],
+            consistencyHistory: [],
+            consistencyFactor: 1.0,
+            consistencyTimer: 0,
+            zoneCounts: { z1: 0, z2: 0, z3: 0, z4: 0, z5: 0, z6: 0 }
         });
     }
 
@@ -788,8 +788,6 @@ export class ChallengeController {
         this.els.secondaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Live Power' : meta.metric;
         this.els.tertiaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Current Grade' : 'Cadence';
 
-        this.els.graceMetric.style.display = this.activeChallenge.type === 'timeTrial' ? 'block' : 'none';
-
         this.els.secondaryValue.textContent = this.activeChallenge.type === 'kom' ? '0 W' : this.formatResultValue(this.activeChallenge.type, 0);
         this.els.powerUnit.textContent = this.activeChallenge.type === 'kom' ? 'meters' : 'watts';
         this.els.tertiaryValue.textContent = this.activeChallenge.type === 'kom' ? '0.0 %' : '0 rpm';
@@ -798,8 +796,9 @@ export class ChallengeController {
 
         if (this.activeChallenge.type === 'timeTrial') {
             this.els.secondaryValue.textContent = '0 pts';
-            this.els.statusLabel.textContent = `Target locked at ${this.activeChallenge.targetPower} W`;
-            this.els.graceValue.textContent = '10s';
+            this.els.statusLabel.textContent = 'Power Accumulation Mode';
+            if (this.els.multiplierValue) this.els.multiplierValue.textContent = '1.0x';
+            if (this.els.zoneValue) this.els.zoneValue.textContent = 'Z1';
         }
         this.renderInlineLeaderboard();
     }
@@ -867,32 +866,95 @@ export class ChallengeController {
 
     updateTimeTrial(dt) {
         const challenge = this.activeChallenge;
-        const minZone = challenge.targetPower - challenge.tolerance;
-        const maxZone = challenge.targetPower + challenge.tolerance;
-        const inZone = this.lastTelemetry.power >= minZone && this.lastTelemetry.power <= maxZone;
+        const power = this.lastTelemetry.power || 0;
 
-        challenge.history.push(this.lastTelemetry.power);
-        if (challenge.history.length > 180) challenge.history.shift();
+        challenge.powerHistory.push(power);
+        if (challenge.powerHistory.length > 180) challenge.powerHistory.shift();
 
         if (!challenge.started) return;
 
-        if (inZone) {
-            challenge.isOutOfZone = false;
-            challenge.graceRemaining = 10;
-            challenge.score += Math.pow(challenge.targetPower, 1.5) * dt;
-            this.els.statusLabel.textContent = 'Inside target zone';
-        } else {
-            challenge.isOutOfZone = true;
-            challenge.graceRemaining = Math.max(0, challenge.graceRemaining - dt);
-            this.els.statusLabel.textContent = 'Recover target power';
+        const avgPower = challenge.powerHistory.reduce((a, b) => a + b, 0) / challenge.powerHistory.length;
+        const pct = challenge.ftp > 0 ? (avgPower / challenge.ftp) * 100 : 0;
 
-            if (challenge.graceRemaining <= 0) {
-                this.finishActiveChallenge(false, 'Challenge failed');
-                return;
+        let zone;
+        let baseMultiplier;
+        if (pct < 55) {
+            zone = 'z1';
+            baseMultiplier = 1.0;
+        } else if (pct < 75) {
+            zone = 'z2';
+            baseMultiplier = 1.0;
+        } else if (pct < 90) {
+            zone = 'z3';
+            baseMultiplier = 1.5;
+        } else if (pct < 105) {
+            zone = 'z4';
+            baseMultiplier = 2.2;
+        } else if (pct < 121) {
+            zone = 'z5';
+            baseMultiplier = 3.5;
+        } else {
+            zone = 'z6';
+            baseMultiplier = 5.0;
+        }
+
+        challenge.currentZone = zone;
+        challenge.zoneCounts[zone] = (challenge.zoneCounts[zone] || 0) + dt;
+
+        if (zone === 'z5' || zone === 'z6') {
+            challenge.consecutiveTimeInZ5Plus += dt;
+        } else {
+            challenge.consecutiveTimeInZ5Plus = 0;
+            challenge.isZ5PlusActive = false;
+        }
+
+        if (challenge.consecutiveTimeInZ5Plus >= 3) {
+            challenge.isZ5PlusActive = true;
+        }
+
+        const zoneMultiplier = (zone === 'z5' || zone === 'z6') && !challenge.isZ5PlusActive
+            ? 2.2
+            : baseMultiplier;
+
+        challenge.consistencyHistory.push(power);
+        if (challenge.consistencyHistory.length > 600) {
+            const excess = challenge.consistencyHistory.length - 600;
+            challenge.consistencyHistory.splice(0, excess);
+        }
+
+        if (challenge.consistencyHistory.length >= 600) {
+            const max = Math.max(...challenge.consistencyHistory);
+            const min = Math.min(...challenge.consistencyHistory);
+            const mean = challenge.consistencyHistory.reduce((a, b) => a + b, 0) / challenge.consistencyHistory.length;
+            const variation = mean > 0 ? ((max - min) / mean) * 100 : 0;
+
+            if (variation < 5) {
+                challenge.consistencyTimer += dt;
+            } else {
+                challenge.consistencyTimer = 0;
+                challenge.consistencyFactor = 1.0;
+            }
+
+            while (challenge.consistencyTimer >= 10) {
+                challenge.consistencyFactor *= 1.2;
+                challenge.consistencyTimer -= 10;
             }
         }
 
-        this.els.graceValue.textContent = `${challenge.graceRemaining.toFixed(1)}s`;
+        const activeMultiplier = zoneMultiplier * challenge.consistencyFactor;
+        challenge.currentMultiplier = activeMultiplier;
+
+        challenge.score += activeMultiplier * dt;
+
+        const zoneNames = {
+            z1: 'Z1 - Recovery',
+            z2: 'Z2 - Endurance',
+            z3: 'Z3 - Tempo',
+            z4: 'Z4 - Threshold',
+            z5: 'Z5 - VO2Max',
+            z6: 'Z6 - Anaerobic'
+        };
+        this.els.statusLabel.textContent = zoneNames[zone] || 'Z1';
     }
 
     syncDisplayedTelemetry() {
@@ -916,14 +978,20 @@ export class ChallengeController {
         }
 
         if (this.activeChallenge.type === 'timeTrial') {
-            const target = this.activeChallenge.targetPower;
-            const tolerance = this.activeChallenge.tolerance;
-            this.els.primaryLabel.textContent = `Live Power vs ${target} W`;
+            this.els.primaryLabel.textContent = 'Live Power';
             this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.score)} pts`;
-            this.els.tertiaryValue.textContent = `±${Math.round(tolerance)} W`;
+            this.els.tertiaryValue.textContent = `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`;
+
+            if (this.els.multiplierValue) {
+                this.els.multiplierValue.textContent = `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`;
+            }
+            if (this.els.zoneValue) {
+                const shortNames = { z1: 'Z1', z2: 'Z2', z3: 'Z3', z4: 'Z4', z5: 'Z5', z6: 'Z6' };
+                this.els.zoneValue.textContent = shortNames[this.activeChallenge.currentZone] || 'Z1';
+            }
 
             if (!this.activeChallenge.started) {
-                this.els.statusLabel.textContent = `Target locked at ${target} W`;
+                this.els.statusLabel.textContent = 'Power Accumulation Mode';
             }
         }
     }
@@ -1139,7 +1207,7 @@ export class ChallengeController {
         const ctx = this.telemetryCtx;
         if (!ctx) return;
 
-        const history = this.activeChallenge.history || [];
+        const history = this.activeChallenge.powerHistory || [];
         const color = this.getTimeTrialColor();
 
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1155,25 +1223,12 @@ export class ChallengeController {
         for (let y = 0; y < window.innerHeight; y += 48) {
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(window.innerWidth, y);
+            ctx.lineTo(window.innerHeight, y);
             ctx.stroke();
         }
 
         const centerY = window.innerHeight * 0.55;
         const pixelsPerWatt = 1.9;
-        const toleranceBand = this.activeChallenge.tolerance * pixelsPerWatt;
-        ctx.fillStyle = this.alpha('#00ff9d', 0.08);
-        ctx.fillRect(0, centerY - toleranceBand, window.innerWidth, toleranceBand * 2);
-
-        ctx.setLineDash([6, 10]);
-        ctx.strokeStyle = this.alpha('#00ff9d', 0.35);
-        ctx.beginPath();
-        ctx.moveTo(0, centerY - toleranceBand);
-        ctx.lineTo(window.innerWidth, centerY - toleranceBand);
-        ctx.moveTo(0, centerY + toleranceBand);
-        ctx.lineTo(window.innerWidth, centerY + toleranceBand);
-        ctx.stroke();
-        ctx.setLineDash([]);
 
         if (history.length < 2) return;
 
@@ -1182,7 +1237,7 @@ export class ChallengeController {
 
         for (let i = 0; i < history.length; i++) {
             const x = i * stepX;
-            const diff = this.activeChallenge.targetPower - history[i];
+            const diff = (this.activeChallenge.ftp || 200) - history[i];
             const y = centerY + diff * pixelsPerWatt;
 
             if (i === 0) {
@@ -1191,7 +1246,7 @@ export class ChallengeController {
             }
 
             const prevX = (i - 1) * stepX;
-            const prevDiff = this.activeChallenge.targetPower - history[i - 1];
+            const prevDiff = (this.activeChallenge.ftp || 200) - history[i - 1];
             const prevY = centerY + prevDiff * pixelsPerWatt;
             const cpX = (prevX + x) / 2;
             ctx.quadraticCurveTo(prevX, prevY, cpX, (prevY + y) / 2);
@@ -1206,8 +1261,16 @@ export class ChallengeController {
     }
 
     getTimeTrialColor() {
-        if (!this.activeChallenge?.started) return '#00f0ff';
-        return this.activeChallenge.isOutOfZone ? '#ff355e' : '#00ff9d';
+        if (!this.activeChallenge?.started) return '#00aaff';
+        const map = {
+            z1: '#00aaff',
+            z2: '#00ddff',
+            z3: '#00ff9d',
+            z4: '#ffcc00',
+            z5: '#ff8800',
+            z6: '#aa00ff'
+        };
+        return map[this.activeChallenge.currentZone] || '#00aaff';
     }
 
     alpha(hex, alpha) {
@@ -1375,28 +1438,31 @@ export class ChallengeController {
         this.activeChallenge.finalized = true;
         const challenge = this.activeChallenge;
 
-        if (challenge.type === 'timeTrial' && success) {
-            challenge.score *= 1.25;
-            title = 'Challenge complete (+25% Survival Bonus!)';
-        }
-
         let finalValue = this.getLiveLeaderboardValue();
-        let description = success
-            ? 'Result saved to the offline leaderboard.'
-            : finalValue > 0
-                ? 'Partial result saved to the offline leaderboard.'
-                : 'No valid score was saved for this attempt.';
-
         let displayValue = this.formatResultValue(challenge.type, finalValue);
 
-        if (challenge.type === 'timeTrial' && !success) {
-            title = 'Pacing Failed';
-            finalValue = 0;
-            displayValue = 'FAILED';
-            description = "You couldn't maintain the target power within the zone for 1 minute. Don't get discouraged! Take a sip of water, recover your legs, and show what you're capable of in the next attempt. You've got this!";
+        let rank = 'Bronze';
+        const rankThresholds = [
+            { min: 320, label: 'Diamond' },
+            { min: 220, label: 'Platinum' },
+            { min: 140, label: 'Gold' },
+            { min: 80, label: 'Silver' },
+            { min: 0, label: 'Bronze' }
+        ];
+        for (const t of rankThresholds) {
+            if (finalValue >= t.min) {
+                rank = t.label;
+                break;
+            }
         }
 
-        this.saveResult(challenge.type, challenge.riderName, finalValue, success ? 'success' : 'failed');
+        if (challenge.type === 'timeTrial') {
+            title = `Rank: ${rank}`;
+        }
+
+        let description = 'Result saved to the offline leaderboard.';
+
+        this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
         this.renderInlineLeaderboard();
 
         this.closeChallengeOverlay();
@@ -1410,9 +1476,19 @@ export class ChallengeController {
         this.els.resultMode.textContent = this.modeMeta[challenge.type].fullTitle;
         this.els.resultTitle.textContent = title;
         this.els.resultValue.textContent = displayValue;
+        if (this.els.resultRank) {
+            if (challenge.type === 'timeTrial') {
+                this.els.resultRank.textContent = rank;
+                const rankColors = { Bronze: '#cd7f32', Silver: '#c0c0c0', Gold: '#ffd700', Platinum: '#e5e4e2', Diamond: '#b9f2ff' };
+                this.els.resultRank.style.color = rankColors[rank] || '#cd7f32';
+                this.els.resultRank.style.display = 'block';
+            } else {
+                this.els.resultRank.style.display = 'none';
+            }
+        }
         this.els.resultDescription.textContent = description;
 
-        this.els.resultValue.style.color = (challenge.type === 'timeTrial' && !success) ? '#ef4444' : 'var(--power-color)';
+        this.els.resultValue.style.color = 'var(--power-color)';
 
         this.openModal(this.els.resultModal);
 

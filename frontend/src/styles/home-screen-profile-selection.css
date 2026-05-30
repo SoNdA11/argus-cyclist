@@ -1038,8 +1038,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .challenge-result-value {
     font-size: clamp(3rem, 8vw, 5rem);
     font-weight: 800;
-    margin: 20px 0;
+    margin: 10px 0;
     color: var(--power-color);
+}
+
+.challenge-result-rank {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 5px 0 15px;
+    text-shadow: 0 0 20px currentColor;
 }
 
 body.challenge-mode-active header,
