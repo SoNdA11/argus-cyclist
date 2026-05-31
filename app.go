@@ -2046,49 +2046,9 @@ func (a *App) SaveEventResult(riderName string, mode string, score float64, stat
 		return err
 	}
 
-	// Also try to save as a regular activity in the rider's personal DB if they exist
-	localAccounts := a.storageService.GetLocalAccounts()
-	cleanName := riderName
-	if idx := strings.Index(riderName, " ["); idx != -1 {
-		cleanName = riderName[:idx]
-	}
-
-	var accountID string
-	for _, acc := range localAccounts {
-		if strings.EqualFold(acc.Name, cleanName) {
-			accountID = acc.ID
-			break
-		}
-	}
-
-	if accountID == "" && len(localAccounts) == 1 {
-		accountID = localAccounts[0].ID
-	}
-
-	if accountID != "" {
-		fmt.Printf("[EVENT] Saving activity for account: %s (%s)\n", cleanName, accountID)
-		// Switch to rider's DB
-		if err := a.storageService.LoadUserDatabase(accountID); err != nil {
-			fmt.Printf("[EVENT] Error loading user database: %v\n", err)
-		} else {
-			defer a.storageService.LoadUserDatabase("event-mode-shared")
-
-			activity := domain.Activity{
-				RouteName:      "Event: " + mode,
-				Filename:       filename,
-				TotalDistance:  0,
-				Duration:       int64(duration),
-				AvgPower:       int(score),
-				TotalElevation: 0,
-				CreatedAt:      time.Now(),
-			}
-			if err := a.storageService.SaveActivity(activity); err != nil {
-				fmt.Printf("[EVENT] Error saving activity: %v\n", err)
-			}
-		}
-	} else {
-		fmt.Printf("[EVENT] No local account found for rider: %s\n", cleanName)
-	}
+	// Note: We intentionally do NOT save an Activity to the user's personal DB here.
+	// Event results are stored exclusively in events_ranking.db via EventRecord
+	// to keep event mode completely separate from regular user statistics and history.
 
 	return nil
 }
