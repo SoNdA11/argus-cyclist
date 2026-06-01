@@ -2228,7 +2228,7 @@ func (a *App) AIChat(conversationID uint, message string) (AIChatResult, error) 
 		profile = domain.UserProfile{Name: "Ciclista", FTP: 200, Weight: 75, Level: 1}
 	}
 
-	recentActivities, _ := a.storageService.GetRecentActivities(3)
+	recentActivities, _ := a.storageService.GetRecentActivities(10)
 	totalActivities := a.storageService.GetActivityCount()
 	totalKm := a.storageService.GetTotalDistance() / 1000.0
 	totalHours := float64(a.storageService.GetTotalDuration()) / 3600.0
