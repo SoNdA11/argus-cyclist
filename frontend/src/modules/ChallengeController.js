@@ -40,7 +40,7 @@ export class ChallengeController {
             secondaryValue: document.getElementById('challengeSecondaryValue'),
             tertiaryLabel: document.getElementById('challengeTertiaryLabel'),
             tertiaryValue: document.getElementById('challengeTertiaryValue'),
-            multiplierValue: document.getElementById('challengeMultiplierValue'),
+
             zoneValue: document.getElementById('challengeZoneValue'),
             inlineLeaderboard: document.getElementById('challengeLeaderboardPanel'),
             resultMode: document.getElementById('challengeResultMode'),
@@ -98,10 +98,8 @@ export class ChallengeController {
         this.leaderboardFilter = 'G';
         this.animationFrame = null;
         this.lastFrameTime = 0;
-        this.tunnelParticles = Array.from({ length: 140 }, () => this.makeTunnelParticle(true));
-
-        this.lastKOMGrade = null;
-        this.lastTTColor = null;
+        this.lastKnownRank = -1;
+        this.leaderboardUpdateAccumulator = 0;
 
         window.challengeController = this;
 
@@ -295,9 +293,6 @@ export class ChallengeController {
 
         if (this.backdropCtx) this.backdropCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
         if (this.telemetryCtx) this.telemetryCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-
-        this.lastKOMGrade = null;
-        this.lastTTColor = null;
     }
 
     async enterEventMode() {
@@ -784,23 +779,35 @@ export class ChallengeController {
         this.els.riderLabel.textContent = cleanRiderName;
 
         this.els.statusLabel.textContent = 'Waiting for first pedal stroke';
-        this.els.primaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Distance Covered' : 'Live Power';
-        this.els.secondaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Live Power' : meta.metric;
-        this.els.tertiaryLabel.textContent = this.activeChallenge.type === 'kom' ? 'Current Grade' : 'Cadence';
 
-        this.els.secondaryValue.textContent = this.activeChallenge.type === 'kom' ? '0 W' : this.formatResultValue(this.activeChallenge.type, 0);
-        this.els.powerUnit.textContent = this.activeChallenge.type === 'kom' ? 'meters' : 'watts';
-        this.els.tertiaryValue.textContent = this.activeChallenge.type === 'kom' ? '0.0 %' : '0 rpm';
+        if (this.activeChallenge.type === 'kom') {
+            this.els.primaryLabel.textContent = 'Distance Covered';
+            this.els.secondaryLabel.textContent = 'Live Power';
+            this.els.tertiaryLabel.textContent = 'Current Grade';
+            this.els.secondaryValue.textContent = '0 W';
+            this.els.powerUnit.textContent = 'meters';
+            this.els.tertiaryValue.textContent = '0.0 %';
+        } else if (this.activeChallenge.type === 'timeTrial') {
+            this.els.primaryLabel.textContent = 'Score';
+            this.els.secondaryLabel.textContent = 'Live Power';
+            this.els.tertiaryLabel.textContent = 'Multiplier';
+            this.els.secondaryValue.textContent = '0 W';
+            this.els.powerUnit.textContent = 'points';
+            this.els.tertiaryValue.textContent = '1.0x';
+            this.els.statusLabel.textContent = 'Power Accumulation Mode';
+            if (this.els.zoneValue) this.els.zoneValue.textContent = 'Z1';
+        } else {
+            this.els.primaryLabel.textContent = 'Live Power';
+            this.els.secondaryLabel.textContent = 'Peak Power';
+            this.els.tertiaryLabel.textContent = 'Cadence';
+            this.els.secondaryValue.textContent = '0 W';
+            this.els.powerUnit.textContent = 'watts';
+            this.els.tertiaryValue.textContent = '0 rpm';
+        }
+
         this.els.powerValue.textContent = '0';
         this.els.timerValue.textContent = `${this.activeChallenge.duration.toFixed(1)}s`;
-
-        if (this.activeChallenge.type === 'timeTrial') {
-            this.els.secondaryValue.textContent = '0 pts';
-            this.els.statusLabel.textContent = 'Power Accumulation Mode';
-            if (this.els.multiplierValue) this.els.multiplierValue.textContent = '1.0x';
-            if (this.els.zoneValue) this.els.zoneValue.textContent = 'Z1';
-        }
-        this.renderInlineLeaderboard();
+        this.updateInlineLeaderboard();
     }
 
     startAnimationLoop() {
@@ -860,7 +867,14 @@ export class ChallengeController {
         }
 
         this.syncDisplayedTelemetry();
-        this.drawCurrentChallenge(dt);
+        this.drawCurrentChallenge();
+
+        this.leaderboardUpdateAccumulator += rawDt;
+        if (this.leaderboardUpdateAccumulator >= 0.4) {
+            this.updateInlineLeaderboard();
+            this.leaderboardUpdateAccumulator = 0;
+        }
+
         this.animationFrame = requestAnimationFrame((frameTime) => this.tick(frameTime));
     }
 
@@ -963,28 +977,15 @@ export class ChallengeController {
         const power = Math.round(this.lastTelemetry.power || 0);
         const cadence = Math.round(this.lastTelemetry.cadence || 0);
 
-        this.els.powerValue.textContent = this.activeChallenge.type === 'kom'
-            ? this.formatDistance(this.activeChallenge.bestDistance || 0, false)
-            : `${power}`;
-
-        if (this.activeChallenge.type === 'sprint') {
-            this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.peakPower || 0)} W`;
-            this.els.tertiaryValue.textContent = `${cadence} rpm`;
-        }
-
         if (this.activeChallenge.type === 'kom') {
+            this.els.powerValue.textContent = this.formatDistance(this.activeChallenge.bestDistance || 0, false);
             this.els.secondaryValue.textContent = `${power} W`;
             this.els.tertiaryValue.textContent = `${(this.lastTelemetry.grade || 0).toFixed(1)} %`;
-        }
-
-        if (this.activeChallenge.type === 'timeTrial') {
-            this.els.primaryLabel.textContent = 'Live Power';
-            this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.score)} pts`;
+        } else if (this.activeChallenge.type === 'timeTrial') {
+            this.els.powerValue.textContent = `${Math.round(this.activeChallenge.score)}`;
+            this.els.secondaryValue.textContent = `${power} W`;
             this.els.tertiaryValue.textContent = `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`;
 
-            if (this.els.multiplierValue) {
-                this.els.multiplierValue.textContent = `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`;
-            }
             if (this.els.zoneValue) {
                 const shortNames = { z1: 'Z1', z2: 'Z2', z3: 'Z3', z4: 'Z4', z5: 'Z5', z6: 'Z6' };
                 this.els.zoneValue.textContent = shortNames[this.activeChallenge.currentZone] || 'Z1';
@@ -993,6 +994,10 @@ export class ChallengeController {
             if (!this.activeChallenge.started) {
                 this.els.statusLabel.textContent = 'Power Accumulation Mode';
             }
+        } else {
+            this.els.powerValue.textContent = `${power}`;
+            this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.peakPower || 0)} W`;
+            this.els.tertiaryValue.textContent = `${cadence} rpm`;
         }
     }
 
@@ -1052,235 +1057,14 @@ export class ChallengeController {
         return gradeSchedule[gradeSchedule.length - 1].grade;
     }
 
-    drawCurrentChallenge(dt) {
-        const type = this.activeChallenge?.type;
-        if (!type) return;
-
-        if (type === 'sprint') {
-            this.drawSprintTunnel(dt);
-            this.telemetryCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-            return;
-        }
-
-        if (type === 'kom') {
-            this.drawKOMBackdrop();
-            this.drawKOMTelemetry();
-            return;
-        }
-
-        this.drawTimeTrialBackdrop();
-        this.drawTimeTrialTelemetry();
+    drawCurrentChallenge() {
+        this.backdropCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        this.telemetryCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
 
     clearTelemetryCanvas() {
         this.backdropCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
         this.telemetryCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    }
-
-    makeTunnelParticle(randomizeDepth = false) {
-        const angle = Math.random() * Math.PI * 2;
-        return {
-            angle,
-            cosA: Math.cos(angle),
-            sinA: Math.sin(angle),
-            depth: randomizeDepth ? Math.random() : 1,
-            lane: Math.random() * 0.55 + 0.2
-        };
-    }
-
-    drawSprintTunnel(dt) {
-        const ctx = this.backdropCtx;
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        ctx.fillStyle = 'rgba(4, 8, 18, 0.38)';
-        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
-        const cx = window.innerWidth / 2;
-        const cy = window.innerHeight / 2;
-        const powerFactor = Math.min(1.4, (this.lastTelemetry.power || 0) / 1000);
-        const hue = 210 - powerFactor * 190;
-        const speed = 0.42 + powerFactor * 2.2;
-
-        for (const particle of this.tunnelParticles) {
-            particle.depth -= dt * speed;
-            if (particle.depth <= 0.02) {
-                Object.assign(particle, this.makeTunnelParticle(false));
-                particle.depth = 1;
-            }
-
-            const radius = (1 - particle.depth) * Math.min(window.innerWidth, window.innerHeight) * particle.lane;
-            const alpha = (1 - particle.depth) * 0.95;
-            const lineLength = 18 + powerFactor * 110 * (1 - particle.depth);
-            const x = cx + particle.cosA * radius;
-            const y = cy + particle.sinA * radius;
-
-            ctx.beginPath();
-            ctx.lineWidth = 1.5 + powerFactor * 3.5;
-            ctx.strokeStyle = `hsla(${hue}, 100%, ${55 + powerFactor * 20}%, ${alpha})`;
-            ctx.shadowBlur = 10 + powerFactor * 20;
-            ctx.shadowColor = `hsla(${hue}, 100%, 60%, ${Math.min(0.8, alpha)})`;
-            ctx.moveTo(x, y);
-            ctx.lineTo(
-                x + particle.cosA * lineLength,
-                y + particle.sinA * lineLength
-            );
-            ctx.stroke();
-        }
-    }
-
-    drawKOMBackdrop() {
-        const ctx = this.backdropCtx;
-        if (!ctx) return;
-
-        const currentGrade = this.lastTelemetry.grade || 0;
-        if (this.lastKOMGrade === currentGrade) return;
-        this.lastKOMGrade = currentGrade;
-
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        const gradient = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
-        gradient.addColorStop(0, 'rgba(20, 83, 45, 0.35)');
-        gradient.addColorStop(0.5, 'rgba(30, 41, 59, 0.2)');
-        gradient.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
-        const hillHeight = 120 + Math.min(180, (this.lastTelemetry.grade || 0) * 10);
-        ctx.beginPath();
-        ctx.moveTo(0, window.innerHeight);
-        ctx.quadraticCurveTo(window.innerWidth * 0.2, window.innerHeight - hillHeight, window.innerWidth * 0.45, window.innerHeight - 60);
-        ctx.quadraticCurveTo(window.innerWidth * 0.72, window.innerHeight - 220, window.innerWidth, window.innerHeight - 140);
-        ctx.lineTo(window.innerWidth, window.innerHeight);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(163, 230, 53, 0.12)';
-        ctx.fill();
-    }
-
-    drawKOMTelemetry() {
-        const ctx = this.telemetryCtx;
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-        const progress = window.totalRouteDistance > 0 ? (this.activeChallenge.bestDistance || 0) / window.totalRouteDistance : 0;
-        const barWidth = Math.min(window.innerWidth * 0.62, 680);
-        const x = (window.innerWidth - barWidth) / 2;
-        const y = window.innerHeight - 110;
-
-        ctx.fillStyle = 'rgba(255,255,255,0.08)';
-        ctx.fillRect(x, y, barWidth, 10);
-        ctx.fillStyle = '#facc15';
-        ctx.fillRect(x, y, Math.max(0, Math.min(barWidth, barWidth * progress)), 10);
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = 'rgba(250, 204, 21, 0.75)';
-        ctx.beginPath();
-        ctx.arc(x + barWidth * progress, y + 5, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-
-    drawTimeTrialBackdrop() {
-        const ctx = this.backdropCtx;
-        if (!ctx) return;
-
-        const color = this.getTimeTrialColor();
-        if (this.lastTTColor === color) return;
-        this.lastTTColor = color;
-
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-        const gradient = ctx.createRadialGradient(
-            window.innerWidth * 0.5,
-            window.innerHeight * 0.45,
-            20,
-            window.innerWidth * 0.5,
-            window.innerHeight * 0.45,
-            window.innerWidth * 0.6
-        );
-        gradient.addColorStop(0, this.alpha(color, 0.18));
-        gradient.addColorStop(1, 'rgba(2, 6, 23, 0.96)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    }
-
-    drawTimeTrialTelemetry() {
-        const ctx = this.telemetryCtx;
-        if (!ctx) return;
-
-        const history = this.activeChallenge.powerHistory || [];
-        const color = this.getTimeTrialColor();
-
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-        ctx.lineWidth = 1;
-
-        for (let x = 0; x < window.innerWidth; x += 48) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, window.innerHeight);
-            ctx.stroke();
-        }
-        for (let y = 0; y < window.innerHeight; y += 48) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(window.innerHeight, y);
-            ctx.stroke();
-        }
-
-        const centerY = window.innerHeight * 0.55;
-        const pixelsPerWatt = 1.9;
-
-        if (history.length < 2) return;
-
-        const stepX = window.innerWidth / (history.length - 1);
-        ctx.beginPath();
-
-        for (let i = 0; i < history.length; i++) {
-            const x = i * stepX;
-            const diff = (this.activeChallenge.ftp || 200) - history[i];
-            const y = centerY + diff * pixelsPerWatt;
-
-            if (i === 0) {
-                ctx.moveTo(x, y);
-                continue;
-            }
-
-            const prevX = (i - 1) * stepX;
-            const prevDiff = (this.activeChallenge.ftp || 200) - history[i - 1];
-            const prevY = centerY + prevDiff * pixelsPerWatt;
-            const cpX = (prevX + x) / 2;
-            ctx.quadraticCurveTo(prevX, prevY, cpX, (prevY + y) / 2);
-        }
-
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = color;
-        ctx.shadowBlur = 22;
-        ctx.shadowColor = this.alpha(color, 0.75);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-    }
-
-    getTimeTrialColor() {
-        if (!this.activeChallenge?.started) return '#00aaff';
-        const map = {
-            z1: '#00aaff',
-            z2: '#00ddff',
-            z3: '#00ff9d',
-            z4: '#ffcc00',
-            z5: '#ff8800',
-            z6: '#aa00ff'
-        };
-        return map[this.activeChallenge.currentZone] || '#00aaff';
-    }
-
-    alpha(hex, alpha) {
-        if (hex.startsWith('rgba')) return hex;
-        const clean = hex.replace('#', '');
-        const bigint = parseInt(clean, 16);
-        const r = (bigint >> 16) & 255;
-        const g = (bigint >> 8) & 255;
-        const b = bigint & 255;
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     formatDistance(value, withUnit = true) {
@@ -1295,7 +1079,7 @@ export class ChallengeController {
         return `${Math.round(value || 0)} pts`;
     }
 
-    renderInlineLeaderboard() {
+    updateInlineLeaderboard() {
         const challenge = this.activeChallenge;
         if (!challenge) return;
 
@@ -1314,20 +1098,33 @@ export class ChallengeController {
 
         const filteredEntries = entries.filter(e => e.rider !== currentCleanName);
 
-        const preview = [...filteredEntries, currentRow]
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5);
+        const allEntries = [...filteredEntries, currentRow]
+            .sort((a, b) => b.value - a.value);
+
+        const currentRank = allEntries.findIndex(e => e.isCurrentPlayer) + 1;
+        const rankImproved = this.lastKnownRank > 0 && currentRank < this.lastKnownRank;
+        this.lastKnownRank = currentRank;
+
+        const preview = allEntries.slice(0, 5);
 
         this.els.inlineLeaderboard.innerHTML = `
             <div class="challenge-chip-label">Event Ranking</div>
             ${preview.map((entry, index) => `
-                <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}">
+                <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}" data-index="${index}">
                     <span>${index + 1}.</span>
                     <strong>${entry.rider}</strong>
                     <span>${this.formatResultValue(challenge.type, entry.value)}</span>
                 </div>
             `).join('')}
         `;
+
+        if (rankImproved) {
+            const activeRow = this.els.inlineLeaderboard?.querySelector('.is-active');
+            if (activeRow) {
+                activeRow.classList.add('challenge-rank-climb');
+                setTimeout(() => activeRow.classList.remove('challenge-rank-climb'), 1000);
+            }
+        }
     }
 
     getLiveLeaderboardValue() {
@@ -1463,7 +1260,7 @@ export class ChallengeController {
         let description = 'Result saved to the offline leaderboard.';
 
         this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
-        this.renderInlineLeaderboard();
+        this.updateInlineLeaderboard();
 
         this.closeChallengeOverlay();
         this.stopAnimationLoop();
