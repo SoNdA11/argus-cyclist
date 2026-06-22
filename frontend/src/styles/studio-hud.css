@@ -818,10 +818,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
-    padding: 20px 24px;
-    max-height: 52vh;
-    min-width: 320px;
-    width: 320px;
+    padding: 24px 28px;
+    max-height: 65vh;
+    min-width: 400px;
+    width: 400px;
     overflow-y: auto;
     flex-shrink: 0;
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -1077,7 +1077,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .hud-hub { padding: 2.5vh 4vw; }
     .hud-cards { gap: 12px; }
     .hud-card { min-width: 120px; padding: 12px 18px; }
-    .hud-lb { position: static; transform: none; max-height: 20vh; width: auto; min-width: 200px; border-radius: 16px; padding: 10px 14px; }
+    .hud-lb { position: static; transform: none; max-height: 30vh; width: auto; min-width: 280px; border-radius: 16px; padding: 14px 18px; }
     .hud-tray-cell { padding: 0 8px; }
 }
 
@@ -1097,7 +1097,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .hud-tray-num { font-size: 0.7rem; }
     .hud-tray-cell { padding: 0 5px; }
     .hud-graph-box { height: 50px; min-height: 50px; }
-    .hud-lb { position: static; transform: none; max-height: 30vh; padding: 8px 12px; min-width: 160px; }
+    .hud-lb { position: static; transform: none; max-height: 40vh; padding: 12px 16px; min-width: 220px; }
 }
 
 @media (max-width: 640px) {
