@@ -44,6 +44,7 @@ type Telemetry struct {
 	Longitude     float64   `json:"lon"`            // Current longitude
 	Altitude      float64   `json:"alt"`            //Current altitude in meters
 	ElevationGain float64   `json:"elevation_gain"` //Cumulative elevation gain
+	RiderWeight   float64   `json:"rider_weight"`   // Rider weight in kg
 }
 
 // AppState represents the global state of the application.
