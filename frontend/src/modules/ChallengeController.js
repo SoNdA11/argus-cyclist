@@ -287,7 +287,9 @@ export class ChallengeController {
 
     async openLeaderboard() {
         await this.fetchLeaderboardsFromDB();
-        this.renderLeaderboardModal();
+        const genderSelect = document.getElementById('eventRiderGender');
+        const defaultFilter = genderSelect && genderSelect.value !== 'G' ? genderSelect.value : 'G';
+        this.setLeaderboardFilter(defaultFilter);
         this.openModal(this.els.leaderboardModal);
     }
 
@@ -1118,8 +1120,14 @@ export class ChallengeController {
     async saveResult(type, rider, value, status) {
         if (!rider || value <= 0) return;
 
+        const match = rider.match(/(.+) \[([MFG])\]$/);
+        const cleanName = match ? match[1].trim() : rider;
+        const gender = match ? match[2] : this.detectGender(rider);
+
         this.leaderboards[type].push({
-            rider,
+            rider: cleanName,
+            rawRider: rider,
+            gender,
             value,
             status,
             createdAt: Date.now()
