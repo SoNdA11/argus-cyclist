@@ -1060,8 +1060,11 @@ export class ChallengeController {
         if (!challenge) return;
 
         const currentCleanName = challenge.riderName.replace(/ \[[MFG]\]$/, '');
+        const genderMatch = challenge.riderName.match(/\[([MFG])\]$/);
+        const currentGender = genderMatch ? genderMatch[1] : 'G';
 
         const entries = [...this.leaderboards[challenge.type]]
+            .filter(e => currentGender === 'G' || e.gender === 'G' || e.gender === currentGender)
             .sort((a, b) => b.value - a.value)
             .slice(0, 5);
 
