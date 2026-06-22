@@ -189,7 +189,12 @@ export class UIManager {
         }
 
         if (this.els.btnStudioExit) {
-            this.els.btnStudioExit.addEventListener('click', () => this.toggleStudioMode(false));
+            this.els.btnStudioExit.addEventListener('click', async () => {
+                if (window.isRecording && window.toggleRecording) {
+                    await window.toggleRecording();
+                }
+                this.toggleStudioMode(false);
+            });
         }
 
         if (this.els.btnStudioLoadWorkout) {

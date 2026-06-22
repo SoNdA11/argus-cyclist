@@ -826,10 +826,6 @@ export class ChallengeController {
                 activeDt = Math.max(0, activeDt - overshoot);
             }
 
-            if (this.activeChallenge.type === 'kom') {
-                this.updateKOMGradeByTime(elapsed);
-            }
-
             if (this.activeChallenge.type === 'timeTrial') {
                 this.updateTimeTrial(activeDt);
             }
@@ -980,8 +976,9 @@ export class ChallengeController {
     updateTelemetry(data) {
         let relativeDist = 0;
         if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
-            if (!this.activeChallenge.started) {
+            if (!this.activeChallenge.started && !this.activeChallenge._initialDistanceCaptured) {
                 this.activeChallenge.initialDistance = data.total_dist || 0;
+                this.activeChallenge._initialDistanceCaptured = true;
             }
             
             const currentDist = data.total_dist || 0;
