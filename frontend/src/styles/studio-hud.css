@@ -527,17 +527,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
 }
 
+.hud-card::before,
 .hud-card::after {
     content: '';
     position: absolute;
-    left: 0;
     top: 15%;
     bottom: 15%;
     width: 3px;
-    border-radius: 0 3px 3px 0;
     background: var(--theme-primary, #64748b);
     box-shadow: 0 0 10px var(--theme-primary, #64748b);
     opacity: 0.8;
+}
+
+.hud-card::before {
+    left: 0;
+    border-radius: 0 3px 3px 0;
+}
+
+.hud-card::after {
+    right: 0;
+    border-radius: 3px 0 0 3px;
 }
 
 .hud-card:hover {
