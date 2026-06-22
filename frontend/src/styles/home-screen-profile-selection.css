@@ -730,30 +730,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-sprint-card {
-    border-top: 3px solid #38bdf8;
+    border-top: 3px solid #ef4444;
 }
 
 .challenge-sprint-card:hover {
-    border-color: rgba(56, 189, 248, 0.7);
-    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.25);
+    border-color: rgba(239, 68, 68, 0.7);
+    box-shadow: 0 8px 30px rgba(239, 68, 68, 0.25);
 }
 
 .challenge-kom-card {
-    border-top: 3px solid #fbbf24;
-}
-
-.challenge-kom-card:hover {
-    border-color: rgba(250, 204, 21, 0.7);
-    box-shadow: 0 8px 30px rgba(234, 179, 8, 0.25);
-}
-
-.challenge-tt-card {
     border-top: 3px solid #22c55e;
 }
 
+.challenge-kom-card:hover {
+    border-color: rgba(34, 197, 94, 0.7);
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.25);
+}
+
+.challenge-tt-card {
+    border-top: 3px solid #a855f7;
+}
+
 .challenge-tt-card:hover {
-    border-color: rgba(16, 185, 129, 0.7);
-    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
+    border-color: rgba(168, 85, 247, 0.7);
+    box-shadow: 0 8px 30px rgba(168, 85, 247, 0.25);
 }
 
 .challenge-hub-footer,

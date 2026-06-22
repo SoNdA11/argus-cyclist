@@ -167,11 +167,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-sprint-card {
-    border-top: 3px solid rgba(56, 189, 248, 0.4);
+    border-top: 3px solid rgba(239, 68, 68, 0.4);
 }
 
 .challenge-sprint-card .card-cta {
-    color: #38bdf8;
+    color: #ef4444;
 }
 
 .challenge-sprint-card::before {
@@ -179,7 +179,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.15), transparent);
+    background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.15), transparent);
     background-size: 200% 100%;
     animation: sprint-speed 3s linear infinite;
     opacity: 0;
@@ -187,7 +187,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-sprint-card:hover {
-    border-color: rgba(56, 189, 248, 0.8);
+    border-color: rgba(239, 68, 68, 0.8);
 }
 
 .challenge-sprint-card:hover::before {
@@ -196,8 +196,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-sprint-card:hover strong {
-    color: #38bdf8;
-    text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    color: #ef4444;
+    text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
 }
 
 .challenge-sprint-card:hover .card-cta {
@@ -221,11 +221,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-kom-card {
-    border-top: 3px solid rgba(250, 204, 21, 0.4);
+    border-top: 3px solid rgba(34, 197, 94, 0.4);
 }
 
 .challenge-kom-card .card-cta {
-    color: #facc15;
+    color: #22c55e;
 }
 
 .challenge-kom-card::before {
@@ -233,14 +233,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: absolute;
     inset: -50% 0;
     z-index: 0;
-    background: linear-gradient(0deg, transparent, rgba(250, 204, 21, 0.15), transparent);
+    background: linear-gradient(0deg, transparent, rgba(34, 197, 94, 0.15), transparent);
     animation: kom-climb 4s ease-in-out infinite;
     opacity: 0;
     transition: opacity 0.4s ease;
 }
 
 .challenge-kom-card:hover {
-    border-color: rgba(250, 204, 21, 0.8);
+    border-color: rgba(34, 197, 94, 0.8);
 }
 
 .challenge-kom-card:hover::before {
@@ -249,8 +249,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-kom-card:hover strong {
-    color: #facc15;
-    text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+    color: #22c55e;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
 }
 
 .challenge-kom-card:hover .card-cta {
@@ -270,7 +270,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-tt-card {
-    border-top: 3px solid rgba(34, 197, 94, 0.4);
+    border-top: 3px solid rgba(168, 85, 247, 0.4);
 }
 
 .challenge-tt-card::before {
@@ -283,7 +283,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-top: -100px;
     margin-left: -100px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%);
     z-index: 0;
     animation: tt-pulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
     opacity: 0;
@@ -291,7 +291,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-tt-card:hover {
-    border-color: rgba(34, 197, 94, 0.8);
+    border-color: rgba(168, 85, 247, 0.8);
 }
 
 .challenge-tt-card:hover::before {
@@ -300,12 +300,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .challenge-tt-card .card-cta {
-    color: #22c55e;
+    color: #a855f7;
 }
 
 .challenge-tt-card:hover strong {
-    color: #4ade80;
-    text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+    color: #c084fc;
+    text-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
 }
 
 .challenge-tt-card:hover .card-cta {
