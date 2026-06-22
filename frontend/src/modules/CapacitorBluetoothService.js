@@ -169,7 +169,7 @@ export class CapacitorBluetoothService {
                 this.totalDistanceMeters += (speedMS * deltaSeconds);
             }
 
-            const payload = {
+             const payload = {
                 power: watts,
                 cadence: this.currentCadence,
                 heart_rate: this.currentHR,
@@ -178,7 +178,8 @@ export class CapacitorBluetoothService {
                 total_dist: this.totalDistanceMeters,
                 elevation_gain: this.elevationGain,
                 lat: currentLat,
-                lon: currentLon 
+                lon: currentLon,
+                rider_weight: weight
             };
 
             onTelemetryUpdate(payload);

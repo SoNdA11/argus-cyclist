@@ -116,7 +116,6 @@ export class UIManager {
             footer: document.querySelector('footer'),
             header: document.querySelector('header'),
             workoutPanel: document.getElementById('workout-panel'),
-            btnStudioStop: document.getElementById('btnStudioStop'),
             btnStudioStart: document.getElementById('btnStudioStart'),
             btnStudioExit: document.getElementById('btnStudioExit'),
             btnStudioLoadWorkout: document.getElementById('btnStudioLoadWorkout'),
@@ -180,13 +179,6 @@ export class UIManager {
 
         if (this.els.btnToggleStudio) {
             this.els.btnToggleStudio.addEventListener('click', () => this.toggleStudioMode());
-        }
-
-        if (this.els.btnStudioStop) {
-            this.els.btnStudioStop.addEventListener('click', () => {
-                // Pause the session and show the confirmation modal (Save/Resume/Discard)
-                if (window.toggleRecording) window.toggleRecording();
-            });
         }
 
         if (this.els.btnStudioStart) {
@@ -264,7 +256,11 @@ export class UIManager {
         else this.isStudioMode = !this.isStudioMode;
 
         if (this.isStudioMode) {
-            this.els.studioHud.classList.remove('hidden');
+            if (this.hud) {
+                this.hud.open('studio');
+            } else {
+                this.els.studioHud.classList.remove('hidden');
+            }
             this.els.header.style.display = 'none';
             this.els.mapContainer.style.display = 'none';
             this.els.hudSidebar.style.display = 'none';
@@ -273,13 +269,16 @@ export class UIManager {
             if (this.els.workoutPanel) this.els.workoutPanel.classList.add('hidden');
             
             if (window.workoutCtrl) {
-                // Ensure layout has reflowed for canvas sizing
                 setTimeout(() => window.workoutCtrl.initStudioChart(), 50);
                 setTimeout(() => window.workoutCtrl.initStudioChart(), 300);
                 setTimeout(() => window.workoutCtrl.initStudioChart(), 800);
             }
         } else {
-            this.els.studioHud.classList.add('hidden');
+            if (this.hud) {
+                this.hud.close();
+            } else {
+                this.els.studioHud.classList.add('hidden');
+            }
             this.els.header.style.display = 'flex';
             this.els.mapContainer.style.display = 'block';
             if (this.els.footer) this.els.footer.style.display = '';
@@ -288,7 +287,6 @@ export class UIManager {
                 setTimeout(() => window.workoutCtrl.renderGraph(window.workoutCtrl.lastPct || 0), 100);
             }
 
-            // Restore previous view state (Dashboard vs Map)
             if (this.isDashboardMode) {
                 this.els.dashboardView.classList.remove('hidden');
                 this.els.hudSidebar.style.display = 'none';
@@ -592,37 +590,33 @@ export class UIManager {
         // Watts per kilogram (W/kg) calculation:
         // W/kg is the primary metric for cycling performance, as it standardizes 
         // power output against the rider's body mass, directly affecting climbing ability.
-        const totalWeight = this.riderWeight;
+        const totalWeight = data.rider_weight || data.riderWeight || this.riderWeight || 75;
         const wkgVal = (data.power / totalWeight).toFixed(2);
         this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;
 
-        // Update Studio HUD metrics
-        if (this.isStudioMode) {
-            if (this.els.studioHr) this.els.studioHr.innerText = data.heart_rate || '--';
-            if (this.els.studioRpm) this.els.studioRpm.innerText = data.cadence || '0';
-            if (this.els.studioWkg) this.els.studioWkg.innerText = (data.power / this.riderWeight).toFixed(1);
-            if (this.els.studioSpeed) this.els.studioSpeed.innerText = data.speed ? data.speed.toFixed(1) : '0.0';
-            if (this.els.studioDist) this.els.studioDist.innerText = (data.total_dist / 1000).toFixed(2);
-
-            // Average Speed
-            if (this.els.studioAvgSpeed) {
-                const totalDistKm = data.total_dist / 1000;
-                const totalHours = this.secondsElapsed / 3600;
-                if (totalHours > 0) {
-                    const avgSpeed = totalDistKm / totalHours;
-                    this.els.studioAvgSpeed.innerText = avgSpeed.toFixed(1);
-                }
+        // Update Studio / Challenge HUD metrics
+        if (this.isStudioMode || (this.hud && this.hud.isOpen())) {
+            if (this.hud) {
+                this.hud.updateTelemetry(data, totalWeight);
+                this.hud.setElapsed(this.secondsElapsed);
             }
 
-            // Power Zone Color for Studio
-            if (this.els.studioHud) {
-                // Remove all zone classes
-                for (let i = 0; i <= 6; i++) this.els.studioHud.classList.remove(`zone-${i}`);
-                
-                // Add current zone
-                if (window.workoutCtrl) {
-                    const zone = window.workoutCtrl.getZone(data.power / (window.workoutCtrl.riderFTP || 200));
-                    this.els.studioHud.classList.add(`zone-${zone}`);
+            if (this.isStudioMode) {
+                if (this.els.studioAvgSpeed) {
+                    const totalDistKm = data.total_dist / 1000;
+                    const totalHours = this.secondsElapsed / 3600;
+                    if (totalHours > 0) {
+                        const avgSpeed = totalDistKm / totalHours;
+                        this.els.studioAvgSpeed.innerText = avgSpeed.toFixed(1);
+                    }
+                }
+
+                if (this.els.studioHud) {
+                    for (let i = 0; i <= 6; i++) this.els.studioHud.classList.remove(`zone-${i}`);
+                    if (window.workoutCtrl) {
+                        const zone = window.workoutCtrl.getZone(data.power / (window.workoutCtrl.riderFTP || 200));
+                        this.els.studioHud.classList.add(`zone-${zone}`);
+                    }
                 }
             }
         }
@@ -685,16 +679,17 @@ export class UIManager {
             }
         }
 
-        // --- NEW: Update Studio Mode Data ---
-        if (this.isStudioMode) {
-            this.els.studioPower.innerText = data.power;
-            this.els.studioPower.style.color = powerColor;
-            
-            this.els.studioHr.innerText = data.heart_rate || "--";
-            this.els.studioHr.style.color = hrColor;
-            
-            this.els.studioRpm.innerText = data.cadence;
-            this.els.studioWkg.innerText = wkgVal;
+        // --- Update Studio / Challenge Mode Power Display ---
+        if (this.isStudioMode || (this.hud && this.hud.isOpen())) {
+            if (this.isStudioMode) {
+                if (this.els.studioPower) {
+                    this.els.studioPower.innerText = data.power;
+                    this.els.studioPower.style.color = powerColor;
+                }
+            }
+            if (this.hud) {
+                this.hud.setPowerColor(powerColor);
+            }
         }
     }
 
@@ -1012,15 +1007,8 @@ export class UIManager {
             this.toggleConfirmModal(false);
         }
 
-        // Handle Studio Mode buttons
-        if (this.els.btnStudioStart && this.els.btnStudioStop) {
-            if (state === 'RECORDING') {
-                this.els.btnStudioStart.classList.add('hidden');
-                this.els.btnStudioStop.classList.remove('hidden');
-            } else {
-                this.els.btnStudioStart.classList.remove('hidden');
-                this.els.btnStudioStop.classList.add('hidden');
-            }
+        if (this.els.btnStudioStart) {
+            this.els.btnStudioStart.textContent = state === 'RECORDING' ? 'PAUSE' : 'START';
         }
     }
 

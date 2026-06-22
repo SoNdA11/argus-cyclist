@@ -1071,6 +1071,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				runtime.EventsEmit(a.ctx, "telemetry_update", domain.Telemetry{
 					Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 					Speed: 0, TotalDistance: a.currentDist, CurrentGrade: 0,
+					RiderWeight: a.physicsEngine.UserWeight,
 				})
 				continue
 			}
@@ -1243,6 +1244,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
 				ElevationGain: a.sessionElevationGain,
+				RiderWeight: a.physicsEngine.UserWeight,
 			}
 			a.fitService.AddRecord(fullTelemetry)
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)

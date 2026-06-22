@@ -17,8 +17,9 @@
 import { telemetryBus } from './TelemetryEventBus.js';
 
 export class ChallengeController {
-    constructor(ui, mapCtrl, chart) {
+    constructor(ui, hud, mapCtrl, chart) {
         this.ui = ui;
+        this.hud = hud;
         this.mapCtrl = mapCtrl;
         this.chart = chart;
 
@@ -28,21 +29,6 @@ export class ChallengeController {
             leaderboardModal: document.getElementById('eventLeaderboardModal'),
             leaderboardPanels: document.getElementById('eventLeaderboardPanels'),
             resultModal: document.getElementById('challengeResultModal'),
-            overlay: document.getElementById('challengeOverlay'),
-            modeLabel: document.getElementById('challengeModeLabel'),
-            riderLabel: document.getElementById('challengeRiderLabel'),
-            statusLabel: document.getElementById('challengeStatusLabel'),
-            timerValue: document.getElementById('challengeTimerValue'),
-            powerValue: document.getElementById('challengePowerValue'),
-            powerUnit: document.getElementById('challengePowerUnit'),
-            primaryLabel: document.getElementById('challengePrimaryLabel'),
-            secondaryLabel: document.getElementById('challengeSecondaryLabel'),
-            secondaryValue: document.getElementById('challengeSecondaryValue'),
-            tertiaryLabel: document.getElementById('challengeTertiaryLabel'),
-            tertiaryValue: document.getElementById('challengeTertiaryValue'),
-
-            zoneValue: document.getElementById('challengeZoneValue'),
-            inlineLeaderboard: document.getElementById('challengeLeaderboardPanel'),
             resultMode: document.getElementById('challengeResultMode'),
             resultTitle: document.getElementById('challengeResultTitle'),
             resultValue: document.getElementById('challengeResultValue'),
@@ -50,13 +36,8 @@ export class ChallengeController {
             resultDescription: document.getElementById('challengeResultDescription'),
             riderInput: document.getElementById('eventRiderName'),
             eventTrainerStatus: document.getElementById('eventTrainerStatus'),
-            backdropCanvas: document.getElementById('challengeBackdropCanvas'),
-            telemetryCanvas: document.getElementById('challengeTelemetryCanvas'),
             trainerStatus: document.getElementById('statusTrainer')
         };
-
-        this.backdropCtx = this.els.backdropCanvas?.getContext('2d');
-        this.telemetryCtx = this.els.telemetryCanvas?.getContext('2d');
 
         this.leaderboards = {
             sprint: [],
@@ -151,7 +132,7 @@ export class ChallengeController {
         document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchKOM());
         document.getElementById('btnLaunchTimeTrial')?.addEventListener('click', () => this.launchTimeTrial());
 
-        document.getElementById('btnAbortChallenge')?.addEventListener('click', async () => {
+        document.getElementById('hud-abort-btn')?.addEventListener('click', async () => {
             await this.abortActiveChallenge();
         });
 
@@ -283,16 +264,6 @@ export class ChallengeController {
     }
 
     resizeCanvases() {
-        [this.els.backdropCanvas, this.els.telemetryCanvas].forEach((canvas) => {
-            if (!canvas) return;
-            canvas.width = window.innerWidth * window.devicePixelRatio;
-            canvas.height = window.innerHeight * window.devicePixelRatio;
-            canvas.style.width = `${window.innerWidth}px`;
-            canvas.style.height = `${window.innerHeight}px`;
-        });
-
-        if (this.backdropCtx) this.backdropCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-        if (this.telemetryCtx) this.telemetryCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
     }
 
     async enterEventMode() {
@@ -749,7 +720,7 @@ export class ChallengeController {
             };
 
             this.updateChallengeChrome();
-            this.openChallengeOverlay();
+            this.openChallengeOverlay(config.type);
             await this.startBackendSession();
             this.startAnimationLoop();
         } catch (error) {
@@ -759,54 +730,59 @@ export class ChallengeController {
         }
     }
 
-    openChallengeOverlay() {
-        document.body.classList.add('challenge-mode-active');
-        this.els.overlay?.classList.remove('hidden');
+    openChallengeOverlay(mode) {
+        if (this.hud) {
+            this.hud.open(mode);
+        }
+        if (this.ui) {
+            this.ui.els.header.style.display = 'none';
+            this.ui.els.mapContainer.style.display = 'none';
+            this.ui.els.hudSidebar.style.display = 'none';
+            if (this.ui.els.footer) this.ui.els.footer.style.display = 'none';
+        }
     }
 
     closeChallengeOverlay() {
-        document.body.classList.remove('challenge-mode-active');
-        this.els.overlay?.classList.add('hidden');
+        if (this.hud) {
+            this.hud.close();
+        }
+        if (this.ui) {
+            this.ui.els.header.style.display = '';
+            this.ui.els.mapContainer.style.display = '';
+            this.ui.els.hudSidebar.style.display = '';
+            if (this.ui.els.footer) this.ui.els.footer.style.display = '';
+        }
     }
 
     updateChallengeChrome() {
         if (!this.activeChallenge) return;
 
         const meta = this.modeMeta[this.activeChallenge.type];
-        this.els.modeLabel.textContent = meta.fullTitle;
-
         const cleanRiderName = this.activeChallenge.riderName.replace(/ \[[MFG]\]$/, '');
-        this.els.riderLabel.textContent = cleanRiderName;
 
-        this.els.statusLabel.textContent = 'Waiting for first pedal stroke';
+        if (this.hud) {
+            this.hud.setMode(meta.fullTitle);
+            this.hud.setRiderName(cleanRiderName);
+            this.hud.setStatus('Waiting for first pedal stroke');
+            this.hud.setTimer(`${this.activeChallenge.duration.toFixed(1)}s`, 'TIME REMAINING');
 
-        if (this.activeChallenge.type === 'kom') {
-            this.els.primaryLabel.textContent = 'Distance Covered';
-            this.els.secondaryLabel.textContent = 'Live Power';
-            this.els.tertiaryLabel.textContent = 'Current Grade';
-            this.els.secondaryValue.textContent = '0 W';
-            this.els.powerUnit.textContent = 'meters';
-            this.els.tertiaryValue.textContent = '0.0 %';
-        } else if (this.activeChallenge.type === 'timeTrial') {
-            this.els.primaryLabel.textContent = 'Score';
-            this.els.secondaryLabel.textContent = 'Live Power';
-            this.els.tertiaryLabel.textContent = 'Multiplier';
-            this.els.secondaryValue.textContent = '0 W';
-            this.els.powerUnit.textContent = 'points';
-            this.els.tertiaryValue.textContent = '1.0x';
-            this.els.statusLabel.textContent = 'Power Accumulation Mode';
-            if (this.els.zoneValue) this.els.zoneValue.textContent = 'Z1';
-        } else {
-            this.els.primaryLabel.textContent = 'Live Power';
-            this.els.secondaryLabel.textContent = 'Peak Power';
-            this.els.tertiaryLabel.textContent = 'Cadence';
-            this.els.secondaryValue.textContent = '0 W';
-            this.els.powerUnit.textContent = 'watts';
-            this.els.tertiaryValue.textContent = '0 rpm';
+            if (this.activeChallenge.type === 'kom') {
+                this.hud.setPrimaryMetric('0', 'M');
+                this.hud.setSecondaryMetric('LIVE POWER', '0 W');
+                this.hud.setTertiaryMetric('CURRENT GRADE', '0.0 %');
+            } else if (this.activeChallenge.type === 'timeTrial') {
+                this.hud.setPrimaryMetric('0', 'PTS');
+                this.hud.setSecondaryMetric('LIVE POWER', '0 W');
+                this.hud.setTertiaryMetric('MULTIPLIER', '1.0x');
+                this.hud.setZone('Z1', 1);
+                this.hud.setStatus('Power Accumulation Mode');
+            } else {
+                this.hud.setPrimaryMetric('0', 'W');
+                this.hud.setSecondaryMetric('PEAK POWER', '0 W');
+                this.hud.setTertiaryMetric('CADENCE', '0 rpm');
+            }
         }
 
-        this.els.powerValue.textContent = '0';
-        this.els.timerValue.textContent = `${this.activeChallenge.duration.toFixed(1)}s`;
         this.updateInlineLeaderboard();
     }
 
@@ -833,13 +809,13 @@ export class ChallengeController {
         if (!this.activeChallenge.started && this.lastTelemetry.power > this.activeChallenge.threshold) {
             this.activeChallenge.started = true;
             this.activeChallenge.startTime = now;
-            this.els.statusLabel.textContent = 'Challenge live';
+            if (this.hud) this.hud.setStatus('Challenge live');
         }
 
         if (this.activeChallenge.started && !this.activeChallenge.finalized) {
             const elapsed = (now - this.activeChallenge.startTime) / 1000;
             const remaining = Math.max(0, this.activeChallenge.duration - elapsed);
-            this.els.timerValue.textContent = `${remaining.toFixed(1)}s`;
+            if (this.hud) this.hud.setTimer(`${remaining.toFixed(1)}s`);
 
             let activeDt = rawDt;
             if (elapsed < activeDt) {
@@ -863,7 +839,7 @@ export class ChallengeController {
                 return;
             }
         } else if (!this.activeChallenge.started) {
-            this.els.timerValue.textContent = `${this.activeChallenge.duration.toFixed(1)}s`;
+            if (this.hud) this.hud.setTimer(`${this.activeChallenge.duration.toFixed(1)}s`);
         }
 
         this.syncDisplayedTelemetry();
@@ -968,36 +944,36 @@ export class ChallengeController {
             z5: 'Z5 - VO2Max',
             z6: 'Z6 - Anaerobic'
         };
-        this.els.statusLabel.textContent = zoneNames[zone] || 'Z1';
+        if (this.hud) this.hud.setStatus(zoneNames[zone] || 'Z1');
     }
 
     syncDisplayedTelemetry() {
-        if (!this.activeChallenge) return;
+        if (!this.activeChallenge || !this.hud) return;
 
         const power = Math.round(this.lastTelemetry.power || 0);
         const cadence = Math.round(this.lastTelemetry.cadence || 0);
 
         if (this.activeChallenge.type === 'kom') {
-            this.els.powerValue.textContent = this.formatDistance(this.activeChallenge.bestDistance || 0, false);
-            this.els.secondaryValue.textContent = `${power} W`;
-            this.els.tertiaryValue.textContent = `${(this.lastTelemetry.grade || 0).toFixed(1)} %`;
+            this.hud.setPrimaryMetric(this.formatDistance(this.activeChallenge.bestDistance || 0, false));
+            this.hud.setSecondaryMetric('LIVE POWER', `${power} W`);
+            this.hud.setTertiaryMetric('CURRENT GRADE', `${(this.lastTelemetry.grade || 0).toFixed(1)} %`);
         } else if (this.activeChallenge.type === 'timeTrial') {
-            this.els.powerValue.textContent = `${Math.round(this.activeChallenge.score)}`;
-            this.els.secondaryValue.textContent = `${power} W`;
-            this.els.tertiaryValue.textContent = `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`;
+            this.hud.setPrimaryMetric(`${Math.round(this.activeChallenge.score)}`);
+            this.hud.setSecondaryMetric('LIVE POWER', `${power} W`);
+            this.hud.setTertiaryMetric('MULTIPLIER', `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`);
 
-            if (this.els.zoneValue) {
-                const shortNames = { z1: 'Z1', z2: 'Z2', z3: 'Z3', z4: 'Z4', z5: 'Z5', z6: 'Z6' };
-                this.els.zoneValue.textContent = shortNames[this.activeChallenge.currentZone] || 'Z1';
-            }
+            const shortNames = { z1: 'Z1', z2: 'Z2', z3: 'Z3', z4: 'Z4', z5: 'Z5', z6: 'Z6' };
+            const zoneMap = { z1: 1, z2: 2, z3: 3, z4: 4, z5: 5, z6: 6 };
+            const currentZone = this.activeChallenge.currentZone || 'z1';
+            this.hud.setZone(shortNames[currentZone] || 'Z1', zoneMap[currentZone]);
 
             if (!this.activeChallenge.started) {
-                this.els.statusLabel.textContent = 'Power Accumulation Mode';
+                this.hud.setStatus('Power Accumulation Mode');
             }
         } else {
-            this.els.powerValue.textContent = `${power}`;
-            this.els.secondaryValue.textContent = `${Math.round(this.activeChallenge.peakPower || 0)} W`;
-            this.els.tertiaryValue.textContent = `${cadence} rpm`;
+            this.hud.setPrimaryMetric(`${power}`);
+            this.hud.setSecondaryMetric('PEAK POWER', `${Math.round(this.activeChallenge.peakPower || 0)} W`);
+            this.hud.setTertiaryMetric('CADENCE', `${cadence} rpm`);
         }
     }
 
@@ -1107,7 +1083,7 @@ export class ChallengeController {
 
         const preview = allEntries.slice(0, 5);
 
-        this.els.inlineLeaderboard.innerHTML = `
+        const html = `
             <div class="challenge-chip-label">Event Ranking</div>
             ${preview.map((entry, index) => `
                 <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}" data-index="${index}">
@@ -1118,8 +1094,10 @@ export class ChallengeController {
             `).join('')}
         `;
 
+        if (this.hud) this.hud.showLeaderboard(html);
+
         if (rankImproved) {
-            const activeRow = this.els.inlineLeaderboard?.querySelector('.is-active');
+            const activeRow = document.querySelector('.challenge-inline-entry.is-active');
             if (activeRow) {
                 activeRow.classList.add('challenge-rank-climb');
                 setTimeout(() => activeRow.classList.remove('challenge-rank-climb'), 1000);
@@ -1270,6 +1248,10 @@ export class ChallengeController {
         // that happens when DiscardSession emits status_change → IDLE.
         this.openEventHub();
 
+        this.els.resultModal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
+        const modeClassMap = { sprint: 'mode-sprint', kom: 'mode-kom', timeTrial: 'mode-tt' };
+        this.els.resultModal.classList.add(modeClassMap[challenge.type] || 'mode-sprint');
+
         this.els.resultMode.textContent = this.modeMeta[challenge.type].fullTitle;
         this.els.resultTitle.textContent = title;
         this.els.resultValue.textContent = displayValue;
@@ -1285,7 +1267,7 @@ export class ChallengeController {
         }
         this.els.resultDescription.textContent = description;
 
-        this.els.resultValue.style.color = 'var(--power-color)';
+        this.els.resultValue.style.color = '';
 
         this.openModal(this.els.resultModal);
 
@@ -1314,7 +1296,6 @@ export class ChallengeController {
         this.activeChallenge = null;
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
-        document.body.classList.remove('challenge-mode-active');
 
         if (window.go?.main?.App?.SetDirectGrade) {
             window.go.main.App.SetDirectGrade(0);

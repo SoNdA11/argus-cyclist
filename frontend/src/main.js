@@ -23,7 +23,7 @@ import './styles/ai-chat.css';
 import cooldownModalHtml from './components/cooldownModal.html?raw';
 import eventHubPageHtml from './components/eventHubPage.html?raw';
 import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
-import challengeOverlayHtml from './components/challengeOverlay.html?raw';
+import studioHudHtml from './components/studioHudOverlay.html?raw';
 import challengeResultModalHtml from './components/challengeResultModal.html?raw';
 import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
@@ -40,7 +40,7 @@ document.body.insertAdjacentHTML('beforeend',
     cooldownModalHtml +
     eventHubPageHtml +
     eventLeaderboardModalHtml +
-    challengeOverlayHtml +
+    studioHudHtml +
     challengeResultModalHtml +
     fitnessTestModalHtml +
     ftpAssessmentConfirmModalHtml +
@@ -55,6 +55,7 @@ import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
 import { ChallengeController } from './modules/ChallengeController.js';
+import { FullscreenHUDController } from './modules/FullscreenHUDController.js';
 import { AIChatController } from './modules/AIChatController.js';
 
 // Capacitor imports for the Mobile version
@@ -161,7 +162,11 @@ if (typeof window.runtime === 'undefined') {
 const mapCtrl = new MapController();
 window.mapController = mapCtrl;
 
+const hud = new FullscreenHUDController();
+window.hud = hud;
+
 const ui = new UIManager();
+ui.hud = hud;
 window.ui = ui;
 
 const chart = new ElevationChart('elevationCanvas');
@@ -170,7 +175,7 @@ window.chart = chart;
 const workoutCtrl = new WorkoutController();
 window.workoutCtrl = workoutCtrl;
 
-const challengeCtrl = new ChallengeController(ui, mapCtrl, chart);
+const challengeCtrl = new ChallengeController(ui, hud, mapCtrl, chart);
 window.challengeCtrl = challengeCtrl;
 
 const aiChatCtrl = new AIChatController();
