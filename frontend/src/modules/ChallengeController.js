@@ -1066,7 +1066,7 @@ export class ChallengeController {
         const currentGender = genderMatch ? genderMatch[1] : 'G';
 
         const entries = [...this.leaderboards[challenge.type]]
-            .filter(e => currentGender === 'G' || e.gender === 'G' || e.gender === currentGender)
+            .filter(e => currentGender === 'G' || e.gender === currentGender)
             .sort((a, b) => b.value - a.value)
             .slice(0, 5);
 
