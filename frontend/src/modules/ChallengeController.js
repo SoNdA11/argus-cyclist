@@ -716,7 +716,8 @@ export class ChallengeController {
                 startTime: 0,
                 finalized: false,
                 finishedAt: 0,
-                initialDistance: this.lastTelemetry.total_dist || 0
+                initialDistance: this.lastTelemetry.total_dist || 0,
+                _waitingForTelemetry: true
             };
 
             this.updateChallengeChrome();
@@ -806,7 +807,7 @@ export class ChallengeController {
         const dt = Math.min(0.05, Math.max(0.001, rawDt));
         this.lastFrameTime = now;
 
-        if (!this.activeChallenge.started && this.lastTelemetry.power > this.activeChallenge.threshold) {
+        if (!this.activeChallenge.started && !this.activeChallenge._waitingForTelemetry && this.lastTelemetry.power > this.activeChallenge.threshold) {
             this.activeChallenge.started = true;
             this.activeChallenge.startTime = now;
             if (this.hud) this.hud.setStatus('Challenge live');
@@ -826,7 +827,9 @@ export class ChallengeController {
                 activeDt = Math.max(0, activeDt - overshoot);
             }
 
-            if (this.activeChallenge.type === 'timeTrial') {
+            if (this.activeChallenge.type === 'kom') {
+                this.updateKOMGradeByTime(elapsed);
+            } else if (this.activeChallenge.type === 'timeTrial') {
                 this.updateTimeTrial(activeDt);
             }
 
@@ -974,6 +977,10 @@ export class ChallengeController {
     }
 
     updateTelemetry(data) {
+        if (this.activeChallenge?._waitingForTelemetry) {
+            this.activeChallenge._waitingForTelemetry = false;
+        }
+
         let relativeDist = 0;
         if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
             if (!this.activeChallenge.started && !this.activeChallenge._initialDistanceCaptured) {
@@ -983,10 +990,6 @@ export class ChallengeController {
             
             const currentDist = data.total_dist || 0;
             relativeDist = Math.max(0, currentDist - (this.activeChallenge.initialDistance || 0));
-
-            const grade = this.getGradeForDistance(relativeDist);
-            data.grade = grade;
-            this.updateKOMGrade(relativeDist);
         }
 
         this.lastTelemetry = data;
