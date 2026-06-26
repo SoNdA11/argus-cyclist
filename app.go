@@ -461,7 +461,7 @@ func (a *App) SetDirectGrade(grade float64) error {
 
 // SetKOMGradeSchedule creates a virtual KOM route with a custom grade schedule from frontend.
 func (a *App) SetKOMGradeSchedule(grades string) (string, error) {
-	gradeSchedule := []float64{0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8}
+	gradeSchedule := []float64{0, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6}
 
 	if grades != "" {
 		var parsed []float64
