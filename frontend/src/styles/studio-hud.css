@@ -735,6 +735,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: none;
 }
 
+.mode-sprint .hud-tray-strip,
+.mode-kom .hud-tray-strip,
+.mode-tt .hud-tray-strip {
+    display: none !important;
+}
+
 /* Telemetry minimalist icons using SVG masks */
 .hud-tray-icon {
     width: 18px;
