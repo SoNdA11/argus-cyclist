@@ -1234,25 +1234,6 @@ export class ChallengeController {
         let finalValue = this.getLiveLeaderboardValue();
         let displayValue = this.formatResultValue(challenge.type, finalValue);
 
-        let rank = 'Bronze';
-        const rankThresholds = [
-            { min: 320, label: 'Diamond' },
-            { min: 220, label: 'Platinum' },
-            { min: 140, label: 'Gold' },
-            { min: 80, label: 'Silver' },
-            { min: 0, label: 'Bronze' }
-        ];
-        for (const t of rankThresholds) {
-            if (finalValue >= t.min) {
-                rank = t.label;
-                break;
-            }
-        }
-
-        if (challenge.type === 'timeTrial') {
-            title = `Rank: ${rank}`;
-        }
-
         let description = 'Result saved to the offline leaderboard.';
 
         this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
@@ -1274,14 +1255,7 @@ export class ChallengeController {
         this.els.resultTitle.textContent = title;
         this.els.resultValue.textContent = displayValue;
         if (this.els.resultRank) {
-            if (challenge.type === 'timeTrial') {
-                this.els.resultRank.textContent = rank;
-                const rankColors = { Bronze: '#cd7f32', Silver: '#c0c0c0', Gold: '#ffd700', Platinum: '#e5e4e2', Diamond: '#b9f2ff' };
-                this.els.resultRank.style.color = rankColors[rank] || '#cd7f32';
-                this.els.resultRank.style.display = 'block';
-            } else {
-                this.els.resultRank.style.display = 'none';
-            }
+            this.els.resultRank.style.display = 'none';
         }
         this.els.resultDescription.textContent = description;
 
