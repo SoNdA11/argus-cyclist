@@ -401,6 +401,11 @@ export class ChallengeController {
     }
 
     async prepareChallengeEnvironment(mode) {
+        if (this._aborting) {
+            console.warn('Cannot start challenge: previous session is still cleaning up.');
+            return false;
+        }
+
         await this.refreshTrainerStatus();
 
         if (!await this.hasTrainerConnection()) {
@@ -1300,10 +1305,6 @@ export class ChallengeController {
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
 
-        if (reopenHub) {
-            this.openEventHub();
-        }
-
         // UI já está limpa; backend pode terminar em background
         try {
             await this.stopBackendSession();
@@ -1311,6 +1312,10 @@ export class ChallengeController {
             console.error('Error during backend session discard:', e);
         }
         this.cleanupChallengeState();
+
+        if (reopenHub) {
+            this.openEventHub();
+        }
     }
 
     cleanupChallengeState() {
