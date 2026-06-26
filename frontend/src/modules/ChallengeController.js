@@ -439,10 +439,10 @@ export class ChallengeController {
             { pct: 0.40, grade: 4 },
             { pct: 0.50, grade: 5 },
             { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 7 },
-            { pct: 0.80, grade: 8 },
-            { pct: 0.90, grade: 8 },
-            { pct: 1.00, grade: 8 }
+            { pct: 0.70, grade: 6 },
+            { pct: 0.80, grade: 6 },
+            { pct: 0.90, grade: 6 },
+            { pct: 1.00, grade: 6 }
         ];
 
         const routeDistance = 3000;
@@ -463,7 +463,7 @@ export class ChallengeController {
         if (!window.go?.main?.App?.SetDirectGrade) return;
 
         const duration = 60;
-        const maxGrade = 7;
+        const maxGrade = 6;
         const pct = Math.min(1, elapsedSeconds / duration);
 
         let grade = 0;
@@ -540,10 +540,10 @@ export class ChallengeController {
             { pct: 0.40, grade: 4 },
             { pct: 0.50, grade: 5 },
             { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 7 },
-            { pct: 0.80, grade: 8 },
-            { pct: 0.90, grade: 8 },
-            { pct: 1.00, grade: 8 }
+            { pct: 0.70, grade: 6 },
+            { pct: 0.80, grade: 6 },
+            { pct: 0.90, grade: 6 },
+            { pct: 1.00, grade: 6 }
         ];
 
         let currentEle = startEle;
@@ -1019,10 +1019,10 @@ export class ChallengeController {
             { pct: 0.40, grade: 4 },
             { pct: 0.50, grade: 5 },
             { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 7 },
-            { pct: 0.80, grade: 8 },
-            { pct: 0.90, grade: 8 },
-            { pct: 1.00, grade: 8 }
+            { pct: 0.70, grade: 6 },
+            { pct: 0.80, grade: 6 },
+            { pct: 0.90, grade: 6 },
+            { pct: 1.00, grade: 6 }
         ];
 
         const routeDistance = 3000;
