@@ -711,15 +711,13 @@ select.home-select option {
     gap: 12px;
 }
 
-.challenge-card-grid {
-    @media (max-width: 900px) {
-        .settings-shell {
-            grid-template-columns: 1fr;
-        }
+@media (max-width: 900px) {
+    .settings-shell {
+        grid-template-columns: 1fr;
+    }
 
-        .settings-nav {
-            position: static;
-        }
+    .settings-nav {
+        position: static;
     }
 }
 
