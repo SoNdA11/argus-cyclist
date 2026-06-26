@@ -104,6 +104,7 @@ export class ChallengeController {
         document.getElementById('btnEventClose')?.addEventListener('click', () => this.closeModal(this.els.eventHubModal));
         document.getElementById('btnCloseEventHub')?.addEventListener('click', () => {
             this.closeModal(this.els.eventHubModal);
+            this.restoreMainLayout();
 
             if (!this.activeChallenge) {
                 const homeScreen = document.getElementById('homeScreen');
@@ -756,6 +757,9 @@ export class ChallengeController {
         if (this.hud) {
             this.hud.close();
         }
+    }
+
+    restoreMainLayout() {
         if (this.ui) {
             this.ui.els.header.style.display = '';
             this.ui.els.mapContainer.style.display = '';
