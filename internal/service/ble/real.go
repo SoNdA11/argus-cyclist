@@ -367,27 +367,28 @@ func (s *RealService) UnsubscribeStats() {
 
 func (s *RealService) SetGrade(grade float64) error {
 	s.controlMutex.Lock()
-	defer s.controlMutex.Unlock()
-
 	// If in ERG mode, ignore the route grid command.
 	if s.currentMode == "ERG" {
+		s.controlMutex.Unlock()
 		return nil
 	}
-
 	s.targetGrade = grade
+	isFEC := s.isFEC
+	fecWriteChar := s.fecWriteChar
+	trainerPointChar := s.trainerPointChar
+	isReady := s.isReady
+	s.controlMutex.Unlock()
 
-	if s.isFEC && s.fecWriteChar != nil && s.isReady {
+	if isFEC && fecWriteChar != nil && isReady {
 		msg := fec.EncodeTrackResistance(grade)
-		_, err := s.fecWriteChar.WriteWithoutResponse(msg)
-		return err
-	} else if !s.isFEC && s.trainerPointChar != nil {
+		go fecWriteChar.WriteWithoutResponse(msg)
+	} else if !isFEC && trainerPointChar != nil {
 		// Control for Pure FTMS Protocol (Sim Mode / Inclination)
 		// Opcode: 0x03 (Set Target Inclination)
 		// Resolution: 0.1%, Format: sint16 (Little Endian)
 		val := int16(grade * 10.0)
 		msg := []byte{0x03, byte(val & 0xFF), byte(val >> 8)}
-		_, err := s.trainerPointChar.WriteWithoutResponse(msg)
-		return err
+		go trainerPointChar.WriteWithoutResponse(msg)
 	}
 	return nil
 }
@@ -395,22 +396,24 @@ func (s *RealService) SetGrade(grade float64) error {
 func (s *RealService) SetPower(watts float64) error {
 	s.controlMutex.Lock()
 	s.targetPower = watts
+	isFEC := s.isFEC
+	fecWriteChar := s.fecWriteChar
+	trainerPointChar := s.trainerPointChar
+	isReady := s.isReady
 	s.controlMutex.Unlock()
 
-	if s.isFEC && s.fecWriteChar != nil && s.isReady {
+	if isFEC && fecWriteChar != nil && isReady {
 		fmt.Printf("[BLE] Setting ERG Power: %.1f W\n", watts)
 		msg := fec.EncodeTargetPower(watts)
-		_, err := s.fecWriteChar.WriteWithoutResponse(msg)
-		return err
-	} else if !s.isFEC && s.trainerPointChar != nil {
+		go fecWriteChar.WriteWithoutResponse(msg)
+	} else if !isFEC && trainerPointChar != nil {
 		fmt.Printf("[BLE] Setting ERG Power (FTMS): %.1f W\n", watts)
 		// Control for Pure FTMS Protocol (ERG Mode / Target Power)
 		// Opcode: 0x05 (Set Target Power)
 		// Resolution: 1W, Format: sint16 (Little Endian)
 		val := int16(watts)
 		msg := []byte{0x05, byte(val & 0xFF), byte(val >> 8)}
-		_, err := s.trainerPointChar.WriteWithoutResponse(msg)
-		return err
+		go trainerPointChar.WriteWithoutResponse(msg)
 	}
 	return nil
 }

@@ -1279,17 +1279,17 @@ export class ChallengeController {
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
 
-        // UI já está limpa; backend pode terminar em background
+        if (reopenHub) {
+            this.openEventHub();
+        }
+
+        // UI já está limpa e Event Hub reaberto; backend pode terminar em background
         try {
             await this.stopBackendSession();
         } catch (e) {
             console.error('Error during backend session discard:', e);
         }
         this.cleanupChallengeState();
-
-        if (reopenHub) {
-            this.openEventHub();
-        }
     }
 
     cleanupChallengeState() {
