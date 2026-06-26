@@ -531,13 +531,17 @@ function renderTrainerUIState(state) {
     });
 }
 
+let lastTrainerKind = 'real';
+
 async function refreshTrainerConnectionState() {
     if (window.go?.main?.App?.GetDeviceConnectionState) {
         const state = await window.go.main.App.GetDeviceConnectionState();
+        lastTrainerKind = state?.trainer_kind || 'real';
         renderTrainerUIState(state);
         return state;
     }
 
+    lastTrainerKind = 'real';
     return { trainer_connected: false, trainer_kind: 'real' };
 }
 window.refreshTrainerConnectionState = refreshTrainerConnectionState;
@@ -1236,6 +1240,13 @@ document.getElementById('btnFitnessTests').addEventListener('click', async () =>
 // =======================
 
 document.addEventListener('keydown', async (e) => {
+    // Ignorar quando o usuário estiver interagindo com input/select
+    const tag = e.target?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+
+    // Só ajusta potência no simulador virtual
+    if (lastTrainerKind !== 'virtual') return;
+
     let delta = 0;
     if (e.key === "ArrowUp") delta = 10;
     if (e.key === "ArrowDown") delta = -10;

@@ -603,6 +603,7 @@ func (a *App) ConnectTrainer(macAddress string) (string, error) {
 
 	a.isTrainerConnected = true
 	a.isVirtualTrainer = false
+	a.simPower = 0
 	return "Trainer Connected", nil
 }
 
@@ -627,6 +628,7 @@ func (a *App) ConnectVirtualTrainer() (string, error) {
 
 	a.isTrainerConnected = true
 	a.isVirtualTrainer = true
+	a.simPower = 0
 	return "Simulator Active", nil
 }
 
@@ -638,6 +640,7 @@ func (a *App) DisconnectTrainer() string {
 		a.isTrainerConnected = false
 	}
 	a.isVirtualTrainer = false
+	a.simPower = 0
 	return "Disconnected"
 }
 
@@ -1007,6 +1010,8 @@ func (a *App) DisconnectDevice() string {
 	a.trainerService.Disconnect()
 	a.isTrainerConnected = false
 	a.isHRConnected = false
+	a.isVirtualTrainer = false
+	a.simPower = 0
 
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 	return "Disconnected"
@@ -1058,7 +1063,9 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				lastHRTime = time.Now()
 			}
 
-			currentPower += a.simPower
+			if a.isVirtualTrainer {
+				currentPower += a.simPower
+			}
 
 			now := time.Now()
 
@@ -1312,6 +1319,10 @@ func (a *App) SetTrainerMode(mode string) {
 
 // ChangePowerSimulation is a placeholder for manual power simulation.
 func (a *App) ChangePowerSimulation(delta int) int {
+	if !a.isVirtualTrainer {
+		a.simPower = 0
+		return 0
+	}
 	a.simPower += int16(delta)
 
 	if a.simPower < -500 {
