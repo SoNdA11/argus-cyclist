@@ -59,6 +59,7 @@ export class WorkoutController {
             window.runtime.EventsOn("workout_loaded", (wo) => this.loadWorkout(wo));
             window.runtime.EventsOn("workout_status", (state) => this.updateStatus(state));
             window.runtime.EventsOn("workout_finished", (status) => {
+                if (!this.activeWorkout) return;
                 if (status === "completed") {
                     this.showCompletionActions();
                     this.showToast("Workout completed!\n\nSwitched to Free Ride (SIM).\nYou can repeat or load a new workout.", 5000);

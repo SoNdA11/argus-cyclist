@@ -1522,6 +1522,10 @@ window.loginProfile = async (id) => {
             window.ui.loadHistory();
         }
 
+        if (window.challengeCtrl) {
+            window.challengeCtrl.restoreMainLayout();
+        }
+
         await window.checkStravaStatus();
 
     } catch (err) {
