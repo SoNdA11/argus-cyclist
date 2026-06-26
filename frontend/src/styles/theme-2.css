@@ -173,6 +173,11 @@ html[data-theme="day"] .history-item {
     padding: 10px;
 }
 
+#trainerList option {
+    background: #0a0a0c;
+    color: #fff;
+}
+
 .device-row.compact {
     padding: 5px 0;
     font-size: 0.85rem;

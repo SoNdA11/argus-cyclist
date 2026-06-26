@@ -347,6 +347,15 @@ func (s *RealService) runControlLoop() {
 	}
 }
 
+func (s *RealService) UnsubscribeStats() {
+	// No-op for real BLE: notification callbacks are registered at the OS
+	// level via tinygo and persist across sessions. The same telemetry
+	// channel is reused, so data flow continues uninterrupted when a new
+	// game loop starts reading from it. Resetting the subscription flags
+	// would cause a second DiscoverServices + EnableNotifications on the
+	// next SubscribeStats, which breaks the BLE data flow on Linux/BlueZ.
+}
+
 func (s *RealService) SetGrade(grade float64) error {
 	s.controlMutex.Lock()
 	defer s.controlMutex.Unlock()

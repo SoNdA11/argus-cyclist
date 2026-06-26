@@ -33,6 +33,9 @@ type TrainerService interface {
 	// SubscribeStats starts reading data from connected devices
 	SubscribeStats(dataChan chan Telemetry) error
 
+	// UnsubscribeStats stops the telemetry data flow without disconnecting hardware.
+	UnsubscribeStats()
+
 	// SetGrade sends the slope/grade to the trainer (if connected)
 	SetGrade(grade float64) error
 
