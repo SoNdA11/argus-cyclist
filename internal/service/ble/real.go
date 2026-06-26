@@ -239,8 +239,11 @@ func (s *RealService) SubscribeStats(dataChan chan domain.Telemetry) error {
 						char.EnableNotifications(func(buf []byte) {
 							p, c := fec.DecodeTrainerData(buf)
 							if p != -1 {
-								dataChan <- domain.Telemetry{
+								select {
+								case dataChan <- domain.Telemetry{
 									Power: p, Cadence: c, HeartRate: 0, Timestamp: time.Now(),
+								}:
+								default:
 								}
 							}
 						})
@@ -260,8 +263,11 @@ func (s *RealService) SubscribeStats(dataChan chan domain.Telemetry) error {
 					if uuid == CharCyclingPowerMeasure {
 						char.EnableNotifications(func(buf []byte) {
 							p, c := s.parseCyclingPower(buf)
-							dataChan <- domain.Telemetry{
+							select {
+							case dataChan <- domain.Telemetry{
 								Power: p, Cadence: c, HeartRate: 0, Timestamp: time.Now(),
+							}:
+							default:
 							}
 						})
 					}
@@ -286,8 +292,11 @@ func (s *RealService) SubscribeStats(dataChan chan domain.Telemetry) error {
 					if char.UUID() == CharHeartRateMeasure {
 						char.EnableNotifications(func(buf []byte) {
 							hr := parseHR(buf)
-							dataChan <- domain.Telemetry{
+							select {
+							case dataChan <- domain.Telemetry{
 								Power: -1, HeartRate: hr, Timestamp: time.Now(),
+							}:
+							default:
 							}
 						})
 					}
