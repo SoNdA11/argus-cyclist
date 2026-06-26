@@ -84,7 +84,8 @@ export class ChallengeController {
 
         window.challengeController = this;
 
-        telemetryBus.subscribe((data) => this.updateTelemetry(data));
+        this._telemetryCallback = (data) => this.updateTelemetry(data);
+        telemetryBus.subscribe(this._telemetryCallback);
 
         this.bindEvents();
         this.resizeCanvases();
@@ -618,15 +619,16 @@ export class ChallengeController {
     async stopBackendSession() {
         if (!window.isRecording) return;
 
+        window.isRecording = false;
+
         document.body.classList.add('suppress-map-modals');
+
+        if (this.ui && this.ui.setRecordingState) {
+            this.ui.setRecordingState('IDLE');
+        }
 
         if (window.go?.main?.App?.DiscardSession) {
             await window.go.main.App.DiscardSession();
-        }
-
-        window.isRecording = false;
-        if (this.ui && this.ui.setRecordingState) {
-            this.ui.setRecordingState('IDLE');
         }
 
         // Fully reset the main dashboard data so that when the Event Hub
@@ -1289,22 +1291,31 @@ export class ChallengeController {
     }
 
     async abortActiveChallenge({ reopenHub = true } = {}) {
-        if (!this.activeChallenge) return;
+        if (!this.activeChallenge || this.activeChallenge.finalized) return;
+        if (this._aborting) return;
+        this._aborting = true;
 
-        this.closeChallengeOverlay();
+        // Parar imediatamente — sem esperar backend
+        this.activeChallenge.finalized = true;
         this.stopAnimationLoop();
+        this.closeChallengeOverlay();
 
-        // Show the hub FIRST to cover the screen before backend cleanup
         if (reopenHub) {
             this.openEventHub();
         }
 
-        await this.stopBackendSession();
+        // UI já está limpa; backend pode terminar em background
+        try {
+            await this.stopBackendSession();
+        } catch (e) {
+            console.error('Error during backend session discard:', e);
+        }
         this.cleanupChallengeState();
     }
 
     cleanupChallengeState() {
         this.activeChallenge = null;
+        this._aborting = false;
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
 

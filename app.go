@@ -953,7 +953,8 @@ func (a *App) FinishSession() (SessionSummary, error) {
 }
 
 // DiscardSession cancels the current session without saving any data.
-// Connected devices remain active.
+// Connected devices remain active. All session accumulators are reset
+// so that a new session starts from a clean state.
 func (a *App) DiscardSession() string {
 	if a.isRecording {
 		if a.cancelSim != nil {
@@ -962,8 +963,27 @@ func (a *App) DiscardSession() string {
 		a.isRecording = false
 		a.isPaused = false
 	}
+	a.cancelSim = nil
+
+	// Para o fluxo de telemetria (BLE mock) sem desconectar hardware
+	if a.trainerService != nil {
+		a.trainerService.UnsubscribeStats()
+	}
 
 	a.currentDist = 0
+	a.sessionPowerData = nil
+	a.sessionHRData = nil
+	a.sessionPowerSum = 0
+	a.sessionTicks = 0
+	a.sessionActiveTime = 0
+	a.sessionElevationGain = 0.0
+	a.lastAltitude = -9999.0
+	a.sessionStart = time.Time{}
+	a.workoutStartTimeOffset = 0
+	a.isCooldown = false
+	a.peakHR = 0
+	a.hrAt1Min = 0
+	a.hrAt2Min = 0
 
 	a.UnloadWorkout()
 

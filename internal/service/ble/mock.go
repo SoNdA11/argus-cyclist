@@ -18,12 +18,15 @@ package ble
 
 import (
 	"argus-cyclist/internal/domain"
+	"sync"
 	"time"
 )
 
 // MockService simulates a trainer that responds to keyboard input
 type MockService struct {
+	mu           sync.Mutex
 	stopChan     chan struct{}
+	started      bool
 	currentPower int16
 	currentCad   uint8
 	currentHR    uint8
@@ -56,13 +59,16 @@ func (s *MockService) ConnectHR(macAddress string, onStatus func(string, string)
 }
 
 func (m *MockService) Disconnect() {
-	// Checks if the channel is already closed to avoid panic
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	select {
 	case <-m.stopChan:
 		return
 	default:
 		close(m.stopChan)
 	}
+	m.started = false
 }
 
 func (m *MockService) SetGrade(grade float64) error {
@@ -79,27 +85,58 @@ func (m *MockService) SetTrainerMode(mode string) {
 }
 
 func (m *MockService) SubscribeStats(ch chan domain.Telemetry) error {
-	m.stopChan = make(chan struct{})
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	go func() {
+	// Fecha canal anterior para parar goroutine velha antes de criar nova
+	if m.started {
+		select {
+		case <-m.stopChan:
+		default:
+			close(m.stopChan)
+		}
+	}
+
+	m.stopChan = make(chan struct{})
+	m.started = true
+
+	go func(stop chan struct{}) {
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
 		for {
 			select {
-			case <-m.stopChan:
+			case <-stop:
 				return
 			case t := <-ticker.C:
-				ch <- domain.Telemetry{
+				select {
+				case ch <- domain.Telemetry{
 					Timestamp: t,
 					Power:     m.currentPower,
 					Cadence:   m.currentCad,
 					HeartRate: m.currentHR,
+				}:
+				case <-stop:
+					return
 				}
 			}
 		}
-	}()
+	}(m.stopChan)
 	return nil
+}
+
+func (m *MockService) UnsubscribeStats() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.started {
+		select {
+		case <-m.stopChan:
+		default:
+			close(m.stopChan)
+		}
+		m.started = false
+	}
 }
 
 func (m *MockService) DisconnectHR() {
