@@ -875,6 +875,16 @@ export class ChallengeController {
 
         if (!challenge.started) return;
 
+        if (power <= 0) {
+            challenge.consistencyHistory = [];
+            challenge.consistencyTimer = 0;
+            challenge.consistencyFactor = 1.0;
+            challenge.currentMultiplier = 1.0;
+            challenge.consecutiveTimeInZ5Plus = 0;
+            challenge.isZ5PlusActive = false;
+            return;
+        }
+
         const avgPower = challenge.powerHistory.reduce((a, b) => a + b, 0) / challenge.powerHistory.length;
         const pct = challenge.ftp > 0 ? (avgPower / challenge.ftp) * 100 : 0;
 
@@ -928,7 +938,7 @@ export class ChallengeController {
             const max = Math.max(...challenge.consistencyHistory);
             const min = Math.min(...challenge.consistencyHistory);
             const mean = challenge.consistencyHistory.reduce((a, b) => a + b, 0) / challenge.consistencyHistory.length;
-            const variation = mean > 0 ? ((max - min) / mean) * 100 : 0;
+            const variation = mean > 0 ? ((max - min) / mean) * 100 : 999;
 
             if (variation < 5) {
                 challenge.consistencyTimer += dt;
