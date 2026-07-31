@@ -39,6 +39,11 @@ export class MapController {
         this.generatedRouteData = null;
 
         this.lastXPDist = 0;
+
+        this._throttleTimer = null;
+        this._throttleInterval = 150;
+        this._tileRetryCount = new Map();
+        this._maxTileRetries = 2;
     }
 
     init(containerId) {
@@ -49,7 +54,10 @@ export class MapController {
             zoom: CONFIG.DEFAULT_ZOOM,
             pitch: 60,
             bearing: 0,
-            antialias: true
+            antialias: true,
+            maxTileCacheSize: 512 * 1024 * 1024,
+            fadeDuration: 0,
+            tileRetain: 20
         });
 
         this.map.addControl(new maplibregl.NavigationControl({
@@ -63,7 +71,6 @@ export class MapController {
 
             if (this.editorMode) this.setupEditorLayers();
 
-            // Adiciona o efeito visual de passar o mouse sobre a linha no modo editor
             this.map.on('mouseenter', 'editor-route', () => { if (this.editorMode) this.map.getCanvas().style.cursor = 'copy'; });
             this.map.on('mouseleave', 'editor-route', () => { if (this.editorMode) this.map.getCanvas().style.cursor = 'crosshair'; });
         });
@@ -71,9 +78,7 @@ export class MapController {
         this.map.on('style.load', () => {
             this.setup3DEnvironment();
             this.addRouteLayer();
-            // === NOVO: Restaura a linha vermelha do Editor ===
             if (this.editorMode && this.generatedRouteData && this.generatedRouteData.length > 0) {
-                // Converte os dados salvos de volta para o formato [lng, lat] que o mapa exige
                 const coords = this.generatedRouteData.map(p => [p.lon, p.lat]);
                 this.drawEditorRoute(coords);
             }
@@ -85,6 +90,15 @@ export class MapController {
 
         this.map.on('dragstart', () => { this.followCyclist = false; });
 
+        this.map.on('tile.error', () => {
+            this._tileErrorCount = (this._tileErrorCount || 0) + 1;
+            if (this._tileErrorCount === 1) {
+                console.warn('Map tile failed to load — some tiles may show as gray blocks');
+            }
+        });
+
+        setTimeout(() => { this._tileErrorCount = 0; }, 30000);
+
         this.initMarker();
     }
 
@@ -92,41 +106,53 @@ export class MapController {
         if (!this.map) return;
 
         if (!this.map.getSource('terrain-source')) {
-            this.map.addSource('terrain-source', {
-                type: 'raster-dem',
-                url: CONFIG.TERRAIN_SOURCE,
-                tileSize: 256
-            });
+            try {
+                this.map.addSource('terrain-source', {
+                    type: 'raster-dem',
+                    url: CONFIG.TERRAIN_SOURCE,
+                    tileSize: 256
+                });
+            } catch (e) {
+                console.warn('Terrain source could not be added:', e);
+            }
         }
 
-        this.map.setTerrain({
-            source: 'terrain-source',
-            exaggeration: 1.5
-        });
+        try {
+            this.map.setTerrain({
+                source: 'terrain-source',
+                exaggeration: 1.5
+            });
+        } catch (e) {
+            console.warn('Terrain could not be set:', e);
+        }
 
-        if (!this.map.getLayer('3d-buildings')) {
+        if (!this.map.getLayer('3d-buildings') && this.map.getSource('openmaptiles')) {
             const layers = this.map.getStyle().layers;
             const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
 
-            this.map.addLayer({
-                'id': '3d-buildings',
-                'source': 'openmaptiles',
-                'source-layer': 'building',
-                'filter': ['!=', 'hide_3d', true],
-                'type': 'fill-extrusion',
-                'minzoom': 13,
-                'paint': {
-                    'fill-extrusion-color': [
-                        'interpolate', ['linear'], ['get', 'render_height'],
-                        0, '#d1d5db',
-                        30, '#9ca3af',
-                        100, '#4b5563'
-                    ],
-                    'fill-extrusion-height': ['get', 'render_height'],
-                    'fill-extrusion-base': ['get', 'render_min_height'],
-                    'fill-extrusion-opacity': 0.8
-                }
-            }, labelLayerId);
+            try {
+                this.map.addLayer({
+                    'id': '3d-buildings',
+                    'source': 'openmaptiles',
+                    'source-layer': 'building',
+                    'filter': ['!=', 'hide_3d', true],
+                    'type': 'fill-extrusion',
+                    'minzoom': 13,
+                    'paint': {
+                        'fill-extrusion-color': [
+                            'interpolate', ['linear'], ['get', 'render_height'],
+                            0, '#d1d5db',
+                            30, '#9ca3af',
+                            100, '#4b5563'
+                        ],
+                        'fill-extrusion-height': ['get', 'render_height'],
+                        'fill-extrusion-base': ['get', 'render_min_height'],
+                        'fill-extrusion-opacity': 0.8
+                    }
+                }, labelLayerId);
+            } catch (e) {
+                console.warn('3D buildings could not be added:', e);
+            }
         }
     }
 
@@ -175,8 +201,8 @@ export class MapController {
                 center: newLngLat,
                 bearing: heading || this.map.getBearing(),
                 pitch: 60,
-                duration: 1000,
-                easing: (t) => t
+                duration: 500,
+                easing: (t) => t * (2 - t)
             });
         }
 
@@ -185,6 +211,12 @@ export class MapController {
 
     updateCyclistPosition(lat, lon, speed, telemetry) {
         if (lat === 0 && lon === 0) return;
+
+        const now = Date.now();
+        if (this._throttleTimer && (now - this._throttleTimer) < this._throttleInterval) {
+            return;
+        }
+        this._throttleTimer = now;
 
         let heading = this.marker.getRotation();
         if (this.prevLngLat) {
@@ -641,5 +673,9 @@ export class MapController {
         if (this.map) {
             this.map.resize();
         }
+    }
+
+    clearTileErrorCache() {
+        this._tileRetryCount.clear();
     }
 }
