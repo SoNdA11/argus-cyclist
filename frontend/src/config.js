@@ -25,11 +25,13 @@ const ESRI_SATELLITE_STYLE = {
                 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
             ],
             'tileSize': 256,
+            'minzoom': 0,
+            'maxzoom': 19,
             'attribution': 'Tiles &copy; Esri'
         }
     },
     'layers': [
-        { 'id': 'satellite-layer', 'type': 'raster', 'source': 'satellite-tiles', 'minzoom': 0, 'maxzoom': 22 }
+        { 'id': 'satellite-layer', 'type': 'raster', 'source': 'satellite-tiles', 'minzoom': 0, 'maxzoom': 19 }
     ]
 };
 
