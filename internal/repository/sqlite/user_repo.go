@@ -51,6 +51,10 @@ func (r *UserRepo) UpdateProfile(u domain.UserProfile) error {
 			u.StravaRefreshToken = existing.StravaRefreshToken
 			u.StravaExpiresAt = existing.StravaExpiresAt
 		}
+		if u.IntervalsAPIKey == "" {
+			u.IntervalsAPIKey = existing.IntervalsAPIKey
+			u.IntervalsAthleteID = existing.IntervalsAthleteID
+		}
 		if u.CurrentStreak == 0 {
 			u.CurrentStreak = existing.CurrentStreak
 		}
@@ -85,6 +89,17 @@ func (r *UserRepo) ClearStravaTokens() error {
 	}).Error
 
 	return err
+}
+
+func (r *UserRepo) ClearIntervalsCredentials() error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("User database not loaded")
+	}
+
+	return r.state.UserDB.Model(&domain.UserProfile{}).Where("id = ?", 1).Updates(map[string]interface{}{
+		"intervals_athlete_id": "",
+		"intervals_api_key":    "",
+	}).Error
 }
 
 func (r *UserRepo) SaveSyncQueue(item domain.SyncQueue) error {

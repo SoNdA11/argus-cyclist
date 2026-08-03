@@ -35,6 +35,7 @@ import (
 	"argus-cyclist/internal/service/ble"
 	"argus-cyclist/internal/service/fit"
 	"argus-cyclist/internal/service/gpx"
+	"argus-cyclist/internal/service/intervals"
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/strava"
 	"argus-cyclist/internal/service/workout"
@@ -2014,6 +2015,118 @@ func (a *App) DisconnectStrava() error {
 		return fmt.Errorf("failed to clear tokens: %v", err)
 	}
 	return nil
+}
+
+// =============
+// INTERVALS.ICU
+// =============
+
+// SaveIntervalsCredentials stores the user's Intervals.icu athlete ID and API key.
+func (a *App) SaveIntervalsCredentials(athleteID, apiKey string) error {
+	if strings.TrimSpace(apiKey) == "" {
+		return fmt.Errorf("intervals.icu API key is required")
+	}
+
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return fmt.Errorf("no active profile found to save credentials")
+	}
+
+	profile.IntervalsAthleteID = strings.TrimSpace(athleteID)
+	profile.IntervalsAPIKey = strings.TrimSpace(apiKey)
+
+	return a.storageService.UpdateProfile(profile)
+}
+
+// IsIntervalsConnected returns true if the current profile has an Intervals.icu API key.
+func (a *App) IsIntervalsConnected() bool {
+	profile, err := a.storageService.GetProfile()
+	if err != nil {
+		return false
+	}
+	return profile.IntervalsAPIKey != ""
+}
+
+// DisconnectIntervals clears the user's saved Intervals.icu credentials.
+func (a *App) DisconnectIntervals() error {
+	return a.storageService.ClearIntervalsCredentials()
+}
+
+// UploadLastWorkoutToIntervals finds the most recently generated .fit file
+// and uploads it to the user's Intervals.icu account.
+func (a *App) UploadLastWorkoutToIntervals() (string, error) {
+	profile, err := a.storageService.GetProfile()
+	if err != nil || profile.IntervalsAPIKey == "" {
+		return "", fmt.Errorf("intervals.icu account is not connected")
+	}
+
+	workoutsDir := "workouts"
+	files, err := os.ReadDir(workoutsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to read workouts directory: %v", err)
+	}
+
+	var latestFitFilePath string
+	var lastModTime int64 = 0
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".fit" {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+			if info.ModTime().Unix() > lastModTime {
+				lastModTime = info.ModTime().Unix()
+				latestFitFilePath = filepath.Join(workoutsDir, file.Name())
+			}
+		}
+	}
+
+	if latestFitFilePath == "" {
+		return "", fmt.Errorf("no recent .fit file found to upload")
+	}
+
+	if err := intervals.UploadFitFile(profile.IntervalsAPIKey, latestFitFilePath, ""); err != nil {
+		return "", err
+	}
+
+	latestActivities, err := a.storageService.GetRecentActivities(1)
+	if err == nil && len(latestActivities) > 0 {
+		a.storageService.UpdateActivityIntervalsStatus(latestActivities[0].ID, true)
+	}
+
+	return "Upload successful", nil
+}
+
+// UploadActivityToIntervals uploads a specific historical activity's .fit file to Intervals.icu.
+func (a *App) UploadActivityToIntervals(activityID uint) (string, error) {
+	profile, err := a.storageService.GetProfile()
+	if err != nil || profile.IntervalsAPIKey == "" {
+		return "", fmt.Errorf("intervals.icu account is not connected")
+	}
+
+	activity, err := a.storageService.GetActivityByID(activityID)
+	if err != nil {
+		return "", fmt.Errorf("activity not found: %v", err)
+	}
+
+	if activity.Filename == "" {
+		return "", fmt.Errorf("no .fit file associated with this activity")
+	}
+
+	if activity.UploadedToIntervals {
+		return "", fmt.Errorf("activity already uploaded to Intervals.icu")
+	}
+
+	if err := intervals.UploadFitFile(profile.IntervalsAPIKey, activity.Filename, ""); err != nil {
+		return "", err
+	}
+
+	if err := a.storageService.UpdateActivityIntervalsStatus(activityID, true); err != nil {
+		fmt.Printf("Warning: Upload succeeded, but failed to update local status: %v\n", err)
+	}
+
+	return "Upload successful", nil
 }
 
 func (a *App) GetFitnessTests() []domain.ActiveWorkout {

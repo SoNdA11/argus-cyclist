@@ -88,6 +88,10 @@ func (s *StorageFacade) ClearStravaTokens() error {
 	return s.UserRepo.ClearStravaTokens()
 }
 
+func (s *StorageFacade) ClearIntervalsCredentials() error {
+	return s.UserRepo.ClearIntervalsCredentials()
+}
+
 func (s *StorageFacade) SaveSyncQueue(item domain.SyncQueue) error {
 	return s.UserRepo.SaveSyncQueue(item)
 }
@@ -162,6 +166,10 @@ func (s *StorageFacade) DeleteActivity(id uint) error {
 
 func (s *StorageFacade) UpdateActivityStatus(id uint, uploaded bool) error {
 	return s.ActivityRepo.UpdateActivityStatus(id, uploaded)
+}
+
+func (s *StorageFacade) UpdateActivityIntervalsStatus(id uint, uploaded bool) error {
+	return s.ActivityRepo.UpdateActivityIntervalsStatus(id, uploaded)
 }
 
 // ================

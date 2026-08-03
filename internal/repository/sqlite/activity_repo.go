@@ -137,3 +137,10 @@ func (r *ActivityRepo) UpdateActivityStatus(id uint, uploaded bool) error {
 	}
 	return r.state.UserDB.Model(&domain.Activity{}).Where("id = ?", id).Update("uploaded_to_strava", uploaded).Error
 }
+
+func (r *ActivityRepo) UpdateActivityIntervalsStatus(id uint, uploaded bool) error {
+	if r.state.UserDB == nil {
+		return fmt.Errorf("no user database loaded")
+	}
+	return r.state.UserDB.Model(&domain.Activity{}).Where("id = ?", id).Update("uploaded_to_intervals", uploaded).Error
+}

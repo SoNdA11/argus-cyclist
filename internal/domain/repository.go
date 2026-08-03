@@ -59,6 +59,7 @@ type UserRepository interface {
 	GetProfile() (UserProfile, error)
 	UpdateProfile(u UserProfile) error
 	ClearStravaTokens() error
+	ClearIntervalsCredentials() error
 	SaveSyncQueue(item SyncQueue) error
 	GetActiveGoals() []CustomGoal
 	GetAllGoals() []CustomGoal
@@ -81,6 +82,7 @@ type ActivityRepository interface {
 	GetActivityByID(id uint) (Activity, error)
 	DeleteActivity(id uint) error
 	UpdateActivityStatus(id uint, uploaded bool) error
+	UpdateActivityIntervalsStatus(id uint, uploaded bool) error
 }
 
 // PowerRepository manages power curve records.

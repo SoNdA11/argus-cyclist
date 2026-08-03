@@ -122,6 +122,10 @@ export function DisconnectHeartRate() {
   return window['go']['main']['App']['DisconnectHeartRate']();
 }
 
+export function DisconnectIntervals() {
+  return window['go']['main']['App']['DisconnectIntervals']();
+}
+
 export function DisconnectStrava() {
   return window['go']['main']['App']['DisconnectStrava']();
 }
@@ -218,6 +222,10 @@ export function InitiateCooldown() {
   return window['go']['main']['App']['InitiateCooldown']();
 }
 
+export function IsIntervalsConnected() {
+  return window['go']['main']['App']['IsIntervalsConnected']();
+}
+
 export function IsStravaConnected() {
   return window['go']['main']['App']['IsStravaConnected']();
 }
@@ -260,6 +268,10 @@ export function SaveEventResult(arg1, arg2, arg3, arg4) {
 
 export function SaveGeneratedGPX(arg1, arg2) {
   return window['go']['main']['App']['SaveGeneratedGPX'](arg1, arg2);
+}
+
+export function SaveIntervalsCredentials(arg1, arg2) {
+  return window['go']['main']['App']['SaveIntervalsCredentials'](arg1, arg2);
 }
 
 export function ScanHeartRate() {
@@ -326,8 +338,16 @@ export function UpdateUserProfile(arg1) {
   return window['go']['main']['App']['UpdateUserProfile'](arg1);
 }
 
+export function UploadActivityToIntervals(arg1) {
+  return window['go']['main']['App']['UploadActivityToIntervals'](arg1);
+}
+
 export function UploadActivityToStrava(arg1) {
   return window['go']['main']['App']['UploadActivityToStrava'](arg1);
+}
+
+export function UploadLastWorkoutToIntervals() {
+  return window['go']['main']['App']['UploadLastWorkoutToIntervals']();
 }
 
 export function UploadLastWorkoutToStrava() {
