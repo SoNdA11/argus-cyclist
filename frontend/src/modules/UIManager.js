@@ -982,6 +982,8 @@ export class UIManager {
         if (profileTab) profileTab.classList.add('active');
         if (profileTabButton) profileTabButton.classList.add('active');
 
+        if (window.bindIntervalsUI) window.bindIntervalsUI();
+
         await this.loadUserProfile();
 
         if (this.els.inputFTP) {
@@ -1455,13 +1457,19 @@ export class UIManager {
             const stravaAction = isUploaded ? '' : `onclick="event.stopPropagation(); window.uploadHistoricalToStrava(${act.id || act.ID}, event)"`;
             const stravaCursor = isUploaded ? 'default' : 'pointer';
 
+            const isIntervalsUploaded = act.uploaded_to_intervals;
+            const intervalsColor = isIntervalsUploaded ? '#38bdf8' : 'var(--text-muted)';
+            const intervalsTitle = isIntervalsUploaded ? 'Already uploaded to Intervals.icu' : 'Upload to Intervals.icu';
+            const intervalsAction = isIntervalsUploaded ? '' : `onclick="event.stopPropagation(); window.uploadHistoricalToIntervals(${act.id || act.ID}, event)"`;
+            const intervalsCursor = isIntervalsUploaded ? 'default' : 'pointer';
+
             div.innerHTML = `
                 <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
                 <span style="flex: 1; text-align: center;">${dist}</span>
                 <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
                 <span style="flex: 1; text-align: center; color: #e74c3c; font-weight: bold;" title="TRIMP">${trimp}</span> 
                 
-                <div style="display: flex; gap: 12px; width: 100px; justify-content: flex-end; align-items: center; padding-right: 10px;">
+                <div style="display: flex; gap: 12px; width: 130px; justify-content: flex-end; align-items: center; padding-right: 10px;">
                     
                     <span 
                         title="${stravaTitle}" 
@@ -1473,6 +1481,20 @@ export class UIManager {
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                    </span>
+
+                    <span
+                        title="${intervalsTitle}"
+                        class="icon-minimal"
+                        id="btn-intervals-hist-${act.id || act.ID}"
+                        style="color: ${intervalsColor}; cursor: ${intervalsCursor};"
+                        ${intervalsAction}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="6" x2="15" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="12" y2="18"></line>
                         </svg>
                     </span>
 
@@ -3235,6 +3257,49 @@ window.uploadHistoricalToStrava = async (id, event) => {
         btn.style.color = '#FC4C02'; // Strava Orange
         btn.style.opacity = '1';
         btn.title = "Already uploaded to Strava";
+        btn.onclick = null;
+        btn.style.cursor = 'default';
+
+    } catch (err) {
+        console.error("Upload error:", err);
+        alert("Failed to upload: " + err);
+
+        // Revert button state so user can try again
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+    }
+};
+
+window.uploadHistoricalToIntervals = async (id, event) => {
+    event.stopPropagation();
+
+    const btn = document.getElementById(`btn-intervals-hist-${id}`);
+    if (!btn) return;
+
+    // Prevent double-clicks and show loading state
+    btn.style.opacity = '0.5';
+    btn.style.pointerEvents = 'none';
+
+    try {
+        // Validate if user has connected Intervals.icu
+        const isConn = await window.go.main.App.IsIntervalsConnected();
+        if (!isConn) {
+            alert("Please connect your Intervals.icu account in Settings > Profile & Devices first.");
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+            return;
+        }
+
+        window.ui.showToast("Uploading activity to Intervals.icu...", 3000);
+
+        await window.go.main.App.UploadActivityToIntervals(id);
+
+        window.ui.showToast("Successfully uploaded to Intervals.icu! 🏆", 5000);
+
+        // Update the UI icon visually to indicate success
+        btn.style.color = '#38bdf8';
+        btn.style.opacity = '1';
+        btn.title = "Already uploaded to Intervals.icu";
         btn.onclick = null;
         btn.style.cursor = 'default';
 

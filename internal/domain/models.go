@@ -89,6 +89,9 @@ type UserProfile struct {
 	StravaAccessToken  string `json:"strava_access_token"`
 	StravaRefreshToken string `json:"strava_refresh_token"`
 	StravaExpiresAt    int64  `json:"strava_expires_at"`
+
+	IntervalsAthleteID string `json:"intervals_athlete_id"`
+	IntervalsAPIKey    string `json:"intervals_api_key"`
 }
 
 // UserBadge represents an achievement unlocked by the user.
@@ -134,6 +137,7 @@ type Activity struct {
 	CreatedAt         time.Time      `json:"created_at"` // Activity date
 	TimeInHRZones     map[string]int `json:"time_in_hr_zones" gorm:"serializer:json"`
 	UploadedToStrava  bool           `json:"uploaded_to_strava"`
+	UploadedToIntervals bool         `json:"uploaded_to_intervals"`
 	PeakHR            int            `json:"peak_hr"`
 	HRR1              int            `json:"hrr_1"`
 	HRR2              int            `json:"hrr_2"`

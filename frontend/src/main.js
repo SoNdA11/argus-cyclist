@@ -290,6 +290,7 @@ document.getElementById('btnCloseSettings').addEventListener('click', () => ui.t
 document.getElementById('btnOpenSettings').addEventListener('click', async () => {
     ui.toggleSettings(true);
     await window.checkStravaStatus();
+    bindIntervalsUI();
 });
 
 document.getElementById('btnTrophy').addEventListener('click', () => {
@@ -306,8 +307,9 @@ document.getElementById('btnCloseBikeComponents').addEventListener('click', () =
 
 document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
     closeAssessmentFTPConfirmModal();
-    await ui.openProfileSettings();
-    await window.checkStravaStatus();
+await ui.openProfileSettings();
+        await window.checkStravaStatus();
+        bindIntervalsUI();
 });
 
 document.getElementById('btnProceedAssessmentFTP').addEventListener('click', async () => {
@@ -373,6 +375,91 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
         alert("Error connecting to Strava: " + err);
     }
 });
+
+// ==================
+// DEVICE CONNECTIONS
+// ==================
+
+// INTERVALS.ICU INTEGRATION
+// =========================
+
+async function refreshIntervalsStatus() {
+    try {
+        const isConnected = await window.go.main.App.IsIntervalsConnected();
+        const btnSave = document.getElementById('btnSaveIntervals');
+        const btnDisconnect = document.getElementById('btnDisconnectIntervals');
+        const status = document.getElementById('statusIntervals');
+        const statusText = document.getElementById('statusIntervalsText');
+        if (!btnSave) return;
+        if (isConnected) {
+            btnSave.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Connected`;
+            btnSave.disabled = true;
+            btnDisconnect.classList.remove('hidden');
+            if (status) {
+                status.classList.add('connected');
+                if (statusText) statusText.innerText = "Connected";
+            }
+        } else {
+            btnSave.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4Z"></path></svg> Connect`;
+            btnSave.disabled = false;
+            btnDisconnect.classList.add('hidden');
+            if (status) {
+                status.classList.remove('connected');
+                if (statusText) statusText.innerText = "Not connected";
+            }
+        }
+    } catch (e) {
+        console.error("Falha ao checar status do Intervals.icu", e);
+    }
+}
+
+let intervalsBound = false;
+
+function bindIntervalsUI() {
+    const btnSave = document.getElementById('btnSaveIntervals');
+    const btnDisconnect = document.getElementById('btnDisconnectIntervals');
+    if (!btnSave) return;
+
+    if (intervalsBound) {
+        refreshIntervalsStatus();
+        return;
+    }
+    intervalsBound = true;
+
+    btnSave.addEventListener('click', async () => {
+        const athleteID = document.getElementById('inputIntervalsAthleteID').value.trim();
+        const apiKey = document.getElementById('inputIntervalsAPIKey').value.trim();
+        if (!apiKey) {
+            alert("Please enter your Intervals.icu API key.");
+            return;
+        }
+        btnSave.disabled = true;
+        btnSave.innerHTML = "Saving...";
+        try {
+            await window.go.main.App.SaveIntervalsCredentials(athleteID, apiKey);
+            await refreshIntervalsStatus();
+        } catch (err) {
+            console.error("Intervals.icu Connection Error:", err);
+            btnSave.disabled = false;
+            btnSave.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4Z"></path></svg> Connect`;
+            alert("Error connecting to Intervals.icu: " + err);
+        }
+    });
+
+    btnDisconnect.addEventListener('click', async () => {
+        if (confirm("Disconnect Argus Cyclist from your Intervals.icu account?")) {
+            await window.go.main.App.DisconnectIntervals();
+            document.getElementById('inputIntervalsAthleteID').value = '';
+            document.getElementById('inputIntervalsAPIKey').value = '';
+            await refreshIntervalsStatus();
+        }
+    });
+
+    refreshIntervalsStatus();
+}
+
+window.bindIntervalsUI = bindIntervalsUI;
+window.refreshIntervalsStatus = refreshIntervalsStatus;
 
 // ==================
 // DEVICE CONNECTIONS
@@ -1086,6 +1173,27 @@ async function finishWorkout() {
         } catch (e) {
             console.log("Strava validation skipped", e);
         }
+
+        try {
+            if (window.go.main.App.IsIntervalsConnected) {
+                const isConnected = await window.go.main.App.IsIntervalsConnected();
+                const btnIntervals = document.getElementById('btnUploadIntervals');
+
+                if (isConnected) {
+                    btnIntervals.classList.remove('hidden');
+                    btnIntervals.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                            <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                        </svg> Upload to Intervals.icu`;
+                    btnIntervals.disabled = false;
+                } else {
+                    btnIntervals.classList.add('hidden');
+                }
+            }
+        } catch (e) {
+            console.log("Intervals.icu validation skipped", e);
+        }
     } catch (e) { alert("Error when saving: " + e); }
 }
 window.finishWorkout = finishWorkout;
@@ -1106,6 +1214,25 @@ window.uploadToStrava = async () => {
         btn.innerHTML = "Upload Failed";
         btn.style.backgroundColor = "var(--argus-alert)";
         alert("Failed to upload: " + err);
+        btn.disabled = false;
+    }
+};
+
+window.uploadToIntervals = async () => {
+    const btn = document.getElementById('btnUploadIntervals');
+    btn.innerHTML = "Uploading...";
+    btn.disabled = true;
+
+    try {
+        await window.go.main.App.UploadLastWorkoutToIntervals();
+        btn.innerHTML = "✓ Uploaded";
+        btn.style.backgroundColor = "var(--argus-safe)";
+        window.ui.showToast("Workout successfully uploaded to Intervals.icu!", 5000);
+    } catch (err) {
+        console.error("Intervals upload error:", err);
+        btn.innerHTML = "Upload Failed";
+        btn.style.backgroundColor = "var(--argus-alert)";
+        window.ui.showToast("Failed to upload to Intervals.icu: " + err, 5000);
         btn.disabled = false;
     }
 };
@@ -1833,5 +1960,6 @@ document.addEventListener("DOMContentLoaded", () => {
         initHomeScreen();
         refreshTrainerConnectionState();
         initTutorial();
+        bindIntervalsUI();
     }, 300);
 });

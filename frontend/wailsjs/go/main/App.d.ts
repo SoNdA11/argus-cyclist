@@ -64,6 +64,8 @@ export function DisconnectDevice():Promise<string>;
 
 export function DisconnectHeartRate():Promise<string>;
 
+export function DisconnectIntervals():Promise<void>;
+
 export function DisconnectStrava():Promise<void>;
 
 export function DisconnectTrainer():Promise<string>;
@@ -112,6 +114,8 @@ export function GetUserProfile():Promise<domain.UserProfile>;
 
 export function InitiateCooldown():Promise<string>;
 
+export function IsIntervalsConnected():Promise<boolean>;
+
 export function IsStravaConnected():Promise<boolean>;
 
 export function LoadPredefinedKOMSegment():Promise<string>;
@@ -133,6 +137,8 @@ export function ResetEventLeaderboard(arg1:string):Promise<void>;
 export function SaveEventResult(arg1:string,arg2:string,arg3:number,arg4:string):Promise<void>;
 
 export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promise<string>;
+
+export function SaveIntervalsCredentials(arg1:string,arg2:string):Promise<void>;
 
 export function ScanHeartRate():Promise<Array<domain.BLEDevice>>;
 
@@ -166,6 +172,10 @@ export function UpdateBikeComponent(arg1:number,arg2:string,arg3:string,arg4:str
 
 export function UpdateUserProfile(arg1:domain.UserProfile):Promise<string>;
 
+export function UploadActivityToIntervals(arg1:number):Promise<string>;
+
 export function UploadActivityToStrava(arg1:number):Promise<string>;
+
+export function UploadLastWorkoutToIntervals():Promise<string>;
 
 export function UploadLastWorkoutToStrava():Promise<string>;

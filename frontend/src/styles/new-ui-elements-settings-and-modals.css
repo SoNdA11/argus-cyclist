@@ -390,6 +390,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
 }
 
+#tab-profile.active {
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
 /* Removed scrollbars for single-view layout as requested */
 #tab-trophy,
 .career-dashboard-tab {

@@ -266,6 +266,7 @@ export namespace domain {
 	    created_at: any;
 	    time_in_hr_zones: Record<string, number>;
 	    uploaded_to_strava: boolean;
+	    uploaded_to_intervals: boolean;
 	    peak_hr: number;
 	    hrr_1: number;
 	    hrr_2: number;
@@ -296,6 +297,7 @@ export namespace domain {
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.time_in_hr_zones = source["time_in_hr_zones"];
 	        this.uploaded_to_strava = source["uploaded_to_strava"];
+	        this.uploaded_to_intervals = source["uploaded_to_intervals"];
 	        this.peak_hr = source["peak_hr"];
 	        this.hrr_1 = source["hrr_1"];
 	        this.hrr_2 = source["hrr_2"];
@@ -671,6 +673,8 @@ export namespace domain {
 	    strava_access_token: string;
 	    strava_refresh_token: string;
 	    strava_expires_at: number;
+	    intervals_athlete_id: string;
+	    intervals_api_key: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UserProfile(source);
@@ -700,6 +704,8 @@ export namespace domain {
 	        this.strava_access_token = source["strava_access_token"];
 	        this.strava_refresh_token = source["strava_refresh_token"];
 	        this.strava_expires_at = source["strava_expires_at"];
+	        this.intervals_athlete_id = source["intervals_athlete_id"];
+	        this.intervals_api_key = source["intervals_api_key"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

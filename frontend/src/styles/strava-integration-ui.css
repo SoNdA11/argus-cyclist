@@ -61,6 +61,181 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 }
 
+/* =====================
+   INTERVALS.ICU CARD
+   ===================== */
+
+.integration-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.integration-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.integration-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.integration-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    flex-shrink: 0;
+}
+
+.integration-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.integration-brand-text strong {
+    color: var(--text-main, #e2e8f0);
+    font-size: 0.95rem;
+}
+
+.integration-brand-text small {
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.72rem;
+}
+
+.integration-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color, #334155);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--status-standby, #94a3b8);
+}
+
+.integration-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--status-standby, #94a3b8);
+    flex-shrink: 0;
+}
+
+.integration-status-badge.connected {
+    color: var(--argus-safe, #4ade80);
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.integration-status-badge.connected .integration-status-dot {
+    background: var(--argus-safe, #4ade80);
+    box-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
+}
+
+.integration-desc {
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.integration-fields {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 12px;
+}
+
+.integration-input {
+    margin-bottom: 0;
+}
+
+.integration-input input {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.integration-input input:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+
+.integration-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.integration-hint {
+    color: var(--text-muted, #64748b);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.07);
+}
+
+.integration-hint em {
+    font-style: normal;
+    color: #38bdf8;
+}
+
+@media (max-width: 520px) {
+    .integration-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.btn-intervals {
+    background-color: #38bdf8;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-intervals:hover {
+    background-color: #0ea5e9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3);
+}
+
+.btn-intervals:disabled {
+    background-color: #7dd3fc;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
+}
+
 .icon-minimal {
     color: rgba(255, 253, 253, 0.456);
     cursor: pointer;
