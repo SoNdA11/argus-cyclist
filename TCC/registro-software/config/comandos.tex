@@ -1,0 +1,48 @@
+% =====================================================================
+%  COMANDOS PERSONALIZADOS
+%  --------------------------------------------------------------------
+%  \complementar{...}: destaca, no corpo do texto, trechos que ainda
+%  precisam ser preenchidos pelo autor (não devem permanecer na versão
+%  final). Ao finalizar o TCC, basta remover os chamados deste comando.
+%  =====================================================================
+
+% Caixa de destaque para informações a serem complementadas
+\newcommand{\complementar}[1]{%
+  \par\medskip\noindent
+  \fcolorbox{red!70!black}{red!8}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \textbf{\textcolor{red!80!black}{[COMPLEMENTAR]:}}~#1
+    \end{minipage}%
+  }\par\medskip
+}
+
+% Variante para uso dentro de células de tabela, parágrafos já abertos
+% ou linhas de \assinatura (sem emitir \par/medskip no início e no fim).
+\newcommand{\complementarcell}[1]{%
+  \fcolorbox{red!70!black}{red!8}{%
+    \begin{minipage}[c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \small\textbf{\textcolor{red!80!black}{[COMPLEMENTAR]:}}~#1
+    \end{minipage}%
+  }%
+}
+
+% Etiqueta compacta para células de tabela muito estreitas (sem caixa).
+\newcommand{\complementartag}{%
+  \textcolor{red!80!black}{\footnotesize\textbf{[COMPLEMENTAR]}}%
+}
+
+% Nota editorial genérica (subtítulo em versão de rascunho)
+\newcommand{\rascunho}[1]{%
+  \par\medskip\noindent
+  \fcolorbox{gray}{gray!8}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \textbf{\textcolor{gray}{[RASCUNHO]:}}~#1
+    \end{minipage}%
+  }\par\medskip
+}
+
+% Atalho para código com fonte monoespaçada
+\newcommand{\code}[1]{\texttt{#1}}
+
+% Nome realçado do projeto
+\newcommand{\argus}{\textbf{Argus Cyclist}}

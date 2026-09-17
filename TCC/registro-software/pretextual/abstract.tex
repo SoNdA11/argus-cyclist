@@ -1,0 +1,38 @@
+% =====================================================================
+%  ABSTRACT
+% =====================================================================
+
+\begin{resumo}[Abstract]
+\begin{otherlanguage*}{english}
+
+Virtual cycling has become a sport modality recognized by the Union
+Cycliste Internationale (UCI), yet access to simulation platforms is
+restricted by monthly subscription fees in foreign currency, high-performance
+hardware requirements, and continuous internet dependence. This work presents
+the software registration of Argus Cyclist, an open-source cross-platform
+virtual cycling simulator licensed under GPLv3, developed in Go (Golang) with
+a JavaScript frontend using the Wails framework for desktop and Capacitor.js
+for Android mobile devices. The system employs a Clean Architecture with
+Facade and Repository patterns, abstracting Bluetooth Low Energy (BLE)
+connections for heart rate, power, and smart trainer control via GATT profiles
+(\texttt{0x180D}, \texttt{0x1818}, \texttt{0x1826}). The physics engine
+implements Martin's equation for speed calculation from GPX route gradients,
+while the physiological analysis module computes advanced metrics such as
+Normalized Power (NP), Training Stress Score (TSS), Performance Management
+Chart (PMC), and Aerobic Decoupling. It distinguishes itself by incorporating
+a local generative AI coaching assistant (Ollama) for creating personalized
+workout plans in ZWO format, along with a bicycle component wear tracking
+system. The software was registered at the Brazilian National Institute of
+Industrial Property (INPI, Process BR512026003786-7) in its initial version,
+having evolved significantly after the registration with new modules, training
+modes, third-party integrations, and architecture improvements. Experimental
+validation uses real cycling equipment to verify telemetry latency below
+\SI{150}{\milli\second} and \texttt{.fit} file compliance with the Garmin
+standard. The project aims to democratize scientific high-performance training
+by eliminating economic and connectivity barriers.
+
+\textbf{Keywords}: Virtual cycling. Open source. Physics simulation. Bluetooth
+Low Energy. Physiological analysis. Artificial intelligence.
+
+\end{otherlanguage*}
+\end{resumo}

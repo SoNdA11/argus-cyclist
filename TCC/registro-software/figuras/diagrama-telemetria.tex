@@ -1,0 +1,45 @@
+% =====================================================================
+%  DIAGRAMA 2 — FLUXO SEQUENCIAL DE TELEMETRIA DE BAIXA LATÊNCIA
+%  Fonte: autoria própria.
+% =====================================================================
+\begin{tikzpicture}[
+    scale=0.85, every node/.style={transform shape},
+    >=Stealth,
+    actor/.style={rectangle, draw, rounded corners, minimum width=2.0cm,
+      minimum height=0.7cm, align=center, font=\scriptsize\sffamily,
+      fill=blueargus!15, text=blueargus!90!black, thick},
+    edge node/.style={above, yshift=2pt, align=center, font=\tiny\sffamily},
+    note/.style={font=\scriptsize\sffamily, align=center},
+]
+
+    % Lifelines
+    \node[actor] (sensor) at (0,0) {Sensor BLE};
+    \node[actor] (ble) at (2.6,0) {Serviço BLE\\Go};
+    \node[actor] (sim) at (5.4,0) {Motor\\Simulação\\Go};
+    \node[actor] (wails) at (8.2,0) {Wails IPC};
+    \node[actor] (teb) at (10.8,0) {Telemetry\\EventBus\\JS};
+    \node[actor] (canvas) at (13.4,0) {Canvas\\/ HUD};
+
+    % Linhas tracejadas verticais
+    \foreach \p in {sensor,ble,sim,wails,teb,canvas}
+        \draw[dashed, black!40] (\p.south) -- (\p.south |- 0,-4.5);
+
+    % Setas horizontais
+    \draw[->, thick] (0,-1.6) -- node[edge node] {Notif. GATT} (2.6,-1.6);
+    \draw[->, thick] (2.6,-2.4) -- node[edge node] {Dados Brutos} (5.4,-2.4);
+    \draw[->, thick] (5.4,-3.2) -- node[edge node] {Telemetria Proc.} (8.2,-3.2);
+    \draw[->, thick] (8.2,-4.0) -- node[edge node] {Evento JS} (10.8,-4.0);
+    \draw[->, thick] (10.8,-4.8) -- node[edge node] {Atualiza 60fps} (13.4,-4.8);
+
+    % Números sequenciais
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (sensor.north) {1};
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (ble.north) {2};
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (sim.north) {3};
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (wails.north) {4};
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (teb.north) {5};
+    \node[note, font=\scriptsize\bfseries, above=3pt] at (canvas.north) {6};
+
+    % Texto de latência
+    \node[note, font=\scriptsize\itshape, text=black!60] at (6.7,-4.8) {Latência total esperada: \textless{} 150 ms};
+
+\end{tikzpicture}

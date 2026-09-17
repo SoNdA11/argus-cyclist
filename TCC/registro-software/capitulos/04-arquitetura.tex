@@ -1,0 +1,166 @@
+% =====================================================================
+%  CAPÍTULO 4 — ARQUITETURA DO SISTEMA
+% =====================================================================
+
+\chapter{ARQUITETURA DO SISTEMA}
+\label{cap:arquitetura}
+
+A arquitetura do \argus{} foi desenhada para garantir o máximo isolamento da
+lógica de negócio em relação ao hardware e às interfaces visuais, assegurando
+que o simulador funcione com alto desempenho tanto no computador quanto no
+celular. Este capítulo descreve a \textit{stack} tecnológica, os princípios de
+projeto adotados e a topologia de componentes do sistema.
+
+\section{Visão geral e \textit{stack} tecnológico}
+\label{sec:stack}
+
+O \argus{} adota um modelo híbrido \textit{Desktop/Mobile} que centraliza a
+lógica pesada em uma linguagem de sistema e reutiliza a interface web em
+múltiplas plataformas. A \textit{stack} principal é composta por:
+
+\begin{itemize}
+    \item \textbf{Backend}: Go (Golang), escolhido pela eficiência no
+        gerenciamento de concorrência (\textit{goroutines}) e pelo baixo
+        consumo de memória, essenciais para manter conexões contínuas com
+        múltiplos sensores BLE sem bloquear a \textit{thread} principal.
+    \item \textbf{Bridge IPC}: o framework Wails \cite{wails2024}, que exporta
+        os métodos Go para o \textit{frontend} por meio de \textit{bindings}
+        assíncronos nativos.
+    \item \textbf{Frontend}: JavaScript (ES6+) com Vite, focado em
+        reatividade em tempo real (atualização de tela a 60~fps) e suporte
+        nativo a temas claro/escuro.
+    \item \textbf{Mobile}: Capacitor.js \cite{capacitor2024}, que encapsula a
+        aplicação web em binários Android, reutilizando a interface e
+        substituindo as chamadas de hardware de \textit{desktop} por APIs
+        móveis.
+    \item \textbf{Persistência}: SQLite \cite{sqlite2024} via ORM GORM
+        \cite{gorm2024}, com repositórios granulares por entidade.
+\end{itemize}
+
+\section{Princípios de projeto: \textit{Clean Architecture}, \textit{Facade} e \textit{Repository}}
+\label{sec:principios}
+
+O sistema segue os princípios da \textit{Clean Architecture}
+\cite{martin2017clean}, promovendo a separação estrita entre a camada de
+apresentação, as regras de negócio e o acesso a hardware/rede. Essa organização
+manifesta-se nas camadas:
+
+\begin{enumerate}
+    \item \textbf{Camada de apresentação (frontend em JavaScript)}: gerencia a
+        interface de usuário, os gráficos Canvas e o barramento de eventos
+        \code{TelemetryEventBus}, que atualiza a tela de forma assíncrona e
+        desacoplada da chegada de dados.
+    \item \textbf{Bridge IPC (Wails, \textit{desktop})}: camada de comunicação
+        interprocesso que conecta a lógica do \textit{frontend} ao núcleo do
+        \textit{backend}.
+    \item \textbf{Camada de aplicação (controladores e casos de uso Go)}:
+        estrutura a fachada \code{StorageFacade} e os controladores de treinos
+        (\code{WorkoutController}) e de desafios (\code{ChallengeController}).
+    \item \textbf{Camada de domínio e serviços \textit{core} (Go)}: compreende
+        o motor físico de simulação baseado em dados GPX e o gerenciador de
+        conexões Bluetooth LE (assinaturas GATT).
+    \item \textbf{Camada de persistência (SQLite / FIT / serviços externos)}:
+        mapeia os repositórios para o banco SQLite local e coordena a geração
+        de arquivos \texttt{.FIT} e a transmissão segura às APIs do Strava e do
+        Intervals.icu.
+\end{enumerate}
+
+\section{Topologia de componentes}
+\label{sec:topologia}
+
+A divisão lógica descrita na seção anterior é materializada nos pacotes do
+projeto, localizados em \code{internal/}, organizados em \code{domain},
+\code{usecase}, \code{service} e \code{repository}. Essa organização segue o
+princípio da dependência dirigida ao domínio, no qual as entidades centrais
+(definidas em \code{internal/domain}) não dependem de detalhes de
+infraestrutura.
+
+\section{Diagrama de componentes}
+\label{sec:diagrama-arquitetura}
+
+O diagrama da Figura~\ref{fig:arquitetura} ilustra a interação entre as camadas
+do sistema, destacando a separação de responsabilidades e o fluxo de
+comunicação entre o \textit{frontend} (JavaScript) e o \textit{backend} (Go).
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Arquitetura geral de componentes --- \textit{Clean Architecture}}
+    \label{fig:arquitetura}
+    \input{figuras/diagrama-arquitetura}
+\end{figure}
+
+\section{Fluxo de telemetria em tempo real}
+\label{sec:diagrama-telemetria}
+
+A simulação de ciclismo virtual exige uma comunicação de baixíssima latência. O
+diagrama de sequência da Figura~\ref{fig:telemetria} demonstra como os dados
+trafegam do sensor até a renderização gráfica no momento do pedal, percorrendo
+o serviço BLE em Go, o motor de simulação, a bridge Wails e o
+\code{TelemetryEventBus} no \textit{frontend}.
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Fluxo sequencial de telemetria em tempo real}
+    \label{fig:telemetria}
+    \input{figuras/diagrama-telemetria}
+\end{figure}
+
+\section{Persistência e modelo de dados}
+\label{sec:persistencia}
+
+A persistência local é implementada sobre SQLite, acessado por meio do ORM
+GORM \cite{gorm2024}. A aplicação mantém bancos de dados dedicados para o
+histórico de atividades, os recordes de potência (curva MMP), o sistema de
+gamificação e as classificações de eventos. As principais entidades do domínio
+(\code{internal/domain}) são:
+
+\begin{itemize}
+    \item \code{UserProfile}: dados do atleta (nome, peso, FTP, frequências
+        cardíacas, nível, XP, configurações e credenciais de integrações);
+    \item \code{Activity}: sessão de treino concluída, com distância, elevação,
+        métricas fisiológicas (NP, TSS, TRIMP, IF, desvio cardiovascular) e
+        status de sincronização;
+    \item \code{BikeComponent} e \code{ComponentReplacement}: componentes da
+        bicicleta e seu histórico de substituições para o controle de desgaste;
+    \item \code{EventRecord} e \code{SyncQueue}: classificações de eventos e a
+        fila assíncrona de \textit{upload} para serviços externos;
+    \item \code{AIConversation}: histórico de conversas do assistente de IA.
+\end{itemize}
+
+O acesso a essas entidades é orquestrado pela fachada
+\code{StorageFacade}, que oferece uma interface limpa aos controladores Wails e
+encapsula as transações entre os repositórios.
+
+\section{Arquitetura móvel}
+\label{sec:arquitetura-mobile}
+
+No contexto móvel, o Capacitor encapsula a aplicação web e a comunicação com o
+hardware é realizada pelo plugin \code{@capacitor-community/bluetooth-le}
+\cite{capacitorble2024}, que expõe a antena BLE do dispositivo. Nessa
+configuração, o motor de simulação física é executado em JavaScript
+(\code{frontend/src/modules/CapacitorBluetoothService.js} e o motor portado),
+permitindo o funcionamento autônomo do simulador em um smartphone sem o
+\textit{backend} Go. A interface foi adaptada para operar em modo
+\textit{landscape} (paisagem), priorizando a visibilidade do mapa 3D, como
+ilustrado na Figura~\ref{fig:screenshot-mobile}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figuras/screenshot-10-mobile}
+    \caption{Aplicativo Android --- HUD de simulação em modo \textit{landscape}}
+    \label{fig:screenshot-mobile}
+    \small Fonte: autoria própria.
+\end{figure}
+
+\section{Mapa mental do ecossistema}
+\label{sec:diagrama-mapamental}
+
+A Figura~\ref{fig:mapamental} apresenta o mapa mental do ecossistema \argus{},
+organizando as principais funcionalidades e suas inter-relações.
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Mapa mental do ecossistema \argus{}}
+    \label{fig:mapamental}
+    \input{figuras/diagrama-mapamental}
+\end{figure}

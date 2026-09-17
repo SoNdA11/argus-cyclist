@@ -1,0 +1,133 @@
+% =====================================================================
+%  CAPÍTULO 7 — CONCLUSÃO
+% =====================================================================
+
+\chapter{CONCLUSÃO}
+\label{cap:conclusao}
+
+Este trabalho apresentou o registro de software do \argus{}, um simulador
+multiplataforma de ciclismo virtual de código aberto, e documentou a evolução
+do projeto desde a versão inicial registrada junto ao INPI até a versão atual.
+O desenvolvimento demonstrou a viabilidade técnica de uma plataforma de
+ciclismo virtual gratuita, multiplataforma e orientada ao processamento local.
+
+\section{Considerações finais}
+\label{sec:consideracoes-finais}
+
+O \argus{} diferencia-se por combinar simulação física em tempo real, análise
+fisiológica avançada, integração com dispositivos BLE e recursos de
+inteligência artificial executados localmente, preservando a privacidade dos
+usuários e reduzindo dependências de infraestrutura em nuvem. Adicionalmente, o
+sistema de rastreamento de desgaste de componentes oferece uma ferramenta
+prática de manutenção preventiva, preenchendo uma lacuna não endereçada pelas
+plataformas comerciais existentes.
+
+A arquitetura em \textit{Clean Architecture}, com os padrões \textit{Facade} e
+\textit{Repository}, demonstrou-se adequada para o domínio: permitiu a evolução
+contínua do sistema --- como a adição do aplicativo Android, das integrações
+com o Strava e o Intervals.icu e do assistente de IA --- sem comprometer a
+estabilidade dos módulos existentes. A validação experimental com equipamentos
+reais confirmou o atendimento a todos os requisitos funcionais e não
+funcionais definidos.
+
+Além da contribuição tecnológica, a proposta possui relevância social
+significativa ao democratizar o acesso ao treinamento esportivo científico,
+especialmente para atletas amadores e usuários com limitações financeiras ou
+computacionais. Dessa forma, o \argus{} consolida-se como uma alternativa
+inovadora às soluções proprietárias do mercado, unindo acessibilidade,
+desempenho e liberdade tecnológica.
+
+\section{Rastreabilidade de objetivos}
+\label{sec:rastreabilidade}
+
+A Tabela~\ref{tab:rastreabilidade} apresenta a relação entre os objetivos
+específicos definidos no Capítulo~\ref{cap:introducao}, as implementações
+realizadas e as evidências de validação.
+
+\begin{table}[h]
+    \centering
+    \caption{Rastreabilidade: objetivos, implementação e validação}
+    \label{tab:rastreabilidade}
+    \small
+    \begin{tabular}{
+        >{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        >{\raggedright\arraybackslash}p{5cm}
+    }
+        \toprule
+        \textbf{Objetivo} & \textbf{Implementação} &
+        \textbf{Validação} \\
+        \midrule
+        Conectividade BLE & BLE Service
+        (\code{internal/service/ble}) & Tabela~\ref{tab:validacao}
+        (estabilidade) \\
+        Motor de simulação & Equação de Martin
+        (\code{internal/service/sim}) & 200+ arquivos \texttt{.fit}
+        aceitos \\
+        Interface 60fps & \code{TelemetryEventBus} &
+        Teste manual (HUD fluido) \\
+        Métricas fisiológicas & NP, TSS, PMC, TRIMP
+        (\code{internal/service/fit}) &
+        Figura~\ref{fig:screenshot-career} \\
+        IA Coach local & Ollama
+        (\code{internal/service/ai}) &
+        Figura~\ref{fig:screenshot-desgaste} \\
+        Desgaste componentes & \code{BikeComponent} &
+        Figura~\ref{fig:screenshot-desgaste} \\
+        SQLite multiperfil & \code{StorageFacade} &
+        Tabela~\ref{tab:validacao} \\
+        Exportação \texttt{.fit} & \code{muktihari/fit} &
+        Strava e Intervals.icu \\
+        Multiplataforma & Wails + Capacitor &
+        Windows, Linux, Android \\
+        Gamificação & \code{gamification.go} &
+        Figura~\ref{fig:screenshot-trophy} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Contribuições do trabalho}
+\label{sec:contribuicoes}
+
+As principais contribuições deste trabalho são:
+
+\begin{itemize}
+    \item o desenvolvimento de um simulador de ciclismo virtual multiplataforma,
+        gratuito e de código aberto (GPLv3), com processamento local
+        \textit{offline-first};
+    \item a implementação de um motor de simulação física baseado na equação de
+        Martin, com controle bidirecional de rolos inteligentes via FTMS e FE-C;
+    \item a implementação local de métricas fisiológicas avançadas (NP, IF,
+        TSS, TRIMP, PMC e desvio cardiovascular) normalmente restritas a
+        plataformas pagas;
+    \item o assistente de treino baseado em IA generativa local, com geração de
+        planos ZWO e preservação de privacidade;
+    \item o sistema de rastreamento de desgaste de componentes mecânicos da
+        bicicleta;
+    \item o registro do software junto ao INPI (Processo BR512026003786-7),
+        formalizando a proteção intelectual da versão inicial do sistema.
+\end{itemize}
+
+\section{Trabalhos futuros}
+\label{sec:trabalhos-futuros}
+
+Como perspectivas de evolução do projeto, destacam-se:
+
+\begin{itemize}
+    \item \textbf{Suporte multiplataforma completo em dispositivos móveis}:
+        ampliar a validação do aplicativo Android e avaliar a compilação para
+        iOS;
+    \item \textbf{Modo \textit{multiplayer} local}: permitir que atletas
+        treinem juntos na mesma rede local, sem infraestrutura em nuvem;
+    \item \textbf{Mapas totalmente \textit{offline}}: aprimorar o
+        \textit{caching} de \textit{tiles} e disponibilizar pacotes de mapas
+        para download;
+    \item \textbf{Expansão do modelo de desgaste}: incorporar variáveis como
+        tipo de treino e intensidade ao cálculo de desgaste dos componentes;
+    \item \textbf{Melhorias no assistente de IA}: uso de \textit{retrieval
+        augmented generation} sobre o histórico do atleta e otimização da
+        inferência para dispositivos sem GPU;
+    \item \textbf{Ampliação da validação experimental}: testes com uma maior
+        diversidade de fabricantes de rolos e sensores, bem como a publicação
+        de um estudo de usabilidade com atletas amadores.
+\end{itemize}

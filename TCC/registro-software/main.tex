@@ -1,0 +1,65 @@
+% =====================================================================
+%  ARGUS CYCLIST: UM ECOSSISTEMA MULTIPLATAFORMA E DE CÓDIGO ABERTO
+%  PARA O CICLISMO INDOOR
+%  --------------------------------------------------------------------
+%  Registro de Software — Trabalho de Conclusão de Curso
+%  Autor: Paulo Sérgio Silva de Medeiros
+%  Orientador: Prof. Dr. Isaac de Lima Oliveira Filho
+%  Universidade do Estado do Rio Grande do Norte (UERN)
+%  Curso de Bacharelado em Ciência da Computação
+%
+%  Para compilar (a partir desta pasta):
+%     make                ou    latexmk -pdf main.tex
+%  =====================================================================
+
+\documentclass[
+    a4paper,
+    12pt,
+    oneside,
+    english,
+    brazil,
+    chapter=TITLE,
+    section=TITLE,
+]{abntex2}
+
+% =========================== CONFIGURAÇÕES ==========================
+\input{config/preambulo}
+\input{config/comandos}
+\input{config/informacoes}
+
+% =========================== INÍCIO DO DOCUMENTO ====================
+\begin{document}
+
+% =========================== PRÉ-TEXTUAIS ============================
+\input{pretextual/capa}
+\input{pretextual/folha_rosto}
+\input{pretextual/folha_aprovacao}
+\input{pretextual/registro_inpi}
+\input{pretextual/resumo}
+\input{pretextual/abstract}
+\input{pretextual/listas}
+\input{pretextual/sumario}
+
+% =========================== TEXTUAIS ================================
+\textual
+
+\input{capitulos/01-introducao}
+\input{capitulos/02-fundamentacao}
+\input{capitulos/03-registro-evolucao}
+\input{capitulos/04-arquitetura}
+\input{capitulos/05-implementacao}
+\input{capitulos/06-resultados}
+\input{capitulos/07-conclusao}
+
+% =========================== PÓS-TEXTUAIS ============================
+\postextual
+
+\bibliographystyle{abntex2-num}
+\bibliography{postextual/referencias}
+
+\begin{apendicesenv}
+    \input{postextual/apendices/apendice-a-instalacao}
+    \input{postextual/apendices/apendice-b-ambiente}
+\end{apendicesenv}
+
+\end{document}

@@ -1,0 +1,41 @@
+% =====================================================================
+%  RESUMO
+% =====================================================================
+
+\begin{resumo}
+
+O ciclismo virtual (\textit{indoor cycling}) consolidou-se como modalidade
+esportiva reconhecida pela União Ciclística Internacional (UCI), porém o
+acesso a plataformas de simulação é restrito por assinaturas mensais em
+moeda estrangeira, exigência de hardware de alto desempenho e dependência
+contínua de conexão com a internet. Este trabalho apresenta o registro de
+software do \argus{}, um simulador multiplataforma de ciclismo virtual de
+código aberto sob licença GPLv3, desenvolvido em Go (Golang) com interface
+\textit{frontend} em JavaScript por meio do framework Wails para \textit{desktop}
+e Capacitor.js para dispositivos móveis Android. O sistema emprega arquitetura
+baseada em \textit{Clean Architecture} com padrões \textit{Facade} e
+\textit{Repository}, abstraindo conexões Bluetooth Low Energy (BLE) para
+sensores de frequência cardíaca, potência e controle de rolos inteligentes via
+perfis GATT (\texttt{0x180D}, \texttt{0x1818}, \texttt{0x1826}). O motor de
+simulação física implementa a equação de Martin para cálculo de velocidade a
+partir de gradientes de rotas GPX, enquanto o módulo de análise fisiológica
+computa métricas avançadas como Potência Normalizada (NP), \textit{Training
+Stress Score} (TSS), \textit{Performance Management Chart} (PMC) e desvio
+cardiovascular (\textit{Aerobic Decoupling}). Diferencia-se por incorporar um
+assistente de treino baseado em inteligência artificial generativa local
+(Ollama) para elaboração de planos personalizados no formato ZWO, além de um
+sistema de rastreamento de desgaste de componentes mecânicos da bicicleta. O
+software foi registrado junto ao Instituto Nacional da Propriedade Industrial
+(INPI, Processo BR512026003786-7) em sua versão inicial, tendo o projeto
+evoluído significativamente após o registro com a incorporação de novos
+módulos, modos de treino, integrações com serviços externos e aprimoramentos
+de arquitetura. A validação experimental utiliza equipamentos reais de
+ciclismo para aferir latência de telemetria inferior a \SI{150}{\milli\second}
+e conformidade de arquivos \texttt{.fit} com o padrão Garmin. O projeto visa
+democratizar o treinamento científico de alto rendimento, eliminando barreiras
+econômicas e de conectividade.
+
+\textbf{Palavras-chave}: Ciclismo virtual. Código aberto. Simulação física.
+Bluetooth Low Energy. Análise fisiológica. Inteligência artificial.
+
+\end{resumo}

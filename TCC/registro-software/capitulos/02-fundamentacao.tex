@@ -1,0 +1,235 @@
+% =====================================================================
+%  CAPÍTULO 2 — FUNDAMENTAÇÃO TEÓRICA
+% =====================================================================
+
+\chapter{FUNDAMENTAÇÃO TEÓRICA}
+\label{cap:fundamentacao}
+
+Este capítulo apresenta os conceitos teóricos necessários à compreensão do
+\argus{}, abrangendo desde os protocolos de comunicação sem fio de baixo
+consumo até os modelos físicos e fisiológicos utilizados no cálculo de
+telemetria, bem como os princípios de engenharia de software que guiam a
+arquitetura do sistema.
+
+\section{Bluetooth Low Energy e perfis GATT}
+\label{sec:ble-gatt}
+
+O \textit{Bluetooth Low Energy} (BLE) é uma tecnologia de comunicação sem fio
+de curto alcance e baixo consumo energético, projetada para dispositivos que
+necessitam transmitir pequenas quantidades de dados de forma intermitente,
+como sensores esportivos \cite{bluetooth2017}. No contexto do ciclismo, sensores
+de frequência cardíaca, medidores de potência e rolos de treino inteligentes
+utilizam o BLE para transmitir telemetria em tempo real.
+
+O \textit{Generic Attribute Profile} (GATT) define a estrutura de dados sobre a
+qual os serviços são expostos. Cada serviço é identificado por um UUID e contém
+características (\textit{characteristics}) que podem ser lidas, escritas ou
+assinar notificações. Os serviços relevantes ao \argus{} são:
+
+\begin{itemize}
+    \item \textbf{Heart Rate Service} (\texttt{0x180D}): expõe a frequência
+        cardíaca instantânea do atleta, geralmente em batimentos por minuto
+        (BPM) \cite{bluetooth2017}.
+    \item \textbf{Cycling Power Service} (\texttt{0x1818}): transmite a
+        potência instantânea (em watts) e, opcionalmente, cadência e
+        distribuição do torque aplicado aos pedais.
+    \item \textbf{Fitness Machine Service} (FTMS, \texttt{0x1826}): permite o
+        controle bidirecional de equipamentos de fitness, incluindo a leitura
+        de telemetria do rolo e o envio de comandos de resistência, habilitando
+        modos como ERG (potência alvo fixa) e simulação de inclinação
+        \cite{bluetooth2017}.
+\end{itemize}
+
+Além do FTMS, rolos de treino de diferentes fabricantes podem expor o protocolo
+FE-C (ANT+), que também é suportado pelo \argus{} para controle de resistência
+em modos ERG e de altitude simulada.
+
+\section{Protocolos e formatos de dados esportivos}
+\label{sec:formatos}
+
+\subsection{GPX (\textit{GPS Exchange Format})}
+\label{sec:gpx}
+
+O GPX é um formato aberto baseado em XML, criado pela Topografix, para o
+intercâmbio de dados de posicionamento geográfico (latitude, longitude e
+elevação) \cite{gpx2004}. No \argus{}, rotas GPX são importadas para extrair o
+perfil de elevação e, a partir da diferença de altitude entre pontos
+consecutivos, calcular o gradiente percentual da via, que alimenta o motor de
+simulação física.
+
+\subsection{FIT (\textit{Flexible and Interoperable Data Transfer})}
+\label{sec:fit}
+
+O formato FIT, especificado pela Garmin e pela aliança ANT+, é um formato
+binário compacto e interoperável para armazenamento de atividades esportivas
+\cite{garmin2024}. Arquivos FIT são amplamente aceitos por plataformas como
+Strava, Garmin Connect e TrainingPeaks. O \argus{} gera arquivos FIT ao final
+de cada sessão, permitindo que os treinos sejam importados por essas
+plataformas sem conversão.
+
+\subsection{ZWO (\textit{Zwift Workout})}
+\label{sec:zwo}
+
+O ZWO é o formato de plano de treino estruturado utilizado pela plataforma
+Zwift, definindo intervalos com duração e alvo de potência (em percentual do
+FTP) em modo ERG \cite{zwift2024}. O \argus{} importa e gera arquivos ZWO,
+permitindo que planos de treino elaborados pelo assistente de IA sejam
+carregados diretamente no simulador.
+
+\section{Modelagem física do ciclismo: a equação de Martin}
+\label{sec:equacao-martin}
+
+O movimento de uma bicicleta pode ser modelado pelo balanço de forças que
+atuam sobre o conjunto ciclista--bicicleta. O modelo proposto por Martin
+\cite{martin1998} relaciona a potência aplicada pelo ciclista ($P$) à
+velocidade ($v$), considerando as forças de arrasto aerodinâmico, resistência
+ao rolamento, componente gravitacional do gradiente e aceleração linear,
+conforme a Equação~\ref{eq:martin}:
+
+\begin{equation}\label{eq:martin}
+P = v \cdot \left( \frac{1}{2} \rho C_d A \, v^2 + m g C_{rr} + m g \sin\theta + m a \right) \cdot \eta^{-1}
+\end{equation}
+
+\noindent em que:
+\begin{itemize}
+    \item $\rho$ é a densidade do ar (\SI{1,225}{\kilo\gram\per\cubic\meter}
+        ao nível do mar);
+    \item $C_d A$ é o coeficiente de arrasto aerodinâmico multiplicado pela
+        área frontal;
+    \item $m$ é a massa total (ciclista + bicicleta);
+    \item $g$ é a aceleração gravitacional
+        (\SI{9,81}{\meter\per\square\second});
+    \item $C_{rr}$ é o coeficiente de resistência ao rolamento;
+    \item $\theta$ é o ângulo de inclinação da via (derivado do gradiente
+        percentual da rota GPX);
+    \item $a$ é a aceleração linear;
+    \item $\eta$ é a eficiência da transmissão mecânica.
+\end{itemize}
+
+O motor físico do \argus{} resolve numericamente a equação para a velocidade
+dada uma potência de entrada, utilizando o método da bisseção sobre o intervalo
+de velocidades possíveis. Essa abordagem evita problemas de divisão por zero e
+é numericamente estável mesmo em descidas íngremes com potência nula.
+
+\section{Métricas fisiológicas e controle de carga de treino}
+\label{sec:fisiologia}
+
+A fisiologia do esporte consolidou um conjunto de métricas que permitem
+quantificar a carga de treinamento e monitorar a evolução do atleta
+\cite{coggan2010}. O \argus{} implementa essas métricas localmente, processando
+o vetor de potência de \SI{1}{\hertz} durante e após a sessão.
+
+\subsection{Potência normalizada, fator de intensidade e TSS}
+\label{sec:np-if-tss}
+
+A Potência Normalizada (NP) é calculada pela média móvel de 30 segundos
+elevada à quarta potência, ponderando o esforço percebido de treinos
+variáveis:
+
+\begin{equation}\label{eq:np}
+NP = \sqrt[4]{\frac{1}{N} \sum_{i=1}^{N} p_{30,i}^4}
+\end{equation}
+
+\noindent em que $p_{30,i}$ é a i-ésima média móvel de 30 segundos do vetor de
+potência.
+
+O Fator de Intensidade (IF) normaliza a NP pela potência funcional limiar do
+atleta (FTP), e o \textit{Training Stress Score} (TSS) quantifica a carga de
+treino em uma escala proporcional ao esforço de uma hora no limiar:
+
+\begin{equation}\label{eq:if}
+IF = \frac{NP}{FTP}
+\end{equation}
+
+\begin{equation}\label{eq:tss}
+TSS = \frac{d \cdot NP \cdot IF}{FTP \cdot 3600} \times 100
+\end{equation}
+
+\noindent em que $d$ é a duração do treino em segundos e $FTP$ é a potência
+funcional limiar (\textit{Functional Threshold Power}).
+
+Complementarmente, o \textit{Training Impulse} (TRIMP) é calculado pela fórmula
+de Banister, que pondera a duração e a intensidade relativa do esforço pela
+frequência cardíaca:
+
+\begin{equation}\label{eq:trimp}
+TRIMP = d \cdot \Delta HR_{ratio} \cdot 0{,}64 \cdot e^{1{,}92 \cdot \Delta HR_{ratio}}
+\end{equation}
+
+\noindent em que $d$ é a duração em minutos e $\Delta HR_{ratio}$ é a razão
+entre a variação da frequência cardíaca durante o treino e a reserva de
+frequência cardíaca do atleta.
+
+\subsection{Performance Management Chart (PMC)}
+\label{sec:pmc}
+
+O PMC compila as três métricas de carga que descrevem o estado de treinamento
+do atleta: a Carga de Treino Crônica (CTL, \textit{Fitness}), a Carga de
+Treino Aguda (ATL, \textit{Fadiga}) e o Balanço de Estresse de Treino (TSB,
+\textit{Forma}), calculadas por decaimento exponencial \cite{coggan2010}:
+
+\begin{equation}\label{eq:ctl}
+CTL_{n} = CTL_{n-1} + \frac{TSS_n - CTL_{n-1}}{42}
+\end{equation}
+
+\begin{equation}\label{eq:atl}
+ATL_{n} = ATL_{n-1} + \frac{TSS_n - ATL_{n-1}}{7}
+\end{equation}
+
+\begin{equation}\label{eq:tsb}
+TSB = CTL - ATL
+\end{equation}
+
+\noindent em que $CTL$ representa o nível de condicionamento físico
+(\textit{Fitness}), $ATL$ a fadiga acumulada e $TSB$ a forma atual do atleta.
+
+\subsection{Desvio cardiovascular e recuperação cardíaca}
+\label{sec:decoupling-hrr}
+
+O Desvio Cardiovascular (\textit{Aerobic Decoupling} --- Pw:HR) compara a
+relação potência--frequência cardíaca na primeira e na segunda metade de
+treinos de ritmo constante \cite{coggan2010}:
+
+\begin{equation}\label{eq:decoupling}
+Decoupling = \left( \frac{P_{\text{2ª metade}}}{HR_{\text{2ª metade}}} \div \frac{P_{\text{1ª metade}}}{HR_{\text{1ª metade}}} - 1 \right) \times 100\%
+\end{equation}
+
+\noindent valores superiores a 5\% alertam o atleta sobre desidratação ou
+fadiga cardíaca excessiva.
+
+A Recuperação da Frequência Cardíaca (HRR) mede a queda da frequência cardíaca
+nos primeiros um (HRR1) e dois (HRR2) minutos após o término do esforço,
+sendo um indicador clássico de condicionamento cardiovascular e de
+recuperação.
+
+\section{Engenharia de software: \textit{Clean Architecture} e padrões de projeto}
+\label{sec:engenharia}
+
+A \textit{Clean Architecture}, proposta por Robert C. Martin, organiza o
+sistema em camadas concêntricas com dependências apontando para dentro, de
+modo que as regras de negócio (domínio) não dependam de detalhes de
+infraestrutura como banco de dados ou interface gráfica
+\cite{martin2017clean}. Essa organização facilita a testabilidade, a evolução e
+a portabilidade do software.
+
+Dois padrões de projeto clássicos \cite{gof1995} são empregados no \argus{}:
+o \textit{Repository}, que encapsula o acesso aos dados e isola a persistência
+do restante da aplicação, e o \textit{Facade}, que oferece uma interface
+simplificada para um subsistema complexo --- no caso, a orquestração das
+operações de armazenamento e leitura de dados de treino.
+
+\section{Inteligência artificial generativa local}
+\label{sec:ia-local}
+
+A inteligência artificial generativa, baseada em modelos de linguagem de grande
+escala (LLM), tornou-se acessível para execução local em hardware de consumo
+graças a ferramentas como o Ollama \cite{ollama2024}, que empacota e serve
+modelos quantizados diretamente no dispositivo do usuário. Modelos de pequena
+escala (na ordem de 3 bilhões de parâmetros) conseguem executar de forma
+responsiva em CPUs convencionais, sem envio de dados a servidores externos.
+
+No \argus{}, essa capacidade é explorada por um assistente de treino que
+interpreta o perfil do atleta (FTP, nível, histórico recente) e gera planos de
+treino estruturados em formato ZWO, preservando a privacidade dos dados
+biométricos e eliminando a dependência de serviços de nuvem para
+funcionalidades de \textit{coaching}.

@@ -1,0 +1,67 @@
+% =====================================================================
+%  PREÂMBULO DO DOCUMENTO
+%  --------------------------------------------------------------------
+%  Configuração da classe abntex2, pacotes, cores e hiperlinks.
+%  =====================================================================
+
+% ---------------------------------------------------------------------
+%  Pacotes fundamentais
+% ---------------------------------------------------------------------
+\usepackage{cmap}                               % busca indexada no PDF
+\usepackage[T1]{fontenc}                        % acentuação correta
+\usepackage[utf8]{inputenc}                     % entrada UTF-8
+\usepackage{lastpage}                           % referência à última página
+\usepackage{graphicx}                           % figuras
+\usepackage{xcolor}                             % cores
+\usepackage{booktabs}                           % tabelas profissionais
+\usepackage{multirow}                           % mescla células em tabelas
+\usepackage{array}                              % colunas personalizadas
+\usepackage{textcomp}                           % símbolos textuais
+\usepackage{indentfirst}                        % indentação do 1º parágrafo
+\usepackage{microtype}                          % microtipografia
+\usepackage{amsmath,amssymb}                    % matemática
+\usepackage{siunitx}                            % unidades SI
+\usepackage{csquotes}                           % aspas tipográficas
+\usepackage{pdfpages}                           % inclusão do certificado INPI
+
+% ---------------------------------------------------------------------
+%  TikZ — diagramas de arquitetura
+% ---------------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,
+  fit,calc,shadows,mindmap,trees,chains,scopes}
+
+% ---------------------------------------------------------------------
+%  Cores da identidade do Argus Cyclist
+% ---------------------------------------------------------------------
+\definecolor{blueargus}{RGB}{41, 98, 255}
+\definecolor{greenargus}{RGB}{0, 200, 117}
+\definecolor{orangeargus}{RGB}{255, 159, 10}
+\definecolor{redargus}{RGB}{255, 69, 58}
+\definecolor{darkbg}{RGB}{30, 30, 40}
+
+% ---------------------------------------------------------------------
+%  Hiperlinks
+% ---------------------------------------------------------------------
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+}
+
+% ---------------------------------------------------------------------
+%  Citações no padrão ABNT (numérica)
+% ---------------------------------------------------------------------
+\usepackage[num]{abntex2cite}
+
+% ---------------------------------------------------------------------
+%  Tipografia
+% ---------------------------------------------------------------------
+\renewcommand{\familydefault}{\rmdefault}
+\setlength{\parindent}{1.5cm}
+
+% Espaçamento padrão ABNT (1,5) é definido pela classe abntex2.
+% Para versão de rascunho com espaçamento simples, descomente:
+% \singlespacing

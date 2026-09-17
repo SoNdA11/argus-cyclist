@@ -1,0 +1,81 @@
+% =====================================================================
+%  DIAGRAMA 1 — ARQUITETURA GERAL DE COMPONENTES (CLEAN ARCHITECTURE)
+%  Fonte: autoria própria.
+% =====================================================================
+\begin{tikzpicture}[
+    scale=0.8,
+    every node/.style={transform shape},
+    node distance=1.8cm and 1.5cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2.8cm,
+      minimum height=0.9cm, align=center, font=\scriptsize\sffamily,
+      text=white, drop shadow},
+    layerbox/.style={rectangle, draw, dashed, black!50, rounded corners, thin},
+    layerlabel/.style={font=\scriptsize\bfseries\sffamily, fill=white, inner sep=2pt},
+    >=Stealth,
+]
+
+    % --- CAMADA DE APRESENTAÇÃO ---
+    \node[box, fill=red!70!black] (ui) at (0, 4.2) {Componentes\\UI / Canvas};
+    \node[box, fill=red!70!black] (teb) [right=1.2cm of ui] {Telemetry\\EventBus};
+
+    \node[layerbox, inner sep=0.5cm, fit=(ui) (teb)] (frontlayer) {};
+    \node[layerlabel, anchor=south, text=red!80!black] at (frontlayer.north) {Camada de Apresentação --- JS};
+
+    % --- WAILS IPC BRIDGE ---
+    \node[box, fill=purple!70!black, minimum width=5.0cm, minimum height=0.9cm] (wails) at (1.5, 2.0) {Wails IPC Bridge};
+
+    % --- DOMÍNIO E SERVIÇOS CORE ---
+    \node[box, fill=green!50!black] (blesvc) at (1.5, -0.5) {BLE Service};
+    \node[box, fill=green!50!black] (sim) [below=of blesvc] {Motor Físico};
+    \node[box, fill=green!50!black] (gpx) [below=of sim] {GPX Service};
+
+    \node[layerbox, inner sep=0.6cm, fit=(blesvc) (gpx)] (corelayer) {};
+    \node[layerlabel, anchor=south, text=green!50!black] at (corelayer.north) {Domínio e Serviços Core};
+
+    % --- CAMADA DE PERSISTÊNCIA ---
+    \node[box, fill=blue!60!black] (sqlite) at (-4.2, -0.5) {SQLite};
+    \node[box, fill=blue!60!black] (fit) at (-4.2, -2.0) {Arquivos .FIT};
+    \node[box, fill=blue!60!black] (stravaapi) at (-4.2, -3.5) {Strava / Intervals};
+
+    \node[layerbox, inner sep=0.6cm, fit=(sqlite) (stravaapi)] (persistlayer) {};
+    \node[layerlabel, anchor=south, text=blue!60!black] at (persistlayer.north) {Camada de Persistência};
+
+    % --- CASOS DE USO ---
+    \node[box, fill=orange!70!black] (sf) at (7.2, -0.5) {Storage\\Facade};
+    \node[box, fill=orange!70!black] (wc) at (7.2, -2.0) {Workout\\Controller};
+    \node[box, fill=orange!70!black] (cc) at (7.2, -3.5) {Challenge\\Controller};
+
+    \node[layerbox, inner sep=0.6cm, fit=(sf) (cc)] (uselayer) {};
+    \node[layerlabel, anchor=south, text=orange!80!black] at (uselayer.north) {Casos de Uso};
+
+    % --- HARDWARE ---
+    \node[box, fill=gray!70!black, minimum width=6.0cm, minimum height=0.9cm] (sensors) [below=1.5cm of gpx] {Sensores BLE\\(\textit{HRM, Power, Trainer})};
+
+    % --- CONEXÕES VERTICAIS E HORIZONTAIS ---
+    \draw[<->, thick] (blesvc) -- (sim);
+    \draw[<->, thick] (sim) -- (gpx);
+    \draw[->, thick] (gpx) -- (sensors);
+
+    % Conexões da Esquerda (Persistência)
+    \draw[<->, thick] (blesvc) -- (sqlite);
+    \draw[->, thick, dashed] (sim) -- (fit);
+    \draw[->, thick, dashed] (gpx) -- (stravaapi);
+
+    % Conexões da Direita (Casos de Uso)
+    \draw[<->, thick] (sf) -- (blesvc);
+    \draw[<->, thick] (wc) -- (sim);
+    \draw[<->, thick] (cc) -- (gpx);
+
+    % Conexões da Apresentação para a Bridge
+    \draw[<->, thick] (teb) -- (ui);
+    \draw[<->, thick] (teb.south) -- (wails.north);
+    \draw[<->, thick] (wails.south) -- (blesvc.north);
+
+    % Ponto de controle para as linhas
+    \coordinate (p1) at ($(wails.east) + (1.0, 0)$);
+
+    % Rota para StorageFacade: vai para a direita, desce contornando
+    \draw[<->, thick] (wails.east) -- (p1) |- (sf.west);
+    \draw[<->, thick] (wails.east) -- (p1) |- (wc.170);
+
+\end{tikzpicture}

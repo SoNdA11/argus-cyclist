@@ -1,0 +1,51 @@
+% =====================================================================
+%  APÊNDICE A — GUIA DE INSTALAÇÃO E EXECUÇÃO
+% =====================================================================
+
+\chapter{GUIA DE INSTALAÇÃO E EXECUÇÃO}
+\label{ap:instalacao}
+
+Este apêndice apresenta os pré-requisitos e os passos para instalação e
+execução do \argus{} em modo de desenvolvimento.
+
+\section{Pré-requisitos}
+\label{ap:instalacao-pre-requisitos}
+
+\begin{itemize}
+    \item Go (v1.20 ou superior) --- \url{https://go.dev/};
+    \item Node.js e npm;
+    \item Wails CLI --- \code{go install github.com/wailsapp/wails/v2/cmd/wails@latest};
+    \item Android Studio (apenas para a compilação móvel via Capacitor).
+\end{itemize}
+
+\section{Instalação das dependências}
+\label{ap:instalacao-dependencias}
+
+\begin{enumerate}
+    \item Clonar o repositório e entrar na pasta do projeto;
+    \item Instalar as dependências do \textit{backend} Go:
+        \begin{verbatim}
+        go mod tidy
+        \end{verbatim}
+    \item Instalar as dependências do \textit{frontend}:
+        \begin{verbatim}
+        cd frontend
+        npm install
+        cd ..
+        \end{verbatim}
+\end{enumerate}
+
+\section{Execução em modo de desenvolvimento}
+\label{ap:instalacao-execucao}
+
+Com as dependências instaladas, a aplicação pode ser executada em modo de
+desenvolvimento (com \textit{hot reload}) por meio do comando:
+
+\begin{verbatim}
+wails dev
+\end{verbatim}
+
+\complementar{Descrever aqui, se desejado, o fluxo de geração do instalador de
+produção para Windows/Linux (\code{wails build}) e o processo de compilação do
+aplicativo Android com Capacitor (\code{npx cap sync android}), incluindo
+capturas de tela do passo a passo.}
