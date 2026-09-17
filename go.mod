@@ -2,6 +2,8 @@ module argus-cyclist
 
 go 1.24.0
 
+toolchain go1.24.10
+
 require (
 	github.com/wailsapp/wails/v2 v2.10.2
 	gorm.io/gorm v1.31.1
