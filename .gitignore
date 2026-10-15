@@ -21,3 +21,7 @@ frontend/android/Captures/
 frontend/android/.idea/
 
 .env
+
+# Documentação e TCC (não versionados)
+docs/
+TCC/

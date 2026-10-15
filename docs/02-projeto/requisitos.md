@@ -11,6 +11,9 @@ A especificação de requisitos do Argus Cyclist foi derivada da necessidade de 
 * **RF05 - Integração Strava API:** O sistema deve gerenciar a autenticação via OAuth 2.0 e realizar o upload automático de sessões finalizadas para o perfil do usuário.
 * **RF06 - Persistência de Dados Local:** O sistema deve armazenar os dados do usuário, configurações, histórico de atividades e recordes pessoais (PRs) localmente utilizando um banco de dados relacional embutido (SQLite).
 * **RF07 - Desafios e Gamificação:** O sistema deve apresentar desafios de segmentos (*Sprints* e *KOM - King of the Mountain*) e avaliações de capacidade (teste *FTP*) durante a simulação de rotas ou sessões livres.
+* **RF08 - Assistente de IA Local:** O sistema deve gerar planos de treino ZWO personalizados via Ollama, com processamento local e preservação da privacidade.
+* **RF09 - Controle de Desgaste de Componentes:** O sistema deve permitir o cadastro de peças da bicicleta, calcular o desgaste automaticamente e manter o histórico de substituições.
+* **RF10 - Integração Intervals.icu:** O sistema deve realizar o *upload* de atividades finalizadas para a plataforma Intervals.icu.
 
 ## Requisitos Não Funcionais (RNF)
 
@@ -18,3 +21,5 @@ A especificação de requisitos do Argus Cyclist foi derivada da necessidade de 
 * **RNF02 - Portabilidade Multiplataforma:** A base de código deve ser compilável para Windows (Wails), Linux e Android (Capacitor) sem perda de funcionalidades core.
 * **RNF03 - Estabilidade de Conexão:** O sistema deve implementar rotinas de auto-reconexão para sensores que percam sinal momentaneamente durante a sessão.
 * **RNF04 - Eficiência de Memória:** O backend em Go não deve exceder 200MB de footprint de memória durante a simulação ativa.
+* **RNF05 - Privacidade:** Processamento local de dados biométricos, com integrações externas apenas sob consentimento explícito do usuário.
+* **RNF06 - Licenciamento:** Distribuição sob licença GPLv3.

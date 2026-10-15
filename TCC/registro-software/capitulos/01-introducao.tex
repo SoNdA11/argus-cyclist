@@ -31,13 +31,18 @@ comuns. Adicionalmente, tais soluções dependem de conexão contínua com a
 internet para computar métricas, o que impede treinos em ambientes
 \textit{offline} ou com conectividade instável.
 
-O \argus{} propõe-se a ser uma alternativa nacional, multiplataforma,
-\textit{offline-first} e de código aberto, unindo simulação física interativa,
-telemetria de precisão, assistência de inteligência artificial generativa
-local e rastreamento de desgaste de componentes, sem taxas recorrentes e com
-baixíssimos requisitos de hardware. Este documento constitui o registro do
-software desenvolvido, apresentando sua arquitetura, implementação, resultados
-e a evolução do projeto desde a versão registrada junto ao INPI.
+O \argus{} foi concebido como alternativa nacional a esse cenário. Trata-se de
+um simulador de ciclismo virtual multiplataforma, \textit{offline-first} e de
+código aberto, que reúne em um único aplicativo o que o mercado fragmenta
+entre serviços pagos: simulação física em tempo real sobre rolos inteligentes,
+análise científica da telemetria processada localmente, prescrição de treino
+assistida por inteligência artificial generativa que opera no próprio
+dispositivo e rastreamento da vida útil dos componentes da bicicleta.
+Distribuído sob licença GPLv3 e sem taxas recorrentes, atende igualmente a
+computadores modestos e a celulares, sem exigir placas gráficas dedicadas.
+Este documento apresenta o registro do software: a arquitetura que o sustenta,
+o processo de implementação, os resultados experimentais obtidos e a evolução
+do projeto desde a versão registrada junto ao INPI.
 
 \section{Contextualização: a situação atual do ciclismo virtual}
 \label{sec:contextualizacao}
@@ -121,7 +126,7 @@ de código aberto:
 \section{Problemática}
 \label{sec:problematica}
 
-O desenvolvimento do projeto \argus{} é motivado por quatro problemas centrais
+O desenvolvimento do projeto \argus{} é motivado por cinco problemas centrais
 identificados no ecossistema atual do ciclismo virtual:
 
 \begin{enumerate}
@@ -130,6 +135,14 @@ identificados no ecossistema atual do ciclismo virtual:
         de ciclismo inviabiliza o treinamento científico e estruturado para
         atletas de base e ciclistas amadores de menor poder aquisitivo no
         Brasil.
+
+    \item \textbf{Exigência de hardware de alto desempenho}: a simulação
+        tridimensional em tempo real, que dá o apelo das plataformas
+        comerciais, exige computadores com placas gráficas dedicadas. Atletas
+        que dispõem apenas de computadores de entrada ou de dispositivos
+        móveis comuns ficam impedidos de treinar, ainda que esses aparelhos
+        tenham desempenho mais do que suficiente para a telemetria e o
+        cálculo das métricas.
 
     \item \textbf{Dependência crônica de conectividade (\textit{cloud lock-in})}:
         a arquitetura das soluções comerciais centraliza a lógica do simulador
@@ -245,7 +258,7 @@ com hardware padrão do mercado.
         Go para escaneamento e conexão com periféricos via Bluetooth Low
         Energy (BLE), decodificando serviços GATT para cintas cardíacas
         (\texttt{0x180D}), sensores de potência (\texttt{0x1818}) e rolos de
-        treino controlados (FTMS --- \texttt{0x1826}) \cite{bluetooth2017}.
+        treino controlados (FTMS, \texttt{0x1826}) \cite{bluetooth2017}.
     \item \textbf{Motor de simulação física}: desenvolver algoritmos que
         traduzam o gradiente das coordenadas de uma rota GPX
         \cite{gpx2004} em resistência de torque mecânico no rolo de treino
