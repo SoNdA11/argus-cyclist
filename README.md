@@ -34,12 +34,6 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 ## Simulation & Connectivity
 
 * **Smart Trainer Support (BLE & ANT+):** Connects natively to FTMS and ANT+ FE-C compatible trainers (e.g., Tacx, Wahoo, Elite, Thinkrider) and Heart Rate monitors.
-
-## Windows (BLE) troubleshooting
-
-* **Debug logs**: set `ARGUS_BLE_DEBUG=1` before starting the app to print detailed scan diagnostics to the terminal.
-* **Discovery on Windows**: some Windows Bluetooth stacks do not expose advertised Service UUIDs during scanning. In this case, Argus will list nearby **named** BLE devices and validate FTMS/HR services after you select and connect.
-* **Permissions**: typically you do **not** need to run as Administrator to scan BLE, but you must have Bluetooth enabled and allow the app to use Bluetooth in Windows privacy settings.
 * **Physics Engine:** Real-time speed calculation based on power (Watts), rider weight, bike weight, rolling resistance, and aerodynamic drag.
 * **Grade Simulation:** The trainer automatically adjusts resistance based on the virtual terrain slope.
 * **Cloud Integrations:** Direct connection to Strava. Features an **Automatic Sync Queue** database model to gracefully handle expired tokens, refresh credentials, and schedule retry attempts on network failures.
@@ -113,7 +107,7 @@ Before starting, ensure you have installed:
 1. **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/your-username/argus-cyclist.git](https://github.com/your-username/argus-cyclist.git)
+    git clone https://github.com/your-username/argus-cyclist.git
     cd argus-cyclist
     ```
 
@@ -136,6 +130,12 @@ To start the application in development mode (with Hot Reload):
 ```bash
 wails dev
 ```
+
+## Troubleshooting: Windows Bluetooth (BLE)
+
+* **Debug logs**: set `ARGUS_BLE_DEBUG=1` before starting the app to print detailed scan diagnostics to the terminal.
+* **Discovery on Windows**: some Windows Bluetooth stacks do not expose advertised Service UUIDs during scanning. In this case, Argus will list nearby **named** BLE devices and validate FTMS/HR services after you select and connect.
+* **Permissions**: typically you do **not** need to run as Administrator to scan BLE, but you must have Bluetooth enabled and allow the app to use Bluetooth in Windows privacy settings.
 
 ## Troubleshooting: Windows "Protect your PC" Warning
 

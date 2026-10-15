@@ -112,8 +112,8 @@ O \textit{frontend} é implementado em JavaScript puro com Vite. O
 \code{TelemetryEventBus} (em \code{frontend/src/modules/TelemetryEventBus.js})
 desacopla a recepção de telemetria da renderização: os dados chegam do
 \textit{backend} via \textit{bindings} Wails (ou do serviço BLE nativo do
-Capacitor no Android) e são distribuídos aos assinantes --- HUD, gráficos e
-mapa --- sem provocar \textit{reflows} globais, garantindo renderização fluida
+Capacitor no Android) e são distribuídos aos assinantes (HUD, gráficos e
+mapa) sem provocar \textit{reflows} globais, garantindo renderização fluida
 a 60~fps.
 
 \subsection{Mapa 3D e HUD}
@@ -162,7 +162,7 @@ uma sessão.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figuras/screenshot-05-telemetry}
-    \caption{Tela principal do simulador durante a sessão --- telemetria em
+    \caption{Tela principal do simulador durante a sessão: telemetria em
     tempo real e mapa 3D}
     \label{fig:screenshot-telemetry}
     \small Fonte: autoria própria.
@@ -196,7 +196,7 @@ modo.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figuras/screenshot-08-studio}
-    \caption{Modo Estúdio --- HUD de telemetria dedicado}
+    \caption{Modo Estúdio: HUD de telemetria dedicado}
     \label{fig:screenshot-studio}
     \small Fonte: autoria própria.
 \end{figure}
@@ -213,7 +213,7 @@ Figura~\ref{fig:screenshot-event} apresenta a tela do modo evento.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figuras/screenshot-09-event}
-    \caption{Modo Evento --- desafio virtual com classificação local}
+    \caption{Modo Evento: desafio virtual com classificação local}
     \label{fig:screenshot-event}
     \small Fonte: autoria própria.
 \end{figure}
@@ -230,7 +230,7 @@ na \textit{Trophy Room} (Figura~\ref{fig:screenshot-trophy}).
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figuras/screenshot-07-trophy}
-    \caption{Trophy Room --- troféus e conquistas do atleta}
+    \caption{Trophy Room: troféus e conquistas do atleta}
     \label{fig:screenshot-trophy}
     \small Fonte: autoria própria.
 \end{figure}

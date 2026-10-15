@@ -1,17 +1,31 @@
 # Justificativa
 
-O desenvolvimento do sistema **Argus Cyclist** justifica-se por sua alta relevância nas dimensões acadêmica, tecnológica e social, configurando-se como um projeto de Engenharia de Software capaz de resolver problemas reais do ecossistema esportivo.
+> **Fonte única de verdade:** a justificativa completa está em
+> **[`trabalho-ptcc-2026.md`](./trabalho-ptcc-2026.md)** (seção 3). Este arquivo é
+> um resumo navegável.
 
-**1. Relevância Tecnológica e Inovação:**
-Do ponto de vista da Ciência da Computação, o projeto propõe um desafio arquitetural complexo: o processamento concorrente e em tempo real de sinais de hardware (sensores BLE). A adoção do framework **Wails** e a linguagem **Go (Golang)** no backend justificam-se pela necessidade de altíssimo desempenho, segurança de memória e concorrência nativa (goroutines) no tratamento dos protocolos GATT/BLE, garantindo uma latência imperceptível. O encapsulamento dessa complexidade por trás de uma interface web reativa (Vite) e a portabilidade via Capacitor (Mobile) demonstram a aplicação do estado da arte em desenvolvimento de software multiplataforma.
+O projeto **Argus Cyclist** justifica-se em quatro dimensões:
 
-**2. Impacto Social e Fomento ao Esporte:**
-Ao propor uma arquitetura limpa e independente de assinaturas onerosas em dólar, o Argus Cyclist democratiza o treinamento esportivo de alto rendimento. Ele permite que ciclistas locais utilizem rolos de treino *smart* e medidores de potência com um software de interface amigável, promovendo a saúde e a inclusão digital no esporte.
+**1. Relevância tecnológica e inovação arquitetural:**
+O sistema é um desafio de engenharia — tempo real, concorrência e baixa latência. Go (goroutines)
+trata conexões BLE/GATT simultâneas sem bloquear a UI; Wails gera um binário leve (memória < 200 MB,
+fração do Electron); Capacitor reaproveita o frontend para Android nativo.
 
-**3. Soberania Tecnológica e Padronização:**
-A criação de uma solução nacional reduz a dependência de caixas-pretas proprietárias. O projeto atua ativamente na implementação e manipulação de padrões globais de engenharia esportiva — como a decodificação do protocolo FTMS, a modelagem de arquivos binários `.FIT` (Flexible and Interoperable Data Transfer) e a integração segura via OAuth 2.0 com APIs globais (Strava).
+**2. Relevância científica (modelagem física e fisiologia):**
+Aplica a **equação de Martin** (arrasto, rolamento, inércia, gradiente) no motor de simulação e
+processa localmente métricas consolidadas na literatura: NP, IF, TSS, TRIMP e o gráfico PMC
+(CTL/ATL/TSB), além do *aerobic decoupling* (Pw:HR).
 
-**4. Relevância Acadêmica (Contexto TCC):**
-Para o escopo de um Trabalho de Conclusão de Curso, o projeto transcende o desenvolvimento de um simples sistema de informação. Ele exige conhecimentos avançados em comunicação de rede de baixo nível, engenharia de software modular, matemática aplicada (motores de simulação física baseada em dados `.gpx` e arrasto aerodinâmico) e experiência de usuário (UX). Consequentemente, resulta em um artefato robusto, perfeitamente elegível para o registro de software junto ao INPI.
+**3. Impacto social e inclusão esportiva:**
+Solução offline, de código aberto e gratuita para computadores modestos e celulares Android —
+democratiza o treinamento de alto rendimento sem assinaturas em dólar.
 
-Para o curso de Ciência da Computação/Engenharia da UERN, o projeto serve como um registro de software robusto que abrange desde o tratamento de sinais de sensores até o processamento de dados em nuvem.
+**4. Soberania tecnológica e padronização:**
+Implementa padrões globais de ponta a ponta — decodificação FTMS, formato binário `.FIT` (Garmin)
+e integração OAuth 2.0 com APIs externas (Strava) — reduzindo a dependência de caixas-pretas
+proprietárias.
+
+**5. Relevância acadêmica (escopo do TCC):**
+Transcende um simples sistema de informação, exigindo comunicação de rede de baixo nível,
+engenharia modular, matemática aplicada e UX — resultando num artefato elegível ao registro
+de software junto ao INPI.

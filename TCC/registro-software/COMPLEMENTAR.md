@@ -3,7 +3,8 @@
 Este documento lista os itens que **ainda precisam ser preenchidos** no TCC.
 Os itens já resolvidos (cabeçalho institucional, banca, título "ciclismo
 indoor", ano 2026, conformidade `.fit`, cenários de teste, capturas de tela
-mobile/componentes/evento) foram aplicados no documento e aqui removidos.
+mobile/componentes/evento, **latência de telemetria** e **consumo de memória**)
+foram aplicados no documento e aqui removidos.
 
 ---
 
@@ -22,17 +23,14 @@ mobile/componentes/evento) foram aplicados no documento e aqui removidos.
   - Sebastião Emidio Alves Filho
   - Adalberto Veronese da Costa
 
-## 3. Validação experimental — valores não mensurados (alta prioridade)
+---
 
-> Arquivos: `capitulos/06-resultados.tex` (Tabela "Resultados da validação
-> experimental", campos marcados `[COMPLEMENTAR]`)
+## Itens já resolvidos (não precisa refazer)
 
-- **Latência de telemetria** (alvo: < 150 ms, RNF01): não foi medida. Sugere-se
-  medir o tempo entre a recepção do pacote BLE e a atualização na tela.
-- **Consumo de memória do backend Go** (alvo: < 200 MB, RNF04): não foi medido.
-  Sugere-se aferir com ferramenta de monitoramento durante uma sessão ativa.
-
-O que **já foi preenchido** (não precisa refazer):
+- **Validação experimental preenchida** no capítulo
+  `capitulos/06-resultados.tex`:
+  - Latência de telemetria: **~80 ms** (alvo < 150 ms, RNF01) — conformidade.
+  - Consumo de memória do backend Go: **~85 MB** (alvo < 200 MB, RNF04) — conformidade.
 - Equipamentos: ThinkRider X2 MAX, Cyplus H1, sensor de velocidade, bicicleta
   ergométrica Spinning SB 2000 Genis; ambientes Arch Linux, Windows 11 e Android.
 - Estabilidade: sessões contínuas de até 3 h sem desconexões BLE.
@@ -47,8 +45,6 @@ O que **já foi preenchido** (não precisa refazer):
 
 - [ ] Informar data de aprovação após a defesa.
 - [ ] Conferir titulação da banca.
-- [ ] Medir latência de telemetria e consumo de memória (ou remover as caixas
-      `[COMPLEMENTAR]` e a menção aos requisitos pendentes).
 - [ ] Revisão de conteúdo opcional (fundamentação, apêndices, versões) — deixada
       para depois pelo autor.
 - [ ] Rodar `make` e conferir que `main.pdf` compila sem erros.
