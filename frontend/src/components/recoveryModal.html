@@ -1,0 +1,30 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<div id="recoveryModal" class="modal-overlay">
+    <div class="modal-content-small">
+        <h3>Unfinished session found</h3>
+        <p id="recoveryDetails" style="color: var(--text-muted); margin: 10px 0 20px 0; line-height: 1.5;">
+            An unfinished session was found and can still be saved.
+        </p>
+        <div class="action-buttons">
+            <button id="btnRecoverSession" class="btn-safe">Recover &amp; Save</button>
+            <button id="btnDiscardRecovery" class="btn-danger">Discard</button>
+        </div>
+    </div>
+</div>

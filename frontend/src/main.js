@@ -32,6 +32,7 @@ import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
 import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
 import aiChatPanelHtml from './components/aiChatPanel.html?raw';
+import recoveryModalHtml from './components/recoveryModal.html?raw';
 
 document.body.insertAdjacentHTML('beforeend',
     homeScreenHtml +
@@ -48,7 +49,8 @@ document.body.insertAdjacentHTML('beforeend',
     raceHistoryModalHtml +
     trophyModalHtml +
     bikeComponentsModalHtml +
-    aiChatPanelHtml
+    aiChatPanelHtml +
+    recoveryModalHtml
 );
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
@@ -1116,6 +1118,74 @@ function parseZWOForMobile(xmlString) {
 // RECORDING CONTROLS
 // ==================
 
+// Shared post-finish handling: shows the summary modal and wires up the
+// upload buttons. Reused by the normal finish flow and by the recovery of
+// an unfinished session found on startup.
+async function handleSessionFinished(sessionSummary) {
+    ui.showFinishModal(sessionSummary);
+
+    if (sessionSummary.new_ftp > 0) {
+        setTimeout(() => {
+            const msg = `Physiological Assessment Complete!\n\nNew Estimated FTP: ${sessionSummary.new_ftp} W\nMax HR Reached: ${sessionSummary.new_max_hr} BPM\n\nWould you like to update your profile with these new metrics?`;
+            if (confirm(msg)) {
+                window.go.main.App.GetUserProfile().then(profile => {
+                    profile.ftp = sessionSummary.new_ftp;
+                    if (sessionSummary.new_max_hr > profile.max_hr) {
+                        profile.max_hr = sessionSummary.new_max_hr;
+                    }
+                    window.go.main.App.UpdateUserProfile(profile).then(() => {
+                        alert("Profile successfully updated!");
+                        if (window.ui) window.ui.loadUserProfile();
+                    });
+                });
+            }
+        }, 1000);
+    }
+
+    try {
+        if (window.go.main.App.IsStravaConnected) {
+            const isConnected = await window.go.main.App.IsStravaConnected();
+            const btnStrava = document.getElementById('btnUploadStrava');
+
+            if (isConnected) {
+                btnStrava.classList.remove('hidden');
+                btnStrava.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg> Upload to Strava`;
+                btnStrava.disabled = false;
+                btnStrava.style.backgroundColor = "#FC4C02";
+            } else {
+                btnStrava.classList.add('hidden');
+            }
+        }
+    } catch (e) {
+        console.log("Strava validation skipped", e);
+    }
+
+    try {
+        if (window.go.main.App.IsIntervalsConnected) {
+            const isConnected = await window.go.main.App.IsIntervalsConnected();
+            const btnIntervals = document.getElementById('btnUploadIntervals');
+
+            if (isConnected) {
+                btnIntervals.classList.remove('hidden');
+                btnIntervals.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                        <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                    </svg> Upload to Intervals.icu`;
+                btnIntervals.disabled = false;
+            } else {
+                btnIntervals.classList.add('hidden');
+            }
+        }
+    } catch (e) {
+        console.log("Intervals.icu validation skipped", e);
+    }
+}
+
 async function finishWorkout() {
     isFinishTriggered = true;
     window.isRecording = false;
@@ -1132,71 +1202,71 @@ async function finishWorkout() {
     try {
         if (!window.go || !window.go.main) return;
         const sessionSummary = await window.go.main.App.FinishSession();
-        ui.showFinishModal(sessionSummary);
-
-        if (sessionSummary.new_ftp > 0) {
-            setTimeout(() => {
-                const msg = `Physiological Assessment Complete!\n\nNew Estimated FTP: ${sessionSummary.new_ftp} W\nMax HR Reached: ${sessionSummary.new_max_hr} BPM\n\nWould you like to update your profile with these new metrics?`;
-                if (confirm(msg)) {
-                    window.go.main.App.GetUserProfile().then(profile => {
-                        profile.ftp = sessionSummary.new_ftp;
-                        if (sessionSummary.new_max_hr > profile.max_hr) {
-                            profile.max_hr = sessionSummary.new_max_hr;
-                        }
-                        window.go.main.App.UpdateUserProfile(profile).then(() => {
-                            alert("Profile successfully updated!");
-                            if (window.ui) window.ui.loadUserProfile();
-                        });
-                    });
-                }
-            }, 1000);
-        }
-
-        try {
-            if (window.go.main.App.IsStravaConnected) {
-                const isConnected = await window.go.main.App.IsStravaConnected();
-                const btnStrava = document.getElementById('btnUploadStrava');
-
-                if (isConnected) {
-                    btnStrava.classList.remove('hidden');
-                    btnStrava.innerHTML = `
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg> Upload to Strava`;
-                    btnStrava.disabled = false;
-                    btnStrava.style.backgroundColor = "#FC4C02";
-                } else {
-                    btnStrava.classList.add('hidden');
-                }
-            }
-        } catch (e) {
-            console.log("Strava validation skipped", e);
-        }
-
-        try {
-            if (window.go.main.App.IsIntervalsConnected) {
-                const isConnected = await window.go.main.App.IsIntervalsConnected();
-                const btnIntervals = document.getElementById('btnUploadIntervals');
-
-                if (isConnected) {
-                    btnIntervals.classList.remove('hidden');
-                    btnIntervals.innerHTML = `
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
-                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                            <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                        </svg> Upload to Intervals.icu`;
-                    btnIntervals.disabled = false;
-                } else {
-                    btnIntervals.classList.add('hidden');
-                }
-            }
-        } catch (e) {
-            console.log("Intervals.icu validation skipped", e);
-        }
+        await handleSessionFinished(sessionSummary);
     } catch (e) { alert("Error when saving: " + e); }
 }
 window.finishWorkout = finishWorkout;
+
+
+// ==================
+// SESSION RECOVERY (unfinished session left behind by a crash)
+// ==================
+
+async function recoverPendingSession() {
+    const modal = document.getElementById('recoveryModal');
+    try {
+        const sessionSummary = await window.go.main.App.RecoverPendingSession();
+        modal.classList.remove('active');
+        await handleSessionFinished(sessionSummary);
+    } catch (e) {
+        alert("Error recovering session: " + e);
+    }
+}
+
+async function discardPendingSession() {
+    const modal = document.getElementById('recoveryModal');
+    try {
+        await window.go.main.App.DiscardPendingRecovery();
+    } catch (e) {
+        console.log("Discard recovery error", e);
+    }
+    modal.classList.remove('active');
+}
+
+// Asks the backend for an unfinished session snapshot and, when one exists,
+// offers to recover or discard it.
+async function initSessionRecovery() {
+    if (Capacitor.isNativePlatform()) return;
+    if (!window.go || !window.go.main || !window.go.main.App) return;
+
+    try {
+        const pending = await window.go.main.App.CheckPendingRecovery();
+        if (!pending) return;
+
+        const modal = document.getElementById('recoveryModal');
+        const details = document.getElementById('recoveryDetails');
+        if (!modal || !details) return;
+
+        const startedAt = pending.started_at ? new Date(pending.started_at) : null;
+        const durationMin = Math.max(1, Math.round((pending.active_time || 0) / 60));
+        const distanceKm = (pending.distance_km || 0).toFixed(1);
+
+        const parts = [];
+        if (startedAt && !isNaN(startedAt)) {
+            parts.push(`<strong>${startedAt.toLocaleString()}</strong>`);
+        }
+        parts.push(`~${durationMin} min`, `${distanceKm} km`);
+        if (pending.route_name) parts.push(pending.route_name);
+
+        details.innerHTML = `An unfinished session was found and can still be saved:<br>${parts.join(' &middot; ')}`;
+        modal.classList.add('active');
+    } catch (e) {
+        console.log("Session recovery check skipped", e);
+    }
+}
+
+document.getElementById('btnRecoverSession').addEventListener('click', recoverPendingSession);
+document.getElementById('btnDiscardRecovery').addEventListener('click', discardPendingSession);
 
 
 window.uploadToStrava = async () => {
@@ -1961,5 +2031,6 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshTrainerConnectionState();
         initTutorial();
         bindIntervalsUI();
+        initSessionRecovery();
     }, 300);
 });

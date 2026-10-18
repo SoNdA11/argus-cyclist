@@ -66,6 +66,10 @@ export function ChangeWorkoutIntensity(arg1) {
   return window['go']['main']['App']['ChangeWorkoutIntensity'](arg1);
 }
 
+export function CheckPendingRecovery() {
+  return window['go']['main']['App']['CheckPendingRecovery']();
+}
+
 export function ConnectHeartRate(arg1) {
   return window['go']['main']['App']['ConnectHeartRate'](arg1);
 }
@@ -108,6 +112,10 @@ export function DeleteEventRecord(arg1) {
 
 export function DeleteLocalAccount(arg1) {
   return window['go']['main']['App']['DeleteLocalAccount'](arg1);
+}
+
+export function DiscardPendingRecovery() {
+  return window['go']['main']['App']['DiscardPendingRecovery']();
 }
 
 export function DiscardSession() {
@@ -244,6 +252,10 @@ export function OpenFileFolder(arg1) {
 
 export function ProcessGamification(arg1) {
   return window['go']['main']['App']['ProcessGamification'](arg1);
+}
+
+export function RecoverPendingSession() {
+  return window['go']['main']['App']['RecoverPendingSession']();
 }
 
 export function RepeatWorkout() {

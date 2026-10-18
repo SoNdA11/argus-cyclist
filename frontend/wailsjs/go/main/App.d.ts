@@ -36,6 +36,8 @@ export function ChangePowerSimulation(arg1:number):Promise<number>;
 
 export function ChangeWorkoutIntensity(arg1:number):Promise<number>;
 
+export function CheckPendingRecovery():Promise<main.PendingRecovery>;
+
 export function ConnectHeartRate(arg1:string):Promise<string>;
 
 export function ConnectStrava():Promise<string>;
@@ -57,6 +59,8 @@ export function DeleteCustomGoal(arg1:number):Promise<void>;
 export function DeleteEventRecord(arg1:number):Promise<void>;
 
 export function DeleteLocalAccount(arg1:string):Promise<void>;
+
+export function DiscardPendingRecovery():Promise<string>;
 
 export function DiscardSession():Promise<string>;
 
@@ -125,6 +129,8 @@ export function LoadWorkout():Promise<string>;
 export function OpenFileFolder(arg1:string):Promise<void>;
 
 export function ProcessGamification(arg1:domain.Activity):Promise<main.GamificationResult>;
+
+export function RecoverPendingSession():Promise<main.SessionSummary>;
 
 export function RepeatWorkout():Promise<string>;
 

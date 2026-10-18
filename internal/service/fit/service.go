@@ -132,6 +132,17 @@ func (s *Service) Save(filepath string) error {
 
 	// 5. Calculations for Summary
 	totalTime := time.Since(s.startTime).Seconds()
+	if len(s.records) > 0 {
+		// Derive the elapsed time from the recorded samples instead of the
+		// wall clock. This keeps pauses/cooldown out of the FIT totals and,
+		// more importantly, prevents a session finalized later (e.g. one
+		// restored from a crash-recovery snapshot) from reporting the whole
+		// gap between the original start and the recovery time.
+		totalTime = s.records[len(s.records)-1].Timestamp.Sub(s.startTime).Seconds()
+		if totalTime < 0 {
+			totalTime = 0
+		}
+	}
 	avgPower := calculateAvgPower(s.records)
 	lastDist := getLastDistance(s.records)
 
