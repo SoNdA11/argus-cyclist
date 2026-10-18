@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -36,6 +37,7 @@ import (
 	"argus-cyclist/internal/service/fit"
 	"argus-cyclist/internal/service/gpx"
 	"argus-cyclist/internal/service/intervals"
+	"argus-cyclist/internal/service/recovery"
 	"argus-cyclist/internal/service/sim"
 	"argus-cyclist/internal/service/strava"
 	"argus-cyclist/internal/service/workout"
@@ -65,6 +67,10 @@ type App struct {
 
 	isRecording bool
 	isPaused    bool
+
+	// recoveryService snapshots the in-progress session to disk so it can
+	// still be finalized after a crash or an unexpected shutdown.
+	recoveryService *recovery.Store
 
 	isTrainerConnected bool
 	isHRConnected      bool
@@ -149,12 +155,13 @@ func NewApp() *App {
 	defaultBikeWeight := 9.0
 
 	return &App{
-		gpxService:     gpx.NewService(),
-		fitService:     fit.NewService(),
-		physicsEngine:  sim.NewEngine(defaultRiderWeight, defaultBikeWeight),
-		trainerService: ble.NewRealService(),
-		workoutService: workout.NewService(),
-		aiService:      ai.NewService(),
+		gpxService:      gpx.NewService(),
+		fitService:      fit.NewService(),
+		physicsEngine:   sim.NewEngine(defaultRiderWeight, defaultBikeWeight),
+		trainerService:  ble.NewRealService(),
+		workoutService:  workout.NewService(),
+		aiService:       ai.NewService(),
+		recoveryService: recovery.NewStore(filepath.Join("workouts", ".recovery")),
 
 		storageService: store,
 		telemetryChan:  make(chan domain.Telemetry),
@@ -166,10 +173,43 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// emitEvent is a nil-safe wrapper around runtime.EventsEmit so the
+// application (and its tests) can call it without a Wails context.
+func (a *App) emitEvent(name string, data ...interface{}) {
+	if a.ctx == nil {
+		return
+	}
+	runtime.EventsEmit(a.ctx, name, data...)
+}
+
 // Shutdown is called by Wails when the app is closing.
 func (a *App) Shutdown(ctx context.Context) {
 	fmt.Println("Closing app: Disconnecting BLE...")
+
+	// If a session is still recording, flush the latest metadata so the
+	// workout can be offered for recovery on the next launch. Telemetry
+	// samples are already on disk (appended as they were recorded).
+	if a.isRecording {
+		if err := a.recoveryService.UpdateMeta(a.buildRecoveryMeta()); err != nil {
+			fmt.Println("Recovery flush error:", err)
+		}
+	}
+
 	a.trainerService.Disconnect()
+}
+
+// buildRecoveryMeta captures the current session accumulators for the
+// crash-recovery snapshot.
+func (a *App) buildRecoveryMeta() recovery.Meta {
+	return recovery.Meta{
+		StartedAt:         a.sessionStart,
+		RouteName:         a.currentRouteName,
+		SessionActiveTime: a.sessionActiveTime,
+		PeakHR:            a.peakHR,
+		HRAt1Min:          a.hrAt1Min,
+		HRAt2Min:          a.hrAt2Min,
+		UpdatedAt:         time.Now(),
+	}
 }
 
 // OpenFileFolder opens the system file explorer at the given file location.
@@ -724,6 +764,11 @@ func (a *App) startSession() string {
 		a.fitService.StartSession(a.sessionStart)
 	}
 
+	// Start crash-recovery autosave for this session.
+	if err := a.recoveryService.Begin(a.buildRecoveryMeta()); err != nil {
+		fmt.Println("Recovery snapshot error:", err)
+	}
+
 	a.isRecording = true
 	a.isPaused = false
 
@@ -929,10 +974,17 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	}
 
 	if err := a.fitService.Save(fullPath); err != nil {
-		runtime.EventsEmit(a.ctx, "error", "Error saving FIT file")
+		a.emitEvent("error", "Error saving FIT file")
 	} else {
 		absPath, _ := filepath.Abs(fullPath)
-		runtime.EventsEmit(a.ctx, "log", fmt.Sprintf("Workout saved: %s", absPath))
+		a.emitEvent("log", fmt.Sprintf("Workout saved: %s", absPath))
+
+		// The workout is safely persisted: drop the recovery snapshot. Keep
+		// it around if the FIT file could not be written so the session can
+		// still be rescued on the next launch.
+		if err := a.recoveryService.Clear(); err != nil {
+			fmt.Println("Recovery cleanup error:", err)
+		}
 	}
 
 	a.isRecording = false
@@ -945,7 +997,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.hrAt1Min = 0
 	a.hrAt2Min = 0
 
-	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
+	a.emitEvent("status_change", "IDLE")
 
 	return SessionSummary{
 		Activity:     activity,
@@ -991,9 +1043,127 @@ func (a *App) DiscardSession() string {
 
 	a.UnloadWorkout()
 
+	// The user explicitly discarded the session: drop the recovery snapshot.
+	if err := a.recoveryService.Clear(); err != nil {
+		fmt.Println("Recovery cleanup error:", err)
+	}
+
 	runtime.EventsEmit(a.ctx, "status_change", "IDLE")
 	runtime.EventsEmit(a.ctx, "workout_finished", "canceled")
 
+	return "Discarded"
+}
+
+// PendingRecovery summarizes an unfinished session found on disk.
+type PendingRecovery struct {
+	StartedAt   time.Time `json:"started_at"`
+	ActiveTime  int       `json:"active_time"` // Seconds of active riding
+	DistanceKm  float64   `json:"distance_km"`
+	RouteName   string    `json:"route_name"`
+	SampleCount int       `json:"sample_count"`
+}
+
+// CheckPendingRecovery returns the snapshot of an unfinished session left
+// behind by a crash or an unexpected shutdown, or nil when there is none.
+// Snapshots too short to be worth recovering are discarded silently.
+func (a *App) CheckPendingRecovery() *PendingRecovery {
+	if a.isRecording {
+		return nil
+	}
+
+	meta, samples, err := a.recoveryService.Load()
+	if err != nil {
+		if !errors.Is(err, recovery.ErrNoPending) {
+			fmt.Println("Recovery check error:", err)
+		}
+		return nil
+	}
+
+	if !meta.Meaningful(len(samples)) {
+		if err := a.recoveryService.Clear(); err != nil {
+			fmt.Println("Recovery cleanup error:", err)
+		}
+		return nil
+	}
+
+	pending := &PendingRecovery{
+		StartedAt:   meta.StartedAt,
+		ActiveTime:  int(meta.SessionActiveTime),
+		RouteName:   meta.RouteName,
+		SampleCount: len(samples),
+	}
+	if len(samples) > 0 {
+		pending.DistanceKm = samples[len(samples)-1].TotalDistance / 1000.0
+	}
+	return pending
+}
+
+// RecoverPendingSession finalizes an unfinished session found on disk.
+// It rebuilds the in-memory session state from the recovery snapshot and
+// reuses FinishSession, so the recovered workout produces the usual FIT
+// file, database activity and summary.
+func (a *App) RecoverPendingSession() (SessionSummary, error) {
+	if a.isRecording {
+		return SessionSummary{}, fmt.Errorf("cannot recover: a session is already recording")
+	}
+
+	meta, samples, err := a.recoveryService.Load()
+	if err != nil {
+		return SessionSummary{}, err
+	}
+	if !meta.Meaningful(len(samples)) {
+		a.recoveryService.Clear()
+		return SessionSummary{}, fmt.Errorf("pending session is too short to recover")
+	}
+
+	// Rebuild the session accumulators from the recorded samples.
+	a.sessionStart = meta.StartedAt
+	a.sessionActiveTime = meta.SessionActiveTime
+	a.currentRouteName = meta.RouteName
+	a.peakHR = meta.PeakHR
+	a.hrAt1Min = meta.HRAt1Min
+	a.hrAt2Min = meta.HRAt2Min
+	a.isPaused = false
+	a.isCooldown = false
+	a.isInWorkout = false
+	a.workoutStartTimeOffset = 0
+
+	a.sessionPowerData = make([]int, 0, len(samples))
+	a.sessionHRData = make([]int, 0, len(samples))
+	a.sessionPowerSum = 0
+	a.sessionTicks = 0
+	a.currentDist = 0
+	a.sessionElevationGain = 0.0
+	a.lastAltitude = -9999.0
+
+	a.fitService.StartSession(meta.StartedAt)
+	for _, sample := range samples {
+		a.fitService.AddRecord(sample)
+
+		power := int(sample.Power)
+		if power < 0 {
+			power = 0
+		}
+		a.sessionPowerData = append(a.sessionPowerData, power)
+		a.sessionHRData = append(a.sessionHRData, int(sample.HeartRate))
+		a.sessionPowerSum += uint64(power)
+		a.sessionTicks++
+		a.currentDist = sample.TotalDistance
+		a.sessionElevationGain = sample.ElevationGain
+		a.lastAltitude = sample.Altitude
+	}
+
+	// FinishSession requires an active recording flag.
+	a.isRecording = true
+	return a.FinishSession()
+}
+
+// DiscardPendingRecovery deletes a pending recovery snapshot without
+// restoring it.
+func (a *App) DiscardPendingRecovery() string {
+	if err := a.recoveryService.Clear(); err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
 	return "Discarded"
 }
 
@@ -1037,6 +1207,10 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 	lastSentGrade := -999.0
 	currentMode := ""
 	lastRoutePos := -1.0
+
+	// Crash-recovery autosave bookkeeping.
+	lastRecoverySync := time.Now()
+	recoveryAutosaveWarned := false
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -1114,6 +1288,16 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				a.sessionTicks++
 				a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
 				a.sessionHRData = append(a.sessionHRData, int(currentHR))
+			}
+
+			// Periodically refresh the recovery metadata. Telemetry samples
+			// are appended to disk in lockstep with the FIT records below.
+			if a.isRecording && now.Sub(lastRecoverySync) >= 5*time.Second {
+				lastRecoverySync = now
+				if err := a.recoveryService.UpdateMeta(a.buildRecoveryMeta()); err != nil && !recoveryAutosaveWarned {
+					recoveryAutosaveWarned = true
+					fmt.Println("Recovery autosave error:", err)
+				}
 			}
 
 			if now.Sub(lastPowerTime) > sensorTimeout {
@@ -1275,6 +1459,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				RiderWeight: a.physicsEngine.UserWeight,
 			}
 			a.fitService.AddRecord(fullTelemetry)
+			if a.isRecording {
+				if err := a.recoveryService.AppendSample(fullTelemetry); err != nil && !recoveryAutosaveWarned {
+					recoveryAutosaveWarned = true
+					fmt.Println("Recovery autosave error:", err)
+				}
+			}
 			runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
 
 			// 2. Training State Package (Only if you are training)
