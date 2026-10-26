@@ -12,6 +12,7 @@
 \usepackage[utf8]{inputenc}                     % entrada UTF-8
 \usepackage{lastpage}                           % referência à última página
 \usepackage{graphicx}                           % figuras
+\usepackage{float}                              % posicionamento explícito de tabelas
 \usepackage{xcolor}                             % cores
 \usepackage{booktabs}                           % tabelas profissionais
 \usepackage{multirow}                           % mescla células em tabelas
@@ -23,6 +24,56 @@
 \usepackage{siunitx}                            % unidades SI
 \usepackage{csquotes}                           % aspas tipográficas
 \usepackage{pdfpages}                           % inclusão do certificado INPI
+\usepackage{listings}                           % trechos de código
+
+% ---------------------------------------------------------------------
+%  Listagens de código
+% ---------------------------------------------------------------------
+\lstdefinelanguage{Go}{
+  keywords={break,case,chan,const,continue,default,defer,else,fallthrough,
+    for,func,go,goto,if,import,interface,map,package,range,return,select,
+    struct,switch,type,var},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+}
+\lstdefinelanguage{JavaScript}{
+  keywords={break,case,catch,continue,debugger,default,delete,do,else,finally,
+    for,function,if,in,instanceof,new,return,switch,this,throw,try,typeof,var,
+    void,while,with,class,const,enum,export,extends,import,super,let,yield,
+    async,await,of,static,get,set},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+}
+\lstdefinestyle{argus}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  rulecolor=\color{black!25},
+  backgroundcolor=\color{black!3},
+  numbers=left,
+  numberstyle=\tiny\color{black!45},
+  numbersep=5pt,
+  xleftmargin=1.4em,
+  framexleftmargin=1.4em,
+  captionpos=b,
+  showstringspaces=false,
+  keywordstyle=\color{blueargus}\bfseries,
+  commentstyle=\color{green!35!black}\itshape,
+  stringstyle=\color{red!55!black},
+  tabsize=2,
+  aboveskip=0.6em,
+  belowskip=0.4em,
+}
+\lstset{style=argus}
+\renewcommand{\lstlistingname}{Listagem}
+\renewcommand{\lstlistlistingname}{Lista de listagens}
 
 % ---------------------------------------------------------------------
 %  TikZ — diagramas de arquitetura
@@ -49,6 +100,10 @@
     linkcolor=black,
     citecolor=black,
     urlcolor=blue,
+    pdftitle={Argus Cyclist: um ecossistema multiplataforma e de código aberto para o ciclismo virtual},
+    pdfauthor={Paulo Sérgio Silva de Medeiros},
+    pdfsubject={Trabalho de Conclusão de Curso},
+    pdfkeywords={ciclismo virtual, percursos reais, código aberto, análise fisiológica, multiplataforma, Design Science Research},
 }
 
 % ---------------------------------------------------------------------

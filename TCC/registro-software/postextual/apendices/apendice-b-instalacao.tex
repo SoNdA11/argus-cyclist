@@ -1,5 +1,5 @@
 % =====================================================================
-%  APÊNDICE A — GUIA DE INSTALAÇÃO E EXECUÇÃO
+%  APÊNDICE B — GUIA DE INSTALAÇÃO E EXECUÇÃO
 % =====================================================================
 
 \chapter{GUIA DE INSTALAÇÃO E EXECUÇÃO}
@@ -22,7 +22,9 @@ execução do \argus{} em modo de desenvolvimento.
 \label{ap:instalacao-dependencias}
 
 \begin{enumerate}
-    \item Clonar o repositório e entrar na pasta do projeto;
+    \item Clonar o repositório em
+        \url{https://github.com/SoNdA11/argus-cyclist} e entrar na pasta do
+        projeto;
     \item Instalar as dependências do \textit{backend} Go:
         \begin{verbatim}
         go mod tidy
@@ -45,7 +47,32 @@ desenvolvimento (com \textit{hot reload}) por meio do comando:
 wails dev
 \end{verbatim}
 
-\complementar{Descrever aqui, se desejado, o fluxo de geração do instalador de
-produção para Windows/Linux (\code{wails build}) e o processo de compilação do
-aplicativo Android com Capacitor (\code{npx cap sync android}), incluindo
-capturas de tela do passo a passo.}
+\section{Geração do aplicativo de desktop}
+\label{ap:instalacao-build}
+
+Para gerar o binário de produção para Windows ou Linux, execute, na raiz do
+projeto:
+
+\begin{verbatim}
+wails build
+\end{verbatim}
+
+O artefato é criado no diretório \code{build/bin}. A compilação para macOS
+depende de macOS com Xcode e não foi validada neste trabalho.
+
+\section{Compilação para Android}
+\label{ap:instalacao-android}
+
+A versão Android reutiliza o \textit{frontend} e o empacota com o Capacitor.
+Após instalar o Android Studio e configurar o SDK, execute:
+
+\begin{verbatim}
+cd frontend
+npm run build
+npx cap sync android
+npx cap open android
+\end{verbatim}
+
+O último comando abre o projeto no Android Studio, a partir do qual o APK pode
+ser gerado e instalado em um dispositivo físico. O projeto iOS/iPadOS existe,
+mas não foi compilado nem validado neste trabalho.

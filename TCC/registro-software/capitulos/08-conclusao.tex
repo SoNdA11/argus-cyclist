@@ -1,0 +1,144 @@
+% =====================================================================
+%  CAPÍTULO 8 — CONCLUSÃO
+% =====================================================================
+
+\chapter{CONCLUSÃO}
+\label{cap:conclusao}
+
+Este trabalho apresentou o \argus{}, um ecossistema de software multiplataforma
+e de código aberto para simulação, exploração e análise de percursos reais no
+ciclismo virtual. O ponto de partida não foi a construção de mais um catálogo de
+rotas, mas a constatação de que o percurso e o dado fisiológico costumam ocupar
+aplicativos diferentes. No \textit{desktop}, o artefato foi projetado para
+manter o GPX, a simulação, a telemetria e o histórico no mesmo fluxo, com
+processamento local e fórmulas explícitas; no Android, oferece uma sessão ao
+vivo com o mesmo \textit{frontend}, sem fechar o ciclo de FIT e análise.
+
+\section{Síntese do percurso}
+\label{sec:sintese-final}
+
+O trabalho percorreu as etapas da \textit{Design Science Research}: identificou
+o problema da fragmentação, definiu requisitos, projetou e desenvolveu o
+artefato, demonstrou o fluxo em cenários de reconhecimento, exploração e treino,
+e avaliou o resultado em um estudo piloto com o próprio autor. A versão
+registrada no INPI foi tratada como linha de base; a versão apresentada incorpora
+o modo Android, a migração do mapa, a análise fisiológica, as integrações e o
+assistente local.
+
+A tese do trabalho se confirma no plano da engenharia: é possível reunir esses
+elementos em um único ambiente, com uma arquitetura que separa domínio,
+interface e persistência, e com uma interface reutilizada entre \textit{desktop}
+e Android. A confirmação é limitada pelo escopo: o estudo piloto não demonstra
+eficácia de treinamento, usabilidade por terceiros ou superioridade sobre
+plataformas comerciais. Demonstra que o fluxo funciona nas condições testadas e
+que as decisões de projeto são viáveis.
+
+\section{Contribuições}
+\label{sec:contribuicoes}
+
+As contribuições do trabalho podem ser organizadas em cinco grupos.
+
+\begin{enumerate}
+    \item \textbf{Artefato aberto e integrável}: o \argus{} é distribuído sob
+        GPLv3 e, no \textit{desktop}, reúne importação de GPX, simulação de
+        percurso, controle de rolo, telemetria, análise fisiológica e
+        histórico local em um único sistema.
+
+    \item \textbf{Análise fisiológica transparente}: no \textit{desktop}, as
+        métricas NP, IF, TSS, TRIMP, PMC, HRR e desacoplamento são calculadas
+        com fórmulas e parâmetros documentados, e o texto explicita o que é
+        medido, o que é estimado e o que é convenção de treino.
+
+    \item \textbf{Arquitetura multiplataforma delimitada}: o sistema foi
+        exercitado no \textit{desktop} Windows/Linux (fluxo completo) e no
+        telefone Android (sessão ao vivo), com uma preparação arquitetural para
+        iOS/iPadOS e um layout responsivo para tablet. O trabalho não transforma
+        preparação em validação.
+
+    \item \textbf{Processo documentado}: o histórico Git, os ciclos de
+        desenvolvimento, os requisitos e as limitações permitem que outro
+        pesquisador entenda e reproduza o percurso de construção.
+
+    \item \textbf{Registro e continuidade}: o registro no INPI formaliza a
+        versão inicial, e o texto documenta a evolução até a versão atual,
+        preservando a memória do projeto.
+\end{enumerate}
+
+\section{Limitações}
+\label{sec:limitacoes-finais}
+
+As limitações são parte do resultado, não um apêndice incômodo. As principais
+são:
+
+\begin{itemize}
+    \item \textbf{avaliação com um único participante}: o piloto foi realizado
+        pelo autor, sem outros voluntários, sem grupo de controle e sem
+        instrumento padronizado de usabilidade;
+    \item \textbf{cobertura de plataformas}: iOS/iPadOS, tablet Android e
+        \textit{desktop} macOS não foram validados em dispositivo;
+    \item \textbf{escopo funcional do Android}: o modo móvel cobre a sessão ao
+        vivo, mas não exporta FIT, não mantém histórico e não inclui testes de
+        aptidão, rolo virtual ou integrações;
+    \item \textbf{cobertura de hardware}: o piloto usou um conjunto restrito de
+        rolo, sensor de frequência cardíaca e demais sensores; outros fabricantes
+        e protocolos podem revelar problemas de compatibilidade;
+    \item \textbf{métricas fisiológicas}: VT1/VT2 são marcados manualmente, o
+        teste de cinco minutos é usado como proxy de MAP e não como medida de
+        VO\textsubscript{2}max, o TRIMP usa um coeficiente populacional e as
+        zonas de FC são uma aproximação por percentual da máxima;
+    \item \textbf{reconhecimento não automatizado}: o fluxo de reconhecimento é
+        manual; não há detecção automática de segmentos, curvas ou
+        recomendações de \textit{pacing};
+    \item \textbf{dependência de tiles}: o mapa 3D usa tiles remotos; no
+        \textit{desktop}, o processamento e o histórico são locais, mas a
+        visualização completa do mapa não é totalmente offline;
+    \item \textbf{ausência de multiplayer e de catálogo}: o sistema não oferece
+        corrida em tempo real com outros atletas nem biblioteca própria de
+        rotas.
+\end{itemize}
+
+\section{Trabalhos futuros}
+\label{sec:trabalhos-futuros}
+
+A agenda de continuidade tem dois eixos: aprofundar a avaliação e ampliar o
+artefato.
+
+No eixo de avaliação, os próximos passos são:
+
+\begin{itemize}
+    \item realizar um estudo de usabilidade com ciclistas amadores, com
+        instrumento padronizado e registro de tarefas;
+    \item comparar a simulação de percurso com medidas externas de potência e
+        velocidade em condições controladas;
+    \item validar a compilação e o uso em iOS/iPadOS, tablet Android e
+        \textit{desktop} macOS;
+    \item ampliar a base de rolos, sensores de frequência cardíaca e medidores
+        de potência.
+\end{itemize}
+
+No eixo de artefato, os próximos passos são:
+
+\begin{itemize}
+    \item \textbf{automação do reconhecimento}: detectar subidas, segmentos e
+        curvas, marcar pontos críticos e comparar tentativas;
+    \item \textbf{análise de pacing}: estimar esforço por trecho e sugerir
+        distribuição de potência para a prova;
+    \item \textbf{mapas offline}: armazenar tiles e terreno para uso sem rede;
+    \item \textbf{calibração e incerteza}: registrar o estado de calibração do
+        rolo e propagar incerteza nas métricas;
+    \item \textbf{multiplayer local}: permitir sessões conjuntas em rede local,
+        sem infraestrutura em nuvem;
+    \item \textbf{IA com recuperação}: usar o histórico do atleta como contexto
+        para recomendações, mantendo a inferência local.
+\end{itemize}
+
+\section{Considerações finais}
+\label{sec:consideracoes-finais}
+
+O \argus{} não resolve todos os problemas do ciclismo virtual e não substitui o
+reconhecimento presencial, o treinador ou o laboratório. Ele oferece uma
+alternativa aberta para quem quer controlar o percurso e o dado, e um artefato
+de pesquisa para estudar a integração entre simulação e fisiologia. A
+contribuição mais duradoura talvez não seja o código em si, mas a demonstração
+de que é possível documentar, de forma reprodutível, o que um software esportivo
+mede, como mede e para que serve.

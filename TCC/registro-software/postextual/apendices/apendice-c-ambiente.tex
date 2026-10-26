@@ -1,0 +1,67 @@
+% =====================================================================
+%  APÊNDICE C — CONFIGURAÇÃO DO AMBIENTE
+% =====================================================================
+
+\chapter{CONFIGURAÇÃO DO AMBIENTE}
+\label{ap:ambiente}
+
+Este apêndice descreve a configuração dos principais componentes do ambiente de
+execução do \argus{}.
+
+\section{Conexão com sensores Bluetooth Low Energy}
+\label{ap:ambiente-ble}
+
+Os sensores BLE (sensor de frequência cardíaca, medidor de potência e rolo
+inteligente) são detectados automaticamente pelo escaneamento do sistema. No
+Windows, caso a
+pilha Bluetooth não exponha os UUIDs de serviço durante o escaneamento, o
+\argus{} lista os dispositivos nomeados e valida os serviços FTMS/HR após a
+seleção e conexão. Para diagnóstico, a variável de ambiente
+\code{ARGUS\_BLE\_DEBUG=1} ativa logs detalhados de escaneamento.
+
+O pareamento é feito pela interface de conexão do \argus{}. No Windows, o
+sistema operacional precisa permitir o acesso ao Bluetooth nas configurações de
+privacidade; no Linux, o usuário deve ter permissão para acessar o adaptador
+Bluetooth; no Android, a permissão de localização/dispositivos próximos deve ser
+concedida ao aplicativo. O rolo deve estar livre de outro aplicativo no
+momento da conexão, porque alguns modelos aceitam apenas um cliente BLE por vez.
+
+\section{Assistente de treino com IA local (Ollama)}
+\label{ap:ambiente-ollama}
+
+O assistente de IA requer uma instância do Ollama \cite{ollama2024} executando
+no dispositivo. Recomenda-se o modelo quantizado de pequena escala
+\texttt{qwen2.5:3b}, que executa de forma responsiva em CPU. A seleção do
+modelo é feita na interface do \argus{} (\textit{AIChatController}).
+
+A instalação é feita a partir de \url{https://ollama.com/}. Depois de instalar
+o serviço, baixe o modelo recomendado:
+
+\begin{verbatim}
+ollama pull qwen2.5:3b
+\end{verbatim}
+
+Por padrão, o \argus{} procura o serviço em \code{http://localhost:11434}. Para
+usar outro \textit{endpoint}, configure a variável \code{OLLAMA\_HOST} no
+ambiente do serviço e ajuste a URL na interface de configuração do assistente.
+Modelos maiores podem ser usados, mas exigem mais memória e tornam a inferência
+em CPU mais lenta.
+
+\section{Integração com o Strava e o Intervals.icu}
+\label{ap:ambiente-strava}
+
+As integrações com o Strava e o Intervals.icu exigem o cadastro de uma
+aplicação no respectivo portal de desenvolvedores e o armazenamento das
+credenciais de OAuth 2.0. O fluxo de autorização é realizado por um servidor
+HTTP local, e o \textit{refresh token} é gerenciado automaticamente pelo
+sistema.
+
+Para o Strava, é necessário criar uma aplicação em
+\url{https://developers.strava.com/} e obter \code{client\_id} e
+\code{client\_secret}. A URL de redirecionamento deve apontar para o servidor
+local usado pelo \argus{} durante o fluxo OAuth. As permissões solicitadas
+incluem leitura do perfil e escrita de atividades. Para o Intervals.icu, o
+usuário gera uma chave de API nas configurações da conta e a informa na
+interface de integrações. As credenciais não devem ser versionadas no
+repositório; em produção, devem ser armazenadas de forma protegida no
+dispositivo.

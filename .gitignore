@@ -22,6 +22,9 @@ frontend/android/.idea/
 
 .env
 
-# Documentação e TCC (não versionados)
+# Documentação (não versionada)
 docs/
-TCC/
+
+# Recibos locais do Archify
+.archify/**/review-*/
+.archify/**/argus-cyclist-arquitetura.*.json

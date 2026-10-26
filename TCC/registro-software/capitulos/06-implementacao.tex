@@ -1,0 +1,682 @@
+% =====================================================================
+%  CAPÍTULO 6 — IMPLEMENTAÇÃO
+% =====================================================================
+
+\chapter{IMPLEMENTAÇÃO}
+\label{cap:implementacao}
+
+Este capítulo mostra como as decisões dos capítulos anteriores aparecem no
+código. Ele não repete a lista de requisitos nem a descrição da arquitetura:
+procura explicar o que cada módulo faz, quais escolhas de implementação afetam
+o resultado e onde o comportamento real se afasta do ideal. Os trechos de código
+são recortes editoriais: nomes, tipos e lógica foram preservados, mas comentários
+longos e trechos não relacionados foram omitidos. As listagens servem para
+tornar o mecanismo auditável, não para substituir a leitura do repositório.
+
+\section{Organização do código}
+\label{sec:organizacao-codigo}
+
+O repositório separa o núcleo Go, a interface JavaScript e os artefatos de
+distribuição. A Tabela~\ref{tab:mapa-codigo} relaciona as áreas funcionais aos
+arquivos principais. A estrutura é a de um monólito modular: os pacotes são
+independentes o suficiente para serem testados e substituídos, mas executam no
+mesmo processo no desktop.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Mapa entre áreas funcionais e arquivos de implementação}
+    \label{tab:mapa-codigo}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{4.8cm}
+        >{\raggedright\arraybackslash}p{5.6cm}@{}}
+        \toprule
+        \textbf{Área} & \textbf{Arquivos} & \textbf{Conteúdo} \\
+        \midrule
+        Aplicação & \code{app.go}, \code{gamification.go} & Fachada,
+        ciclo de sessão, treino, recuperação, exportação e IA \\
+        Domínio & \code{internal/domain} & Entidades, interfaces de
+        repositório e porta do rolo \\
+        Hardware & \code{internal/service/ble}, \code{ble/fec} & BLE,
+        FTMS, FE-C sobre BLE e rolo virtual \\
+        Simulação & \code{internal/service/sim}, \code{gpx} & Solução da
+        equação de potência, GPX e consulta por distância \\
+        Dados & \code{internal/service/fit}, \code{recovery} & Registro,
+        métricas, FIT e snapshot de recuperação \\
+        Persistência & \code{repository/sqlite}, \code{usecase} &
+        Bancos por perfil e fachada de armazenamento \\
+        Interface & \code{frontend/src} & HUD, mapa, gráficos, treino,
+        eventos e barramento de telemetria \\
+        Android & \code{frontend/src/modules} e projeto Capacitor & BLE
+        nativo, física JavaScript, GPX e modo ao vivo \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+O arquivo \code{app.go} é o ponto de entrada da aplicação Wails e concentra a
+orquestração. Ele expõe métodos ao \textit{frontend}, inicia e encerra o
+\textit{game loop}, controla o rolo, calcula o resumo, grava o FIT e
+gerencia a recuperação. Essa concentração é uma dívida técnica conhecida: em
+uma arquitetura mais estrita, cada operação seria um caso de uso separado. Para
+o escopo do trabalho, ela permitiu iterar rápido e manter o fluxo completo
+visível em um único arquivo.
+
+\section{Núcleo de simulação}
+\label{sec:implementacao-simulacao}
+
+\subsection{Leitura e suavização do GPX}
+\label{sec:implementacao-gpx}
+
+O serviço de GPX usa a biblioteca \code{gpxgo} para ler o XML e converte cada
+ponto em uma estrutura com latitude, longitude, elevação, distância acumulada e
+inclinação. A distância entre pontos consecutivos é tridimensional no desktop,
+ou seja, inclui a diferença de elevação. Depois da leitura, a inclinação é
+calculada em uma janela de até cinco pontos para cada lado, com um limite de
+$\pm 25\%$. A Listagem~\ref{lst:gpx} mostra o núcleo dessa suavização.
+
+\begin{lstlisting}[language=Go, caption={Suavização de inclinação no serviço GPX do desktop}, label={lst:gpx}]
+func smoothGrades(points []domain.RoutePoint) []domain.RoutePoint {
+    windowSize := 5
+    count := len(points)
+    if count < 2 {
+        return points
+    }
+    for i := 0; i < count; i++ {
+        start := math.Max(0, float64(i-windowSize))
+        end := math.Min(float64(count-1), float64(i+windowSize))
+        pStart := points[int(start)]
+        pEnd := points[int(end)]
+        distDelta := pEnd.Distance - pStart.Distance
+        elevDelta := pEnd.Elevation - pStart.Elevation
+        if distDelta > 10.0 {
+            grade := (elevDelta / distDelta) * 100
+            if grade > 25 {
+                grade = 25
+            }
+            if grade < -25 {
+                grade = -25
+            }
+            points[i].Grade = grade
+        } else {
+            points[i].Grade = 0
+        }
+    }
+    return points
+}
+\end{lstlisting}
+
+A janela de cinco pontos reduz picos de elevação que o GPS ou o modelo digital
+de terreno introduzem, mas também atenua rampas curtas. O limite de $\pm 25\%$
+evita que um erro de altitude produza uma inclinação impossível e protege o
+motor de simulação. O limiar de 10 metros para calcular a inclinação evita
+divisão por distâncias muito pequenas. Nenhum desses parâmetros foi calibrado
+com um levantamento topográfico; eles são decisões de engenharia documentadas,
+não constantes validadas.
+
+A consulta por distância usa busca binária e interpolação linear entre o ponto
+anterior e o seguinte. A inclinação retornada é a do ponto anterior, não uma
+interpolação entre inclinações. Isso produz uma inclinação em degraus, enquanto
+latitude, longitude e elevação variam de forma contínua. A escolha simplifica o
+código e evita oscilações, mas significa que a resistência enviada ao rolo
+muda em pequenos saltos a cada ponto do GPX.
+
+No Android, o parser é outro. Ele usa distância horizontal por Haversine, calcula
+a inclinação entre pontos consecutivos e suaviza com uma janela de dois pontos
+para cada lado, sem limite de $\pm 25\%$. A consulta por distância retorna o
+primeiro ponto cuja distância acumulada é maior ou igual ao valor solicitado,
+sem interpolação. A Listagem~\ref{lst:gpx-mobile} reproduz o trecho que torna
+essa diferença explícita.
+
+\begin{lstlisting}[language=JavaScript, caption={Suavização e consulta de GPX no Android}, label={lst:gpx-mobile}]
+const smoothedPoints = points.map((p, i, arr) => {
+    let start = Math.max(0, i - 2);
+    let end = Math.min(arr.length - 1, i + 2);
+    let sumGrade = 0;
+    for (let j = start; j <= end; j++) {
+        sumGrade += arr[j].grade;
+    }
+    return { ...p, grade: sumGrade / (end - start + 1) };
+});
+
+window.WasmGetRoutePoint = function (dist) {
+    const pts = window.mobileRoutePoints;
+    if (!pts || pts.length === 0) return null;
+    const safeDist = dist % window.totalRouteDistance;
+    let idx = 0;
+    for (let i = 0; i < pts.length; i++) {
+        if (pts[i].distance >= safeDist) {
+            idx = i;
+            break;
+        }
+    }
+    return JSON.stringify(pts[idx]);
+};
+\end{lstlisting}
+
+A comparação entre as duas listagens é uma evidência de que o Android não
+executa o mesmo pipeline do desktop. A diferença não impede o uso, mas impede
+tratar as duas plataformas como réplicas. Em um trabalho futuro, extrair o
+parser para um núcleo compartilhado ou para WebAssembly reduziria essa
+divergência.
+
+\subsection{Solução da equação de potência}
+\label{sec:implementacao-solver}
+
+O motor de simulação recebe potência e inclinação, calcula as forças e resolve
+a velocidade por bisseção. A Listagem~\ref{lst:solver} mostra o núcleo do
+método. As constantes vêm do pacote \code{sim}: gravidade 9,81 m/s$^2$,
+densidade do ar 1,225 kg/m$^3$, $C_dA$ 0,32 m$^2$, coeficiente de rolamento
+0,005 e eficiência de transmissão 0,96.
+
+\begin{lstlisting}[language=Go, caption={Solução da velocidade por bisseção}, label={lst:solver}]
+func (e *Engine) CalculateSpeed(watts float64, gradePercent float64) float64 {
+    totalMass := e.UserWeight + e.BikeWeight
+    powerWheel := watts * Drivetrain
+    theta := math.Atan(gradePercent / 100.0)
+    forceGravity := totalMass * Gravity * math.Sin(theta)
+    forceRolling := totalMass * Gravity * math.Cos(theta) * Crr
+    forceLinear := forceGravity + forceRolling
+    constAero := 0.5 * Rho * CdA
+
+    low, high := 0.0, 40.0
+    for i := 0; i < 20; i++ {
+        mid := (low + high) / 2
+        powerRequired := (constAero * math.Pow(mid, 3)) +
+            (forceLinear * mid)
+        if powerRequired < powerWheel {
+            low = mid
+        } else {
+            high = mid
+        }
+        if math.Abs(high-low) < 0.01 {
+            break
+        }
+    }
+    v := (low + high) / 2
+    if v < 0 {
+        return 0
+    }
+    return v
+}
+\end{lstlisting}
+
+O limite superior de 40 m/s evita que uma descida muito íngreme ou um valor
+absurdo de potência produza uma solução fora da faixa útil. A bisseção não
+divide pela velocidade e não depende de um chute inicial, o que a torna estável
+para potência nula e para inclinações negativas. A precisão de 0,01 m/s é mais
+do que suficiente para a interface, mas não corrige as limitações físicas do
+modelo: ausência de inércia, vento, frenagem, curvas e resposta dinâmica do
+rolo.
+
+A potência usada no cálculo é a potência reportada pelo sensor ou pelo
+rolo. Quando o rolo virtual está ativo, o código soma \code{simPower}
+à potência recebida; isso permite testar a simulação sem hardware, mas não é
+uma medida. A velocidade resultante é integrada para atualizar a distância:
+\code{a.currentDist += speedMs * dt}. Como \code{dt} vem do intervalo entre
+notificações BLE, a distância depende da regularidade das notificações e do
+modelo, não de um relógio de parede independente.
+
+\subsection{Laço da sessão e registro}
+\label{sec:implementacao-loop}
+
+O laço da sessão é um \code{select} que escuta o canal de telemetria e o
+cancelamento. A cada notificação, ele atualiza potência, cadência e frequência
+cardíaca, verifica \textit{timeouts}, calcula a posição na rota, controla o
+rolo e emite o evento para o \textit{frontend}. A Listagem~\ref{lst:loop}
+mostra o trecho de integração e registro.
+
+\begin{lstlisting}[language=Go, float=htbp, caption={Integração de tempo, distância e registro no laço da sessão}, label={lst:loop}]
+dt := now.Sub(lastUpdate).Seconds()
+lastUpdate = now
+a.sessionActiveTime += dt
+
+if a.isRecording {
+    a.sessionPowerSum += uint64(currentPower)
+    a.sessionTicks++
+    a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
+    a.sessionHRData = append(a.sessionHRData, int(currentHR))
+}
+
+// ...
+speedMs := a.physicsEngine.CalculateSpeed(
+    float64(currentPower), activeGrade)
+a.currentDist += speedMs * dt
+
+fullTelemetry := domain.Telemetry{
+    Timestamp: now, Power: currentPower, Cadence: currentCadence,
+    HeartRate: currentHR, Speed: speedMs * 3.6,
+    TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
+    Latitude: routePoint.Latitude, Longitude: routePoint.Longitude,
+    Altitude: routePoint.Elevation,
+    ElevationGain: a.sessionElevationGain,
+    RiderWeight: a.physicsEngine.UserWeight,
+}
+a.fitService.AddRecord(fullTelemetry)
+if a.isRecording {
+    a.recoveryService.AppendSample(fullTelemetry)
+}
+runtime.EventsEmit(a.ctx, "telemetry_update", fullTelemetry)
+\end{lstlisting}
+
+O laço trata pausa e resfriamento antes do cálculo. Quando \code{isPaused} é
+verdadeiro, ele atualiza \code{lastUpdate} e emite uma telemetria com velocidade
+zero, sem acumular tempo ativo. Durante o resfriamento, ele não calcula
+velocidade nem registra amostras; apenas acompanha a frequência cardíaca por 120
+segundos e, ao final, chama \code{FinishSession}. Essa separação faz com que o
+resfriamento não entre no tempo ativo nem no FIT como pedalada, mas permite
+calcular a recuperação cardíaca.
+
+Há um \code{ticker} de um segundo no laço, mas ele não é usado para emitir ou
+gravar amostras. A gravação acontece por notificação BLE. O ticker existe para
+outras rotinas e para o encerramento do canal; a taxa de aquisição continua
+sendo a taxa do sensor. Essa observação é importante para não confundir a
+presença de um relógio de um segundo com uma reamostragem de um segundo.
+
+O sensor tem \textit{timeout} de cinco segundos. Se a potência ou a frequência
+cardíaca deixam de chegar, o valor correspondente é zerado. Isso evita que um
+sinal congelado seja interpretado como esforço contínuo, mas também pode zerar
+uma leitura válida em caso de perda temporária de pacotes. O comportamento é
+uma escolha de robustez, não uma reconstrução estatística do sinal.
+
+\section{Integração com o rolo}
+\label{sec:implementacao-ble}
+
+\subsection{Descoberta, assinatura e leitura}
+\label{sec:implementacao-descoberta}
+
+O serviço BLE real escaneia por até 15 segundos, conecta ao endereço escolhido,
+descobre serviços e características e habilita notificações. Para o rolo,
+ele procura o serviço FE-C, o serviço FTMS e o Cycling Power Service. Para o
+sensor de frequência cardíaca, procura o Heart Rate Service. A leitura de
+potência e cadência do Cycling Power segue os \textit{flags} da característica;
+a cadência é calculada pela diferença de revoluções e de tempo entre duas
+notificações.
+
+O código usa \code{WriteWithoutResponse} para os comandos de controle. Isso
+reduz a latência percebida e evita bloquear o laço, mas não garante entrega: o
+protocolo BLE pode perder ou descartar uma escrita. A repetição periódica do
+comando FE-C ajuda a compensar perdas; no FTMS, não há repetição sistemática
+além do envio quando o alvo muda. Também não há leitura das indicações de
+resposta do ponto de controle FTMS. O sistema verifica se a característica
+existe e envia o comando, mas não confirma se o rolo o aceitou.
+
+\subsection{FTMS}
+\label{sec:implementacao-ftms}
+
+No caminho FTMS, o código solicita o controle com o opcode \code{0x00} e envia
+inclinação ou potência alvo. A inclinação é convertida em um inteiro com
+resolução de 0,1\% e a potência em um inteiro com resolução de 1 W. Os comandos
+têm três bytes: opcode e dois bytes em \textit{little-endian}. O modo ERG ignora
+a inclinação; o modo SIM ignora a potência alvo.
+
+O FTMS é usado apenas no desktop nesta versão. O Android usa FE-C sobre BLE e
+não implementa o ponto de controle FTMS. Essa assimetria é uma decisão de
+escopo: o plugin Capacitor foi implementado para o serviço FE-C, que era o
+caminho disponível no hardware de teste. Um rolo que exponha somente FTMS
+pode funcionar no desktop e não funcionar no Android.
+
+Há uma ressalva no próprio caminho FTMS. A implementação guarda na mesma
+referência a característica de controle FTMS (\texttt{0x2AD9}) e a de controle
+de potência (\texttt{0x2A66}) e envia o opcode \texttt{0x00} a ambas. No perfil
+Cycling Power, esse opcode não é um pedido de controle; portanto, o comportamento
+depende de qual característica foi encontrada por último. O trabalho não corrige
+esse ponto: ele é registrado como limitação de implementação. O caminho FE-C,
+usado no hardware de teste, não passa por essa condição.
+
+\subsection{FE-C sobre BLE}
+\label{sec:implementacao-fec}
+
+O caminho FE-C monta mensagens de 13 bytes com sincronismo, comprimento,
+identificador, canal, página, carga útil e \textit{checksum} XOR. A
+Listagem~\ref{lst:fec} mostra a montagem e a página 51, usada no modo
+simulação. A página 49, usada no modo ERG, divide a potência por 0,25 W e grava
+o resultado em dois bytes.
+
+\begin{lstlisting}[language=Go, float=htbp, caption={Montagem de mensagem FE-C e página de resistência de pista}, label={lst:fec}]
+func EncodeMessage(page byte, payload [7]byte) []byte {
+    msg := make([]byte, 13)
+    msg[0] = SyncByte
+    msg[1] = 0x09
+    msg[2] = MsgIDAck
+    msg[3] = DefaultChan
+    msg[4] = page
+    copy(msg[5:12], payload[:])
+    var checksum byte = 0
+    for i := 0; i < 12; i++ {
+        checksum ^= msg[i]
+    }
+    msg[12] = checksum
+    return msg
+}
+
+func EncodeTrackResistance(grade float64) []byte {
+    rawGrade := uint16((grade + 200.0) / 0.01)
+    crr := byte(0.004 / 0.00005)
+    p := [7]byte{0xFF, 0xFF, 0xFF, 0xFF}
+    binary.LittleEndian.PutUint16(p[4:6], rawGrade)
+    p[6] = crr
+    return EncodeMessage(PageTrackResistance, p)
+}
+\end{lstlisting}
+
+A inicialização FE-C envia a página 55 com peso fixo de 75 kg para o ciclista e
+10 kg para a bicicleta, seguida da página 50 com resistência de vento 0,51 e
+fator de \textit{drafting} 1,0. O peso do perfil ativo não é reenviado. Em
+seguida, um laço de controle repete o último comando a cada segundo. O envio
+imediato em \code{SetGrade} e \code{SetPower} reduz o atraso quando o alvo
+muda; a repetição periódica mantém o estado se uma mensagem for perdida.
+
+O nome ``FE-C sobre BLE'' é deliberado. O código usa os UUIDs
+\texttt{6e40fec1-...}, \texttt{6e40fec2-...} e \texttt{6e40fec3-...} e as
+páginas do perfil FE-C, mas o transporte é BLE. Não há rádio ANT+, adaptador USB
+ANT+ ou suporte a um Garmin Edge agindo como controlador. Um leitor que veja
+``FE-C'' no código não deve concluir que o sistema fala ANT+ nativo.
+
+\subsection{Rolo virtual e mock}
+\label{sec:implementacao-virtual}
+
+O rolo virtual substitui a implementação BLE por um serviço que gera
+potência a partir de comandos de teclado. Ele permite demonstrar a interface e o
+laço de simulação sem hardware, mas não valida o caminho BLE. O \code{MockService}
+tem o mesmo contrato e é usado em testes e em desenvolvimento. A existência
+dessas implementações é uma consequência direta da porta \code{TrainerService};
+o restante do sistema não precisa saber qual está ativo.
+
+\section{Exportação FIT e recuperação}
+\label{sec:implementacao-fit}
+
+\subsection{Conversão de unidades}
+\label{sec:implementacao-fit-unidades}
+
+O serviço FIT mantém um vetor de registros em memória durante a sessão. Cada
+amostra é convertida para as escalas do perfil: latitude e longitude em
+semicírculos, velocidade em milímetros por segundo, distância em centímetros e
+altitude com escala 5 e deslocamento de 500 metros. A Listagem~\ref{lst:fit}
+mostra a conversão.
+
+\begin{lstlisting}[language=Go, float=htbp, caption={Conversão de telemetria para um registro FIT}, label={lst:fit}]
+func (s *Service) AddRecord(t domain.Telemetry) {
+    lat := int32(t.Latitude * degreesToSemicircles)
+    lon := int32(t.Longitude * degreesToSemicircles)
+    speedMps := t.Speed / 3.6
+    scaledSpeed := uint32(speedMps * 1000)
+    scaledDist := uint32(t.TotalDistance * 100)
+    scaledAlt := uint32((t.Altitude + 500.0) * 5.0)
+
+    record := &mesgdef.Record{
+        Timestamp:        t.Timestamp,
+        PositionLat:      lat,
+        PositionLong:     lon,
+        Distance:         scaledDist,
+        EnhancedSpeed:    scaledSpeed,
+        Power:            uint16(t.Power),
+        HeartRate:        t.HeartRate,
+        Cadence:          t.Cadence,
+        EnhancedAltitude: scaledAlt,
+    }
+    s.records = append(s.records, record)
+}
+\end{lstlisting}
+
+O arquivo final contém uma mensagem de identificação, os registros, um evento de
+parada, uma volta e uma sessão. A sessão usa \code{SportCycling} e
+\code{SubSportVirtualActivity}. O tempo total é derivado do último registro, e
+não do relógio de parede, para que uma sessão recuperada dias depois não
+relate o intervalo inteiro como duração. Há um teste automatizado específico
+para esse comportamento, o
+\code{TestSaveDerivesElapsedTimeFromRecords}; ele verifica o tempo de sessão e
+de volta no arquivo gerado. A validação de conformidade com o validador oficial
+do FIT SDK e a cobertura automatizada de todas as métricas fisiológicas
+permanecem como trabalho futuro.
+
+A exportação não inclui \textit{developer fields}, dados de equilíbrio
+esquerda/direita, análise de pedalada ou voltas intermediárias. A altitude é
+gravada por registro, mas o ganho de elevação total não é um campo explícito da
+sessão; ele é reconstruído pela plataforma de destino a partir dos registros ou
+permanece apenas no banco local. O arquivo é interoperável, não completo.
+
+\subsection{Upload para Strava e Intervals.icu}
+\label{sec:implementacao-upload}
+
+O upload é manual. No Strava, o sistema usa OAuth, renova o token quando expira
+e tenta novamente uma vez em caso de resposta 401. No Intervals.icu, usa a
+chave de API e o identificador do atleta. Em ambos os casos, o código procura o
+arquivo \code{.fit} mais recente no diretório \code{workouts} ou usa o arquivo
+associado a uma atividade histórica.
+
+O modelo \code{SyncQueue} existe no banco e possui um método de persistência,
+mas não há um trabalhador que consuma a fila, repita uploads em segundo plano ou
+resolva conflitos. A fila é, nesta versão, uma estrutura preparada, não um
+mecanismo ativo. O upload direto e a renovação de token cobrem o caso feliz e o
+caso de token expirado; falhas de rede persistentes exigem nova ação do usuário.
+
+\subsection{Recuperação de sessão}
+\label{sec:implementacao-recovery}
+
+A recuperação grava dois artefatos no diretório de recuperação:
+
+\begin{itemize}
+    \item \code{session\_meta.json}: metadados reescritos de forma atômica a
+        cada cinco segundos;
+    \item \code{session\_samples.ndjson}: amostras acrescentadas e descarregadas
+        sem buffer.
+\end{itemize}
+
+\noindent Se o processo morrer, o próximo início encontra o snapshot, oferece
+a recuperação e, se o usuário aceitar, reconstrói os vetores de potência e
+frequência cardíaca, reabre o serviço FIT e chama \code{FinishSession}. O
+snapshot só é apagado depois que o FIT é gravado com sucesso.
+
+O critério de sessão ``significativa'' é ter pelo menos 60 segundos ativos ou 60
+amostras. Sessões curtas são descartadas silenciosamente. A recuperação não
+restaura o estado do rolo, a posição exata no perfil ou o modo ERG/SIM; ela
+restaura os dados necessários para gerar um FIT e um resumo. É uma recuperação
+de dados, não uma retomada interativa da sessão.
+
+\section{Métricas e análise}
+\label{sec:implementacao-metricas}
+
+As métricas são calculadas no encerramento da sessão e gravadas no banco. A
+potência normalizada usa uma janela de 30 amostras, eleva as médias à quarta
+potência e extrai a raiz quarta. O TSS usa a duração, a NP, o fator de
+intensidade e a FTP. O TRIMP usa a duração em minutos, a fração da reserva de
+frequência cardíaca e os coeficientes 0,64 e 1,92. O código não individualiza
+os coeficientes por sexo, idade ou modalidade.
+
+A classificação de zonas de potência percorre o vetor e incrementa a faixa
+correspondente. A classificação de zonas de frequência cardíaca ignora amostras
+zeradas e usa cinco faixas percentuais da máxima cadastrada. O campo LTHR do
+perfil não participa do cálculo. As linhas de VT1 e VT2 são posições móveis no
+gráfico, inicializadas em 30\% e 70\% do eixo; não há algoritmo de detecção.
+
+O PMC é calculado dia a dia, com constantes de 42 e 7 dias, e o TSB é a
+diferença entre CTL e ATL antes da atualização do dia. O desacoplamento exige
+pelo menos 3600 amostras, descarta os primeiros 10 minutos e compara a
+eficiência potência/frequência cardíaca entre as metades. O HRR usa a última
+frequência cardíaca antes do resfriamento como referência e captura os valores
+em 60 e 120 segundos. O campo \code{MaxHR} da atividade é o máximo real da
+sessão, mas não é usado como referência do HRR. Essas escolhas estão descritas
+conceitualmente no Capítulo~\ref{cap:fundamentacao} e são avaliadas no
+Capítulo~\ref{cap:resultados}.
+
+\section{Interface e fluxo de eventos}
+\label{sec:implementacao-frontend}
+
+O \textit{frontend} recebe telemetria por dois caminhos: no desktop, pelo evento
+de telemetria emitido pelo Wails; no Android, pelo retorno do plugin BLE. Em
+ambos, o dado é publicado no \code{TelemetryEventBus}. A
+Listagem~\ref{lst:eventbus} mostra a implementação do barramento, que é
+deliberadamente simples: uma lista de assinantes e uma chamada síncrona para
+cada um.
+
+\begin{lstlisting}[language=JavaScript, float=htbp, caption={Barramento de telemetria do frontend}, label={lst:eventbus}]
+export class TelemetryEventBus {
+    constructor() {
+        this.subscribers = [];
+    }
+
+    subscribe(callback) {
+        this.subscribers.push(callback);
+    }
+
+    unsubscribe(callback) {
+        this.subscribers = this.subscribers.filter(
+            sub => sub !== callback);
+    }
+
+    publish(data) {
+        this.subscribers.forEach(callback => callback(data));
+    }
+}
+
+export const telemetryBus = new TelemetryEventBus();
+\end{lstlisting}
+
+O HUD assina o barramento e atualiza os valores a cada evento. O mapa também
+assina, mas limita a atualização de posição a intervalos de 150 ms e usa
+\code{easeTo} com duração de 500 ms para animar a câmera. A posição do marcador
+é atualizada no máximo a cada 150 ms; a câmera interpola visualmente entre
+posições. Isso produz movimento suave sem afirmar que a telemetria chega a 60
+quadros por segundo. A taxa de quadros do navegador e a taxa de amostragem do
+sensor são grandezas diferentes.
+
+O mapa usa MapLibre GL JS com terreno 3D e camadas de rota coloridas por
+inclinação. Os \textit{tiles} são remotos; sem rede, o relevo e a imagem de
+fundo podem não carregar, embora o perfil altimétrico e a simulação continuem
+funcionando com o GPX local. Essa dependência parcial explica por que o sistema
+é local-first no dado, mas não na visualização cartográfica completa.
+
+\section{Assistente local}
+\label{sec:implementacao-ia}
+
+O assistente usa o Ollama em \code{127.0.0.1:11434}. A chamada envia uma
+mensagem de sistema com o perfil do atleta, até dez atividades recentes, totais
+de distância e horas, médias de TSS, IF e NP, e as últimas seis mensagens da
+conversa. O modelo padrão é \code{qwen2.5:3b}; o usuário pode escolher outro
+modelo disponível. A requisição usa \code{Format: "json"}, temperatura 0,5,
+limite de 2048 tokens de saída e contexto de 2048 tokens, com \textit{timeout}
+de 300 segundos.
+
+O modelo é instruído a responder no idioma do usuário e, quando o pedido for um
+treino, a devolver um objeto com \code{response} e \code{workout}. O
+\code{workout} contém segmentos com tipo, duração e potência como fração do
+FTP. O código remove comentários que quebram o JSON, tenta ler o bloco entre
+cercas de código, normaliza potências para frações quando necessário e gera um
+arquivo ZWO. Se o JSON não for interpretável, a resposta textual é exibida sem
+treino.
+
+A validação é sintática. O sistema verifica se o JSON pode ser lido e se os
+campos conhecidos têm o tipo esperado; não verifica se a soma das durações
+corresponde ao pedido, se a progressão é segura ou se as intensidades são
+adequadas ao atleta. O modelo pode produzir um plano válido em formato e
+inadequado em conteúdo. A revisão humana continua sendo necessária.
+
+\section{Modo Android}
+\label{sec:implementacao-android}
+
+O Android é um aplicativo Capacitor que carrega o mesmo \textit{frontend} em um
+WebView. Não há processo Go, SQLite, FIT ou histórico. O plugin comunitário de
+BLE do Capacitor faz a descoberta e a conexão; o serviço
+\code{CapacitorBluetoothService} implementa FE-C sobre BLE e assina o Cycling
+Power Service e o Heart Rate Service. O FTMS não é implementado no Android.
+
+A física é uma função JavaScript independente, baseada em Newton--Raphson. A
+Listagem~\ref{lst:mobile-fisica} mostra o núcleo. O código usa coeficiente de
+rolamento 0,004, eficiência 0,97 e até dez iterações. O desktop usa bisseção,
+0,005 e 0,96. A diferença de constantes e de método significa que a mesma
+potência e a mesma inclinação podem produzir velocidades ligeiramente diferentes
+nas duas plataformas.
+
+\begin{lstlisting}[language=JavaScript, float=htbp, caption={Física da simulação no Android}, label={lst:mobile-fisica}]
+window.WasmCalculateSpeed = function (watts, gradePct,
+                                       riderWeight, bikeWeight) {
+    if (watts <= 0) {
+        if (gradePct < -2.0) {
+            return Math.sqrt(-gradePct / 100 * 9.81 * 2);
+        }
+        return 0;
+    }
+
+    const m = (riderWeight || 75) + (bikeWeight || 9);
+    const g = 9.81;
+    const crr = 0.004;
+    const cdA = 0.32;
+    const rho = 1.225;
+    const gradeDecimal = gradePct / 100.0;
+    const powerToWheel = watts * 0.97;
+    let v = 5.0;
+
+    for (let i = 0; i < 10; i++) {
+        const F_grav = g * m * Math.sin(Math.atan(gradeDecimal));
+        const F_roll = g * m * Math.cos(Math.atan(gradeDecimal)) * crr;
+        const F_aero = 0.5 * cdA * rho * v * v;
+        const P_total = (F_grav + F_roll + F_aero) * v;
+        const P_diff = P_total - powerToWheel;
+        const dP_dv = F_grav + F_roll + 1.5 * cdA * rho * v * v;
+        v = v - (P_diff / dP_dv);
+        if (v < 0) return 0;
+    }
+    return v;
+};
+\end{lstlisting}
+
+O Android importa GPX e ZWO por seleção de arquivo, exibe HUD, mapa e perfil
+altimétrico e permite uma sessão ao vivo. Ao encerrar, o código mostra um resumo
+com distância e tempo e informa que o salvamento FIT está disponível no desktop.
+Não há gravação de histórico, upload para Strava ou Intervals.icu, rolo
+virtual, testes de aptidão ou análise posterior. A Tabela~\ref{tab:mobile-recursos}
+resume o que existe.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Recursos do modo Android nesta versão}
+    \label{tab:mobile-recursos}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}
+        >{\raggedright\arraybackslash}p{3.0cm}
+        >{\raggedright\arraybackslash}p{6.4cm}@{}}
+        \toprule
+        \textbf{Recurso} & \textbf{Status} & \textbf{Observação} \\
+        \midrule
+        Importar GPX & Sim & Parser JavaScript, distância 2D e janela $\pm 2$ \\
+        Importar ZWO & Sim & Subconjunto do formato; alvos em ERG \\
+        FE-C sobre BLE & Sim & Controle por página 49/51 \\
+        Cycling Power e FC & Sim & Notificações GATT \\
+        HUD e mapa & Sim & Sessão ao vivo \\
+        FTMS & Não & Apenas no desktop \\
+        Rolo virtual e testes & Não & Sem implementação móvel \\
+        FIT, histórico e análise & Não & Aviso explícito ao encerrar \\
+        Strava e Intervals.icu & Não & Apenas no desktop \\
+        iOS/iPadOS & Não validado & Estrutura preparada, sem compilação \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+O modo Android não é uma paridade funcional. Ele é uma extensão de sessão ao
+vivo, útil para pedalar com o telefone e visualizar o percurso, mas não para
+fechar o ciclo de registro e análise. O título ``multiplataforma'' se sustenta
+pela execução em Windows, Linux e Android; a profundidade funcional é diferente
+em cada plataforma e assim é declarada.
+
+\section{Síntese do capítulo}
+\label{sec:sintese-implementacao}
+
+A implementação confirma a arquitetura descrita no Capítulo~\ref{cap:arquitetura}
+e expõe suas consequências. O desktop tem um núcleo Go, persistência, FIT,
+métricas e integrações; o Android tem uma interface compartilhada, BLE nativo e
+uma física JavaScript independente, sem fechar o ciclo de dados. O motor de
+simulação é estável e explícito, mas quase estático. A exportação FIT foi
+aceita pelo Strava e pelo Intervals.icu, o que demonstra interoperabilidade
+prática; a validação formal com o validador oficial do FIT SDK permanece como
+trabalho futuro. O assistente local
+preserva a privacidade, mas não garante adequação fisiológica. A recuperação de
+sessão protege o dado, mas não retoma a sessão interativa.
+
+Essas são as evidências de construção que o Capítulo~\ref{cap:resultados}
+confronta com os requisitos e com o uso piloto. A próxima etapa não é descrever
+mais código, e sim verificar o que o sistema sustenta em execução e o que
+permanece como limitação.

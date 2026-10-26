@@ -1,0 +1,947 @@
+% =====================================================================
+%  CAPÍTULO 3 — FUNDAMENTAÇÃO TEÓRICA
+% =====================================================================
+
+\chapter{FUNDAMENTAÇÃO TEÓRICA}
+\label{cap:fundamentacao}
+
+Este capítulo apresenta os conceitos que sustentam o \argus{}. Ele não é um
+catálogo de tecnologias: procura explicar por que cada elemento existe, qual
+problema resolve e onde termina a sua validade. A exposição está organizada em
+seis blocos: comunicação com equipamentos, formatos de percurso e de atividade,
+modelo físico da simulação, fisiologia e carga de treino, engenharia de
+software e inteligência artificial local. A distinção entre \emph{medir},
+\emph{estimar} e \emph{inferir} atravessa o capítulo e retorna na síntese final,
+porque ela é central para a honestidade das afirmações do trabalho.
+
+\section{Comunicação e controle de equipamentos}
+\label{sec:ble-gatt}
+
+\subsection{Bluetooth Low Energy e o modelo GATT}
+\label{sec:ble-gatt-modelo}
+
+O \textit{Bluetooth Low Energy} (BLE) é uma tecnologia de comunicação sem fio
+de curto alcance voltada a dispositivos que transmitem pequenas quantidades de
+dados de forma intermitente, com ênfase em baixo consumo de energia
+\cite{bluetoothcore2023}. No ciclismo virtual, sensores de frequência cardíaca,
+medidores de potência, sensores de cadência e rolos inteligentes usam BLE para
+entregar telemetria e, no caso dos rolos, para receber comandos de resistência.
+
+O \textit{Generic Attribute Profile} (GATT) organiza os dados em serviços e
+características. Um serviço é identificado por um UUID e agrupa características
+relacionadas; cada característica tem um valor e pode ser lida, escrita ou
+notificada. Quando uma característica permite notificações, o cliente habilita
+o descritor de configuração (CCCD) e passa a receber atualizações sempre que o
+periférico publica um novo valor \cite{bluetoothcore2023}. O modelo é
+assimétrico: o periférico mantém o estado e o cliente BLE, no caso o
+computador ou o telefone, assina as notificações.
+
+Três serviços são diretamente relevantes para o \argus{}:
+
+\begin{itemize}
+    \item \textbf{Heart Rate Service} (\texttt{0x180D}): expõe a frequência
+        cardíaca instantânea, em batimentos por minuto. A característica
+        \texttt{0x2A37} admite valores de 8 ou 16 bits e traz bits de estado
+        que indicam o formato e a presença de informações adicionais.
+    \item \textbf{Cycling Power Service} (\texttt{0x1818}): transmite potência
+        instantânea em watts e, quando disponível, cadência calculada a partir
+        das revoluções do pedivela. A característica \texttt{0x2A63} usa um
+        campo de \textit{flags} para indicar quais grandezas opcionais estão
+        presentes, o que exige leitura posicional e respeito à ordem dos
+        campos.
+    \item \textbf{Fitness Machine Service} (FTMS, \texttt{0x1826}): padroniza
+        a leitura de dados de equipamentos de fitness e o envio de comandos de
+        controle, como potência alvo e inclinação simulada
+        \cite{bluetooth2017}.
+\end{itemize}
+
+O BLE não garante uma taxa de amostragem fixa. O intervalo entre notificações
+depende do dispositivo, do firmware, do intervalo de conexão e das condições de
+rádio. Essa característica é importante para o \argus{}: o sistema registra cada
+notificação recebida e usa o intervalo entre chegadas para integrar a distância
+percorrida; entretanto, algumas métricas agregadas contam amostras como se cada
+uma representasse um segundo. A suposição é razoável para os equipamentos
+testados, que enviam dados aproximadamente a \SI{1}{\hertz}, mas não é uma
+garantia do protocolo. O Capítulo~\ref{cap:implementacao} mostra como essa
+diferença aparece no código e o Capítulo~\ref{cap:resultados} a registra como
+limitação.
+
+\subsection{FTMS: um caminho padronizado de controle}
+\label{sec:ftms}
+
+O FTMS define características para recursos do equipamento, faixa de potência
+suportada, dados de bicicleta do perfil \textit{Indoor Bike Data}, status e ponto
+de controle. O ponto de controle (\texttt{0x2AD9}) recebe comandos e responde
+por indicação; o cliente deve solicitar o controle antes de enviar comandos de
+operação. Entre os
+opcodes relevantes estão a requisição de controle (\texttt{0x00}), o ajuste de
+resistência (\texttt{0x04}), a potência alvo (\texttt{0x05}) e a inclinação
+alvo (\texttt{0x03}) \cite{bluetooth2017}.
+
+O \argus{} usa o FTMS em dois modos. No modo \emph{ERG}, envia a potência alvo;
+no modo \emph{simulação}, envia a inclinação calculada a partir do GPX. O
+equipamento interpreta o comando e ajusta internamente o freio; o software não
+controla diretamente a corrente elétrica do rolo. Essa separação é importante:
+o modelo físico do \argus{} calcula a velocidade virtual, mas a resistência
+efetivamente aplicada depende do firmware do rolo, da calibração e da
+resposta dinâmica do equipamento. O FTMS padroniza a mensagem, não o
+comportamento mecânico de cada modelo.
+
+\subsection{FE-C sobre BLE: compatibilidade sem ANT+ nativo}
+\label{sec:fec-ble}
+
+O \textit{Fitness Equipment Control} (FE-C) é um perfil da rede ANT+ para
+controle de equipamentos de fitness. Ele define páginas de dados para potência
+alvo, resistência de pista, resistência do vento, configuração do usuário e
+telemetria do rolo \cite{antfec2024}. O ANT+ nativo utiliza o rádio ANT e,
+em computadores, costuma exigir um adaptador USB específico. O \argus{} não
+implementa esse caminho nativo.
+
+O que o \argus{} implementa é o transporte das mensagens FE-C sobre BLE, por
+meio de um serviço vendor-specific exposto por alguns rolos. O serviço
+usa o UUID \texttt{6e40fec1-b5a3-f393-e0a9-e50e24dcca9e}; a característica de
+notificação é \texttt{6e40fec2-...} e a de escrita é \texttt{6e40fec3-...}.
+Cada mensagem tem 13 bytes: sincronismo (\texttt{0xA4}), comprimento
+(\texttt{0x09}), identificador (\texttt{0x4F}), canal (\texttt{0x05}), página,
+sete bytes de carga útil e um \textit{checksum} XOR. As páginas usadas pelo
+sistema estão resumidas na Tabela~\ref{tab:fec-paginas}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Páginas FE-C usadas pelo Argus}
+    \label{tab:fec-paginas}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+        >{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{8.6cm}@{}}
+        \toprule
+        \textbf{Página} & \textbf{Função} & \textbf{Uso e escala no Argus} \\
+        \midrule
+        49 & Potência alvo & Modo ERG; resolução de \SI{0.25}{\watt} \\
+        51 & Resistência de pista & Modo simulação; inclinação com resolução
+        de \SI{0.01}{\percent} e deslocamento de \SI{200}{\percent};
+        coeficiente de rolamento com resolução de 0,00005 \\
+        55 & Configuração do usuário & Peso do ciclista e da bicicleta;
+        enviado na inicialização com valores fixos de \SI{75}{\kilogram} e
+        \SI{10}{\kilogram} \\
+        50 & Resistência do vento & Inicialização com resistência de 0,51 e
+        fator de drafting 1,0 \\
+        25 & Dados específicos do rolo & Leitura de potência (12 bits) e
+        cadência nas notificações \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base na especificação FE-C
+    \cite{antfec2024} e no código do projeto.
+\end{table}
+
+A Tabela~\ref{tab:fec-paginas} também revela um limite de implementação: a
+página 55 é enviada com valores fixos, e não com o peso do perfil ativo. O peso
+do ciclista entra no motor físico do \argus{}, mas não é reenviado ao rolo
+quando o perfil muda. Em rolos de treinamento que usam a configuração de
+usuário para ajustar a resistência, essa diferença pode afetar a sensação de
+esforço. O trabalho registra o fato; a correção não faz parte do escopo desta
+versão.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Comparação entre os dois caminhos de controle usados no desktop}
+    \label{tab:ftms-fec}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.6cm}
+        >{\raggedright\arraybackslash}p{4.8cm}
+        >{\raggedright\arraybackslash}p{5.8cm}@{}}
+        \toprule
+        \textbf{Aspecto} & \textbf{FTMS} & \textbf{FE-C sobre BLE} \\
+        \midrule
+        Origem & Padrão Bluetooth SIG & Perfil ANT+ transportado em serviço
+        vendor-specific \\
+        UUID & \texttt{0x1826} & \texttt{6e40fec1-...} \\
+        Controle & Ponto de controle \texttt{0x2AD9} & Páginas 49 e 51 \\
+        Telemetria & \textit{Indoor Bike Data} & Página 25 e/ou Cycling Power \\
+        No Argus & Desktop & Desktop e Android \\
+        Limite & Variação entre fabricantes & Não é ANT+ nativo; depende do
+        serviço proprietário \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+A coexistência dos dois caminhos amplia a compatibilidade, mas não deve ser
+descrita como suporte a ANT+. O \argus{} fala FE-C \emph{sobre BLE}; um
+adaptador ANT+ USB, um Garmin Edge ou um rolo que exponha apenas ANT+ nativo
+não são reconhecidos por esse código. Essa distinção é relevante para a
+reprodutibilidade: o leitor precisa saber qual transporte foi testado.
+
+\subsection{Leitura, escalas e taxas de amostragem}
+\label{sec:leitura-ble}
+
+A leitura de características BLE exige interpretar \textit{flags}, respeitar a
+ordem dos campos e aplicar as escalas do perfil. No Cycling Power Service, por
+exemplo, a potência ocupa dois bytes em \textit{little-endian}; a cadência só
+está disponível quando o bit correspondente está ligado e é calculada a partir
+da diferença de revoluções e de tempo entre duas notificações. No FE-C, a
+potência é um campo de 12 bits e a cadência é lida diretamente de um byte. Um
+erro de deslocamento não gera uma mensagem inválida: gera um número plausível e
+errado, o que é mais difícil de detectar.
+
+O \argus{} adota três precauções: valida o tamanho mínimo do pacote, verifica
+os bits de presença antes de ler campos opcionais e usa o instante de chegada
+da notificação como \textit{timestamp}. Ainda assim, não há reamostragem
+explícita para uma grade uniforme de \SI{1}{\second}. O intervalo entre
+notificações é usado no cálculo de distância, mas os vetores de potência e de
+frequência cardíaca são formados por amostras consecutivas. Se um dispositivo
+enviar duas notificações por segundo, as métricas que somam amostras como
+segundos superestimarão o tempo; se enviar uma a cada dois segundos,
+subestimarão. A limitação é tratada novamente nos Capítulos~\ref{cap:implementacao}
+e~\ref{cap:resultados}.
+
+\section{Formatos de percurso, atividade e treino}
+\label{sec:formatos}
+
+\subsection{GPX: geometria e altimetria}
+\label{sec:gpx}
+
+O \textit{GPS Exchange Format} (GPX) é um formato XML aberto para intercâmbio
+de pontos geográficos, rotas e trilhas \cite{gpx2004}. Um arquivo pode conter
+\textit{waypoints}, rotas ou \textit{tracks}; cada ponto tem latitude, longitude
+e, opcionalmente, elevação e tempo. O \argus{} aceita \textit{tracks} e, quando
+não há trilha, tenta ler rotas. A elevação é a informação que alimenta o perfil
+altimétrico e o cálculo de inclinação.
+
+Há duas decisões geométricas importantes. A primeira é o cálculo da distância:
+o desktop usa a distância tridimensional entre pontos consecutivos, incluindo
+a diferença de elevação; o Android usa a distância horizontal calculada pela
+fórmula de Haversine, sem elevação. A segunda é a suavização: o desktop calcula
+a inclinação em uma janela de até cinco pontos para cada lado e limita o
+resultado a $\pm 25\%$; o Android usa uma janela de dois pontos para cada lado e
+não aplica o limite. A Tabela~\ref{tab:gpx-diferencas} resume a diferença.
+
+Essas diferenças não são detalhes irrelevantes. A suavização maior no desktop
+reduz picos espúrios de elevação, mas também atenua rampas curtas; a janela
+menor no Android preserva mais detalhe e mais ruído. A interpolação do desktop
+produz uma posição contínua ao longo do segmento; o Android retorna o ponto
+seguinte, o que torna a inclinação e a posição discretas. Para o uso de
+reconhecimento, a diferença é aceitável; para comparar sessões entre
+plataformas, ela precisa ser considerada.
+
+\enlargethispage{\baselineskip}
+O GPX tem limites que nenhum processamento elimina: a elevação pode vir de
+GPS, barômetro ou modelo digital de terreno, com ruído e descontinuidades; o
+arquivo não descreve superfície, clima, trânsito, curvas ou regras de trânsito;
+e a densidade de pontos varia. O \argus{} usa o GPX como representação
+aproximada do relevo, não como réplica da estrada.
+
+\begin{table}[H]
+    \centering
+    \caption{Pipeline de GPX no desktop e no Android}
+    \label{tab:gpx-diferencas}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{5.2cm}
+        >{\raggedright\arraybackslash}p{5.2cm}@{}}
+        \toprule
+        \textbf{Etapa} & \textbf{Desktop (Go)} & \textbf{Android (JavaScript)} \\
+        \midrule
+        Distância & Tridimensional, com elevação & Horizontal (Haversine), sem
+        elevação \\
+        Inclinação & Janela de $\pm 5$ pontos & Janela de $\pm 2$ pontos \\
+        Limite & $\pm 25\%$ & Sem limite explícito \\
+        Consulta por distância & Interpolação linear entre pontos & Primeiro
+        ponto com distância maior ou igual \\
+        Percurso & Repetição modular ao atingir o fim & Repetição modular ao
+        atingir o fim \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base em
+    \code{internal/service/gpx/service.go} e \code{frontend/src/main.js}.
+\end{table}
+
+\subsection{FIT: registro binário da atividade}
+\label{sec:fit}
+
+O \textit{Flexible and Interoperable Data Transfer} (FIT) é um formato binário
+mantido pela Garmin para registrar atividades e dados de sensores
+\cite{garmin2024}. Um arquivo contém uma cabeçalho, mensagens de definição que
+descrevem a estrutura dos registros e mensagens de dados; o cabeçalho e o
+arquivo incluem verificações de integridade. O formato é compacto e
+interoperável, mas não é autodescritivo como o XML: para interpretar um campo,
+é preciso conhecer o perfil FIT e a mensagem correspondente.
+
+Os valores usados pelo \argus{} seguem as escalas do perfil: latitude e
+longitude em semicírculos, velocidade em milímetros por segundo, distância em
+centímetros e altitude com escala 5 e deslocamento de 500 metros. A Tabela~
+\ref{tab:fit-escalas} registra as conversões implementadas. O arquivo gerado
+contém uma mensagem de identificação, os registros de telemetria, um evento de
+parada, uma volta e uma sessão com totais. O subtipo é atividade virtual, o que
+informa à plataforma de destino que o percurso não foi realizado em estrada.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Conversões de unidades na exportação FIT}
+    \label{tab:fit-escalas}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}
+        >{\raggedright\arraybackslash}p{5.2cm}
+        >{\raggedright\arraybackslash}p{4.0cm}@{}}
+        \toprule
+        \textbf{Grandeza} & \textbf{Unidade no Argus} & \textbf{Escala FIT} \\
+        \midrule
+        Latitude e longitude & graus decimais & semicírculos \\
+        Velocidade & \si{\kilo\meter\per\hour} & \si{\milli\meter\per\second} \\
+        Distância & metros & centímetros \\
+        Altitude & metros & $(m + 500) \times 5$ \\
+        Potência & watts & watts \\
+        Cadência e frequência cardíaca & rpm e bpm & rpm e bpm \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base no perfil FIT
+    \cite{garmin2024} e em \code{internal/service/fit/service.go}.
+\end{table}
+
+A aceitação do arquivo por Strava ou Intervals.icu é evidência de
+interoperabilidade, não de exatidão fisiológica. O FIT transporta os valores
+que o \argus{} calculou; se a potência, a distância ou a elevação de origem
+estiverem erradas, o erro será preservado no arquivo. A conferência foi feita por
+leitura nas plataformas de destino e por comparação manual de totais; a validação
+formal com o validador oficial do FIT SDK permanece como trabalho futuro,
+retomado no Capítulo~\ref{cap:resultados}.
+
+\subsection{ZWO: planos de treino estruturados}
+\label{sec:zwo}
+
+O ZWO é o formato XML usado pelo Zwift para descrever treinos estruturados
+\cite{zwift2024}. Cada passo tem duração e alvo de potência, geralmente expresso
+como fração do FTP; há passos constantes, rampas, aquecimentos, resfriamentos e
+intervalos repetidos. O formato é adequado ao modo ERG porque transforma o plano
+em uma sequência de alvos de potência.
+
+O \argus{} implementa um subconjunto do formato: lê passos
+\textit{SteadyState}, \textit{Warmup}, \textit{Cooldown}, \textit{Ramp},
+\textit{IntervalsT} e \textit{FreeRide}, e achata os intervalos repetidos em
+segmentos individuais. Extensões não previstas são ignoradas. O assistente de
+IA gera arquivos ZWO a partir de uma estrutura JSON e o mesmo carregador é usado
+para planos externos e para planos gerados localmente. A vantagem é a
+interoperabilidade com um formato conhecido; o limite é que a obediência
+sintática ao ZWO não garante adequação fisiológica do treino. Um plano pode ser
+válido e, ainda assim, inadequado para o atleta.
+
+\section{Modelo físico da simulação}
+\label{sec:equacao-martin}
+
+\subsection{A equação de Martin}
+\label{sec:equacao-martin-formal}
+
+O movimento de uma bicicleta pode ser descrito pelo balanço entre a potência
+aplicada pelo ciclista e as forças que se opõem ao avanço. O modelo de Martin
+\cite{martin1998} reúne arrasto aerodinâmico, resistência ao rolamento,
+componente gravitacional e aceleração:
+
+\begin{equation}\label{eq:martin}
+P_{\text{crank}} = \frac{1}{\eta}\left[
+\frac{1}{2}\rho C_d A v^3
++ m g C_{rr}\cos\theta\,v
++ m g\sin\theta\,v
++ m a v
+\right],
+\end{equation}
+
+\noindent em que $P_{\text{crank}}$ é a potência no pedivela, $\rho$ é a
+densidade do ar, $C_dA$ é a área frontal efetiva multiplicada pelo coeficiente
+de arrasto, $v$ é a velocidade, $m$ é a massa total, $g$ é a aceleração da
+gravidade, $C_{rr}$ é o coeficiente de resistência ao rolamento, $\theta$ é o
+ângulo de inclinação da via, $a$ é a aceleração linear e $\eta$ é a eficiência
+da transmissão. O termo $\cos\theta$ aparece na resistência ao rolamento porque
+a força normal diminui em rampas; o termo $\sin\theta$ representa a componente
+do peso ao longo da via.
+
+A implementação do \argus{} adota a hipótese quase estática: o termo de
+aceleração é desprezado e a velocidade é obtida para cada potência e inclinação
+instantâneas. A equação resolvida é, portanto,
+
+\begin{equation}\label{eq:martin-estatica}
+P_{\text{wheel}} = \frac{1}{2}\rho C_d A v^3
++ \left(m g C_{rr}\cos\theta + m g\sin\theta\right)v,
+\end{equation}
+
+\noindent com $P_{\text{wheel}} = \eta P_{\text{crank}}$. A Tabela~
+\ref{tab:parametros-sim} lista os valores usados no código. Eles são
+constantes: não variam com o perfil aerodinâmico, o tipo de pneu, a pressão, a
+temperatura, a altitude ou a postura do ciclista.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Parâmetros fixos do motor de simulação}
+    \label{tab:parametros-sim}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.6cm}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{7.2cm}@{}}
+        \toprule
+        \textbf{Parâmetro} & \textbf{Valor} & \textbf{Observação} \\
+        \midrule
+        $g$ & \SI{9.81}{\meter\per\square\second} & Constante \\
+        $\rho$ & \SI{1.225}{\kilogram\per\cubic\meter} & Ar ao nível do mar \\
+        $C_dA$ & \SI{0.32}{\square\meter} & Valor fixo, não individualizado \\
+        $C_{rr}$ & 0,005 & Desktop; o Android usa 0,004 \\
+        $\eta$ & 0,96 & Desktop; o Android usa 0,97 \\
+        Faixa de velocidade & 0 a \SI{40}{\meter\per\second} & Aproximadamente
+        \SI{144}{\kilo\meter\per\hour} \\
+        Iterações & 20 & Bisseção com tolerância de \SI{0.01}{\meter\per\second} \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base em
+    \code{internal/service/sim/engine.go}.
+\end{table}
+
+\subsection{Solução numérica e estabilidade}
+\label{sec:bissecao}
+
+Para uma inclinação fixa, a função que relaciona potência e velocidade é
+monótona crescente no intervalo fisicamente relevante: mais velocidade exige
+mais potência. Essa monotonicidade permite usar bisseção. O algoritmo mantém um
+intervalo $[0, 40]$ m/s, calcula a potência necessária no ponto médio e descarta
+a metade que não contém a solução. Com 20 iterações, o intervalo inicial seria
+reduzido a menos de $4 \times 10^{-5}$ m/s; na prática, o código interrompe
+antes, quando a diferença entre os limites é inferior a \SI{0.01}{\meter\per\second}.
+O método não divide pela velocidade, não depende de chute inicial e lida com
+potência nula em descidas, situação em que a velocidade terminal é determinada
+pelo equilíbrio entre gravidade, arrasto e rolamento.
+
+A estabilidade numérica não equivale a realismo físico. O modelo não representa
+a inércia do conjunto ciclista--bicicleta, a resposta dinâmica do rolo, a
+folga da transmissão, a deformação do pneu ou a variação de $C_{rr}$ com o piso.
+Também não há vento, \textit{drafting}, frenagem, curvas ou limite de aderência.
+Em uma descida, o modelo pode produzir uma velocidade alta com potência zero,
+mas não simula a necessidade de frear; em uma subida, a velocidade responde
+instantaneamente à potência, sem o atraso que o conjunto mecânico e o volante do
+rolo impõem. A simulação é, portanto, um modelo de primeira ordem para
+explorar o relevo e comparar esforços, não um gêmeo digital da estrada.
+
+\subsection{O que a velocidade significa}
+\label{sec:velocidade-significado}
+
+A velocidade exibida e a distância acumulada são saídas do modelo, não medidas
+diretas de um sensor de velocidade. Elas dependem da potência informada pelo
+medidor ou pelo rolo, da inclinação derivada do GPX e dos parâmetros fixos
+da Tabela~\ref{tab:parametros-sim}. Consequências práticas:
+
+\begin{itemize}
+    \item a distância virtual pode divergir da distância registrada por um
+        GPS em percurso real, sobretudo em trechos com vento, trânsito, curvas
+        ou paradas;
+    \item a comparação entre sessões é mais confiável quando o mesmo perfil,
+        o mesmo rolo e o mesmo GPX são usados;
+    \item a velocidade não deve ser usada como medida de desempenho absoluto
+        em competições ou estudos que exijam validade externa;
+    \item a potência, por outro lado, é medida pelo sensor (com a incerteza do
+        próprio sensor) e é a grandeza mais adequada para comparar esforços.
+\end{itemize}
+
+Essa separação entre grandeza medida e grandeza modelada é uma das bases do
+posicionamento do \argus{}: o sistema não promete reproduzir a estrada, promete
+tornar explícito o modelo que usa para representá-la.
+
+\section{Fisiologia e carga de treino}
+\label{sec:fisiologia}
+
+\subsection{Limiares, MAP e \texorpdfstring{VO\textsubscript{2}max}{VO2max}}
+\label{sec:limiares}
+
+A intensidade do exercício pode ser organizada em domínios e limiares. O
+primeiro limiar (LT1 ou VT1) marca a transição em que o lactato começa a subir
+acima do basal e a ventilação aumenta de forma desproporcional ao oxigênio; o
+segundo (LT2, VT2 ou limiar anaeróbio) marca a intensidade mais alta em que o
+lactato ainda se mantém em estado quase estacionário, próxima da máxima fase
+estável de lactato (MLSS). Esses conceitos se relacionam, mas não são
+sinônimos: LT1/LT2 são definidos por lactato; VT1/VT2, por variáveis
+ventilatórias; MLSS, pela estabilidade do lactato \cite{faude2009,meyer2005}.
+
+A potência aeróbia máxima (MAP) é a maior potência atingida em um teste
+incremental, normalmente um teste de rampa. Ela é uma medida de potência, não
+de consumo de oxigênio. O VO\textsubscript{2}max é a taxa máxima de captação de
+oxigênio, medida por calorimetria indireta ou estimada por protocolos
+específicos; não pode ser inferido apenas da potência de cinco minutos sem
+um modelo de conversão validado para a população e o equipamento. O teste de
+cinco minutos do \argus{} registra a melhor potência média de cinco minutos e
+a usa como referência interna; ele é um teste de capacidade aeróbia usado como
+proxy de MAP, não uma medida de VO\textsubscript{2}max. O rótulo da interface deve ser lido
+com essa ressalva.
+
+
+
+As linhas de VT1 e VT2 merecem uma explicação específica. Elas não são
+calculadas a partir de trocas gasosas, lactato ou variabilidade da frequência
+cardíaca. São marcadores visuais que o usuário pode arrastar sobre o gráfico
+para indicar onde, na sua leitura, ocorreram as transições. A posição inicial
+em 30\% e 70\% do eixo é apenas uma conveniência de interface. Portanto, o
+software não ``detecta'' limiares; ele oferece uma ferramenta de anotação
+manual. A diferença é grande e precisa ser declarada.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Conceitos de limiar e o tratamento dado pelo Argus}
+    \label{tab:limiares}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+        >{\raggedright\arraybackslash}p{5.0cm}
+        >{\raggedright\arraybackslash}p{6.4cm}@{}}
+        \toprule
+        \textbf{Conceito} & \textbf{O que representa} & \textbf{No Argus} \\
+        \midrule
+        VT1 / LT1 & Início do aumento sustentado de lactato e da ventilação &
+        Duas linhas verticais móveis no gráfico, iniciadas em 30\% e 70\% do
+        eixo temporal; não há detecção automática \\
+        VT2 / LT2 & Transição para intensidade severa; próximo da MLSS &
+        Mesmas linhas móveis; o usuário interpreta o gráfico \\
+        MAP & Maior potência de um teste incremental & Teste de cinco minutos
+        usado como proxy de MAP e de capacidade aeróbia \\
+        VO\textsubscript{2}max & Captação máxima de oxigênio & Não medido e
+        não estimado por equação própria \\
+        FTP & Potência sustentável em estado quase estacionário por cerca de
+        uma hora & Estimada por testes de rampa, 20 minutos ou 5 minutos, com
+        fatores de conversão \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base em
+    \cite{faude2009,meyer2005,coggan2010}.
+\end{table}
+
+\subsection{FTP e zonas de potência}
+\label{sec:ftp-zonas}
+
+A potência funcional limiar (FTP) é uma convenção de treino: a maior potência
+que o atleta consegue sustentar em estado quase estacionário por aproximadamente
+uma hora \cite{coggan2010}. Ela não é uma constante fisiológica e não é medida
+diretamente em todos os testes. O \argus{} estima a FTP por três caminhos:
+teste de rampa (melhor potência de um minuto multiplicada por 0,75), teste de
+20 minutos (melhor potência de 20 minutos multiplicada por 0,95) e teste de
+cinco minutos (melhor potência de cinco minutos multiplicada por 0,80). Os
+fatores são convenções internas do aplicativo; não substituem um teste de FTP
+bem conduzido nem uma medida de MLSS.
+
+As zonas de potência implementadas são seis, inspiradas na escala de Coggan,
+mas sem a sétima faixa:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Zonas de potência implementadas}
+    \label{tab:zonas-potencia}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        >{\raggedright\arraybackslash}p{7.4cm}@{}}
+        \toprule
+        \textbf{Zona} & \textbf{Faixa em relação à FTP} & \textbf{Uso típico} \\
+        \midrule
+        Z1 & $< 55\%$ & Recuperação ativa \\
+        Z2 & $55\%$ a $74\%$ & Resistência aeróbia \\
+        Z3 & $75\%$ a $89\%$ & Tempo \\
+        Z4 & $90\%$ a $104\%$ & Limiar \\
+        Z5 & $105\%$ a $120\%$ & Capacidade aeróbia \\
+        Z6 & $\geq 121\%$ & Potência anaeróbia e esforços curtos \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base em
+    \code{internal/service/fit/metrics.go}.
+\end{table}
+
+A contagem de tempo nas zonas é feita percorrendo o vetor de potência e
+incrementando a zona correspondente. O código pressupõe que cada amostra vale
+um segundo; se a taxa de notificação for diferente, a contagem fica distorcida
+na mesma proporção. Além disso, a zona é uma classificação arbitrária de uma
+variável contínua: a fronteira entre Z3 e Z4 não corresponde a uma mudança
+fisiológica abrupta.
+
+\subsection{Zonas de frequência cardíaca}
+\label{sec:zonas-fc}
+
+As zonas de frequência cardíaca do \argus{} usam cinco faixas percentuais da
+frequência cardíaca máxima cadastrada no perfil: abaixo de 60\%, 60--70\%,
+70--80\%, 80--90\% e acima de 90\%. O campo LTHR (frequência cardíaca de
+limiar de lactato) existe no perfil, mas não alimenta esse cálculo. Também não
+são usados a reserva de frequência cardíaca (Karvonen) nem zonas derivadas de
+teste de limiar.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Zonas de frequência cardíaca implementadas}
+    \label{tab:zonas-fc}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.6cm}
+        >{\raggedright\arraybackslash}p{4.2cm}
+        >{\raggedright\arraybackslash}p{6.8cm}@{}}
+        \toprule
+        \textbf{Zona} & \textbf{Faixa em relação à FC máxima} & \textbf{Rótulo
+        na interface} \\
+        \midrule
+        Z1 & $< 60\%$ & Recuperação \\
+        Z2 & $60\%$ a $69\%$ & Resistência \\
+        Z3 & $70\%$ a $79\%$ & Tempo \\
+        Z4 & $80\%$ a $89\%$ & Limiar \\
+        Z5 & $\geq 90\%$ & VO\textsubscript{2}max \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, com base em
+    \code{internal/service/fit/metrics.go}.
+\end{table}
+
+O rótulo ``VO\textsubscript{2}max'' na Z5 é uma convenção de treino, não uma
+medida de consumo de oxigênio. A zona indica apenas que a frequência cardíaca
+está acima de 90\% da máxima cadastrada. A precisão depende de a máxima estar
+correta, do sensor e da relação individual entre frequência cardíaca e
+intensidade. O método por percentual da máxima é simples e transparente, mas
+menos individualizado do que zonas por LTHR, por reserva de frequência cardíaca
+ou por limiares ventilatórios. A opção do \argus{} é defensável para
+acompanhamento, não para prescrição clínica.
+
+\subsection{Potência normalizada, fator de intensidade e TSS}
+\label{sec:np-tss}
+
+A potência normalizada (NP) procura representar o custo fisiológico de uma
+sessão com intensidade variável. O cálculo aplica uma média móvel de 30
+amostras, eleva cada média à quarta potência, calcula a média dessas potências
+e extrai a raiz quarta:
+
+\begin{equation}\label{eq:np}
+NP = \left(\frac{1}{N}\sum_{i=1}^{N}\bar{p}_{30,i}^{4}\right)^{1/4},
+\end{equation}
+
+\noindent em que $\bar{p}_{30,i}$ é a i-ésima média móvel de 30 amostras e $N$
+é o número de janelas. O expoente 4 faz com que picos de potência pesem mais
+do que na média aritmética. A implementação usa amostras consecutivas; para
+NP de 30 segundos, a amostragem precisa ser de aproximadamente \SI{1}{\hertz}.
+
+O fator de intensidade (IF) e o \textit{Training Stress Score} (TSS) são
+definidos por
+
+\begin{equation}\label{eq:if}
+IF = \frac{NP}{FTP},
+\end{equation}
+
+\begin{equation}\label{eq:tss}
+TSS = \frac{d \cdot NP \cdot IF}{FTP \cdot 3600} \times 100,
+\end{equation}
+
+\noindent em que $d$ é a duração em segundos. Um TSS de 100 corresponde,
+por definição, a uma hora no FTP. O TSS não é uma medida de calorias nem de
+dano muscular; é uma convenção que combina duração e intensidade relative. A
+comparação entre atletas exige cautela, porque o FTP e a resposta individual ao
+mesmo estímulo variam. A comparação longitudinal do mesmo atleta, com o mesmo
+método, é o uso mais defensável.
+
+\subsection{TRIMP}
+\label{sec:trimp}
+
+O \textit{Training Impulse} (TRIMP) de Banister usa a frequência cardíaca para
+estimar a carga cardiovascular. A formulação adotada é
+
+\begin{equation}\label{eq:trimp}
+TRIMP = t_{\min} \cdot HRR \cdot 0{,}64 \cdot e^{1{,}92\,HRR},
+\qquad
+HRR = \frac{HR_{\text{média}} - HR_{\text{repouso}}}
+{HR_{\text{máx}} - HR_{\text{repouso}}},
+\end{equation}
+
+\noindent em que $t_{\min}$ é a duração em minutos e $HRR$ é a fração da
+reserva de frequência cardíaca. Os coeficientes 0,64 e 1,92 correspondem à
+versão masculina da fórmula de Banister \cite{banister1991,morton1990}. O
+\argus{} usa esses coeficientes como base genérica, sem seleção de sexo,
+individualização ou calibração. A média da frequência cardíaca é calculada
+apenas sobre amostras maiores que zero; quando não há frequência de repouso
+válida, o código adota 60 bpm como valor de segurança.
+
+O TRIMP é útil para comparar sessões do mesmo atleta quando a frequência
+cardíaca é o sinal disponível. Ele não captura a distribuição de intensidade
+dentro da sessão, não distingue intervalos de esforço contínuo com a mesma
+média e depende de uma relação linear entre frequência cardíaca e intensidade
+que é apenas aproximada. Além disso, os coeficientes foram derivados em uma
+população específica; aplicá-los a outro grupo é uma extrapolação.
+
+\subsection{PMC: CTL, ATL e TSB}
+\label{sec:pmc}
+
+O \textit{Performance Management Chart} (PMC) transforma o TSS diário em três
+curvas: carga crônica (CTL), carga aguda (ATL) e balanço (TSB). O \argus{} usa
+médias exponenciais com constantes de 42 e 7 dias:
+
+\begin{equation}\label{eq:ctl}
+CTL_n = CTL_{n-1} + \frac{TSS_n - CTL_{n-1}}{42},
+\end{equation}
+
+\begin{equation}\label{eq:atl}
+ATL_n = ATL_{n-1} + \frac{TSS_n - ATL_{n-1}}{7},
+\end{equation}
+
+\begin{equation}\label{eq:tsb}
+TSB = CTL - ATL.
+\end{equation}
+
+A implementação agrupa as atividades por dia, percorre o calendário do primeiro
+registro até a data atual e calcula as médias. O TSB exibido é a diferença entre
+CTL e ATL antes da atualização do dia, o que corresponde, na prática, ao estado
+do dia anterior. A interpretação ``fitness'', ``fatigue'' e ``form'' é uma
+metáfora útil, não uma medida direta de adaptação. O PMC depende da qualidade
+do TSS, da consistência dos dados e da premissa de que a carga pode ser somada
+entre sessões de tipos diferentes. É uma ferramenta de visualização de
+tendência, não um preditor clínico.
+
+\subsection{Desacoplamento cardiovascular e recuperação da frequência cardíaca}
+\label{sec:decoupling-hrr}
+
+O desacoplamento (Pw:HR) compara a relação entre potência e frequência cardíaca
+em duas metades de uma sessão. O código descarta os primeiros 10 minutos,
+calcula a eficiência $EF = P/HR$ em cada metade e aplica
+
+\begin{equation}\label{eq:decoupling}
+Decoupling = \frac{EF_1 - EF_2}{EF_1} \times 100\%.
+\end{equation}
+
+\noindent Um valor positivo indica que a frequência cardíaca subiu em relação à
+potência na segunda metade. O cálculo exige pelo menos 3600 amostras e ignora
+amostras com potência ou frequência iguais a zero. O limiar de 5\% é uma
+convenção de treino frequentemente usada para sinalizar deriva
+cardiovascular; não identifica causa. Desidratação, calor, fadiga, altitude,
+cafeína, medicamentos e erro de medição podem produzir o mesmo efeito. Além
+disso, o resultado só faz sentido em sessões de intensidade relativamente
+constante; em intervalados, a comparação entre metades é pouco informativa.
+
+A recuperação da frequência cardíaca (HRR) mede a queda após o esforço. A
+literatura usa geralmente o pico de frequência cardíaca no fim do exercício e
+valores em 1 e 2 minutos \cite{cole1999,lamberts2009}. O \argus{} faz uma
+aproximação conservadora: ao iniciar o resfriamento, registra a última
+frequência cardíaca da sessão como referência e captura a frequência
+instantânea em 60 e 120 segundos. Assim,
+
+\begin{equation}\label{eq:hrr}
+HRR_1 = HR_{\text{final}} - HR_{60s},
+\qquad
+HRR_2 = HR_{\text{final}} - HR_{120s}.
+\end{equation}
+
+\noindent Se o pico ocorreu antes do fim da sessão, a referência é menor do que
+o pico absoluto e o HRR é subestimado. O campo \code{MaxHR} da atividade
+registra o máximo real da sessão, mas não é usado no cálculo do HRR. O
+protocolo de resfriamento também não é padronizado: a intensidade e a posição
+do corpo durante a recuperação afetam a queda. O HRR é, portanto, um indicador
+de tendência, não um teste de aptidão.
+
+\subsection{O que é medido, estimado e inferido}
+\label{sec:medido-estimado}
+
+A Tabela~\ref{tab:medido-estimado} sintetiza a natureza de cada número
+apresentado pelo sistema. Ela é a referência mais importante deste capítulo
+para a leitura dos resultados.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Natureza das grandezas apresentadas pelo Argus}
+    \label{tab:medido-estimado}
+    \footnotesize
+    \renewcommand{\arraystretch}{1.12}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+        >{\raggedright\arraybackslash}p{2.2cm}
+        >{\raggedright\arraybackslash}p{4.2cm}
+        >{\raggedright\arraybackslash}p{5.5cm}@{}}
+        \toprule
+        \textbf{Grandeza} & \textbf{Natureza} & \textbf{Origem} &
+        \textbf{Limite principal} \\
+        \midrule
+        Potência, cadência e FC & Medida & Sensores BLE &
+        Precisão do sensor, perda de pacotes e taxa de notificação \\
+        Distância e velocidade & Estimada & Modelo físico e potência &
+        Parâmetros fixos; não é medida de GPS \\
+        Elevação e inclinação & Derivada & GPX e suavização &
+        Ruído do arquivo, janela e limite de $\pm 25\%$ \\
+        NP, IF e TSS & Calculada & Potência e FTP &
+        FTP estimada; amostragem e janela de 30 s \\
+        TRIMP & Calculada & FC, repouso e máxima &
+        Coeficiente populacional; média da FC \\
+        Zonas de potência e FC & Classificada & FTP e FC máxima &
+        Fronteiras arbitrárias; LTHR não usado nas zonas de FC \\
+        Desacoplamento & Calculada & Potência e FC &
+        Só em regime relativamente constante; 5\% é heurístico \\
+        HRR & Calculada & FC no fim e em 1--2 min &
+        Referência é a última FC, não o pico absoluto \\
+        VT1 e VT2 & Anotação & Linhas móveis no gráfico &
+        Não há detecção automática \\
+        VO\textsubscript{2}max & Não medido & --- &
+        Exigiria calorimetria indireta ou protocolo validado \\
+        Calorias & Estimada & Potência mecânica &
+        Conversão aproximada; não é calorimetria \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+\section{Engenharia de software}
+\label{sec:engenharia}
+
+\subsection{Clean Architecture e a regra das dependências}
+\label{sec:clean-architecture}
+
+A \textit{Clean Architecture}, proposta por Robert C. Martin, organiza o
+sistema em camadas concêntricas e estabelece que as dependências de código
+apontem para dentro: o núcleo de negócio não conhece banco de dados, interface,
+framework ou biblioteca de hardware; os detalhes dependem do núcleo
+\cite{martin2017clean}. A regra não é uma prescrição de pastas, mas uma
+restrição sobre quem pode importar quem. Ela permite substituir a interface, o
+banco ou o transporte BLE sem reescrever as regras de negócio, e permite testar
+o núcleo sem infraestrutura.
+
+No \argus{}, a separação é pragmaticamente materializada em pacotes Go. O
+pacote de domínio contém entidades e interfaces; o pacote de casos de uso
+contém a fachada de armazenamento; os pacotes de serviço e de repositório
+contêm adaptadores. O \textit{frontend} acessa o núcleo pelos
+\textit{bindings} Wails, sem importar pacotes Go. A
+Tabela~\ref{tab:camadas} resume a correspondência.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Camadas, pacotes e responsabilidades}
+    \label{tab:camadas}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.6cm}
+        >{\raggedright\arraybackslash}p{4.6cm}
+        >{\raggedright\arraybackslash}p{6.8cm}@{}}
+        \toprule
+        \textbf{Camada} & \textbf{Pacotes} & \textbf{Responsabilidade} \\
+        \midrule
+        Apresentação & \code{frontend/src} & Interface, HUD, mapa, gráficos
+        e barramento de telemetria \\
+        Aplicação & \code{app.go}, \code{internal/usecase} & Orquestração da
+        sessão, fachada de armazenamento e exposição ao \textit{frontend} \\
+        Domínio & \code{internal/domain} & Entidades, contratos de
+        repositório e porta do rolo \\
+        Adaptadores & \code{internal/service}, \code{internal/repository} &
+        BLE, simulação, GPX, FIT, IA, Strava, Intervals e SQLite \\
+        Infraestrutura & SQLite, arquivos, BLE, rede & Sistemas externos
+        acionados pelos adaptadores \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+A aderência não é dogmática. A fachada \code{StorageFacade} instancia
+repositórios SQLite concretos, e as entidades de domínio carregam tags de
+serialização e de ORM. Em termos de importação, o domínio não depende de GORM;
+em termos de modelo, ele conhece detalhes de persistência. O \code{app.go}
+também concentra muita orquestração, o que reduz a pureza dos casos de uso. O
+trabalho reconhece essas concessões: a arquitetura é orientada pela regra das
+dependências, não é uma implementação de manual.
+
+\subsection{Padrões de projeto}
+\label{sec:padroes}
+
+\textbf{Repository.} O padrão isola o acesso a dados atrás de uma interface
+definida no domínio \cite{gof1995}. O \argus{} possui seis repositórios de
+dados (perfil, atividades, potência, componentes, IA e eventos) e um
+gerenciador de conexões. As implementações SQLite ficam em
+\code{internal/repository/sqlite}. A interface permite substituir a
+persistência nos testes e manter o código de aplicação alheio ao SQL.
+
+\textbf{Facade.} O \code{StorageFacade} oferece uma API única para dezenas de
+operações de armazenamento, incluindo a troca do banco ativo quando o perfil
+muda. Sem a fachada, cada controlador precisaria conhecer a ordem de abertura
+dos bancos e as regras de migração.
+
+\textbf{Observer.} O \code{TelemetryEventBus}, no \textit{frontend}, publica
+cada amostra para HUD, gráficos e mapa sem que o produtor conheça os
+consumidores. O padrão desacopla a chegada do dado da renderização; não
+significa que a interface atualize a 60 quadros por segundo, nem que os dados
+cheguem nessa taxa. A fluidez visual é obtida por atualizações frequentes e,
+no mapa, por limitação de taxa e animação de câmera.
+
+\textbf{Strategy/Adapter.} A porta \code{TrainerService} permite trocar a
+implementação BLE real por um rolo virtual ou por um \textit{mock} de
+teste. O mesmo contrato expõe modos ERG e simulação, de modo que o restante do
+sistema não precisa saber se o transporte é FTMS ou FE-C.
+
+\subsection{Local-first e suas fronteiras}
+\label{sec:local-first}
+
+O conceito de \textit{local-first} descreve software em que os dados primários
+e a capacidade de trabalhar sobre eles permanecem no dispositivo do usuário,
+mesmo quando há serviços remotos \cite{kleppmann2019}. O \argus{} adota essa
+orientação em um sentido restrito: perfis, atividades, recordes e configurações
+ficam em SQLite local; o cálculo fisiológico e a simulação rodam no
+dispositivo; as integrações com Strava, Intervals.icu, tiles de mapa e Ollama
+são opcionais ou externas. Não há sincronização entre dispositivos, resolução
+de conflitos, \textit{CRDT} ou conta obrigatória. O sistema é local-first no
+controle do dado, não no sentido completo de colaboração multi-dispositivo.
+
+\section{Inteligência artificial generativa local}
+\label{sec:ia-local}
+
+Um modelo de linguagem de grande escala (LLM) pode ser executado localmente por
+meio de servidores de inferência como o Ollama \cite{ollama2024}. O \argus{}
+usa esse caminho para um assistente de treino: o modelo recebe o perfil do
+atleta (FTP, peso, nível, histórico recente e métricas agregadas), interpreta
+o pedido em linguagem natural e pode devolver um plano estruturado em JSON, que
+o sistema converte em ZWO. O endereço padrão é \texttt{127.0.0.1:11434} e o
+modelo padrão é \code{qwen2.5:3b}; o usuário pode trocar o modelo.
+
+A vantagem é a privacidade: os dados biométricos não precisam sair do
+dispositivo. O limite é a qualidade do modelo e a ausência de validação
+fisiológica. Um LLM pequeno pode alucinar durações, intensidades ou relações
+entre FTP e zonas; pode produzir JSON sintaticamente válido e fisiologicamente
+inadequado. O \argus{} valida a estrutura do JSON e converte os campos
+conhecidos, mas não verifica se o plano é seguro, progressivo ou adequado ao
+atleta. O assistente é uma ferramenta de ideação e edição, não um treinador
+certificado. A recomendação de revisão humana permanece.
+
+\section{Síntese do capítulo}
+\label{sec:sintese-fundamentacao}
+
+A Tabela~\ref{tab:conceitos-sintese} fecha o capítulo relacionando os conceitos
+centrais às decisões do \argus{} e aos seus limites. A leitura conjunta das
+tabelas~\ref{tab:medido-estimado} e~\ref{tab:conceitos-sintese} evita duas
+leituras equivocadas: a de que o sistema mede tudo o que exibe, e a de que a
+simulação é uma cópia da estrada.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Síntese conceitual do capítulo}
+    \label{tab:conceitos-sintese}
+    \footnotesize
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{5.2cm}
+        >{\raggedright\arraybackslash}p{5.2cm}@{}}
+        \toprule
+        \textbf{Conceito} & \textbf{Decisão no Argus} & \textbf{Limite assumido} \\
+        \midrule
+        BLE/GATT & Assinar HR, potência e FTMS; timestamp na chegada &
+        Taxa não é fixa; não há reamostragem \\
+        FTMS e FE-C & Dois caminhos de controle no desktop; FE-C no Android &
+        FE-C sobre BLE não é ANT+ nativo \\
+        GPX & Perfil, inclinação e distância 3D no desktop &
+        Relevo aproximado; sem superfície, clima ou curvas \\
+        FIT & Exportação binária interoperável &
+        Aceitação não prova exatidão; validação formal pendente \\
+        Martin & Modelo quase estático com parâmetros fixos &
+        Sem inércia, vento, frenagem ou dinâmica do rolo \\
+        Fisiologia & NP, IF, TSS, TRIMP, PMC, HRR e desacoplamento &
+        Estimativas e convenções; sem validação clínica \\
+        Clean Architecture & Domínio com interfaces e adaptadores &
+        Concessões pragmáticas em \code{app.go} e \code{StorageFacade} \\
+        IA local & Ollama, prompt com perfil e geração de ZWO &
+        Modelo pode alucinar; não há validação fisiológica \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+O próximo capítulo descreve como essas decisões foram organizadas em uma
+arquitetura executável e quais compensações foram feitas para sustentar o
+\textit{desktop} e o Android no mesmo projeto.

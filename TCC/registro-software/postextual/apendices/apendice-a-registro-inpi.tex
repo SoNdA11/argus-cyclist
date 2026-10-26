@@ -1,0 +1,85 @@
+% =====================================================================
+%  APÊNDICE A — REGISTRO DE SOFTWARE NO INPI
+% =====================================================================
+
+\chapter{REGISTRO DE SOFTWARE NO INPI}
+\label{ap:registro-inpi}
+
+Este apêndice reúne os dados do registro do \argus{} junto ao Instituto
+Nacional da Propriedade Industrial (INPI) e explicita o papel da versão
+registrada como linha de base do projeto. O certificado oficial é reproduzido
+nas páginas pré-textuais; a evolução técnica entre a versão registrada e a
+versão apresentada neste trabalho é discutida no
+Capítulo~\ref{cap:metodologia}.
+
+\section{Contexto legal}
+\label{ap:registro-contexto}
+
+O registro de programa de computador é um direito de propriedade intelectual
+previsto na Lei nº 9.609/1998 \cite{lei9609}. No Brasil, o registro é realizado
+no INPI e assegura ao titular e aos autores a proteção jurídica sobre o código
+fonte do software por 50 anos, contados de 1º de janeiro do ano subsequente à
+sua publicação \cite{inpi2026}. O registro não é condição para a proteção
+autoral, que decorre da criação da obra, mas constitui prova documental útil
+para fins acadêmicos, comerciais e institucionais.
+
+O \argus{} foi registrado com base na versão inicial do sistema, desenvolvida
+na etapa inicial do projeto. Essa versão é tratada neste trabalho como
+\textbf{linha de base} (\textit{baseline}) funcional e arquitetural. O registro
+não congela o software: ele documenta um estado do código, enquanto o projeto
+continuou a evoluir por meio de ciclos iterativos de desenvolvimento,
+conforme descrito no Capítulo~\ref{cap:metodologia}.
+
+\section{Dados do registro}
+\label{ap:registro-dados}
+
+A Tabela~\ref{tab:registro} consolida os dados do certificado.
+
+\begin{table}[H]
+    \centering
+    \caption{Dados do registro do software no INPI}
+    \label{tab:registro}
+    \small
+    \begin{tabular}{>{\raggedright\arraybackslash}p{4.6cm}p{9.2cm}}
+        \toprule
+        \textbf{Campo} & \textbf{Valor} \\
+        \midrule
+        Número do processo & BR512026003786-7 \\
+        Título & Argus Cyclist \\
+        Data de criação / publicação & 20/01/2026 \\
+        Titular & Fundação Universidade do Estado do Rio Grande do Norte (FUERN) \\
+        Autores & Isaac de Lima Oliveira Filho; Paulo Sérgio Silva de Medeiros \\
+        Linguagem & HTML; JavaScript; Outros \\
+        Campo de aplicação & IF-10 \\
+        Tipo de programa & SM-02 \\
+        Algoritmo \textit{hash} & SHA-512 \\
+        Data de expedição & 02/06/2026 \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: certificado de registro do INPI (2026).
+\end{table}
+
+\section{A versão registrada como linha de base}
+\label{ap:registro-versao}
+
+A versão registrada contemplava as funcionalidades que comprovaram a
+viabilidade técnica da proposta e definiram a identidade do projeto:
+
+\begin{itemize}
+    \item \textbf{Simulador núcleo}: conexão BLE com sensores de frequência
+        cardíaca e rolos de treino inteligentes (FTMS), renderização de mapa
+        3D e exportação de arquivos \texttt{.FIT}.
+    \item \textbf{Histórico e gráficos}: banco de dados local (SQLite) com
+        histórico de atividades e visualização gráfica de sessões.
+    \item \textbf{Curva de potência (MMP)}: cálculo e exibição dos recordes
+        de potência máxima em diferentes janelas de tempo.
+    \item \textbf{Editor de rotas}: criação de rotas personalizadas
+        diretamente no mapa.
+\end{itemize}
+
+Essa versão constituiu o \textit{baseline} funcional e arquitetural que foi
+aprimorado ao longo do ciclo de vida do projeto. A Tabela~\ref{tab:evolucao}
+do Capítulo~\ref{cap:metodologia} compara a versão registrada com a versão
+atual, e os Capítulos~\ref{cap:arquitetura} e~\ref{cap:implementacao}
+detalham as decisões e a implementação que produziram essa evolução.

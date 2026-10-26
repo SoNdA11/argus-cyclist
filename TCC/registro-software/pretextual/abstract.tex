@@ -5,34 +5,36 @@
 \begin{resumo}[Abstract]
 \begin{otherlanguage*}{english}
 
-Virtual cycling has become a sport modality recognized by the Union
-Cycliste Internationale (UCI), yet access to simulation platforms is
-restricted by monthly subscription fees in foreign currency, high-performance
-hardware requirements, and continuous internet dependence. This work presents
-the software registration of Argus Cyclist, an open-source cross-platform
-virtual cycling simulator licensed under GPLv3, developed in Go (Golang) with
-a JavaScript frontend using the Wails framework for desktop and Capacitor.js
-for Android mobile devices. The system employs a Clean Architecture with
-Facade and Repository patterns, abstracting Bluetooth Low Energy (BLE)
-connections for heart rate, power, and smart trainer control via GATT profiles
-(\texttt{0x180D}, \texttt{0x1818}, \texttt{0x1826}). The physics engine
-implements Martin's equation for speed calculation from GPX route gradients,
-while the physiological analysis module computes advanced metrics such as
-Normalized Power (NP), Training Stress Score (TSS), Performance Management
-Chart (PMC), and Aerobic Decoupling. It distinguishes itself by incorporating
-a local generative AI coaching assistant (Ollama) for creating personalized
-workout plans in ZWO format, along with a bicycle component wear tracking
-system. The software was registered at the Brazilian National Institute of
-Industrial Property (INPI, Process BR512026003786-7) in its initial version,
-having evolved significantly after the registration with new modules, training
-modes, third-party integrations, and architecture improvements. Experimental
-validation uses real cycling equipment to verify telemetry latency below
-\SI{150}{\milli\second} and \texttt{.fit} file compliance with the Garmin
-standard. The project aims to democratize scientific high-performance training
-by eliminating economic and connectivity barriers.
+Virtual cycling combines smart trainers, route simulation and physiological
+analysis, yet the cyclist's workflow is often fragmented across route, training
+and analysis applications. This work presents Argus Cyclist, an open-source,
+cross-platform software ecosystem for simulating, exploring and analysing real
+routes in virtual cycling. The thesis guiding the project is that a single
+workflow serves riders preparing for a race who want to recon the course, riders
+who want to experience a place they may never visit in person, and riders who
+want to train with physiological data. The GPX file is imported, the trainer
+simulates the road, telemetry is analysed and, on desktop, the history remains
+on the device; on Android, the live session covers import, simulation and
+telemetry, without FIT or history. The desktop was developed in Go, with a
+JavaScript frontend embedded through Wails; the same frontend is reused on
+Android through Capacitor, where physics and GPX parsing are reimplemented in
+JavaScript. The project follows Clean Architecture principles, Facade and
+Repository patterns, and local SQLite persistence on desktop. The desktop
+physics engine uses Martin's equation to estimate speed from gradient; the
+desktop analysis module computes Normalized Power (NP), Intensity Factor (IF),
+Training Stress Score (TSS), Training Impulse (TRIMP), the Performance
+Management Chart (PMC), heart rate recovery (HRR) and aerobic decoupling, with
+documented formulas and limitations. The study adopts Design Science Research
+and evaluates the artifact through a pilot study with the author, complemented
+by integration and \texttt{.FIT} export tests. Windows/Linux desktop (full
+workflow) and an Android phone (live session) were validated; iOS/iPadOS, an
+Android tablet and macOS desktop remain architectural preparation or projected
+layout, without device validation. The code is released
+under GPLv3, and the initial version was registered with the Brazilian National
+Institute of Industrial Property (INPI, Process BR512026003786-7).
 
-\textbf{Keywords}: Virtual cycling. Open source. Physics simulation. Bluetooth
-Low Energy. Physiological analysis. Artificial intelligence.
+\textbf{Keywords}: Virtual cycling. Real routes. Open source. Physiological
+analysis. Cross-platform. Design Science Research.
 
 \end{otherlanguage*}
 \end{resumo}

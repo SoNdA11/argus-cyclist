@@ -1,81 +1,106 @@
 % =====================================================================
-%  DIAGRAMA 1 — ARQUITETURA GERAL DE COMPONENTES (CLEAN ARCHITECTURE)
+%  DIAGRAMA 1 — ARQUITETURA GERAL DE COMPONENTES
 %  Fonte: autoria própria.
 % =====================================================================
 \begin{tikzpicture}[
-    scale=0.8,
-    every node/.style={transform shape},
-    node distance=1.8cm and 1.5cm,
-    box/.style={rectangle, draw, rounded corners, minimum width=2.8cm,
-      minimum height=0.9cm, align=center, font=\scriptsize\sffamily,
-      text=white, drop shadow},
-    layerbox/.style={rectangle, draw, dashed, black!50, rounded corners, thin},
-    layerlabel/.style={font=\scriptsize\bfseries\sffamily, fill=white, inner sep=2pt},
+    x=1cm, y=1cm,
     >=Stealth,
+    box/.style={rectangle, draw, rounded corners=2pt, align=center,
+      font=\footnotesize\sffamily, inner sep=4pt, minimum height=1.20cm,
+      line width=0.6pt},
+    layer/.style={font=\scriptsize\bfseries\sffamily, text=black!70, anchor=east},
+    note/.style={font=\scriptsize\sffamily, text=black!65, align=center},
+    arrow/.style={->, thick, draw=black!65},
 ]
 
-    % --- CAMADA DE APRESENTAÇÃO ---
-    \node[box, fill=red!70!black] (ui) at (0, 4.2) {Componentes\\UI / Canvas};
-    \node[box, fill=red!70!black] (teb) [right=1.2cm of ui] {Telemetry\\EventBus};
+    % -----------------------------------------------------------------
+    % Apresentação compartilhada
+    % -----------------------------------------------------------------
+    \node[layer] at (-7.45, 9.10) {Apresentação};
+    \node[box, fill=red!12, draw=red!60!black, minimum width=13.0cm,
+          text width=12.6cm] (front) at (0.80, 9.10)
+      {\textbf{Frontend JavaScript compartilhado (WebView)}\\
+       HUD, mapa, gráficos, \texttt{TelemetryEventBus}, treino, desafio e resumo};
 
-    \node[layerbox, inner sep=0.5cm, fit=(ui) (teb)] (frontlayer) {};
-    \node[layerlabel, anchor=south, text=red!80!black] at (frontlayer.north) {Camada de Apresentação: JS};
+    % -----------------------------------------------------------------
+    % Desktop: ponte, aplicação e domínio
+    % -----------------------------------------------------------------
+    \node[layer] at (-7.45, 7.15) {Ponte};
+    \node[box, fill=purple!12, draw=purple!60!black, minimum width=9.0cm,
+          text width=8.6cm] (wails) at (-1.20, 7.15)
+      {\textbf{Desktop (Wails + Go)}\\
+       Wails IPC: \textit{bindings} e eventos};
 
-    % --- WAILS IPC BRIDGE ---
-    \node[box, fill=purple!70!black, minimum width=5.0cm, minimum height=0.9cm] (wails) at (1.5, 2.0) {Wails IPC Bridge};
+    \node[layer] at (-7.45, 5.50) {Aplicação};
+    \node[box, fill=orange!14, draw=orange!65!black, minimum width=9.0cm,
+          text width=8.6cm] (app) at (-1.20, 5.50)
+      {\textbf{\texttt{app.go}}\\
+       fachada, ciclo de sessão, recuperação e exportação};
 
-    % --- DOMÍNIO E SERVIÇOS CORE ---
-    \node[box, fill=green!50!black] (blesvc) at (1.5, -0.5) {BLE Service};
-    \node[box, fill=green!50!black] (sim) [below=of blesvc] {Motor Físico};
-    \node[box, fill=green!50!black] (gpx) [below=of sim] {GPX Service};
+    \node[layer] at (-7.45, 3.70) {Domínio};
+    \node[box, fill=green!14, draw=green!45!black, minimum width=9.0cm,
+          text width=8.6cm] (domain) at (-1.20, 3.70)
+      {\textbf{Domínio e contratos}\\
+       perfil, atividade, telemetria, \texttt{TrainerService},\\
+       repositórios, GPX e FIT};
 
-    \node[layerbox, inner sep=0.6cm, fit=(blesvc) (gpx)] (corelayer) {};
-    \node[layerlabel, anchor=south, text=green!50!black] at (corelayer.north) {Domínio e Serviços Core};
+    % -----------------------------------------------------------------
+    % Android: runtime separado
+    % -----------------------------------------------------------------
+    \node[box, fill=cyan!10, draw=cyan!55!black, minimum width=3.8cm,
+          text width=3.4cm] (androidBridge) at (5.45, 7.15)
+      {\textbf{Android (Capacitor)}\\
+       WebView + plugin BLE\\
+       física JavaScript};
 
-    % --- CAMADA DE PERSISTÊNCIA ---
-    \node[box, fill=blue!60!black] (sqlite) at (-4.2, -0.5) {SQLite};
-    \node[box, fill=blue!60!black] (fit) at (-4.2, -2.0) {Arquivos .FIT};
-    \node[box, fill=blue!60!black] (stravaapi) at (-4.2, -3.5) {Strava / Intervals};
+    \node[box, fill=cyan!10, draw=cyan!55!black, minimum width=3.8cm,
+          text width=3.4cm] (androidSession) at (5.45, 5.25)
+      {\textbf{Sessão ao vivo}\\
+       BLE, física JS e HUD};
 
-    \node[layerbox, inner sep=0.6cm, fit=(sqlite) (stravaapi)] (persistlayer) {};
-    \node[layerlabel, anchor=south, text=blue!60!black] at (persistlayer.north) {Camada de Persistência};
+    % -----------------------------------------------------------------
+    % Adaptadores e infraestrutura
+    % -----------------------------------------------------------------
+    \node[layer] at (-7.45, 1.90) {Adaptadores};
+    \node[box, fill=blue!12, draw=blue!55!black, minimum width=9.0cm,
+          text width=8.6cm] (adapters) at (-1.20, 1.90)
+      {\textbf{Adaptadores}\\
+       BLE (FE-C/FTMS) · GPX · FIT/ZWO\\
+       SQLite · IA/integrações};
 
-    % --- CASOS DE USO ---
-    \node[box, fill=orange!70!black] (sf) at (7.2, -0.5) {Storage\\Facade};
-    \node[box, fill=orange!70!black] (wc) at (7.2, -2.0) {Workout\\Controller};
-    \node[box, fill=orange!70!black] (cc) at (7.2, -3.5) {Challenge\\Controller};
+    \node[box, fill=gray!15, draw=gray!60!black, minimum width=3.8cm,
+          text width=3.4cm] (androidHardware) at (5.45, 3.35)
+      {\textbf{Hardware BLE}\\
+       rolo e sensores};
 
-    \node[layerbox, inner sep=0.6cm, fit=(sf) (cc)] (uselayer) {};
-    \node[layerlabel, anchor=south, text=orange!80!black] at (uselayer.north) {Casos de Uso};
+    \node[layer] at (-7.45, 0.10) {Infraestrutura};
+    \node[box, fill=gray!15, draw=gray!60!black, minimum width=9.0cm,
+          text width=8.6cm] (infra) at (-1.20, 0.10)
+      {\textbf{Infraestrutura}\\
+       rolo e sensores · arquivos · SQLite\\
+       tiles · Strava/Intervals/Ollama};
 
-    % --- HARDWARE ---
-    \node[box, fill=gray!70!black, minimum width=6.0cm, minimum height=0.9cm] (sensors) [below=1.5cm of gpx] {Sensores BLE\\(\textit{HRM, Power, Trainer})};
+    % -----------------------------------------------------------------
+    % Conexões: verticais, sem cruzamentos
+    % -----------------------------------------------------------------
+    \draw[arrow] (front.south -| wails.north) -- (wails.north);
+    \draw[arrow] (front.south -| androidBridge.north) -- (androidBridge.north);
 
-    % --- CONEXÕES VERTICAIS E HORIZONTAIS ---
-    \draw[<->, thick] (blesvc) -- (sim);
-    \draw[<->, thick] (sim) -- (gpx);
-    \draw[->, thick] (gpx) -- (sensors);
+    \draw[arrow] (wails.south) -- (app.north);
+    \draw[arrow] (app.south) -- (domain.north);
+    \draw[arrow] (domain.south) -- (adapters.north);
+    \draw[arrow] (adapters.south) -- (infra.north);
 
-    % Conexões da Esquerda (Persistência)
-    \draw[<->, thick] (blesvc) -- (sqlite);
-    \draw[->, thick, dashed] (sim) -- (fit);
-    \draw[->, thick, dashed] (gpx) -- (stravaapi);
+    \draw[arrow] (androidBridge.south) -- (androidSession.north);
+    \draw[arrow] (androidSession.south) -- (androidHardware.north);
 
-    % Conexões da Direita (Casos de Uso)
-    \draw[<->, thick] (sf) -- (blesvc);
-    \draw[<->, thick] (wc) -- (sim);
-    \draw[<->, thick] (cc) -- (gpx);
+    % Separação entre os runtimes; não é uma seta de chamada.
+    \draw[dashed, draw=black!35] (3.45, -0.40) -- (3.45, 8.35);
 
-    % Conexões da Apresentação para a Bridge
-    \draw[<->, thick] (teb) -- (ui);
-    \draw[<->, thick] (teb.south) -- (wails.north);
-    \draw[<->, thick] (wails.south) -- (blesvc.north);
-
-    % Ponto de controle para as linhas
-    \coordinate (p1) at ($(wails.east) + (1.0, 0)$);
-
-    % Rota para StorageFacade: vai para a direita, desce contornando
-    \draw[<->, thick] (wails.east) -- (p1) |- (sf.west);
-    \draw[<->, thick] (wails.east) -- (p1) |- (wc.170);
+    % Legenda
+    \draw[arrow] (-6.60, -1.00) -- (-5.80, -1.00);
+    \node[note, anchor=west] at (-5.70, -1.00) {chamada ou dependência};
+    \draw[dashed, draw=black!35] (-1.55, -1.00) -- (-0.75, -1.00);
+    \node[note, anchor=west] at (-0.65, -1.00) {fronteira de plataforma};
 
 \end{tikzpicture}
