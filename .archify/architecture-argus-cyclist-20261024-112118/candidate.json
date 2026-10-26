@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitetura do Argus Cyclist",
+    "output": ".archify/architecture-argus-cyclist-20261024-112118/argus-cyclist-arquitetura.html",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/SoNdA11/argus-cyclist",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "9208dd574ffdf4da297af5743fa28a0038c66f06"
+    },
+    "views": [
+      {
+        "id": "desktop",
+        "label": "Fluxo desktop",
+        "focus": ["ui", "wails", "app", "loop", "ble", "sensors"],
+        "note": "Comandos, sessão e telemetria em tempo real"
+      },
+      {
+        "id": "android",
+        "label": "Runtime Android",
+        "focus": ["mobile", "ui"],
+        "note": "Capacitor hospeda o bundle e acessa o BLE nativo"
+      },
+      {
+        "id": "persistencia",
+        "label": "Persistência",
+        "focus": ["app", "fit", "storage", "dbglobal", "dbuser"],
+        "note": "Sessão finalizada grava atividade, FIT e bancos SQLite"
+      }
+    ],
+    "translations": {
+      "page.title": "Diagrama de {title}",
+      "diagram.description.architecture": "Diagrama de arquitetura gerado pelo Archify.",
+      "node.focus": "Focar {label}",
+      "node.focus.detail": "Focar {label}, {detail}",
+      "node.context.architecture": "Componente de arquitetura",
+      "legend.title": "Legenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Banco de dados",
+      "legend.architecture.cloud": "Nuvem",
+      "legend.architecture.security": "Segurança",
+      "legend.architecture.messagebus": "Barramento de mensagens",
+      "legend.architecture.external": "Externo",
+      "viewer.kind.frontend": "Frontend",
+      "viewer.kind.backend": "Backend",
+      "viewer.kind.database": "Banco de dados",
+      "viewer.kind.cloud": "Nuvem",
+      "viewer.kind.security": "Segurança",
+      "viewer.kind.messagebus": "Barramento",
+      "viewer.kind.external": "Externo",
+      "viewer.toolbar.actions": "Ações do diagrama",
+      "viewer.theme.toggle.title": "Alternar tema (T)",
+      "viewer.theme.toggle": "Alternar tema de cores",
+      "viewer.theme.dark": "Escuro",
+      "viewer.theme.light": "Claro",
+      "viewer.preset.choose.title": "Escolher estilo visual (S alterna)",
+      "viewer.preset.choose": "Escolher estilo visual",
+      "viewer.preset.style": "Estilo",
+      "viewer.preset.menu": "Estilo visual",
+      "viewer.preset.identity": "Identidade visual",
+      "viewer.preset.cycles": "para alternar",
+      "viewer.preset.classic": "Clássico",
+      "viewer.preset.classic.short": "Clássico",
+      "viewer.preset.classic.hint": "Padrão técnico estável",
+      "viewer.preset.flow": "Fluxo de sinal",
+      "viewer.preset.flow.short": "Fluxo",
+      "viewer.preset.flow.hint": "Apresentação com movimento",
+      "viewer.preset.blueprint": "Blueprint",
+      "viewer.preset.blueprint.hint": "Revisão de engenharia",
+      "viewer.preset.editorial": "Editorial",
+      "viewer.preset.editorial.hint": "Publicação e lançamento",
+      "viewer.preset.badge.signalFlow": "FLUXO DE SINAL",
+      "viewer.preset.badge.blueprint": "BLUEPRINT / REV 01",
+      "viewer.preset.badge.editorial": "EDITORIAL / NOTA DE CAMPO",
+      "viewer.preset.badge.editorialPlate": "ARCHIFY / PRANCHA 04",
+      "viewer.preset.current": "Estilo visual: {style}. Escolher estilo visual",
+      "viewer.motion.live": "Ao vivo",
+      "viewer.motion.still": "Estático",
+      "viewer.motion.pause": "Pausar movimento",
+      "viewer.motion.resume": "Retomar movimento",
+      "viewer.motion.reduced": "Movimento pausado pela preferência de redução",
+      "viewer.motion.hidden": "Movimento pausado enquanto esta página está oculta",
+      "viewer.present.enter": "Entrar no modo apresentação",
+      "viewer.present.enter.title": "Modo apresentação (F)",
+      "viewer.present.exit": "Sair do modo apresentação",
+      "viewer.present.exit.title": "Sair do modo apresentação (F ou Esc)",
+      "viewer.present.present": "Apresentar",
+      "viewer.present.exit.label": "Sair",
+      "viewer.export.button": "Exportar",
+      "viewer.export.button.title": "Exportar diagrama (E)",
+      "viewer.export.diagram": "Exportar diagrama",
+      "viewer.export.menu": "Exportar",
+      "viewer.export.subtitle": "Saídas portáteis e limpas",
+      "viewer.export.image": "Imagem",
+      "viewer.export.lossless": "Imagem sem perdas",
+      "viewer.export.editable": "Vetor editável",
+      "viewer.export.svg.auto": "SVG · Automático",
+      "viewer.export.svg.auto.hint": "Segue o tema do host",
+      "viewer.export.svg.light": "SVG · Claro",
+      "viewer.export.svg.light.hint": "Sempre claro",
+      "viewer.export.svg.dark": "SVG · Escuro",
+      "viewer.export.svg.dark.hint": "Sempre escuro",
+      "viewer.export.raster": "Imagens raster",
+      "viewer.export.vectorMotion": "Vetor e movimento",
+      "viewer.export.vectorMotion.heading": "Vetor e movimento",
+      "viewer.guide.title": "Explorar este sistema",
+      "viewer.guide.eyebrow": "Guia do diagrama",
+      "viewer.guide.close": "Fechar guia do diagrama",
+      "viewer.guide.find": "Encontrar um nó",
+      "viewer.guide.route": "Traçar uma rota",
+      "viewer.guide.map": "Ver o sistema inteiro",
+      "viewer.guide.lens": "Comparar tipos semânticos",
+      "viewer.guide.present": "Entrar no palco de apresentação",
+      "viewer.nav.route": "Traçar rota",
+      "viewer.nav.radar": "Abrir radar semântico",
+      "viewer.nav.lens": "Abrir lente semântica",
+      "viewer.nav.find": "Encontrar um nó",
+      "viewer.nav.guide": "Abrir guia do diagrama",
+      "viewer.nav.zoomIn": "Aproximar",
+      "viewer.nav.zoomIn.title": "Aproximar (+)",
+      "viewer.nav.zoomOut": "Afastar",
+      "viewer.nav.zoomOut.title": "Afastar (-)",
+      "viewer.nav.reset": "Redefinir visualização",
+      "viewer.nav.reset.title": "Redefinir visualização (0)",
+      "viewer.nav.read": "LER",
+      "viewer.nav.route.short": "ROTA",
+      "viewer.nav.radar.short": "MAPA",
+      "viewer.nav.lens.short": "LENTE",
+      "viewer.nav.level.map": "MAPA",
+      "viewer.nav.level.read": "LER",
+      "viewer.nav.level.full": "TUDO",
+      "viewer.nav.level.auto": "AUTO",
+      "viewer.nav.detail.map": "Aproxime para revelar rótulos e contexto",
+      "viewer.nav.detail.read": "Aproxime mais para revelar tags e anotações",
+      "viewer.nav.detail.full": "Diagrama completo",
+      "viewer.nav.camera": "{hint}. Redefinir visualização",
+      "viewer.nav.camera.title": "{semantic}{hint} · redefinir visualização (0)",
+      "viewer.nav.camera.semantic": "Câmera semântica ativa · ",
+      "viewer.nav.route.title": "Traçar rota (R)",
+      "viewer.nav.radar.title": "Radar semântico (M)",
+      "viewer.nav.lens.title": "Lente semântica (L)",
+      "viewer.nav.find.title": "Encontrar um nó (/)",
+      "viewer.nav.guide.title": "Guia do diagrama (?)",
+      "viewer.nav.controls": "Controles de visualização",
+      "viewer.outline.title": "Índice de nós",
+      "viewer.rail.show": "Notas e índice",
+      "viewer.rail.controls": "Painel lateral",
+      "viewer.rail.collapse": "Recolher painel lateral",
+      "viewer.rail.bottom": "Mover painel para baixo do diagrama",
+      "viewer.rail.right": "Mover painel para o lado do diagrama",
+      "viewer.common.copied": "Copiado",
+      "viewer.common.copyFailed": "Falha ao copiar",
+      "viewer.common.copyLink": "Copiar link",
+      "viewer.common.clear": "Limpar",
+      "viewer.common.close": "Fechar"
+    }
+  },
+  "components": [
+    {
+      "id": "tiles",
+      "type": "cloud",
+      "label": "Mapas e DEM",
+      "sublabel": "tiles ESRI · elevação",
+      "pos": [40, 40],
+      "size": [150, 64],
+      "sources": [
+        { "path": "frontend/src/config.js", "line": 19, "end_line": 36, "label": "tiles ESRI" },
+        { "path": "frontend/src/config.js", "line": 46, "end_line": 59, "label": "estilos + DEM" }
+      ]
+    },
+    {
+      "id": "integrations",
+      "type": "external",
+      "label": "Integrações externas",
+      "sublabel": "Strava · Intervals · Ollama",
+      "pos": [515, 40],
+      "size": [200, 64],
+      "sources": [
+        { "path": "internal/service/strava/oauth.go", "line": 38, "end_line": 75, "label": "OAuth Strava" },
+        { "path": "internal/service/intervals/client.go", "line": 31, "end_line": 44, "label": "Intervals.icu" },
+        { "path": "internal/service/ai/service.go", "line": 29, "end_line": 45, "label": "Ollama local" }
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Interface do ciclista",
+      "sublabel": "HUD · mapa · gráficos",
+      "pos": [40, 220],
+      "size": [150, 80],
+      "sources": [
+        { "path": "frontend/src/main.js", "line": 164, "end_line": 184, "label": "módulos da UI" },
+        { "path": "frontend/src/config.js", "line": 38, "end_line": 59, "label": "mapa e temas" }
+      ]
+    },
+    {
+      "id": "wails",
+      "type": "backend",
+      "label": "Runtime Wails",
+      "sublabel": "bindings JS ↔ Go",
+      "pos": [290, 220],
+      "size": [150, 72],
+      "tag": "v2.10.2",
+      "sources": [
+        { "path": "main.go", "line": 30, "end_line": 47, "label": "wails.Run + Bind" },
+        { "path": "app.go", "line": 149, "end_line": 169, "label": "serviços no NewApp" }
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "App orquestrador",
+      "sublabel": "sessão · perfis · treino",
+      "pos": [540, 220],
+      "size": [150, 80],
+      "sources": [
+        { "path": "app.go", "line": 52, "end_line": 100, "label": "struct App" },
+        { "path": "app.go", "line": 824, "end_line": 1009, "label": "FinishSession" }
+      ]
+    },
+    {
+      "id": "loop",
+      "type": "backend",
+      "label": "Loop de tempo real",
+      "sublabel": "gameLoop · por amostra",
+      "pos": [760, 220],
+      "size": [150, 80],
+      "sources": [
+        { "path": "app.go", "line": 1195, "end_line": 1216, "label": "gameLoop" },
+        { "path": "app.go", "line": 1436, "end_line": 1468, "label": "física + telemetria" }
+      ]
+    },
+    {
+      "id": "ble",
+      "type": "backend",
+      "label": "Serviço BLE",
+      "sublabel": "FTMS · FE-C · FC",
+      "pos": [1000, 220],
+      "size": [150, 72],
+      "tag": "FTMS/FE-C",
+      "sources": [
+        { "path": "internal/service/ble/real.go", "line": 31, "end_line": 52, "label": "UUIDs BLE" },
+        { "path": "internal/service/ble/real.go", "line": 54, "end_line": 75, "label": "RealService" }
+      ]
+    },
+    {
+      "id": "sensors",
+      "type": "external",
+      "label": "Trainer e sensores",
+      "sublabel": "potência · cadência · FC",
+      "pos": [1250, 220],
+      "size": [150, 72],
+      "sources": [
+        { "path": "internal/service/ble/real.go", "line": 33, "end_line": 36, "label": "serviços BLE" }
+      ]
+    },
+    {
+      "id": "mobile",
+      "type": "frontend",
+      "label": "App Android",
+      "sublabel": "Capacitor · BLE nativo",
+      "pos": [40, 430],
+      "size": [150, 72],
+      "tag": "Capacitor",
+      "sources": [
+        { "path": "frontend/capacitor.config.json", "line": 1, "end_line": 5, "label": "Capacitor" },
+        { "path": "frontend/src/main.js", "line": 191, "end_line": 196, "label": "init móvel" },
+        { "path": "frontend/src/modules/CapacitorBluetoothService.js", "line": 143, "end_line": 185, "label": "telemetria BLE" }
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "backend",
+      "label": "Fachada de storage",
+      "sublabel": "repositórios GORM",
+      "pos": [290, 430],
+      "size": [180, 72],
+      "sources": [
+        { "path": "internal/usecase/storage_facade.go", "line": 25, "end_line": 49, "label": "fachada" },
+        { "path": "internal/repository/sqlite/connection.go", "line": 63, "end_line": 85, "label": "LoadUserDatabase" }
+      ]
+    },
+    {
+      "id": "fit",
+      "type": "backend",
+      "label": "Exportação FIT",
+      "sublabel": "TSS · zonas · arquivo",
+      "pos": [540, 430],
+      "size": [150, 72],
+      "sources": [
+        { "path": "internal/service/fit/service.go", "line": 69, "end_line": 100, "label": "AddRecord" },
+        { "path": "internal/service/fit/service.go", "line": 103, "end_line": 192, "label": "Save FIT" },
+        { "path": "internal/service/fit/metrics.go", "line": 89, "end_line": 130, "label": "TSS e zonas" }
+      ]
+    },
+    {
+      "id": "sim",
+      "type": "backend",
+      "label": "Motor de física",
+      "sublabel": "sim.Engine · velocidade",
+      "pos": [760, 430],
+      "size": [150, 64],
+      "sources": [
+        { "path": "internal/service/sim/engine.go", "line": 48, "end_line": 95, "label": "CalculateSpeed" }
+      ]
+    },
+    {
+      "id": "dbglobal",
+      "type": "database",
+      "label": "Bancos globais",
+      "sublabel": "contas · ranking",
+      "pos": [280, 630],
+      "size": [200, 64],
+      "sources": [
+        { "path": "internal/repository/sqlite/connection.go", "line": 40, "end_line": 60, "label": "master + events" }
+      ]
+    },
+    {
+      "id": "dbuser",
+      "type": "database",
+      "label": "Banco por usuário",
+      "sublabel": "SQLite · atividades",
+      "pos": [520, 630],
+      "size": [200, 64],
+      "sources": [
+        { "path": "internal/repository/sqlite/connection.go", "line": 67, "end_line": 85, "label": "user DB" }
+      ]
+    }
+  ],
+  "connections": [
+    { "from": "ui", "to": "wails", "label": "comandos" },
+    { "from": "wails", "to": "ui", "label": "eventos" },
+    { "from": "wails", "to": "app", "label": "chamadas Go" },
+    { "from": "app", "to": "loop", "label": "sessão" },
+    { "from": "loop", "to": "ble", "label": "rampa/ERG" },
+    { "from": "ble", "to": "sensors", "label": "BLE" },
+    { "from": "ble", "to": "app", "label": "telemetria" },
+    { "from": "loop", "to": "sim", "label": "física" },
+    {
+      "from": "app",
+      "to": "storage",
+      "label": "perfil e atividades",
+      "route": "straight"
+    },
+    { "from": "app", "to": "fit", "label": "finaliza" },
+    { "from": "storage", "to": "dbglobal", "label": "contas + ranking" },
+    {
+      "from": "storage",
+      "to": "dbuser",
+      "label": "atividades",
+      "route": "straight"
+    },
+    { "from": "app", "to": "integrations", "label": "APIs externas" },
+    { "from": "ui", "to": "tiles", "label": "tiles e DEM" },
+    { "from": "mobile", "to": "ui", "label": "hospeda o bundle" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Desktop (Wails)",
+      "items": [
+        "Wails v2 embute frontend/dist e expõe o App ao JavaScript",
+        "Cada amostra atualiza rampa/ERG, física e telemetria",
+        "Telemetria volta ao frontend por eventos Wails"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Android (Capacitor)",
+      "items": [
+        "O mesmo bundle Vite é empacotado pelo Capacitor",
+        "BLE nativo no WebView via CapacitorBluetoothService",
+        "Sem backend Go, a física roda em JavaScript"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Persistência",
+      "items": [
+        "argus_master.db guarda as contas locais",
+        "events_ranking.db guarda os eventos",
+        "Cada usuário tem users_data/argus_data_<id>.db",
+        "Snapshots de recuperação em workouts/.recovery",
+        "GORM + SQLite por trás da StorageFacade"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Integrações",
+      "items": [
+        "Strava: OAuth 2.0 com callback local e upload de FIT",
+        "Intervals.icu: upload autenticado por API key",
+        "Ollama local em 127.0.0.1:11434 para o chat"
+      ]
+    }
+  ]
+}

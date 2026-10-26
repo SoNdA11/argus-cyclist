@@ -27,3 +27,4 @@ docs/
 
 # Recibos locais do Archify
 .archify/**/review-*/
+.archify/**/argus-cyclist-arquitetura.*.json
