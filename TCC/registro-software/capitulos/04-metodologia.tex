@@ -1,0 +1,343 @@
+% =====================================================================
+%  CAPÍTULO 4 — METODOLOGIA E PROCESSO DE DESENVOLVIMENTO
+% =====================================================================
+
+\chapter[METODOLOGIA E PROCESSO DE DESENVOLVIMENTO]{METODOLOGIA E PROCESSO DE\\DESENVOLVIMENTO}
+\label{cap:metodologia}
+
+Este capítulo descreve como o trabalho foi conduzido. Ele não se limita a
+listar ferramentas: explicita o método de pesquisa, o processo de engenharia, a
+linha de base registrada no INPI, os dados coletados e o desenho da avaliação.
+A intenção é permitir que outro pesquisador entenda o que foi feito, por que foi
+feito e o que pode ser reproduzido.
+
+\section{Design Science Research}
+\label{sec:dsr}
+
+O trabalho adota a \textit{Design Science Research} (DSR) como abordagem
+metodológica. A DSR é indicada quando o objeto de pesquisa é um artefato
+projetado para resolver um problema prático e quando o conhecimento é produzido
+pela construção e pela avaliação desse artefato \cite{hevner2004}. O artefato,
+neste caso, é o \argus{}: um sistema de software, mas também um conjunto de
+decisões de arquitetura, modelos, protocolos e documentação.
+
+Hevner et al. \cite{hevner2004} organizam a DSR em torno de sete diretrizes:
+projeto como artefato, relevância do problema, avaliação, contribuição de
+pesquisa, rigor metodológico, processo de projeto e comunicação. Peffers et al.
+\cite{peffers2007} propõem um processo de seis etapas que torna o ciclo mais
+explícito. A Tabela~\ref{tab:dsr} relaciona essas etapas ao presente trabalho.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Etapas da \textit{Design Science Research} aplicadas ao trabalho}
+    \label{tab:dsr}
+    \small
+    \begin{tabular}{
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{7.2cm}
+        >{\raggedright\arraybackslash}p{4.0cm}
+    }
+        \toprule
+        \textbf{Etapa} & \textbf{O que foi feito} & \textbf{Onde aparece} \\
+        \midrule
+        Identificação do problema &
+        Caracterização da fragmentação entre percurso, simulação e análise;
+        definição dos cinco problemas e dos requisitos &
+        Capítulos~\ref{cap:introducao} e~\ref{cap:estado-arte} \\
+        Objetivos da solução &
+        Definição do objetivo geral e dos objetivos específicos, com
+        delimitação de escopo &
+        Capítulo~\ref{cap:introducao} \\
+        Projeto e desenvolvimento &
+        Arquitetura, escolha de tecnologias, implementação dos módulos e
+        ciclos iterativos &
+        Capítulos~\ref{cap:arquitetura} e~\ref{cap:implementacao} \\
+        Demonstração &
+        Execução do fluxo completo no desktop e de sessões ao vivo no Android,
+        nos cenários de reconhecimento, exploração e treino &
+        Capítulo~\ref{cap:resultados} \\
+        Avaliação &
+        Estudo piloto com o autor, testes técnicos, verificação de arquivos
+        FIT e registro de problemas de uso &
+        Capítulo~\ref{cap:resultados} \\
+        Comunicação &
+        Redação do TCC, documentação do repositório, registro no INPI e
+        disponibilização do código &
+        Capítulo~\ref{cap:conclusao} e Apêndice~\ref{ap:registro-inpi} \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: adaptado de Peffers et al. \cite{peffers2007}.
+\end{table}
+
+A DSR não elimina a necessidade de rigor experimental; ela desloca o foco para a
+adequação entre problema, artefato e avaliação. Por isso, o capítulo distingue
+três tipos de evidência: a \textbf{evidência de construção} (o código e o
+histórico de desenvolvimento), a \textbf{evidência de demonstração} (o fluxo
+executado em cenários reais) e a \textbf{evidência de avaliação} (o piloto e os
+testes técnicos). Nenhuma delas é tratada como prova de eficácia clínica ou de
+generalização estatística.
+
+\section{Problema, requisitos e escopo}
+\label{sec:problema-requisitos}
+
+A Tabela~\ref{tab:requisitos} sintetiza os requisitos que orientaram o
+desenvolvimento. Eles foram derivados dos usos descritos no
+Capítulo~\ref{cap:introducao} e refinados ao longo dos ciclos de implementação.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Requisitos funcionais e não funcionais do Argus}
+    \label{tab:requisitos}
+    \small
+    \begin{tabular}{
+        >{\raggedright\arraybackslash}p{1.4cm}
+        >{\raggedright\arraybackslash}p{7.4cm}
+        >{\raggedright\arraybackslash}p{5.4cm}
+    }
+        \toprule
+        \textbf{ID} & \textbf{Requisito} & \textbf{Critério de verificação} \\
+        \midrule
+        RF01 & Importar GPX e extrair distância, altitude e inclinação &
+        Perfil altimétrico e distância conferem com o arquivo de origem \\
+        RF02 & Controlar o rolo pela inclinação do percurso &
+        No desktop, resistência varia ao longo da rota; modo simulação estável \\
+        RF03 & Registrar e exibir telemetria de potência, FC e cadência &
+        Desktop grava amostras por notificação BLE; HUD atualizado nas duas
+        plataformas \\
+        RF04 & Calcular NP, IF, TSS, TRIMP, PMC, HRR e desacoplamento &
+        No desktop, fórmulas documentadas e valores conferidos em casos de
+        teste \\
+        RF05 & Persistir perfis, atividades e recordes localmente &
+        No desktop, dados permanecem após reinício e perfis ficam isolados \\
+        RF06 & Exportar FIT e permitir integrações opcionais &
+        No desktop, arquivo aceito por Strava/Intervals.icu; integração pode ser
+        desligada \\
+        RF07 & Executar em desktop e Android &
+        Fluxo completo no desktop; sessão ao vivo no Android, com adaptações de
+        UI \\
+        RF08 & Apoiar o fluxo manual de reconhecimento &
+        No desktop, GPX, perfil, mapa, sessão e análise do FIT; no Android,
+        GPX, perfil, mapa e sessão ao vivo \\
+        RNF01 & Processar localmente, sem nuvem obrigatória &
+        No desktop, cálculo e histórico funcionam sem conta; Android mantém a
+        sessão local; rede só para mapas/integrações \\
+        RNF02 & Interface responsiva e utilizável em telas pequenas &
+        Layout adaptado; navegação testada em telefone Android \\
+        RNF03 & Código aberto e licenciado sob GPLv3 &
+        Repositório com licença; código disponível para auditoria \\
+        RNF04 & Preservar integridade e recuperação de sessões &
+        No desktop, exportação FIT válida e recuperação de sessão interrompida \\
+        RNF05 & Explicitar fórmulas, parâmetros e limitações &
+        Documentação e interface indicam o que é medido ou estimado \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+O escopo foi deliberadamente limitado. O \argus{} não inclui catálogo de rotas,
+reconhecimento automático de curvas, análise de vídeo, competição massiva,
+\textit{multiplayer} em tempo real ou recomendações clínicas. Essas funções
+poderiam ser úteis, mas ampliariam o escopo para além do que um TCC consegue
+implementar e avaliar com rigor. A Seção~\ref{sec:delimitacoes} do
+Capítulo~\ref{cap:introducao} explicita esses limites.
+
+\section{Processo de desenvolvimento}
+\label{sec:processo-desenvolvimento}
+
+O desenvolvimento seguiu um processo iterativo e incremental, com ciclos curtos
+de implementação, uso e correção. O histórico Git do repositório registra 301
+\textit{commits}, 130 \textit{merges} e 171 referências a \textit{issues}, entre
+6 de janeiro e 18 de outubro de 2026 (levantamento realizado em 18/10/2026).
+Esse histórico não é apresentado como métrica de qualidade, mas como evidência
+de continuidade e de rastreabilidade das decisões.
+
+O processo pode ser descrito em três ciclos principais.
+
+\subsection{Primeiro ciclo: núcleo de simulação e linha de base}
+\label{sec:primeiro-ciclo}
+
+O primeiro ciclo construiu o núcleo funcional: conexão BLE com sensor de
+frequência cardíaca e rolo, leitura de GPX, cálculo de inclinação, mapa 3D,
+persistência local e exportação FIT. Esse ciclo produziu a versão registrada no
+INPI em 20/01/2026
+(Apêndice~\ref{ap:registro-inpi}). A linha de base já continha o que o trabalho
+considera essencial: o percurso entrava, o rolo respondia e a sessão era
+registrada.
+
+\subsection{Segundo ciclo: análise, treino e integrações}
+\label{sec:segundo-ciclo}
+
+O segundo ciclo ampliou o sistema para além do simulador. Foram implementados
+treinos estruturados em ZWO, testes de FTP e \textit{ramp test}, modos de
+evento (sprint, KOM e contrarrelógio), análise de PMC, TRIMP, HRR e
+desacoplamento cardiovascular, além das integrações com Strava e Intervals.icu.
+O foco passou a ser a interpretação da sessão, e não apenas a sua execução.
+
+\subsection{Terceiro ciclo: mobilidade, mapa e experiência}
+\label{sec:terceiro-ciclo}
+
+O terceiro ciclo levou o sistema para Android por meio do Capacitor, migrou o
+mapa para MapLibre GL JS com terreno, unificou os modos de estúdio e desafio,
+adicionou o assistente de IA local via Ollama, o rastreamento de desgaste de
+componentes e melhorias de estabilidade na camada BLE. Esse ciclo também
+produziu a maior parte das decisões de interface responsiva que hoje sustentam
+o modo móvel. No Android, a entrega foi deliberadamente menor: sessão ao vivo,
+GPX, ZWO, BLE/FE-C e HUD; FIT, histórico, testes de aptidão e integrações
+permaneceram no desktop.
+
+\subsection{Evidência de evolução}
+\label{sec:evolucao}
+
+A Tabela~\ref{tab:evolucao} compara a versão registrada com a versão
+apresentada neste trabalho.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Evolução do Argus: versão registrada \textit{versus} versão atual}
+    \label{tab:evolucao}
+    \small
+    \begin{tabular}{
+        >{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{5.6cm}
+        >{\raggedright\arraybackslash}p{5.6cm}
+    }
+        \toprule
+        \textbf{Aspecto} & \textbf{Versão registrada (01/2026)} &
+        \textbf{Versão atual (2026)} \\
+        \midrule
+        Plataforma & Desktop (Wails) & Desktop + modo Android (Capacitor) \\
+        Motor de mapa & Mapbox 3D & MapLibre GL JS (Terrain-RGB) \\
+        Motor físico & Go (\textit{backend}) & Go no desktop; reimplementado em JavaScript no Android \\
+        Conectividade BLE & FTMS + HRM & Desktop: FTMS, FE-C, HRM, potência e rolo virtual; Android: FE-C, potência e HRM \\
+        Treinos & Livres & Livres + estruturados (ZWO) + testes FTP \\
+        Métricas & Básicas & NP, IF, TSS, TRIMP, PMC, HRR, desacoplamento \\
+        Integrações & Não havia & Strava (OAuth 2.0) e Intervals.icu \\
+        IA & Não havia & Assistente local via Ollama (planos ZWO) \\
+        Gamificação & Não havia & XP, níveis, troféus, conquistas, metas \\
+        Modos de treino & Não havia & Estúdio, Sprint, KOM, Contrarrelógio \\
+        Manutenção & Não havia & Rastreamento de desgaste de componentes \\
+        Persistência & Perfil único & Multiperfil isolado no desktop (SQLite); Android sem histórico \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+A evolução não representa abandono da versão registrada, mas maturação. No
+desktop, as funcionalidades essenciais da linha de base (simulação BLE, mapa,
+exportação FIT e histórico local) foram mantidas e ampliadas. O Android
+acrescenta uma sessão ao vivo com GPX, ZWO e BLE, mas não exporta FIT nem mantém
+histórico. O registro no INPI protege a base do software; este documento
+formaliza o estado atual e o processo que levou de uma versão à outra.
+
+\section{Demonstração}
+\label{sec:demonstracao}
+
+A demonstração foi organizada em três cenários, correspondentes aos usos
+descritos no Capítulo~\ref{cap:introducao}. No desktop, os três foram
+executados de ponta a ponta; no Android, o reconhecimento e a exploração foram
+exercitados como sessão ao vivo, sem a etapa de FIT e análise posterior.
+
+\begin{enumerate}
+    \item \textbf{Reconhecimento}: importar o GPX de uma prova, inspecionar o
+        perfil, pedalar o percurso e comparar a resposta fisiológica com a
+        leitura prévia do terreno. O caso principal foi o percurso
+        Geraardsbergen--Leberg (aproximadamente 21~km, 297~m de ganho e rampas
+        de até 18,2\%), escolhido por combinar subidas curtas e íngremes com
+        trechos de recuperação.
+    \item \textbf{Exploração}: pedalar uma rota de outra região sem deslocamento,
+        verificando se o mapa e o perfil permitem entender a geometria do lugar
+        e se a experiência faz sentido para uso recreativo.
+    \item \textbf{Treino}: executar uma sessão livre ou estruturada, exportar o
+        FIT e analisar as métricas no próprio \argus{} e em uma plataforma
+        externa.
+\end{enumerate}
+
+O repositório de trabalho contém 23 arquivos GPX, 5 arquivos ZWO e 274 arquivos
+FIT, que documentam a variedade de percursos e sessões usados ao longo do
+desenvolvimento. A demonstração não exige que todos sejam analisados; eles
+formam o acervo de onde os casos foram selecionados. Os arquivos FIT são
+evidência do fluxo de desktop; o Android não os produz nesta versão.
+
+\section{Avaliação}
+\label{sec:avaliacao}
+
+\subsection{Desenho do estudo piloto}
+\label{sec:desenho-piloto}
+
+A avaliação principal é um \textbf{estudo piloto exploratório de caso único},
+com o próprio autor como participante. O autor utiliza o sistema em sessões de
+30 a 60 minutos, com rolo e sensor de frequência cardíaca reais, em
+\textit{desktop} e em telefone Android. O objetivo é verificar a viabilidade do
+fluxo, identificar
+falhas de integração e levantar hipóteses para estudos futuros, não estimar
+efeitos de treinamento.
+
+O piloto combina dados quantitativos e qualitativos:
+
+\begin{itemize}
+    \item \textbf{conclusão do fluxo}: no desktop, importação do GPX, conexão
+        dos sensores, início da sessão, controle do rolo, encerramento e
+        exportação; no Android, importação, conexão e sessão ao vivo;
+    \item \textbf{estabilidade}: no desktop, registro de desconexões, falhas de
+        escrita, perda de amostras e recuperação de sessão;
+    \item \textbf{integridade do FIT}: no desktop, aceitação do arquivo por
+        Strava e Intervals.icu e conferência de distância, duração, potência e
+        elevação;
+    \item \textbf{usabilidade}: diário de uso com problemas observados,
+        dificuldades de navegação e ajustes necessários;
+    \item \textbf{desempenho}: comportamento da interface e do mapa durante a
+        sessão, sem transformar a percepção visual em medida de latência.
+\end{itemize}
+
+\subsection{Análise dos dados}
+\label{sec:analise-dados}
+
+Os dados quantitativos são apresentados de forma descritiva: contagens,
+durações, valores de potência e frequência cardíaca, taxas de sucesso e
+incidência de falhas. Não há teste de hipótese nem inferência estatística,
+porque a amostra é única e não representa uma população. Os dados qualitativos
+são organizados por tema (conexão, mapa, controle, análise, mobilidade) e
+usados para explicar os resultados quantitativos.
+
+\subsection{Validade e limitações}
+\label{sec:validade}
+
+No \textit{desktop}, a validade interna do piloto é reforçada pela triangulação
+entre o registro da sessão, o arquivo FIT exportado e a observação do autor. A validade externa é
+baixa: um único participante, um conjunto restrito de equipamentos e um
+contexto específico de uso. Os resultados não permitem afirmar que o sistema é
+usável por outros ciclistas, que melhora o desempenho ou que substitui um
+treinador. Permitem afirmar que o fluxo funciona nas condições testadas e que
+os problemas identificados são reais.
+
+Também não foram realizados testes com outros participantes, questionários
+padronizados de usabilidade, avaliação clínica de VO\textsubscript{2}max ou
+medição de lactato. Essas ausências são limitações declaradas e devem orientar
+trabalhos futuros.
+
+\section{Aspectos éticos}
+\label{sec:etica}
+
+O estudo utiliza apenas dados do próprio autor. Não há participantes humanos
+externos, coleta de dados de terceiros, material biológico ou intervenção
+clínica. Os dados de treino são armazenados localmente e podem ser apagados pelo
+próprio usuário. As integrações com Strava e Intervals.icu são opcionais e
+dependem de autorização explícita do usuário.
+
+A pesquisa segue os princípios da Lei Geral de Proteção de Dados (LGPD) no que
+se aplica ao tratamento de dados pessoais: minimização, finalidade e controle
+do titular. Como o único titular é o autor, o risco é reduzido, mas o desenho do
+sistema foi mantido compatível com o uso por terceiros em trabalhos futuros.
+
+\section{Síntese do capítulo}
+\label{sec:sintese-metodologia}
+
+A metodologia combina DSR, desenvolvimento iterativo e avaliação piloto. A DSR
+fornece a estrutura de problema, artefato e avaliação; o desenvolvimento
+iterativo fornece a evidência de construção; o piloto fornece a evidência de
+uso. O próximo capítulo detalha a arquitetura que sustenta o artefato e as decisões
+que permitiram executar o fluxo completo no \textit{desktop} e uma sessão ao
+vivo no Android, com o \textit{frontend} compartilhado.

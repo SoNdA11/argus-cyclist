@@ -16,16 +16,16 @@
     },
     level 1 concept/.append style={
       level distance=5.5cm,
-      minimum size=2.7cm,
+      minimum size=3.0cm,
       font=\normalsize\bfseries,
-      text width=2.0cm,
+      text width=2.4cm,
       align=center
     },
     level 2 concept/.append style={
       level distance=3.2cm,
-      minimum size=2.2cm,
+      minimum size=2.4cm,
       font=\footnotesize\bfseries,
-      text width=1.5cm,
+      text width=2.2cm,
       align=center
     },
 ]
@@ -38,33 +38,33 @@
               child[grow=35]  { node {FTMS\\Trainer}}
           }
           % 2. Simulação GPX
-          child[grow=51.4, concept color=orangeargus] { node {Simulação\\GPX}
-              child[grow=33.9] { node {Grade\\Dinâmica}}
-              child[grow=68.9] { node {Elevação\\3D}}
+          child[grow=51, concept color=orangeargus] { node {Simulação\\GPX}
+              child[grow=34] { node {Grade\\Dinâmica}}
+              child[grow=69] { node {Elevação\\3D}}
           }
           % 3. Fisiologia
-          child[grow=102.8, concept color=redargus!80!black] { node {Fisiologia}
-              child[grow=67.8]  { node {NP / IF\\TSS}}
-              child[grow=102.8] { node {PMC\\CTL/ATL}}
-              child[grow=137.8] { node {Pw:HR}}
+          child[grow=103, concept color=redargus!80!black] { node {Fisiologia}
+              child[grow=68]  { node {NP / IF\\TSS}}
+              child[grow=103] { node {PMC\\CTL/ATL}}
+              child[grow=138] { node {Pw:HR}}
           }
           % 4. IA Coach Ollama
-          child[grow=154.2, concept color=blueargus!60!white] { node {IA Coach\\Ollama}
-              child[grow=136.7] { node {Planos\\ZWO}}
-              child[grow=171.7] { node {Chat\\Local}}
+          child[grow=154, concept color=blueargus!60!white] { node {IA Coach\\Ollama}
+              child[grow=137] { node {Planos\\ZWO}}
+              child[grow=172] { node {Chat\\Local}}
           }
           % 5. Peças
-          child[grow=205.7, concept color=greenargus] { node {Peças}
-              child[grow=188.2] { node {Desgaste\\Linear}}
-              child[grow=223.2] { node {Controle}}
+          child[grow=206, concept color=greenargus] { node {Peças}
+              child[grow=188] { node {Desgaste\\Linear}}
+              child[grow=223] { node {Controle}}
           }
           % 6. Gamificação
-          child[grow=257.1, concept color=orangeargus!70!black] { node {Gamificação}
-              child[grow=239.6] { node {XP / Níveis}}
-              child[grow=274.6] { node {Conquistas}}
+          child[grow=257, concept color=orangeargus!70!black] { node {Gamificação}
+              child[grow=240] { node {XP / Níveis}}
+              child[grow=275] { node {Conquistas}}
           }
           % 7. Exportação
-          child[grow=308.5, concept color=redargus] { node {Exportação}
+          child[grow=308, concept color=redargus] { node {Exportação}
               child[grow=291] { node {.FIT\\Garmin}}
               child[grow=326] { node {Strava\\API}}
           };

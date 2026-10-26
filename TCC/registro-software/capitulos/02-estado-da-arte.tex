@@ -1,0 +1,458 @@
+% =====================================================================
+%  CAPÍTULO 2 — ESTADO DA ARTE E POSICIONAMENTO
+% =====================================================================
+
+\chapter{ESTADO DA ARTE E POSICIONAMENTO}
+\label{cap:estado-arte}
+
+A pergunta que organiza este capítulo não é ``qual plataforma é a melhor?'',
+mas ``o que cada plataforma resolve e o que ela deixa fora?''. A resposta
+importa porque o \argus{} não foi projetado para vencer uma disputa de catálogo,
+de gráficos ou de usuários simultâneos. Ele foi projetado para um recorte
+específico: o percurso real como dado central de simulação, exploração e
+análise fisiológica. Este capítulo compara as soluções existentes, identifica o
+que já está resolvido e delimita o espaço em que o \argus{} pode contribuir sem
+prometer o que não entrega.
+
+\section{De simuladores a ecossistemas}
+\label{sec:de-simuladores}
+
+O mercado de ciclismo virtual pode ser lido em quatro camadas. A primeira é a
+\textbf{simulação}: transformar dados de percurso, peso, potência e resistência
+em velocidade e em resistência aplicada ao rolo. A segunda é o
+\textbf{treino}: prescrever intervalos, controlar a intensidade e acompanhar a
+carga. A terceira é a \textbf{análise}: interpretar potência, frequência
+cardíaca, cadência e histórico para produzir diagnóstico. A quarta é a
+\textbf{experiência}: mapa, vídeo, mundo tridimensional, competição, comunidade
+e gamificação.
+
+Cada plataforma combina essas camadas de maneira diferente. Zwift e MyWhoosh
+investem na experiência e na competição; Rouvy investe no realismo visual de
+rotas; Biketerra e Ride Cave aproximam rota real, treino e análise; TrainerRoad
+e Wahoo SYSTM investem na prescrição; TrainingPeaks Virtual integra reconhecimento
+de percurso ao ecossistema de análise; GoldenCheetah, Incyclist, Auuki e QZ
+cobrem partes do fluxo com código aberto. O \argus{} se posiciona na
+intersecção entre simulação de percurso e análise fisiológica, com uma
+restrição adicional: o dado e o histórico permanecem no dispositivo.
+
+\section{Plataformas comerciais}
+\label{sec:plataformas-comerciais}
+
+\subsection{Mundos virtuais e competição}
+\label{sec:mundos-virtuais}
+
+O \textbf{Zwift} é a referência de mercado em escala e em comunidade. A
+plataforma oferece mundos tridimensionais proprietários, eventos contínuos,
+corridas e recursos sociais que criam uma experiência difícil de replicar fora
+de uma grande infraestrutura. O preço de referência é de US\$~19,99 por mês ou
+US\$~199,99 por ano \cite{zwift_pricing}. Para o recorte deste trabalho, o ponto
+central não é a qualidade gráfica, e sim o fato de a experiência ser organizada
+em torno de um catálogo de mundos da plataforma, e não do arquivo GPX que o
+ciclista traz. O Zwift não é um ambiente de análise de percurso do usuário; ele
+é um mundo social e competitivo.
+
+O \textbf{MyWhoosh} segue uma lógica de acesso gratuito e forte investimento em
+eventos e em competição. A plataforma foi associada pela UCI à organização do
+campeonato mundial de ciclismo \textit{e-sports}, o que reforça seu papel
+institucional \cite{uci2026,mywhoosh_site}. O catálogo é de mundos próprios, e a
+operação não é offline: quando a conexão cai, o aplicativo pode continuar a
+sessão até a reconexão, mas o funcionamento normal depende da rede
+\cite{mywhoosh_offline}. Para o \argus{}, o MyWhoosh é evidência de que
+``gratuito'' não é diferencial suficiente: a disputa real está no tipo de
+experiência e no controle do dado.
+
+\subsection{Rotas reais e vídeo}
+\label{sec:rotas-reais}
+
+O \textbf{Rouvy} é a referência de realismo visual baseado em rotas reais. A
+plataforma combina vídeos de estradas, avatar tridimensional e biblioteca de
+percursos; o preço de referência é de €~19,99 por mês ou €~179,99 por ano, com
+teste de sete dias \cite{rouvy_pricing}. O Rouvy permite baixar vídeos de rotas
+e operar offline por períodos curtos, embora a autenticação e a renovação da
+assinatura dependam de conexão \cite{rouvy_offline}. Aproximar-se do percurso
+real é exatamente o que o \argus{} também procura, mas por outro caminho: o
+Rouvy parte de um catálogo de vídeos; o \argus{} parte do GPX fornecido pelo
+usuário e trata o percurso como dado analisável.
+
+O \textbf{Biketerra} é, entre as plataformas comerciais, a que mais se aproxima
+do fluxo de trabalho do \argus{}. Ele oferece rotas reais renderizadas em 3D,
+upload de GPX, FIT e TCX, editor de rotas, treinos, bots e eventos. O acesso
+custa US\$~7,99 por mês ou US\$~79,99 por ano, e a conta gratuita não tem limite
+de distância ou de tempo, embora tenha limite de rotas enviadas e de biblioteca
+\cite{biketerra_pricing,biketerra_site}. O Biketerra roda em aplicativos nativos
+para Windows, macOS, iOS e Linux, além de navegadores Chromium
+\cite{biketerra_site}. Isso elimina duas objeções que o texto poderia usar como
+diferencial: ``só existe no navegador'' e ``só funciona pagando''. O \argus{}
+precisa, portanto, competir em outro eixo.
+
+O \textbf{Ride Cave} é outro concorrente direto. A camada gratuita inclui
+treinos, \textit{eRoutes} com GPX, TCX e FIT, mapa, \textit{Street View},
+mundo 3D, \textit{group rides} e o construtor de treinos. O plano
+\textit{Cave Crew} acrescenta \textit{Data Lab}, \textit{Atlas AI coaching},
+planos adaptativos, rastreamento de componentes e relatórios; o preço é de
+US\$~6,99 por mês ou US\$~199 em pagamento único \cite{ridecave_pricing}.
+A plataforma roda em navegador, iOS/iPadOS, Android e aplicativos de desktop
+para macOS, Windows e Linux, com ANT+ no desktop \cite{ridecave_site}. O
+\argus{} não é concebido como um catálogo equivalente de funcionalidades; sua
+ênfase está em um ambiente aberto, com processamento e histórico locais e
+fórmulas documentadas e auditáveis.
+
+\subsection{Treino estruturado}
+\label{sec:treino-estruturado}
+
+O \textbf{TrainerRoad} não é um simulador de rotas. Seu foco é a prescrição e a
+execução de treinos estruturados, com detecção de FTP, planos adaptativos e
+análise de carga. O preço de referência é de US\$~21,99 por mês ou
+US\$~209,99 por ano \cite{trainerroad_pricing}. Para o \argus{}, o TrainerRoad é
+uma referência de profundidade de treino, mas não cobre o reconhecimento de
+percurso nem a exploração de uma estrada real.
+
+O \textbf{Wahoo SYSTM} combina planos, vídeos e testes de perfil fisiológico.
+A linha de assinaturas tem um nível gratuito, um nível \textit{Core} de
+US\$~4,99 por mês e um nível \textit{Pro} de US\$~17,99 por mês
+\cite{wahoo_systm}. O SYSTM controla rolos padrão por Bluetooth ou ANT+ e
+oferece treinos estruturados, mas não é um ambiente de importação e análise de
+percursos GPX. Ele é relevante como referência de prescrição e de experiência
+guiada, não como concorrente direto do fluxo de reconhecimento.
+
+\subsection{Reconhecimento e análise}
+\label{sec:recon-e-analise}
+
+O \textbf{TrainingPeaks Virtual} é o concorrente que melhor explicita o uso de
+reconhecimento. O recurso \textit{GPXplore} permite importar um GPX e pedalar a
+rota, e o recurso de \textit{teleport} permite saltar para trechos decisivos e
+reconhecer curvas e subidas \cite{trainingpeaks_virtual}. O serviço é incluído
+na assinatura TrainingPeaks Premium, que também concentra análise, zonas,
+planos e histórico. É, portanto, a prova de que o caso de uso do \argus{} existe
+comercialmente. A diferença é que o TrainingPeaks Virtual é proprietário,
+dependente de assinatura e integrado a um ecossistema fechado de análise. O
+\argus{} não precisa inventar o caso de uso; precisa oferecê-lo de forma
+aberta, local e reproduzível.
+
+\section{Iniciativas de código aberto}
+\label{sec:codigo-aberto}
+
+\subsection{GoldenCheetah}
+\label{sec:goldencheetah}
+
+O \textbf{GoldenCheetah} é a referência histórica de análise de dados de
+ciclismo em código aberto. Distribuído sob GPLv2, ele importa FIT, GPX, TCX e
+outros formatos, oferece modelagem de potência crítica, PMC, Banister, W'bal e
+centenas de métricas, e também controla rolos ANT+ FE-C \cite{goldencheetah_site}.
+O ponto forte é a profundidade analítica; o ponto fraco, para o recorte deste
+trabalho, é a interface de desktop, a curva de aprendizado e a ausência de um
+fluxo móvel integrado de reconhecimento e exploração. O \argus{} não supera o
+GoldenCheetah em análise; ele tenta levar um subconjunto dessa análise para
+dentro de uma experiência de percurso, com histórico local e uma interface mais
+acessível.
+
+\subsection{Incyclist}
+\label{sec:incyclist}
+
+O \textbf{Incyclist} é o projeto aberto mais próximo do \argus{} em cobertura
+funcional. Ele permite pedalar vídeos de estradas reais, importar qualquer GPX
+e usar \textit{Street View}, \textit{Satellite View} ou mapa, além de executar
+treinos ZWO e sincronizar com o Intervals.icu. Roda em Windows, macOS, Linux,
+Android e iOS/iPadOS, com BLE em todas as plataformas e ANT+ no desktop
+\cite{incyclist_site}. É gratuito e de código aberto.
+
+O Incyclist ocupa um espaço próximo: também é aberto, importa GPX e controla
+rolos em várias plataformas. O \argus{} compartilha essas capacidades; sua
+contribuição está no eixo de análise, com um módulo fisiológico que calcula e
+discute NP, IF, TSS, TRIMP, PMC, HRR e desacoplamento cardiovascular, além de
+manter um histórico local multiperfil e exportar FIT. A diferença está na
+integração desse eixo analítico ao fluxo de percurso, não na primazia da
+importação de GPX.
+
+\subsection{Auuki e QZ}
+\label{sec:auuki-qz}
+
+O \textbf{Auuki} é uma aplicação web de código aberto, licenciada sob AGPL-3.0,
+voltada à execução de treinos estruturados com rolo e medidor de potência.
+Ele carrega arquivos ZWO e FIT \textit{course}, mas não aceita GPX nem arquivos
+FIT de treino \cite{auuki_site}. É uma referência de simplicidade e de
+portabilidade, não de simulação de percurso.
+
+O \textbf{QZ} (\textit{qdomyos-zwift}) é um projeto GPL-3.0 que funciona como
+ponte entre equipamentos de ginástica, rolos e aplicativos. Ele suporta
+\textit{auto-follow} de GPX, mapas 2D/3D, ZWO, Strava e diversos protocolos
+\cite{qz_github}. É uma ferramenta poderosa de compatibilidade, mas não se
+apresenta como um ecossistema integrado de análise fisiológica e reconhecimento
+de percurso.
+
+\section{Síntese comparativa}
+\label{sec:sintese-comparativa}
+
+As Tabelas~\ref{tab:comerciais} e~\ref{tab:abertos} resumem a comparação. Os
+preços são valores de referência consultados em outubro de 2026 e podem mudar;
+eles servem para situar o modelo de acesso, não para calcular custo total de
+propriedade.
+
+A comparação admite três leituras. A primeira é que a experiência e o
+conteúdo já são bem atendidos por produtos comerciais, e o \argus{} não
+disputa esse eixo. A segunda é que o treino e a análise têm profundidade em
+TrainerRoad, Wahoo SYSTM e TrainingPeaks, que o trabalho também não pretende
+igualar. A terceira é que, nos projetos abertos, as peças existem, mas não como
+um fluxo único que vá do GPX à simulação, à análise fisiológica e ao histórico
+local. É nessa continuidade que o \argus{} se posiciona; sua contribuição é de
+integração e de documentação das decisões, não de originalidade de cada função.
+A existência dessas soluções não elimina a contribuição: ela define o padrão
+contra o qual o trabalho deve ser avaliado.
+
+\begin{table}[H]
+    \centering
+    \caption{Plataformas comerciais de ciclismo virtual (referência: outubro de 2026)}
+    \label{tab:comerciais}
+    \footnotesize
+    \renewcommand{\arraystretch}{1.15}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{3.0cm}
+        >{\raggedright\arraybackslash}p{3.3cm}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{2.4cm}@{}
+    }
+        \toprule
+        \textbf{Plataforma} & \textbf{Modelo de acesso} &
+        \textbf{Rotas e simulação} & \textbf{Treino e análise} &
+        \textbf{Leitura para este trabalho} \\
+        \midrule
+        Zwift & US\$~19,99/mês; US\$~199,99/ano &
+        Mundos 3D proprietários; corrida e social &
+        Treinos e métricas; análise limitada no app &
+        Não é um ambiente de análise de GPX \\
+        Rouvy & €~19,99/mês; €~179,99/ano; teste de 7 dias &
+        Vídeos/3D de rotas reais; download offline parcial &
+        Treinos e métricas básicas &
+        Conteúdo real, mas catálogo e assinatura \\
+        MyWhoosh & Gratuito &
+        Mundos 3D; eventos e competição UCI &
+        Treinos e corridas &
+        Gratuito não elimina dependência de conta/rede \\
+        Biketerra & US\$~7,99/mês; US\$~79,99/ano; camada gratuita &
+        Rotas reais 3D; upload GPX/FIT/TCX; editor &
+        Treinos, bots e eventos &
+        Concorrente direto em rota e acesso \\
+        Ride Cave & Gratuito; \textit{Cave Crew} US\$~6,99/mês ou US\$~199 único &
+        \textit{eRoutes} GPX/TCX/FIT; 3D; mapa e \textit{Street View} &
+        Treinos; \textit{Data Lab}, IA e componentes no \textit{Cave Crew} &
+        Concorrente direto em funcionalidades \\
+        TrainerRoad & US\$~21,99/mês; US\$~209,99/ano &
+        Sem simulação de rota &
+        Planos, FTP e análise de carga &
+        Profundidade de treino, sem reconhecimento \\
+        TrainingPeaks Virtual & Incluído no TrainingPeaks Premium &
+        GPXplore e \textit{teleport} para reconhecimento &
+        Treinos, zonas e análise TrainingPeaks &
+        Prova que o caso de uso existe; fechado \\
+        Wahoo SYSTM & Base gratuita; \textit{Core} US\$~4,99/mês; \textit{Pro} US\$~17,99/mês &
+        Vídeos e treinos; sem simulação de rota &
+        Planos, testes e análise &
+        Prescrição, não reconhecimento \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: páginas oficiais consultadas em 20 out. 2026
+    \cite{zwift_pricing,rouvy_pricing,mywhoosh_site,biketerra_pricing,ridecave_pricing,trainerroad_pricing,trainingpeaks_virtual,wahoo_systm}.
+\end{table}
+
+A Tabela~\ref{tab:comerciais} mostra que o mercado comercial não é homogêneo.
+Zwift e MyWhoosh concentram a proposta em mundos e eventos; Rouvy e Biketerra
+aproximam a experiência de rotas reais; TrainerRoad, Wahoo SYSTM e TrainingPeaks
+deslocam o valor para a prescrição e o acompanhamento. O \argus{} parte do
+percurso que o usuário já possui e usa o rolo para reconhecê-lo, sem transformar
+a plataforma em catálogo de entretenimento.
+
+A tabela também mostra que os recursos estão distribuídos entre produtos e
+assinaturas, sem que o arquivo do usuário, o controle do rolo e o histórico
+local apareçam como um eixo comum. A Tabela~\ref{tab:abertos} desloca a
+comparação para os projetos abertos que cobrem parte desse fluxo.
+
+\clearpage
+
+\begin{table}[t]
+    \centering
+    \caption{Projetos de código aberto relacionados (referência: outubro de 2026)}
+    \label{tab:abertos}
+    \footnotesize
+    \renewcommand{\arraystretch}{1.15}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.6cm}
+        >{\raggedright\arraybackslash}p{2.2cm}
+        >{\raggedright\arraybackslash}p{3.1cm}
+        >{\raggedright\arraybackslash}p{4.0cm}
+        >{\raggedright\arraybackslash}p{2.8cm}@{}
+    }
+        \toprule
+        \textbf{Projeto} & \textbf{Licença} & \textbf{Plataformas} &
+        \textbf{Cobertura principal} & \textbf{Lacuna no fluxo} \\
+        \midrule
+        GoldenCheetah & GPLv2 &
+        Windows, macOS, Linux &
+        Análise profunda, PMC, CP/W', FIT/GPX, ANT+ FE-C &
+        Desktop; interface complexa; sem fluxo móvel integrado \\
+        Incyclist & Código aberto &
+        Windows, macOS, Linux, Android, iOS/iPadOS &
+        GPX, vídeos, \textit{Street View}, ZWO, BLE/ANT+/Direct Connect &
+        Análise fisiológica não é o eixo central \\
+        Auuki & AGPL-3.0 &
+        Navegador &
+        ZWO e FIT \textit{course}; treinos estruturados &
+        Sem GPX; sem simulação de percurso \\
+        QZ & GPL-3.0 &
+        Windows, macOS, Linux, Android, iOS &
+        Ponte de equipamentos, GPX, mapas 2D/3D, ZWO &
+        Não é um ecossistema de análise e reconhecimento \\
+        \argus{} & GPLv3 &
+        Windows/Linux completos; Android em sessão ao vivo; macOS compilável;
+        iOS preparado &
+        GPX, rolo, análise fisiológica, SQLite local, FIT e IA local no
+        desktop &
+        Piloto n=1; Android sem FIT/histórico; iOS/tablet não validados; sem
+        catálogo de rotas \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: páginas oficiais e repositórios consultados em 20 out. 2026
+    \cite{goldencheetah_site,incyclist_site,auuki_site,qz_github}.
+\end{table}
+
+\section{Lacunas e posicionamento do Argus}
+\label{sec:lacunas-posicionamento}
+
+\subsection{O que o \argus{} não pretende ser}
+\label{sec:nao-pretende}
+
+O \argus{} não tem como objetivo reproduzir integralmente a proposta de
+plataformas comerciais de ciclismo virtual, como o Zwift, nem competir
+diretamente com elas em termos de conteúdo visual, eventos \textit{on-line} ou
+recursos sociais. Sua proposta também não se fundamenta exclusivamente na
+gratuidade, uma vez que outras plataformas, como MyWhoosh, Biketerra e Rouvy,
+oferecem diferentes modalidades de acesso gratuito.
+
+A experiência visual do sistema prioriza a representação do percurso e a
+interpretação de suas características, com ênfase na altitude, na inclinação e
+na geometria da rota, em vez de privilegiar a imersão gráfica em mundos
+virtuais. Nesse contexto, o sistema busca apoiar a compreensão do terreno e a
+organização das sessões de treino, sem pretender substituir a experiência do
+ciclismo ao ar livre.
+
+Também não se reivindica pioneirismo na integração entre arquivos GPX e rolos
+de treino inteligentes. Projetos como o Incyclist já oferecem funcionalidades
+relacionadas à simulação de percursos, enquanto o GoldenCheetah disponibiliza
+suporte ao controle de rolos compatíveis com ANT+ FE-C. A contribuição proposta
+está na integração dessas funcionalidades com a análise fisiológica e o registro
+local do histórico de atividades em um único sistema de código aberto.
+
+Essa proposta é acompanhada por uma implementação multiplataforma, cujo escopo
+de validação é explicitado ao longo do trabalho, incluindo sessões práticas com
+a versão Android. Dessa forma, a contribuição do \argus{} não reside em uma
+funcionalidade isolada, mas na concepção, implementação e avaliação de um
+artefato que articula percurso, simulação, análise fisiológica e histórico
+local, com código acessível e decisões técnicas documentadas.
+
+\subsection{A lacuna do fluxo integrado}
+\label{sec:lacuna-fluxo}
+
+A lacuna que o \argus{} ataca pode ser enunciada como um fluxo de quatro
+operações:
+
+\begin{enumerate}
+    \item \textbf{entrada}: importar o GPX e reconstruir distância, altitude e
+        inclinação;
+    \item \textbf{simulação}: aplicar a resistência correspondente ao rolo e
+        registrar a resposta do ciclista;
+    \item \textbf{análise}: calcular métricas fisiológicas com fórmulas
+        explícitas e comparar sessões;
+    \item \textbf{persistência}: manter o histórico no dispositivo e exportar um
+        arquivo interoperável.
+\end{enumerate}
+
+Cada operação existe em algum produto. O que é raro é a continuidade entre elas
+sem troca de aplicativo, sem conta obrigatória e sem perda de contexto. O
+\argus{} foi construído para essa continuidade. É por isso que o GPX é o ponto
+de partida, e não o catálogo; é por isso que o histórico é local, e não um
+painel remoto; é por isso que as fórmulas são documentadas, e não tratadas como
+caixa-preta.
+
+\subsection{Quatro eixos de diferenciação}
+\label{sec:eixos-diferenciacao}
+
+O posicionamento do \argus{} se sustenta em quatro eixos.
+
+\textbf{1. O percurso como dado, não como catálogo.} O usuário traz o GPX; o
+software o interpreta, exibe o perfil, usa a inclinação para controlar o rolo
+e permite comparar tentativas. O valor está no que o usuário faz com o arquivo,
+não na quantidade de rotas oferecidas.
+
+\textbf{2. Análise fisiológica transparente.} NP, IF, TSS, TRIMP, PMC, HRR e
+desacoplamento são calculados com fórmulas e parâmetros documentados. O texto
+não trata essas métricas como verdades absolutas; explicita que VT1/VT2 são
+marcados manualmente, que o teste de cinco minutos é usado como proxy de MAP e
+não como medida de VO\textsubscript{2}max, e que o coeficiente do TRIMP tem
+origem populacional.
+
+\textbf{3. Código aberto e controle local do dado.} O código é GPLv3, o
+histórico é armazenado em SQLite e o processamento ocorre no dispositivo. As
+integrações com Strava e Intervals.icu são opcionais. Isso não garante
+privacidade absoluta, mas devolve ao usuário a possibilidade de auditar o
+código e decidir o que sai do dispositivo.
+
+\textbf{4. Multiplataforma com validação delimitada.} O sistema foi exercitado
+em Windows/Linux e em telefone Android em sessão ao vivo. macOS é compilável,
+mas não validado;
+iOS/iPadOS está preparado arquiteturalmente, mas não foi compilado; tablet
+Android tem layout responsivo, mas não foi testado em dispositivo físico. O
+título ``multiplataforma'' se sustenta pelas plataformas validadas, e o texto
+não transforma preparação em promessa.
+
+\subsection{Desafios e limites do posicionamento}
+\label{sec:desafios}
+
+O posicionamento do \argus{} deve ser analisado considerando três desafios: a
+evolução das plataformas comerciais, a existência de soluções abertas com
+funcionalidades semelhantes e os limites da avaliação realizada neste trabalho.
+
+O primeiro desafio decorre da ampliação da cobertura funcional das plataformas
+comerciais. Biketerra e Ride Cave oferecem recursos relacionados à importação
+de percursos, ao treinamento e à análise de atividades, enquanto o
+TrainingPeaks Virtual disponibiliza funcionalidades como GPXplore e
+\textit{teleport}. Esse cenário evidencia que a integração de recursos de
+ciclismo virtual não constitui, isoladamente, um diferencial suficiente. Nesse
+contexto, o posicionamento do \argus{} fundamenta-se na combinação entre código
+aberto, processamento local dos dados e documentação das decisões de
+desenvolvimento, aspectos que orientam sua proposta sem pressupor superioridade
+funcional em relação às alternativas existentes.
+
+O segundo desafio está relacionado ao Incyclist, projeto de código aberto e
+multiplataforma que também oferece suporte a percursos GPX, constituindo uma
+referência próxima para comparação. A distinção proposta para o \argus{}
+concentra-se na integração da simulação com a análise fisiológica e o
+armazenamento local do histórico de atividades. Essa diferenciação deve ser
+compreendida como uma escolha de escopo e organização das funcionalidades, e
+não como uma afirmação de superioridade geral sobre o Incyclist.
+
+A terceira limitação diz respeito à abrangência da avaliação empírica. Por se
+tratar de um estudo piloto com um único participante, os resultados permitem
+discutir a viabilidade técnica e a execução dos fluxos implementados, mas não
+sustentam generalizações sobre usabilidade, eficácia do treinamento ou
+preferência dos usuários. Essa restrição delimita o alcance das conclusões e
+indica a necessidade de estudos posteriores com mais participantes,
+instrumentos específicos de avaliação e condições de teste diversificadas.
+
+Em conjunto, esses aspectos delimitam o alcance da contribuição do \argus{}: o
+trabalho apresenta e avalia um sistema de código aberto que integra simulação
+de percursos, análise fisiológica e histórico local, sem reivindicar
+exclusividade funcional nem evidências de eficácia ou aceitação em larga escala.
+
+\section{Considerações do capítulo}
+\label{sec:consideracoes-estado-arte}
+
+O estado da arte mostra um mercado maduro em experiência, conteúdo e
+prescrição, e uma oferta aberta que cobre partes do fluxo. O \argus{} não
+compete com o mercado em escala; compete por um recorte de controle,
+transparência e continuidade. A contribuição que este trabalho pode defender
+não é a invenção de uma funcionalidade isolada, mas a construção e a avaliação
+de um artefato aberto que integra percurso, simulação, fisiologia e histórico
+local, com limites declarados. O próximo capítulo apresenta os fundamentos
+técnicos e fisiológicos que tornam essa integração possível.

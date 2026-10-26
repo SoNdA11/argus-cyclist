@@ -1,5 +1,5 @@
 % =====================================================================
-%  DIAGRAMA 2 — FLUXO SEQUENCIAL DE TELEMETRIA DE BAIXA LATÊNCIA
+%  DIAGRAMA 2 — FLUXO DE TELEMETRIA ENTRE SENSOR E INTERFACE
 %  Fonte: autoria própria.
 % =====================================================================
 \begin{tikzpicture}[
@@ -15,21 +15,26 @@
     % Lifelines
     \node[actor] (sensor) at (0,0) {Sensor BLE};
     \node[actor] (ble) at (2.6,0) {Serviço BLE\\Go};
-    \node[actor] (sim) at (5.4,0) {Motor\\Simulação\\Go};
+    \node[actor] (sim) at (5.4,0) {Laço da\\sessão\\Go};
     \node[actor] (wails) at (8.2,0) {Wails IPC};
     \node[actor] (teb) at (10.8,0) {Telemetry\\EventBus\\JS};
-    \node[actor] (canvas) at (13.4,0) {Canvas\\/ HUD};
+    \node[actor] (canvas) at (13.4,0) {HUD /\\mapa};
 
     % Linhas tracejadas verticais
     \foreach \p in {sensor,ble,sim,wails,teb,canvas}
-        \draw[dashed, black!40] (\p.south) -- (\p.south |- 0,-4.5);
+        \draw[dashed, black!40] (\p.south) -- (\p.south |- 0,-5.2);
 
     % Setas horizontais
-    \draw[->, thick] (0,-1.6) -- node[edge node] {Notif. GATT} (2.6,-1.6);
-    \draw[->, thick] (2.6,-2.4) -- node[edge node] {Dados Brutos} (5.4,-2.4);
-    \draw[->, thick] (5.4,-3.2) -- node[edge node] {Telemetria Proc.} (8.2,-3.2);
-    \draw[->, thick] (8.2,-4.0) -- node[edge node] {Evento JS} (10.8,-4.0);
-    \draw[->, thick] (10.8,-4.8) -- node[edge node] {Atualiza 60fps} (13.4,-4.8);
+    \draw[->, thick] (0,-1.4) -- node[edge node] {Notificação GATT}
+        (2.6,-1.4);
+    \draw[->, thick] (2.6,-2.2) -- node[edge node] {Telemetria}
+        (5.4,-2.2);
+    \draw[->, thick] (5.4,-3.0) -- node[edge node] {Amostra + estado}
+        (8.2,-3.0);
+    \draw[->, thick] (8.2,-3.8) -- node[edge node] {Evento}
+        (10.8,-3.8);
+    \draw[->, thick] (10.8,-4.6) -- node[edge node] {Publica}
+        (13.4,-4.6);
 
     % Números sequenciais
     \node[note, font=\scriptsize\bfseries, above=3pt] at (sensor.north) {1};
@@ -39,7 +44,10 @@
     \node[note, font=\scriptsize\bfseries, above=3pt] at (teb.north) {5};
     \node[note, font=\scriptsize\bfseries, above=3pt] at (canvas.north) {6};
 
-    % Texto de latência
-    \node[note, font=\scriptsize\itshape, text=black!60] at (6.7,-4.8) {Latência total esperada: \textless{} 150 ms};
+    % Notas de comportamento
+    \node[note, font=\tiny\itshape, text=black!60, anchor=north west,
+        align=left, text width=12.4cm] at (-0.3,-5.35)
+        {Chegada depende do sensor; não há taxa fixa.\\
+         HUD recebe cada evento; o mapa limita a posição e anima a câmera.};
 
 \end{tikzpicture}

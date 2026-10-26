@@ -5,238 +5,233 @@
 \chapter{INTRODUÇÃO}
 \label{cap:introducao}
 
-O ciclismo virtual (\textit{indoor cycling}) transitou de uma simples
-atividade alternativa para dias chuvosos para uma modalidade esportiva e
-científica de alta relevância global. Atualmente, é reconhecida pela União
-Ciclística Internacional (UCI) como uma modalidade oficial de
-\textit{e-sports}, contando com campeonatos mundiais e atletas profissionais
-dedicados \cite{coggan2010}. Este fenômeno foi impulsionado pelo surgimento de
-rolos de treino inteligentes (\textit{smart trainers}), capazes de estabelecer
-comunicação bidirecional com computadores e dispositivos móveis para simular a
-resistência do terreno real em tempo real.
+O ciclismo virtual consiste na prática de pedalar em ambientes simulados, nos
+quais o percurso e a resistência oferecida ao ciclista são controlados por
+software. Com a popularização dos rolos de treino inteligentes
+(\textit{smart trainers}), capazes de ajustar a resistência de acordo com a
+inclinação do terreno virtual, essa modalidade passou a combinar treinamento
+físico, simulação de percursos e competições \textit{on-line}. A realização do
+Campeonato Mundial de Ciclismo E-Sports pela União Ciclística Internacional
+(UCI) demonstra a consolidação da modalidade no cenário esportivo internacional
+\cite{uci2026}. Nesse contexto, os sistemas computacionais desempenham um papel
+fundamental na integração entre o equipamento, a representação do terreno e os
+dados produzidos durante a atividade.
 
-No entanto, a situação atual do ciclismo virtual é marcada por uma forte
-centralização de mercado e barreiras econômicas severas. Plataformas líderes
-como Zwift, Rouvy e TrainerRoad operam sob modelos de assinatura mensal
-proprietários com taxas cobradas em dólar comercial, em torno de
-\$20~USD/mês. Para atletas em países em desenvolvimento, como o Brasil, o
-custo acumulado dessas assinaturas ultrapassa R\$~1.200,00 anuais (em média
-\$240~USD/ano no plano mensal), o que constitui um fator de exclusão para
-ciclistas amadores e atletas de base.
+A utilização de percursos reais nesse ambiente envolve diferentes etapas, desde
+a obtenção dos dados geográficos até a simulação do terreno e a análise do
+desempenho do ciclista. Arquivos GPX podem representar informações como
+coordenadas, altitudes e variações do relevo, oferecendo uma base para a
+reprodução virtual de trajetos. Entretanto, a integração dessas informações com
+os mecanismos de controle de resistência, monitoramento da atividade e análise
+dos dados constitui um desafio de implementação. Quando essas etapas dependem
+de ferramentas distintas, o percurso e os dados gerados durante a sessão podem
+permanecer separados, dificultando sua utilização conjunta no reconhecimento de
+trajetos, na exploração de rotas e no planejamento de treinamentos.
 
-Além da barreira financeira, essas plataformas comerciais exigem hardware de
-alto desempenho com placas gráficas dedicadas, inviabilizando o uso por
-atletas que possuem apenas computadores de entrada ou dispositivos móveis
-comuns. Adicionalmente, tais soluções dependem de conexão contínua com a
-internet para computar métricas, o que impede treinos em ambientes
-\textit{offline} ou com conectividade instável.
+Nesse cenário, este trabalho apresenta o \argus{}, um ecossistema de software
+multiplataforma e de código aberto para simulação, exploração e análise de
+percursos reais no ciclismo virtual. A solução parte da importação de arquivos
+GPX e integra a representação do percurso, o controle da resistência de um rolo
+inteligente e a coleta de telemetria em um fluxo de utilização voltado à
+interação com o trajeto e à análise da atividade. Dessa forma, o percurso não é
+tratado apenas como um cenário de simulação, mas como um elemento que conecta
+os dados geográficos às respostas do equipamento e às informações produzidas
+pelo ciclista. O termo \textit{ecossistema}, neste trabalho, designa o conjunto
+de aplicações e módulos que compartilham um modelo comum de percurso e
+telemetria.
 
-O \argus{} foi concebido como alternativa nacional a esse cenário. Trata-se de
-um simulador de ciclismo virtual multiplataforma, \textit{offline-first} e de
-código aberto, que reúne em um único aplicativo o que o mercado fragmenta
-entre serviços pagos: simulação física em tempo real sobre rolos inteligentes,
-análise científica da telemetria processada localmente, prescrição de treino
-assistida por inteligência artificial generativa que opera no próprio
-dispositivo e rastreamento da vida útil dos componentes da bicicleta.
-Distribuído sob licença GPLv3 e sem taxas recorrentes, atende igualmente a
-computadores modestos e a celulares, sem exigir placas gráficas dedicadas.
-Este documento apresenta o registro do software: a arquitetura que o sustenta,
-o processo de implementação, os resultados experimentais obtidos e a evolução
-do projeto desde a versão registrada junto ao INPI.
+A solução foi implementada com diferentes níveis de funcionalidade para
+\textit{desktop} e Android. Na versão para \textit{desktop}, o fluxo contempla
+as funcionalidades de percurso e análise de dados previstas no escopo do
+sistema. Na versão Android, a implementação abrange a importação do percurso, a
+simulação e o acompanhamento da telemetria durante a sessão, sem incluir, nesta
+versão, o processamento de arquivos FIT ou a manutenção de um histórico de
+atividades. Essas diferenças estabelecem os limites funcionais da implementação
+e orientam a avaliação apresentada no Capítulo~\ref{cap:resultados}.
 
-\section{Contextualização: a situação atual do ciclismo virtual}
+\section{Contexto e motivação}
 \label{sec:contextualizacao}
 
-A seção a seguir apresenta o estado da arte do ciclismo virtual, comparando o
-\argus{} com as principais plataformas do mercado e iniciativas de código
-aberto, para situar o leitor quanto ao contexto tecnológico e mercadológico no
-qual o software se insere.
+O ciclismo virtual contemporâneo se apoia em três camadas técnicas. A primeira é
+a \textbf{captura de telemetria}: sensores de frequência cardíaca, medidores de potência e
+sensores de cadência transmitem dados por Bluetooth Low Energy (BLE), com
+perfis padronizados pelo Bluetooth SIG \cite{bluetooth2017}. A segunda é o
+\textbf{controle do rolo}: o aplicativo envia ao rolo uma resistência ou uma
+potência-alvo, e o equipamento ajusta o esforço. A terceira é a
+\textbf{representação do percurso}: um arquivo GPX fornece coordenadas e
+altitudes \cite{gpx2004}, que precisam ser convertidas em inclinação, distância
+e resistência ao avanço.
 
-\subsection{Estado da arte e referências a outros projetos}
-\label{sec:estado-arte}
+Essas camadas já existem separadamente. O que muda de uma plataforma para outra
+é a forma como são combinadas, o grau de abertura do código, o modelo de
+negócio e o tipo de experiência proposta. Há plataformas que priorizam mundos
+tridimensionais e interação social; outras priorizam vídeos de estradas reais;
+outras, ainda, são ambientes de treino estruturado ou de análise
+pós-treino. O \argus{} se interessa por um recorte específico: o percurso real
+como objeto de estudo, seja para reconhecimento de prova, seja para exploração,
+seja para treino com carga fisiológica mensurável.
 
-Para contextualizar a relevância e o posicionamento do \argus{}, apresenta-se
-a seguir um comparativo com as principais plataformas do mercado e iniciativas
-de código aberto:
+\subsection{Três usos, um mesmo fluxo}
+\label{sec:tres-usos}
 
-\begin{itemize}
-    \item \textbf{Zwift}: o líder absoluto do mercado foca em um ambiente
-        virtual tridimensional massivo \textit{online}, com forte apelo social
-        e gamificação. Suas limitações residem na ausência de modo
-        \textit{offline}, custo recorrente elevado (\$19,99~USD/mês) e exigência
-        de hardware potente para processamento gráfico 3D.
-    \item \textbf{Rouvy}: diferencia-se por simular rotas reais por meio de
-        vídeos gravados de estradas ao redor do mundo. Apresenta alta demanda
-        de largura de banda de rede para transmissão de vídeo e sofre dos
-        mesmos problemas de custo de assinatura fechada (\$19,99~USD/mês).
-    \item \textbf{TrainerRoad}: foca exclusivamente em treinos estruturados
-        baseados em faixas de potência (telemetria pura), sem simulação
-        gráfica complexa. Suas métricas e planos de treino são proprietários e
-        bloqueados por assinaturas de custo elevado (\$19,95~USD/mês).
-    \item \textbf{GoldenCheetah}: software livre sob licença GPLv3 voltado à
-        análise científica pós-treino. Embora possua ferramentas matemáticas
-        excelentes (como o gráfico PMC e modelos de fadiga), sua interface é
-        extremamente complexa, com uma curva de aprendizado íngreme, e ele não
-        foi projetado para atuar como um simulador de rotas interativo e
-        responsivo em tempo real com controle de rolos inteligentes.
-    \item \textbf{Argus Cyclist}: posiciona-se no estado da arte ao preencher
-        a lacuna entre a análise de dados científica (típica do GoldenCheetah)
-        e a simulação de rotas interativa e gamificada (típica do Zwift),
-        operando de forma totalmente gratuita, multiplataforma,
-        \textit{offline-first} e com processamento local eficiente.
-        Diferencia-se ainda por oferecer um treinador virtual baseado em IA
-        generativa local (Ollama) \cite{ollama2024} para elaboração de treinos
-        personalizados em linguagem natural e um sistema de rastreamento de
-        desgaste de componentes que calcula automaticamente a vida útil
-        restante de cada peça da bicicleta com base na distância percorrida.
-\end{itemize}
+O primeiro uso é o \textbf{reconhecimento de percurso} (\textit{race recon}).
+Antes de uma prova, o ciclista estuda o perfil altimétrico, a distância, a
+sequência de subidas e a localização dos trechos decisivos. Em uma prova real,
+esse estudo envolve deslocamento, reconhecimento visual e memória do percurso.
+No ambiente virtual, ele pode ser feito com o GPX da prova, o rolo simulando
+a inclinação e a telemetria registrando como o ciclista respondeu àquele
+esforço. O \argus{} não substitui o reconhecimento presencial: ele permite
+ensaiar o percurso, comparar estratégias e chegar à prova com referências
+prévias de ritmo e de esforço.
 
-\begin{table}[h]
-    \centering
-    \caption{Comparativo entre plataformas de ciclismo virtual}
-    \label{tab:comparativo}
-    \small
-    \begin{tabular}{
-        >{\raggedright\arraybackslash}p{2.8cm}
-        >{\raggedright\arraybackslash}p{2.4cm}
-        >{\raggedright\arraybackslash}p{2.2cm}
-        >{\raggedright\arraybackslash}p{2cm}
-        >{\centering\arraybackslash}p{1.1cm}
-        >{\raggedright\arraybackslash}p{3cm}
-    }
-        \toprule
-        \textbf{Plataforma} & \textbf{Licença} & \textbf{Execução} &
-        \textbf{Hardware} & \textbf{Offline} & \textbf{Foco Principal} \\
-        \midrule
-        Zwift & Proprietária (\$19,99/mês) & Nuvem & Alto & Não &
-        Gamificação e Social \\
-        Rouvy & Proprietária (\$19,99/mês) & Nuvem & Médio-Alto & Não &
-        Realismo de rotas reais \\
-        TrainerRoad & Proprietária (\$19,95/mês) & Nuvem & Baixo & Não &
-        Treinos Estruturados \\
-        GoldenCheetah & Livre (GPLv3) & Local & Baixo & Sim &
-        Análise Científica pós-treino \\
-        \textbf{Argus Cyclist} & \textbf{Livre (GPLv3)} &
-        \textbf{Local (Edge)} & \textbf{Baixo} & \textbf{Sim} &
-        \textbf{Física + Telemetria + IA} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+O segundo uso é a \textbf{exploração}. Um ciclista pode pedalar uma estrada da
+Nova Zelândia, um passo dos Alpes ou uma ilha japonesa sem viajar. A experiência
+não é equivalente à viagem: faltam clima, superfície, trânsito e paisagem real.
+Mas ela permite conhecer a geometria do percurso, experimentar o ritmo de uma
+subida e decidir se aquele lugar merece uma viagem futura. Para o \argus{}, a
+exploração é um uso legítimo do mesmo fluxo, não um subproduto do treino.
+
+O terceiro uso é o \textbf{treino fisiológico}. O percurso fornece variabilidade
+de inclinação e de resistência que um treino em modo ERG não reproduz. Ao subir
+e descer, o ciclista alterna intensidades, cadências e padrões de recrutamento
+muscular. A telemetria resultante pode ser analisada com métricas consagradas
+na literatura, desde que o software explicite as fórmulas, os parâmetros e os
+limites de cada estimativa \cite{coggan2010}.
+
+Essa continuidade entre percurso, simulação e telemetria é o critério que
+organiza as decisões de arquitetura discutidas no
+Capítulo~\ref{cap:arquitetura}. A orientação é próxima do que
+Kleppmann et al. \cite{kleppmann2019} chamam de software \textit{local-first}:
+o dado principal reside no dispositivo e a nuvem é opcional, embora o \argus{}
+não implemente sincronização colaborativa entre usuários.
 
 \section{Problemática}
 \label{sec:problematica}
 
-O desenvolvimento do projeto \argus{} é motivado por cinco problemas centrais
-identificados no ecossistema atual do ciclismo virtual:
+O desenvolvimento do \argus{} é motivado por cinco problemas identificados no
+ecossistema atual do ciclismo virtual. Eles não são exclusivos do Brasil, mas
+ganham contornos próprios em um país onde o custo de assinaturas em moeda
+estrangeira, a disponibilidade de hardware e a qualidade da conexão variam
+muito.
 
 \begin{enumerate}
-    \item \textbf{Exclusão socioeconômica e barreiras de acesso}: o modelo de
-        monetização em moeda estrangeira das plataformas de \textit{e-sports}
-        de ciclismo inviabiliza o treinamento científico e estruturado para
-        atletas de base e ciclistas amadores de menor poder aquisitivo no
-        Brasil.
+    \item \textbf{Fragmentação do percurso e do dado.} O ciclista costuma
+        usar um aplicativo para simular a rota, outro para executar o treino,
+        outro para analisar o arquivo exportado e, às vezes, uma planilha para
+        comparar sessões. Cada transferência introduz atrito, perda de contexto
+        e dependência de formatos proprietários. O GPX deixa de ser o documento
+        central do percurso e passa a ser apenas um arquivo de entrada.
 
-    \item \textbf{Exigência de hardware de alto desempenho}: a simulação
-        tridimensional em tempo real, que dá o apelo das plataformas
-        comerciais, exige computadores com placas gráficas dedicadas. Atletas
-        que dispõem apenas de computadores de entrada ou de dispositivos
-        móveis comuns ficam impedidos de treinar, ainda que esses aparelhos
-        tenham desempenho mais do que suficiente para a telemetria e o
-        cálculo das métricas.
+    \item \textbf{Barreira econômica e de hardware.} As plataformas líderes
+        cobram assinaturas recorrentes em dólar ou euro, e algumas exigem
+        computadores com placa gráfica dedicada para renderização
+        tridimensional. Existem alternativas gratuitas e camadas gratuitas, mas
+        elas não eliminam o problema: o acesso completo costuma depender de
+        conta, de conexão e de um pacote de funcionalidades definido pelo
+        fornecedor.
 
-    \item \textbf{Dependência crônica de conectividade (\textit{cloud lock-in})}:
-        a arquitetura das soluções comerciais centraliza a lógica do simulador
-        e o processamento de métricas em servidores na nuvem. Quedas temporárias
-        de conexão resultam no encerramento abrupto das atividades ou na perda
-        de treinos inteiros, além de inviabilizar o uso em locais sem sinal de
-        internet.
+    \item \textbf{Dependência de serviços e baixa portabilidade dos dados.}
+        A operação completa, a biblioteca de rotas e a sincronização tendem a
+        depender de uma conta e de um serviço remoto. Modos offline parciais
+        existem, mas normalmente cobrem apenas a sessão em andamento ou o vídeo
+        previamente baixado. O histórico, as métricas e o próprio percurso
+        continuam sob controle do fornecedor.
 
-    \item \textbf{Vulnerabilidade de privacidade de dados}: a coleta de dados
-        biométricos (frequência cardíaca contínua) e geográficos (coordenadas
-        GPS de rotas importadas) é armazenada de forma compulsória em
-        servidores privados estrangeiros, infringindo princípios de soberania
-        de dados e privacidade por padrão (\textit{Privacy-by-Design}).
+    \item \textbf{Análise fisiológica separada da sessão.} Métricas como
+        potência normalizada (NP), fator de intensidade (IF), \textit{Training
+        Stress Score} (TSS), \textit{Training Impulse} (TRIMP) e o
+        \textit{Performance Management Chart} (PMC) são apresentadas como
+        diferenciais de produtos proprietários, embora dependam de equações
+        publicadas e de parâmetros que o usuário pode não conhecer. Quando o
+        cálculo existe, raramente é transparente o suficiente para ser
+        auditado ou reproduzido.
 
-    \item \textbf{Monetização fisiológica abusiva}: métricas avançadas de
-        controle de carga de treinos fundamentais para evitar o
-        \textit{overtraining} e prescrever a recuperação (como PMC, TSS e CTL)
-        dependem apenas de equações matemáticas consolidadas na literatura
-        científica de fisiologia do esporte. Ainda assim, são vendidas como
-        recursos exclusivos em softwares proprietários pagos.
+    \item \textbf{Pouca oferta aberta que integre simulação, análise e
+        mobilidade.} Projetos de código aberto cobrem partes do problema:
+        análise pós-treino, execução de treinos estruturados, controle de
+        rolos ou importação de GPX. A integração dessas partes em um único
+        fluxo no \textit{desktop}, com documentação em português e histórico
+        local, somada a um modo Android validado para sessões ao vivo, ainda é
+        uma lacuna de engenharia e de pesquisa.
 \end{enumerate}
+
+O \argus{} não pretende resolver todos esses problemas de uma vez. Ele foi
+projetado para atacar a fragmentação do fluxo, manter o dado no dispositivo e
+tornar a análise fisiológica explícita. As demais barreiras são tratadas como
+restrições de projeto e discutidas nas delimitações deste capítulo.
 
 \section{Justificativa}
 \label{sec:justificativa}
 
-O projeto \argus{} justifica-se pela sua contribuição tecnológica, científica
-e de impacto social no cenário esportivo e de engenharia de software.
+A justificativa do trabalho se organiza em quatro dimensões complementares.
 
-\subsection{Relevância tecnológica e inovação arquitetural}
+\subsection{Relevância tecnológica}
 \label{sec:relevancia-tecnologica}
 
-Do ponto de vista da Engenharia de Software, o projeto aborda o desafio de
-criar um sistema multiplataforma de tempo real de baixíssima latência. A
-escolha do Go (Golang) no \textit{backend} deve-se à sua capacidade nativa de
-concorrência baseada em \textit{goroutines} e \textit{channels}, permitindo
-realizar escaneamento e manter conexões estáveis com múltiplos sensores
-Bluetooth Low Energy (BLE) utilizando a biblioteca TinyGo Bluetooth
-\cite{tinygo2024} com perfis GATT específicos (frequência cardíaca
-\cite{bluetooth2017}, potência e controle bidirecional FTMS) sem congelar a
-interface de usuário.
+Do ponto de vista da engenharia de software, o \argus{} enfrenta um problema
+recorrente em sistemas interativos: manter uma interface responsiva enquanto
+vários fluxos de dados concorrentes chegam em tempo real. O sistema precisa
+acessar diretamente sensores BLE, decodificar quadros de telemetria, atualizar
+a física da simulação, controlar o rolo, persistir o histórico e renderizar
+mapa e gráficos sem bloquear a interação do usuário.
 
-A integração com o framework Wails \cite{wails2024} viabiliza um binário de
-\textit{desktop} extremamente leve, utilizando a \textit{web engine} nativa do
-sistema operacional para renderizar uma interface reativa em JavaScript
-(Vite), registrando um consumo de memória inferior a \SI{200}{\mega\byte} ---
-uma fração do demandado por soluções baseadas em Electron. Para dispositivos
-móveis, a utilização do Capacitor.js \cite{capacitor2024} possibilita
-reutilizar a mesma base de código do \textit{frontend} para compilar um
-aplicativo nativo para Android, rodando um motor físico portado inteiramente
-para JavaScript para simular e controlar os rolos diretamente de um celular
-comum via antenas BLE integradas.
+A solução adotada combina um \textit{backend} em Go, responsável pela
+concorrência e pela integração com o hardware, com uma interface web reutilizada
+em \textit{desktop} por meio do Wails \cite{wails2024} e em Android por meio do
+Capacitor \cite{capacitor2024}. O mesmo \textit{frontend} também abriga um motor
+físico em JavaScript para o modo móvel, no qual o aplicativo precisa operar sem
+o processo Go. Essa duplicação de motor é uma decisão consciente, com custos e
+riscos que serão discutidos no Capítulo~\ref{cap:arquitetura}. Do ponto de vista
+científico, ela permite comparar duas implementações do mesmo modelo e
+documentar as diferenças de constantes e de precisão.
 
-Inovadoramente, o sistema incorpora um módulo de IA generativa local que se
-comunica com uma instância do Ollama \cite{ollama2024} rodando no próprio
-dispositivo do usuário. Esta arquitetura elimina completamente a dependência de
-serviços em nuvem para funcionalidades de \textit{coaching}, garantindo que
-nenhum dado biométrico ou de treino seja transmitido a servidores externos. A
-escolha de modelos pequenos (três bilhões de parâmetros, como o
-\texttt{qwen2.5:3b}) viabiliza a execução mesmo em hardware modesto, e o tempo
-de resposta estendido acomoda a inferência em CPU.
-
-O sistema de controle de desgaste de componentes implementa um modelo de
-depreciação linear simples, porém eficaz, onde cada componente cadastrado
-(corrente, cassete, coroas, etc.) tem sua vida útil definida em quilômetros
-pelo usuário, e o desgaste percentual é atualizado automaticamente ao final de
-cada sessão de treino com base na distância percorrida. Este sistema segue uma
-arquitetura em camadas bem definida com persistência em SQLite
-\cite{sqlite2024} local, mantendo a coerência com o princípio
-\textit{offline-first} do projeto.
-
-\subsection{Relevância científica (modelagem física e fisiologia)}
+\subsection{Relevância científica}
 \label{sec:relevancia-cientifica}
 
-O sistema aplica modelagens matemáticas rigorosas de física e fisiologia do
-esporte diretamente no dispositivo do usuário. O motor físico calcula a
-aceleração e a velocidade virtual aplicando a conservação de energia sobre as
-forças resistivas, conforme a equação de Martin \cite{martin1998}, detalhada
-no Capítulo~\ref{cap:fundamentacao}. O módulo de fisiologia processa o vetor de
-potência de \SI{1}{\hertz} para extrair métricas como Potência Normalizada
-(NP), Fator de Intensidade (IF), \textit{Training Stress Score} (TSS),
-\textit{Training Impulse} (TRIMP), além de compilar o
-\textit{Performance Management Chart} (PMC) e o desvio cardiovascular
-(\textit{Aerobic Decoupling}), fundamentadas na literatura de fisiologia do
-esporte \cite{coggan2010}.
+O trabalho aplica modelos consolidados de física e de fisiologia do esporte. O
+motor de velocidade utiliza a equação de resistência ao avanço proposta por
+Martin et al. \cite{martin1998}, que combina arrasto aerodinâmico, resistência
+ao rolamento, efeito da gravidade e perdas na transmissão. O módulo de análise
+calcula métricas derivadas do vetor de potência e da frequência cardíaca, com
+parâmetros explícitos e limitações documentadas.
 
-\subsection{Relevância social e inclusão esportiva}
+A contribuição científica não está em inventar uma nova equação, mas em
+\textbf{integrar} essas equações a um fluxo reproduzível e em \textbf{expor} as
+decisões de modelagem. O texto diferencia o que é medido, o que é estimado e o
+que é apenas uma convenção de treino. Essa distinção é particularmente
+importante em um tema no qual a literatura convive com práticas comerciais que
+nem sempre explicitam seus parâmetros.
+
+\subsection{Relevância social e educacional}
 \label{sec:relevancia-social}
 
-Ao prover uma solução \textit{offline} de código aberto e totalmente gratuita
-compatível com computadores modestos e celulares Android, o \argus{} atua como
-um elemento de inclusão social. O projeto permite que ciclistas locais e
-equipes amadoras de ciclismo utilizem equipamentos de rolo de treino
-inteligente sem taxas mensais, democratizando o treinamento esportivo de alto
-rendimento.
+O \argus{} é distribuído sob a GNU General Public License v3 \cite{gpl2007} e
+não exige assinatura para funcionar. Isso não significa que o acesso seja
+universal: é preciso ter bicicleta, rolo, computador ou celular compatível.
+Significa que o custo recorrente do software deixa de ser uma barreira e que o
+código pode ser estudado, modificado e reutilizado por outros estudantes e
+desenvolvedores.
+
+Em um curso de Ciência da Computação, o projeto também funciona como artefato
+de aprendizagem: ele reúne sistemas distribuídos, concorrência, protocolos de
+comunicação, persistência, visualização de dados, modelagem física e fisiologia
+em um único código. A documentação em português e a publicação do código
+ampliam o alcance desse aprendizado para além da equipe original.
+
+\subsection{Relevância de projeto e de reprodutibilidade}
+\label{sec:relevancia-projeto}
+
+O trabalho adota a \textit{Design Science Research} (DSR) como metodologia
+\cite{hevner2004,peffers2007}. O artefato central é o software, mas o
+conhecimento produzido não se reduz a ele: inclui o problema, os requisitos, as
+decisões de projeto, os testes, as limitações e a avaliação. A opção pela DSR
+obriga o texto a explicitar o ciclo entre construção e avaliação, em vez de
+apresentar o software apenas como um produto acabado.
+
+A reprodutibilidade é tratada em três níveis: o código é aberto
+\cite{argus_github}; as fórmulas e os parâmetros são documentados; e o processo
+de desenvolvimento é registrado no histórico Git do repositório. O Capítulo~\ref{cap:metodologia} descreve como
+esses elementos foram usados na condução e na avaliação do trabalho.
 
 \section{Objetivos}
 \label{sec:objetivos}
@@ -244,134 +239,179 @@ rendimento.
 \subsection{Objetivo geral}
 \label{sec:objetivo-geral}
 
-Projetar, desenvolver e validar o \argus{}, um simulador multiplataforma de
-ciclismo virtual de código aberto e gratuito, integrado a um sistema científico
-de análise de telemetria esportiva \textit{offline-first}, garantindo
-processamento em borda (\textit{edge}) de baixa latência e interoperabilidade
-com hardware padrão do mercado.
+Projetar, implementar e avaliar, em caráter piloto, o \argus{}, um ecossistema
+multiplataforma de código aberto para simulação, exploração e análise de
+percursos reais no ciclismo virtual, com processamento local da telemetria,
+histórico no dispositivo e um modo de sessão ao vivo no Android.
 
 \subsection{Objetivos específicos}
 \label{sec:objetivos-especificos}
 
 \begin{enumerate}
-    \item \textbf{Conectividade de hardware}: implementar rotinas robustas em
-        Go para escaneamento e conexão com periféricos via Bluetooth Low
-        Energy (BLE), decodificando serviços GATT para cintas cardíacas
-        (\texttt{0x180D}), sensores de potência (\texttt{0x1818}) e rolos de
-        treino controlados (FTMS, \texttt{0x1826}) \cite{bluetooth2017}.
-    \item \textbf{Motor de simulação física}: desenvolver algoritmos que
-        traduzam o gradiente das coordenadas de uma rota GPX
-        \cite{gpx2004} em resistência de torque mecânico no rolo de treino
-        inteligente, atualizando dinamicamente a resistência conforme o peso do
-        ciclista e sua inclinação virtual.
-    \item \textbf{Interface gráfica de alta performance}: construir um HUD
-        (\textit{Heads-Up Display}) leve a 60~fps usando Canvas/WebGL,
-        integrando o MapLibre GL JS \cite{maplibre2024} com renderização
-        topográfica em 3D Terrain-RGB e rotas dinâmicas coloridas de acordo
-        com a inclinação do terreno.
-    \item \textbf{Análise fisiológica local}: implementar funções matemáticas
-        para cálculo contínuo de métricas esportivas avançadas (NP, IF, TSS,
-        TRIMP) e visualização do gráfico de evolução histórica de carreira PMC
-        (\textit{Performance Management Chart}).
-    \item \textbf{Assistente de treino por IA generativa local (IA Coach)}:
-        integrar um assistente conversacional de treinamento esportivo
-        utilizando modelos de linguagem de pequena escala (3B parâmetros)
-        executados localmente via Ollama \cite{ollama2024}, capaz de
-        interpretar o perfil do atleta e gerar planos de treino estruturados no
-        formato ZWO (\textit{Zwift Workout}) com carregamento automático no
-        modo ERG do simulador.
-    \item \textbf{Controle de desgaste de componentes mecânicos}: implementar
-        um sistema de cadastro e monitoramento de componentes da bicicleta com
-        cálculo automático de desgaste percentual baseado na quilometragem
-        acumulada, histórico de substituições com auditoria temporal e
-        indicadores visuais codificados por cores (verde, amarelo, vermelho)
-        para alertar o atleta sobre a necessidade de manutenção preventiva.
-    \item \textbf{Persistência de dados confiável}: modelar um banco de dados
-        local com SQLite \cite{sqlite2024} usando os padrões
-        \textit{Repository} e \textit{Facade} para persistir usuários,
-        atividades e recordes pessoais de forma 100\% \textit{offline} e
-        estruturada.
-    \item \textbf{Interoperabilidade de dados}: desenvolver rotinas para
-        compilação e exportação de dados na estrutura de arquivo binário
-        padrão \texttt{.FIT} (Garmin/ANT+ SDK) \cite{garmin2024} e integração
-        de upload assíncrono via API do Strava \cite{strava2025} e do
-        Intervals.icu \cite{intervals2024}.
-    \item \textbf{Portabilidade multiplataforma}: compilar a aplicação para os
-        sistemas Android, Windows, macOS e Linux utilizando tecnologias
-        multiplataforma, adaptando o motor físico para JavaScript a fim de
-        garantir operação autônoma, compatibilidade entre diferentes ambientes
-        e baixa latência em dispositivos móveis e \textit{desktops}.
-    \item \textbf{Gamificação saudável}: integrar um sistema de níveis e
-        conquistas cardiovasculares persistentes com uma \textit{Trophy Room}
-        interativa 3D/Canvas para engajamento dos atletas amadores.
+    \item \textbf{Consolidar o modelo de uso}: caracterizar os fluxos de
+        reconhecimento de percurso, exploração e treino fisiológico, e derivar
+        deles os requisitos funcionais e não funcionais do sistema.
+
+    \item \textbf{Implementar a entrada do percurso}: importar arquivos GPX,
+        extrair distância, altitude e inclinação, exibir perfil altimétrico e
+        mapa, e usar esses dados para controlar a resistência do rolo.
+
+    \item \textbf{Consolidar a arquitetura multiplataforma}: manter um núcleo de
+        domínio independente de interface, executar o \textit{backend} Go e a
+        persistência no \textit{desktop} e um modo de sessão ao vivo com motor
+        JavaScript no Android, compartilhando a maior parte possível do
+        \textit{frontend}.
+
+    \item \textbf{Implementar a análise fisiológica}: calcular NP, IF, TSS,
+        TRIMP, PMC, recuperação da frequência cardíaca (HRR) e desacoplamento
+        cardiovascular, documentando fórmulas, parâmetros e limitações.
+
+    \item \textbf{Garantir o controle local do dado}: no \textit{desktop},
+        persistir perfis, atividades e recordes em SQLite, exportar arquivos
+        \texttt{.FIT} e tratar as integrações externas como opcionais.
+
+    \item \textbf{Avaliar o artefato em estudo piloto}: realizar sessões
+        instrumentadas com o próprio autor, verificar a integridade dos arquivos
+        exportados e registrar evidências de uso e de comportamento observado.
+
+    \item \textbf{Documentar limites e continuidade}: explicitar o que foi
+        validado e o que permanece como trabalho futuro, incluindo a automação
+        do reconhecimento de percurso, a validação em iOS/iPadOS e o uso em
+        tablets Android.
 \end{enumerate}
 
-\section{Metodologia}
+\section{Metodologia em síntese}
 \label{sec:metodologia}
 
-O trabalho adota uma metodologia de pesquisa aplicada, orientada ao
-desenvolvimento tecnológico experimental, utilizando abordagens qualitativas e
-quantitativas para validação dos resultados. O processo de engenharia de
-software baseia-se em um modelo de desenvolvimento iterativo e incremental
-(práticas ágeis), dividido em quatro fases essenciais.
-
-\subsection{Fases do desenvolvimento}
-\label{sec:fases}
+O trabalho segue os princípios da \textit{Design Science Research}. A DSR é
+adequada porque o objeto de estudo é um artefato projetado para resolver um
+problema prático, e porque a avaliação do artefato faz parte do próprio processo
+de pesquisa \cite{hevner2004}. O percurso metodológico será detalhado no
+Capítulo~\ref{cap:metodologia}; em síntese, ele percorre seis etapas:
 
 \begin{enumerate}
-    \item \textbf{Fase de levantamento e especificação}: estudo aprofundado dos
-        perfis GATT Bluetooth SIG (\textit{Heart Rate Service},
-        \textit{Cycling Power Service} e \textit{Fitness Machine Service}) e
-        decodificação hexadecimal de \textit{frames} de telemetria. Análise da
-        documentação do Garmin FIT SDK \cite{garmin2024} para modelar o
-        codificador de arquivos binários e das APIs REST do Strava sob
-        protocolo de segurança OAuth 2.0 \cite{strava2025}.
-
-    \item \textbf{Fase de definição arquitetural}: desenho do padrão estrutural
-        do sistema sob conceitos de \textit{Clean Architecture}. Separação
-        rígida de responsabilidades em camadas (Apresentação, Casos de Uso,
-        Serviços de Domínio e Persistência de Dados). Seleção da \textit{stack}
-        multiplataforma ideal: \textit{backend} em Go (Golang) com
-        \textit{bindings} Wails (Desktop) e empacotamento móvel nativo em
-        Android via Capacitor.js \cite{capacitor2024}.
-
-    \item \textbf{Fase de implementação e refatoração}: implementação dos
-        serviços em Go: módulo de telemetria (\code{internal/service/ble}) com
-        \textit{goroutines} concorrentes de escuta; módulo físico
-        (\code{internal/service/sim}) com suporte a GPX e testes de FTP;
-        persistência em banco local (\code{internal/repository/sqlite}) sob
-        padrão \textit{Facade} (\code{usecase/storage\_facade}); e exportador
-        esportivo (\code{internal/service/fit}). No \textit{frontend}
-        JavaScript, implementa-se o \code{TelemetryEventBus} para desacoplar a
-        atualização de tela da chegada de dados BLE, garantindo renderização
-        fluida a 60~fps.
-
-    \item \textbf{Fase de testes e validação experimental}: execução de testes
-        funcionais e de integração utilizando equipamentos reais de ciclismo,
-        conectando o \argus{} a rolos inteligentes (\textit{smart trainers}) e
-        medidores de potência para validação prática do sistema em ambiente de
-        uso real. A validação quantitativa consiste na medição da latência de
-        telemetria (requisitada para operar em $<$ \SI{150}{\milli\second} do
-        hardware até a tela) e em testes de conformidade estrutural,
-        submetendo os arquivos binários \texttt{.fit} gerados diretamente ao
-        Strava \cite{strava2025}, atestando a integridade estatística dos
-        dados em relação ao padrão global da indústria.
+    \item identificação do problema e dos requisitos;
+    \item definição dos objetivos da solução;
+    \item projeto e desenvolvimento do artefato;
+    \item demonstração em cenários de uso;
+    \item avaliação técnica e piloto;
+    \item comunicação dos resultados.
 \end{enumerate}
 
-Dessa forma, a metodologia proposta garante a consistência científica no
-desenvolvimento e assegura a qualidade física da simulação interativa,
-resultando em um produto de software estável e utilizável por ciclistas.
+A avaliação não é um experimento clínico e não pretende medir efeitos de
+treinamento em uma população. Trata-se de um \textbf{estudo piloto} com o
+próprio autor, complementado por testes técnicos de integração, de persistência
+e de exportação. Essa escolha é deliberada: o objetivo é verificar a
+viabilidade do fluxo e identificar problemas de projeto, não produzir
+generalizações estatísticas. As limitações dessa escolha são discutidas no
+Capítulo~\ref{cap:resultados}.
+
+\section{Delimitações}
+\label{sec:delimitacoes}
+
+Para evitar que o leitor projete no \argus{} funções que ele não possui, esta
+seção explicita os limites do trabalho.
+
+\subsection{O que o Argus não é}
+\label{sec:o-que-nao-e}
+
+O \argus{} não mantém uma biblioteca própria de percursos e não promete
+cobertura geográfica global. O percurso é fornecido
+pelo usuário na forma de um arquivo GPX; o software o interpreta, o exibe e o
+usa para controlar o rolo. A qualidade e a fidelidade do percurso dependem
+da qualidade do arquivo de entrada.
+
+O \argus{} também não compete com plataformas de mundos tridimensionais
+massivos, corridas com centenas de participantes simultâneos ou sistemas de
+\textit{streaming} de vídeo. A renderização do mapa é uma ferramenta de
+orientação e de leitura do terreno, não um simulador visual de alta fidelidade.
+Da mesma forma, o software não substitui o reconhecimento presencial de uma
+prova: ele permite ensaiar gradientes e ritmos, mas não reproduce superfície,
+clima, trânsito ou a geometria real de uma curva.
+
+\subsection{Reconhecimento de percurso: fluxo atual e automação futura}
+\label{sec:recon-atual}
+
+O reconhecimento de percurso é um dos usos centrais do \argus{}, mas a
+automação desse fluxo \textbf{não faz parte da versão apresentada}. O que existe
+hoje é um fluxo manual, composto por quatro passos:
+
+\begin{enumerate}
+    \item importar o GPX da prova ou do lugar;
+    \item inspecionar o perfil altimétrico, a distância e o mapa;
+    \item pedalar o percurso com o rolo simulando a inclinação;
+    \item no \textit{desktop}, analisar o arquivo \texttt{.FIT} gerado,
+        comparando potência, frequência cardíaca e tempo por trecho.
+\end{enumerate}
+
+A automação futura pode incluir detecção de subidas e segmentos, marcação de
+curvas e pontos críticos, comparação entre tentativas e recomendações de
+pacing. Essas funções são discutidas como trabalho futuro no
+Capítulo~\ref{cap:conclusao}, mas não são apresentadas como implementadas.
+
+\subsection{Métricas fisiológicas}
+\label{sec:metricas-delimitacoes}
+
+As métricas fisiológicas do \argus{} são estimativas baseadas em literatura e
+em convenções de treino. Elas não substituem exames laboratoriais. Em
+particular:
+
+\begin{itemize}
+    \item os limiares ventilatórios VT1 e VT2 são marcados manualmente pelo
+        usuário; o software não realiza detecção automática de limiar;
+    \item o teste de cinco minutos implementado é usado como estimativa de
+        potência aeróbia máxima (MAP), não como medida do consumo máximo de
+        oxigênio (VO\textsubscript{2}max);
+    \item o TRIMP utiliza um coeficiente associado a uma população específica;
+        os resultados não são automaticamente generalizáveis para todos os
+        ciclistas;
+    \item a recuperação da frequência cardíaca usa a última FC antes do
+        resfriamento, e não o pico absoluto da sessão; o resultado depende do
+        tempo de recuperação e pode ser afetado por artefatos de medição;
+    \item as zonas de frequência cardíaca são calculadas por percentuais da
+        frequência cardíaca máxima, uma aproximação que não substitui uma
+        avaliação individual de limiares.
+\end{itemize}
+
+Essas limitações não invalidam o uso das métricas para acompanhamento e
+comparação, mas exigem que o texto e a interface sejam explícitos sobre o que
+cada número representa.
+
+\subsection{Plataformas e validação}
+\label{sec:plataformas-delimitacoes}
+
+A versão apresentada foi validada em \textit{desktop} Windows/Linux e, em
+profundidade menor, em telefone Android. O projeto iOS/iPadOS existe como
+preparação arquitetural, mas não foi compilado nem validado neste trabalho. O
+layout para tablets Android foi projetado, mas não foi testado em dispositivo
+físico. O \textit{desktop} macOS é compilável pelo Wails, mas também não foi
+validado. A palavra ``multiplataforma'' no título se sustenta, portanto, pelas
+plataformas efetivamente exercitadas, não por uma promessa de cobertura
+universal.
 
 \section{Organização do documento}
 \label{sec:organizacao}
 
-Este documento está organizado da seguinte forma: o Capítulo~\ref{cap:introducao}
-apresenta a contextualização, problemática, justificativa, objetivos e
-metodologia; o Capítulo~\ref{cap:fundamentacao} apresenta a fundamentação
-teórica necessária à compreensão do sistema; o Capítulo~\ref{cap:registro-evolucao}
-contextualiza o registro do software junto ao INPI e documenta a evolução do
-projeto desde a versão registrada; o Capítulo~\ref{cap:arquitetura} descreve a
-arquitetura do sistema; o Capítulo~\ref{cap:implementacao} detalha a
-implementação dos módulos e funcionalidades; o Capítulo~\ref{cap:resultados}
-apresenta os resultados e a validação do software; e o Capítulo~\ref{cap:conclusao}
-tece as considerações finais e trabalhos futuros.
+O documento está organizado em oito capítulos e três apêndices.
+
+O Capítulo~\ref{cap:introducao} apresenta o contexto, a problemática, a
+justificativa, os objetivos, a metodologia em síntese e as delimitações. O
+Capítulo~\ref{cap:estado-arte} situa o \argus{} no estado da arte, comparando
+plataformas comerciais e iniciativas de código aberto e explicitando o
+posicionamento adotado. O Capítulo~\ref{cap:fundamentacao} apresenta os
+fundamentos de BLE, formatos de arquivo, física da simulação, fisiologia do
+esforço e engenharia de software que sustentam o sistema.
+
+O Capítulo~\ref{cap:metodologia} descreve a \textit{Design Science Research}, o
+processo de desenvolvimento, a linha de base registrada no INPI, os dados
+coletados e o desenho do estudo piloto. O Capítulo~\ref{cap:arquitetura}
+discute a arquitetura, as decisões de projeto e os \textit{trade-offs} entre
+\textit{desktop} e Android. O Capítulo~\ref{cap:implementacao} detalha a
+implementação dos módulos, com trechos de código e diagramas.
+
+O Capítulo~\ref{cap:resultados} apresenta os resultados, a avaliação piloto, as
+limitações e a discussão. O Capítulo~\ref{cap:conclusao} retoma a tese,
+sintetiza as contribuições e aponta os trabalhos futuros. O
+Apêndice~\ref{ap:registro-inpi} reúne os dados do registro no INPI; o
+Apêndice~\ref{ap:instalacao} descreve a instalação e a execução; e o
+Apêndice~\ref{ap:ambiente} documenta a configuração do ambiente.
