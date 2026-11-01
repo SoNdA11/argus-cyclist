@@ -87,6 +87,9 @@ type App struct {
 	sessionTicks         int    // Number of power samples
 	sessionPowerData     []int
 	sessionHRData        []int // Array to store HR history second-by-second
+	// sessionSampler turns ~3 Hz BLE notifications into the 1 Hz series that
+	// sessionPowerData/sessionHRData must hold for the metrics.
+	sessionSampler fit.SecondResampler
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
@@ -749,6 +752,7 @@ func (a *App) startSession() string {
 
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
+	a.sessionSampler = fit.SecondResampler{}
 	a.currentDist = 0
 	a.sessionStart = time.Now()
 	a.sessionActiveTime = 0
@@ -992,6 +996,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.currentDist = 0
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
+	a.sessionSampler = fit.SecondResampler{}
 	a.isCooldown = false
 	a.peakHR = 0
 	a.hrAt1Min = 0
@@ -1029,6 +1034,7 @@ func (a *App) DiscardSession() string {
 	a.currentDist = 0
 	a.sessionPowerData = nil
 	a.sessionHRData = nil
+	a.sessionSampler = fit.SecondResampler{}
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.sessionActiveTime = 0
@@ -1128,8 +1134,9 @@ func (a *App) RecoverPendingSession() (SessionSummary, error) {
 	a.isInWorkout = false
 	a.workoutStartTimeOffset = 0
 
-	a.sessionPowerData = make([]int, 0, len(samples))
-	a.sessionHRData = make([]int, 0, len(samples))
+	a.sessionPowerData = make([]int, 0, int(meta.SessionActiveTime)+1)
+	a.sessionHRData = make([]int, 0, int(meta.SessionActiveTime)+1)
+	a.sessionSampler = fit.SecondResampler{}
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.currentDist = 0
@@ -1137,15 +1144,28 @@ func (a *App) RecoverPendingSession() (SessionSummary, error) {
 	a.lastAltitude = -9999.0
 
 	a.fitService.StartSession(meta.StartedAt)
-	for _, sample := range samples {
+	var prevTimestamp time.Time
+	for i, sample := range samples {
 		a.fitService.AddRecord(sample)
 
 		power := int(sample.Power)
 		if power < 0 {
 			power = 0
 		}
-		a.sessionPowerData = append(a.sessionPowerData, power)
-		a.sessionHRData = append(a.sessionHRData, int(sample.HeartRate))
+		// Rebuild the 1 Hz series from the sample timestamps. Paused time is
+		// not recorded, so a gap longer than the sensor timeout is treated as
+		// a pause rather than as active seconds.
+		dt := 0.0
+		if i > 0 {
+			dt = sample.Timestamp.Sub(prevTimestamp).Seconds()
+			if dt > 5 {
+				dt = 0
+			}
+		}
+		prevTimestamp = sample.Timestamp
+		powers, hrs := a.sessionSampler.Add(dt, power, int(sample.HeartRate))
+		a.sessionPowerData = append(a.sessionPowerData, powers...)
+		a.sessionHRData = append(a.sessionHRData, hrs...)
 		a.sessionPowerSum += uint64(power)
 		a.sessionTicks++
 		a.currentDist = sample.TotalDistance
@@ -1286,8 +1306,10 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 			if a.isRecording {
 				a.sessionPowerSum += uint64(currentPower)
 				a.sessionTicks++
-				a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
-				a.sessionHRData = append(a.sessionHRData, int(currentHR))
+				// One entry per second of active time, not per notification.
+				powers, hrs := a.sessionSampler.Add(dt, int(currentPower), int(currentHR))
+				a.sessionPowerData = append(a.sessionPowerData, powers...)
+				a.sessionHRData = append(a.sessionHRData, hrs...)
 			}
 
 			// Periodically refresh the recovery metadata. Telemetry samples
