@@ -36,6 +36,8 @@
   --tint-alt: rgba(122, 135, 157, 0.20);
   --tint-blue: rgba(47, 107, 216, 0.08);
   --tint-neutral: rgba(122, 135, 157, 0.09);
+  /* cores das seções do sumário (também no rótulo de cada slide) */
+  --sec1: #0a9e88; --sec2: #2f6bd8; --sec3: #7c4ddb; --sec4: #b06c00; --sec5: #5f6f89; --sec6: #b5179e;
   --tint-power: rgba(209, 143, 0, 0.16);
   --shadow: 0 14px 40px rgba(14, 31, 61, 0.14);
   --mono: "JetBrains Mono", ui-monospace, monospace;
@@ -68,6 +70,7 @@ html[data-tema="escuro"] {
   --tint-alt: rgba(138, 151, 173, 0.22);
   --tint-blue: rgba(91, 141, 239, 0.12);
   --tint-neutral: rgba(138, 151, 173, 0.08);
+  --sec1: #2ee6c9; --sec2: #5b8def; --sec3: #b794f6; --sec4: #f5b82e; --sec5: #9fb0c8; --sec6: #f472d0;
   --tint-power: rgba(245, 184, 46, 0.16);
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
@@ -505,3 +508,11 @@ html.print-pdf .prova { opacity: 1 !important; animation: none !important; }
 html[data-tema="escuro"] .sum-item { box-shadow: none; }
 html.print-pdf .sum-item { opacity: 1 !important; animation: none !important; }
 @media print { .sum-item { opacity: 1 !important; animation: none !important; } }
+
+/* rótulo de cada slide na cor da sua seção do sumário */
+section[data-sec="1"] .kicker { color: var(--sec1); }
+section[data-sec="2"] .kicker { color: var(--sec2); }
+section[data-sec="3"] .kicker { color: var(--sec3); }
+section[data-sec="4"] .kicker { color: var(--sec4); }
+section[data-sec="5"] .kicker { color: var(--sec5); }
+section[data-sec="6"] .kicker { color: var(--sec6); }
