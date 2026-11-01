@@ -35,14 +35,55 @@
 <section data-section="Sumário" data-timing="20">
   <div class="kicker">Roteiro da apresentação</div>
   <h2>Sumário</h2>
-  <div class="sumario">
-    <div class="sum-item" style="--c:var(--sec1);--i:0"><div class="sum-n">01</div><div><h4>Contexto e problema</h4><p>ciclismo virtual, fluxo fragmentado e estado da arte</p></div><span class="sum-sl">slides 3–5</span></div>
-    <div class="sum-item" style="--c:var(--sec2);--i:1"><div class="sum-n">02</div><div><h4>Proposta</h4><p>um fluxo para três usos</p></div><span class="sum-sl">slide 6</span></div>
-    <div class="sum-item" style="--c:var(--sec3);--i:2"><div class="sum-n">03</div><div><h4>Metodologia</h4><p>Design Science Research, em ciclos</p></div><span class="sum-sl">slide 7</span></div>
-    <div class="sum-item" style="--c:var(--sec4);--i:3"><div class="sum-n">04</div><div><h4>Arquitetura e implementação</h4><p>camadas, Bluetooth e tempo real</p></div><span class="sum-sl">slides 8–11</span></div>
-    <div class="sum-item" style="--c:var(--sec5);--i:4"><div class="sum-n">05</div><div><h4>Resultados</h4><p>análise do treino, uso real, funcionalidades e requisitos</p></div><span class="sum-sl">slides 12–15</span></div>
-    <div class="sum-item" style="--c:var(--sec6);--i:5"><div class="sum-n">06</div><div><h4>Conclusão</h4><p>contribuições, limites e próximos passos</p></div><span class="sum-sl">slide 16</span></div>
-  </div>
+  <svg class="rota" viewBox="0 0 1700 640" width="100%" font-family="Inter" text-anchor="middle">
+    <path d="M40,335 C70,321 148,236 220,250 C292,264 387,420 470,420 C553,420 635,250 720,250 C805,250 893,420 980,420 C1067,420 1153,250 1240,250 C1327,250 1430,406 1500,420 C1570,434 1633,349 1660,335" fill="none" stroke="var(--bg-3)" stroke-width="30" stroke-linecap="round"/>
+    <path id="rota-via" class="draw" style="--len:2400" d="M40,335 C70,321 148,236 220,250 C292,264 387,420 470,420 C553,420 635,250 720,250 C805,250 893,420 980,420 C1067,420 1153,250 1240,250 C1327,250 1430,406 1500,420 C1570,434 1633,349 1660,335" fill="none" stroke="var(--faint)" stroke-width="3" stroke-dasharray="14 12" stroke-linecap="round"/>
+    <circle cx="40" cy="335" r="10" fill="var(--faint)"/>
+    <text x="40" y="380" class="rt-s" fill="var(--faint)">largada</text>
+    <g transform="translate(1660,335)">
+      <path d="M0,0 V-64" stroke="var(--text)" stroke-width="4" stroke-linecap="round"/>
+      <rect x="0" y="-64" width="42" height="28" fill="var(--bg-2)" stroke="var(--text)" stroke-width="2"/>
+      <path d="M0,-64 h10.5 v7 h-10.5z M21,-64 h10.5 v7 h-10.5z M10.5,-57 h10.5 v7 h-10.5z M31.5,-57 h10.5 v7 h-10.5z M0,-50 h10.5 v7 h-10.5z M21,-50 h10.5 v7 h-10.5z M10.5,-43 h10.5 v7 h-10.5z M31.5,-43 h10.5 v7 h-10.5z" fill="var(--text)"/>
+      <text x="21" y="-78" class="rt-s" fill="var(--faint)">chegada</text>
+    </g>
+    <g class="ciclista"><circle r="13" fill="var(--power)" stroke="var(--bg-2)" stroke-width="5"/><animateMotion dur="14s" repeatCount="indefinite"><mpath href="#rota-via"/></animateMotion></g>
+    <g class="parada" style="--i:0">
+      <path d="M220,164 V208" stroke="var(--sec1)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="220" cy="250" r="36" fill="var(--sec1)"/><circle cx="220" cy="250" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="220" y="261" class="rt-n">01</text>
+      <text x="220" y="54" class="rt-s" fill="var(--sec1)">slides 3–5</text><text x="220" y="92" class="rt-t">Contexto e problema</text><text x="220" y="124" class="rt-d">ciclismo virtual, fluxo</text><text x="220" y="150" class="rt-d">fragmentado e estado da arte</text>
+    </g>
+    <g class="parada" style="--i:1">
+      <path d="M470,462 V476" stroke="var(--sec2)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="470" cy="420" r="36" fill="var(--sec2)"/><circle cx="470" cy="420" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="470" y="431" class="rt-n">02</text>
+      <text x="470" y="506" class="rt-t">Proposta</text><text x="470" y="538" class="rt-d">um fluxo para</text><text x="470" y="564" class="rt-d">três usos</text><text x="470" y="596" class="rt-s" fill="var(--sec2)">slide 6</text>
+    </g>
+    <g class="parada" style="--i:2">
+      <path d="M720,164 V208" stroke="var(--sec3)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="720" cy="250" r="36" fill="var(--sec3)"/><circle cx="720" cy="250" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="720" y="261" class="rt-n">03</text>
+      <text x="720" y="54" class="rt-s" fill="var(--sec3)">slide 7</text><text x="720" y="92" class="rt-t">Metodologia</text><text x="720" y="124" class="rt-d">Design Science Research,</text><text x="720" y="150" class="rt-d">em ciclos</text>
+    </g>
+    <g class="parada" style="--i:3">
+      <path d="M980,462 V476" stroke="var(--sec4)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="980" cy="420" r="36" fill="var(--sec4)"/><circle cx="980" cy="420" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="980" y="431" class="rt-n">04</text>
+      <text x="980" y="506" class="rt-t">Arquitetura e implementação</text><text x="980" y="538" class="rt-d">camadas, Bluetooth</text><text x="980" y="564" class="rt-d">e tempo real</text><text x="980" y="596" class="rt-s" fill="var(--sec4)">slides 8–11</text>
+    </g>
+    <g class="parada" style="--i:4">
+      <path d="M1240,164 V208" stroke="var(--sec5)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="1240" cy="250" r="36" fill="var(--sec5)"/><circle cx="1240" cy="250" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="1240" y="261" class="rt-n">05</text>
+      <text x="1240" y="54" class="rt-s" fill="var(--sec5)">slides 12–15</text><text x="1240" y="92" class="rt-t">Resultados</text><text x="1240" y="124" class="rt-d">análise do treino, uso real,</text><text x="1240" y="150" class="rt-d">funcionalidades e requisitos</text>
+    </g>
+    <g class="parada" style="--i:5">
+      <path d="M1500,462 V476" stroke="var(--sec6)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="1500" cy="420" r="36" fill="var(--sec6)"/><circle cx="1500" cy="420" r="36" fill="none" stroke="var(--bg)" stroke-width="6"/>
+      <text x="1500" y="431" class="rt-n">06</text>
+      <text x="1500" y="506" class="rt-t">Conclusão</text><text x="1500" y="538" class="rt-d">contribuições, limites</text><text x="1500" y="564" class="rt-d">e próximos passos</text><text x="1500" y="596" class="rt-s" fill="var(--sec6)">slide 16</text>
+    </g>
+  </svg>
   <aside class="notes">Vou falar do contexto e do problema, da proposta, do método, de como o Argus foi construído, dos resultados e concluir. ~20 s.</aside>
 </section>
 

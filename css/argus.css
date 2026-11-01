@@ -516,3 +516,14 @@ section[data-sec="3"] .kicker { color: var(--sec3); }
 section[data-sec="4"] .kicker { color: var(--sec4); }
 section[data-sec="5"] .kicker { color: var(--sec5); }
 section[data-sec="6"] .kicker { color: var(--sec6); }
+
+/* sumário como rota */
+.rota { margin-top: 24px; }
+.rota .rt-n { font-family: var(--mono); font-size: 30px; font-weight: 700; fill: #fff; }
+.rota .rt-t { font-size: 29px; font-weight: 700; fill: var(--text); }
+.rota .rt-d { font-size: 21px; fill: var(--muted); }
+.rota .rt-s { font-family: var(--mono); font-size: 17px; letter-spacing: 0.08em; }
+.rota .parada { opacity: 0; }
+.present .rota .parada { animation: entra 0.5s ease forwards; animation-delay: calc(0.5s + var(--i) * 0.25s); }
+html.print-pdf .rota .parada { opacity: 1 !important; animation: none !important; }
+@media print { .rota .parada { opacity: 1 !important; animation: none !important; } .rota .ciclista { display: none; } }
