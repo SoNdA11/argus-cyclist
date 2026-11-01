@@ -610,16 +610,39 @@
 </section>
 
 <!-- ============================================================ CONCLUSÃO -->
-<section data-section="Conclusão" data-timing="60">
+<section data-section="Conclusão" data-timing="75" class="conclusao">
   <div class="kicker">Conclusão</div>
-  <h2>O fluxo funciona e pode ser auditado</h2>
-  <p class="lead" style="margin-top:10px">Do GPX à análise fisiológica, em um único artefato aberto, com o dado no dispositivo.</p>
-  <div class="grid g3" style="margin-top:40px">
-    <div class="card"><h4 class="c-teal">Contribuições</h4><ul class="small"><li>Integração de percurso, simulação, fisiologia e histórico local</li><li>Fórmulas e parâmetros documentados</li><li>Código aberto e registro no INPI</li></ul></div>
-    <div class="card"><h4 class="c-warn">Limitações</h4><ul class="small"><li>Piloto com um participante</li><li>Sem validação clínica das métricas</li><li>Android sem FIT e histórico</li></ul></div>
-    <div class="card"><h4 class="c-blue">Trabalhos futuros</h4><ul class="small"><li>Reconhecimento automático e <em>pacing</em></li><li>Estudo de usabilidade com ciclistas</li><li>Núcleo único (WebAssembly) e mapas offline</li></ul></div>
+  <h2>O fluxo funciona, e cada número pode ser conferido</h2>
+  <div class="qa">
+    <div class="qa-q"><span>Pergunta</span>Dá para reunir percurso, simulação, fisiologia e histórico em um único software aberto?</div>
+    <div class="qa-a"><span>Resposta</span><strong>Sim, no desktop</strong>, nas condições testadas. No Android, a sessão ao vivo.</div>
   </div>
-  <aside class="notes">Retomar o objetivo: integrar o fluxo e deixar cada número explicável. Limitações declaradas. Futuro em três frentes.</aside>
+  <div class="provas">
+    <div class="prova" style="--i:0"><div class="prova-n c-teal">1 fluxo</div><p>GPX → rolo → métricas → histórico, sem trocar de aplicativo</p></div>
+    <div class="prova" style="--i:1"><div class="prova-n c-blue">7 métricas</div><p>NP, IF, TSS, TRIMP, PMC, HRR e Pw:FC com fórmula aberta e 27 testes</p></div>
+    <div class="prova" style="--i:2"><div class="prova-n c-power">10 meses</div><p>114 sessões e 2.182 km de uso real no piloto</p></div>
+    <div class="prova" style="--i:3"><div class="prova-n" style="color:var(--anotacao)">GPLv3 · INPI</div><p>código aberto e registrado, com o processo documentado no Git</p></div>
+  </div>
+  <div class="grid g2 fecho" style="gap:40px">
+    <div class="card lim">
+      <h4 class="c-warn">O que este trabalho não mostra</h4>
+      <ul>
+        <li>eficácia de treino: o piloto teve um participante</li>
+        <li>validação clínica das métricas (sem lactato nem VO₂máx)</li>
+        <li>Android completo: hoje só a sessão ao vivo, sem FIT e histórico</li>
+      </ul>
+    </div>
+    <div class="card fut">
+      <h4 class="c-blue">Próximos passos</h4>
+      <div class="roadmap">
+        <div><b>1</b>Estudo de usabilidade com ciclistas</div>
+        <div><b>2</b>Reconhecimento automático e <em>pacing</em></div>
+        <div><b>3</b>Mapas offline e mais rolos testados</div>
+      </div>
+    </div>
+  </div>
+  <p class="frase-final">Mais que o código: mostrar o que um software esportivo mede, <strong>como mede</strong> e <strong>para que serve</strong>.</p>
+  <aside class="notes">Retomar a pergunta do início: dá para juntar percurso, simulação, fisiologia e histórico num software aberto? No desktop, sim, nas condições testadas; no Android, a sessão ao vivo. As quatro provas: um fluxo sem trocar de aplicativo; sete métricas com fórmula aberta e 27 testes; dez meses de uso real (114 sessões, 2.182 km); código aberto sob GPLv3 e registrado no INPI. Ser honesto sobre o que não foi mostrado: eficácia de treino (um participante), validação clínica e o escopo do Android. Próximos passos, os mesmos do Cap. 8: estudo de usabilidade, reconhecimento automático com pacing, mapas offline e mais hardware. Fechar com a frase: a contribuição mais duradoura é documentar o que o software mede, como mede e para que serve.</aside>
 </section>
 
 <!-- ============================================================ REFERÊNCIAS -->
