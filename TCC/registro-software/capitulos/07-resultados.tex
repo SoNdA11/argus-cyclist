@@ -193,6 +193,9 @@ foi verificado e o que permanece em aberto.
         Coerentes \\
         Potência e frequência cardíaca & Comparação de médias e amostras &
         Coerentes nos casos conferidos \\
+        Séries por amostra (altitude, velocidade, distância) & Leitura com
+        expansão de componentes & Defeito encontrado e corrigido
+        (Seção~\ref{sec:defeitos-avaliacao}) \\
         Elevação & Comparação com o perfil do GPX & Aproximada, dependente do
         arquivo \\
         Validação formal FIT SDK & Aceitação prática verificada &
@@ -286,9 +289,10 @@ resultante.
         Tempo ativo acumulado & \SI{91.6}{\hour} (média de \SI{48.2}{\minute} por sessão) \\
         Ganho de elevação acumulado & \SI{7470}{\meter} \\
         Sessão mais longa & \SI{2.0}{\hour} \\
-        Sessões com NP, IF e TSS calculados & 81 (TSS médio 37,6; IF médio 0,67) \\
+        Sessões com NP, IF e TSS calculados & 81 (TSS médio 35,8 após
+        reprocessamento; 37,6 no banco) \\
         Sessões com frequência cardíaca & 63 \\
-        Sessões com desacoplamento calculado & 55 (31 acima de 5\%) \\
+        Sessões elegíveis ao desacoplamento ($\geq$ 1~h) & 25 (12 acima de 5\%) \\
         Sessões com HRR registrado & 51 (HRR\textsubscript{1} médio 14,6 bpm;
         HRR\textsubscript{2} médio 18,4 bpm) \\
         Sessões enviadas ao Strava & 47 \\
@@ -298,7 +302,8 @@ resultante.
     \end{tabular}
     \vspace{0.2cm}
     \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
-    autor.
+    autor e do reprocessamento dos arquivos FIT
+    (Seção~\ref{sec:defeitos-avaliacao}).
 \end{table}
 
 A distribuição temporal acompanha os ciclos de desenvolvimento descritos no
@@ -312,11 +317,12 @@ com TSS e com TRIMP.
 Os números devem ser lidos com as ressalvas da Seção~\ref{sec:validade}. Eles
 documentam o uso continuado do artefato por cerca de dez meses e a execução
 repetida do fluxo de registro, cálculo e persistência; não constituem medida
-de desempenho, de adaptação fisiológica ou de usabilidade. A amplitude dos
-valores de desacoplamento, que inclui resultados negativos, também reflete a
-limitação discutida no Capítulo~\ref{cap:fundamentacao}: a métrica só é
-informativa em sessões de intensidade relativamente constante, e parte do
-acervo é composta por treinos intervalados e percursos com relevo variável.
+de desempenho, de adaptação fisiológica ou de usabilidade. As métricas
+dependentes da taxa de amostragem (desacoplamento e recordes de potência) foram
+recalculadas a partir dos arquivos FIT com o método corrigido descrito na
+Seção~\ref{sec:defeitos-avaliacao}; as 31 sessões de janeiro e fevereiro não
+têm arquivo FIT no diretório de trabalho e mantêm os valores do banco, que,
+nesse período, não incluíam métricas fisiológicas.
 
 A Figura~\ref{fig:pmc-real} reconstrói o PMC a partir das 81 sessões com TSS,
 com as mesmas constantes de 42 e 7 dias implementadas no sistema. O gráfico
@@ -335,6 +341,74 @@ aptidão comprovada.
     \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
     autor e de \code{scripts/exportar\_pmc.py}.
 \end{figure}
+
+\section{Defeitos identificados pela avaliação}
+\label{sec:defeitos-avaliacao}
+
+A análise dos arquivos do piloto, feita para produzir as tabelas e figuras
+deste capítulo, revelou dois defeitos que os testes manuais de uso não haviam
+mostrado. Ambos foram corrigidos, e o ciclo de identificação, correção e
+reavaliação é, ele próprio, um resultado no sentido da \textit{Design Science
+Research}: o artefato foi modificado em resposta à sua avaliação.
+
+\textbf{Taxa de amostragem.} O laço da sessão registrava uma amostra por
+notificação BLE, e cada sensor conectado notifica de forma independente. Nos
+98 arquivos FIT de sessões livres e estruturadas, a taxa mediana foi de 2,95
+amostras por segundo, e não de 1~Hz, como o texto e as métricas pressupunham.
+O efeito sobre cada métrica dependia de como ela usa o tempo
+(Tabela~\ref{tab:reprocessamento}). TSS e TRIMP já usavam a duração medida pelo
+relógio e quase não mudaram. A NP também mudou pouco: a média de quarta
+potência é pouco sensível ao tamanho exato da janela. As métricas que contam
+amostras como segundos, ao contrário, ficaram fortemente distorcidas: o
+desacoplamento era calculado em sessões a partir de cerca de 20 minutos, e os
+recordes de potência de ``1 minuto'' e ``20 minutos'' correspondiam, na
+verdade, a esforços de cerca de 20 segundos e 7 minutos. Pela mesma razão, os
+testes de FTP superestimavam o resultado. A correção introduziu a reamostragem
+a \SI{1}{\hertz} descrita no Capítulo~\ref{cap:implementacao}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Efeito da reamostragem a 1~Hz sobre as métricas do piloto}
+    \label{tab:reprocessamento}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.4cm}
+        >{\raggedright\arraybackslash}p{3.6cm}
+        >{\raggedright\arraybackslash}p{4.6cm}@{}}
+        \toprule
+        \textbf{Métrica} & \textbf{Por notificação} & \textbf{Reamostrada a 1~Hz} \\
+        \midrule
+        Diferença de NP (mediana) & --- & 0~W \\
+        TSS médio (81 sessões) & 37,6 & 35,8 \\
+        Sessões com desacoplamento calculado & 55 & 25 \\
+        Melhor potência de 1 min & \SI{410}{\watt} & \SI{240}{\watt} \\
+        Melhor potência de 5 min & \SI{221}{\watt} & \SI{198}{\watt} \\
+        Melhor potência de 20 min & \SI{194}{\watt} & \SI{158}{\watt} \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, a partir dos 82 arquivos FIT com
+    duração $\geq$ 10 min, reprocessados por \code{scripts/recalcular}; TSS e
+    desacoplamento ``por notificação'' são os valores gravados no banco.
+\end{table}
+
+\textbf{Campos zerados na exportação FIT.} Ao extrair os registros para as
+figuras, verificou-se que cada amostra do arquivo continha, além dos campos
+preenchidos pelo \argus{}, cerca de 80 campos com valor zero. Isso acontecia
+porque as mensagens eram montadas como estruturas literais em Go, cujos campos
+não preenchidos assumem o valor zero, que o FIT interpreta como dado válido, e
+não como ausência. Leitores que expandem componentes, como o próprio
+decodificador usado pelo \argus{} no histórico, substituíam a altitude e a
+velocidade reais por \SI{-500}{\meter} e \SI{0}{\kilo\meter\per\hour} e
+corrompiam a distância. As plataformas de destino aceitavam os arquivos e
+exibiam totais coerentes, porque os totais da sessão estavam corretos; o defeito
+afetava as séries por amostra. A correção passou a criar as mensagens com os
+valores inválidos do perfil e a ler os arquivos antigos sem expansão de
+componentes, o que recupera os dados reais, que sempre estiveram no arquivo.
+Um teste de ida e volta (Tabela~\ref{tab:testes}) cobre o caso.
+
+Os dois defeitos reforçam um argumento do trabalho: a aceitação de um arquivo
+por uma plataforma externa é evidência de interoperabilidade, não de correção,
+e explicitar fórmulas e escalas é o que torna esse tipo de erro detectável.
 
 \section{Discussão}
 \label{sec:discussao-resultados}

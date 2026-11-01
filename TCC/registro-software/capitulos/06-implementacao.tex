@@ -235,8 +235,10 @@ a.sessionActiveTime += dt
 if a.isRecording {
     a.sessionPowerSum += uint64(currentPower)
     a.sessionTicks++
-    a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
-    a.sessionHRData = append(a.sessionHRData, int(currentHR))
+    // One entry per second of active time, not per notification.
+    powers, hrs := a.sessionSampler.Add(dt, int(currentPower), int(currentHR))
+    a.sessionPowerData = append(a.sessionPowerData, powers...)
+    a.sessionHRData = append(a.sessionHRData, hrs...)
 }
 
 // ...
@@ -268,11 +270,15 @@ segundos e, ao final, chama \code{FinishSession}. Essa separação faz com que o
 resfriamento não entre no tempo ativo nem no FIT como pedalada, mas permite
 calcular a recuperação cardíaca.
 
-Há um \code{ticker} de um segundo no laço, mas ele não é usado para emitir ou
-gravar amostras. A gravação acontece por notificação BLE. O ticker existe para
-outras rotinas e para o encerramento do canal; a taxa de aquisição continua
-sendo a taxa do sensor. Essa observação é importante para não confundir a
-presença de um relógio de um segundo com uma reamostragem de um segundo.
+O laço é guiado pelas notificações BLE, não por um relógio. Cada notificação
+de qualquer sensor produz um evento para a interface e um registro FIT, com os
+valores mais recentes de potência, cadência e frequência cardíaca. Para as
+métricas, porém, o \code{SecondResampler} acumula as notificações e, a cada
+segundo de tempo ativo completado, entrega a média do segundo; se um intervalo
+sem notificações abrange vários segundos, todos são preenchidos. A
+recuperação de sessão usa o mesmo componente, reconstruindo a série a partir
+dos \textit{timestamps} das amostras gravadas e tratando intervalos maiores que
+o \textit{timeout} do sensor como pausa.
 
 O sensor tem \textit{timeout} de cinco segundos. Se a potência ou a frequência
 cardíaca deixam de chegar, o valor correspondente é zerado. Isso evita que um
@@ -415,17 +421,16 @@ func (s *Service) AddRecord(t domain.Telemetry) {
     scaledDist := uint32(t.TotalDistance * 100)
     scaledAlt := uint32((t.Altitude + 500.0) * 5.0)
 
-    record := &mesgdef.Record{
-        Timestamp:        t.Timestamp,
-        PositionLat:      lat,
-        PositionLong:     lon,
-        Distance:         scaledDist,
-        EnhancedSpeed:    scaledSpeed,
-        Power:            uint16(t.Power),
-        HeartRate:        t.HeartRate,
-        Cadence:          t.Cadence,
-        EnhancedAltitude: scaledAlt,
-    }
+    // unset fields stay FIT-invalid instead of zero
+    record := mesgdef.NewRecord(nil)
+    record.Timestamp = t.Timestamp
+    record.PositionLat, record.PositionLong = lat, lon
+    record.Distance = scaledDist
+    record.EnhancedSpeed = scaledSpeed
+    record.Power = uint16(t.Power)
+    record.HeartRate = t.HeartRate
+    record.Cadence = t.Cadence
+    record.EnhancedAltitude = scaledAlt
     s.records = append(s.records, record)
 }
 \end{lstlisting}
@@ -502,7 +507,8 @@ gráfico, inicializadas em 30\% e 70\% do eixo; não há algoritmo de detecção
 
 O PMC é calculado dia a dia, com constantes de 42 e 7 dias, e o TSB é a
 diferença entre CTL e ATL antes da atualização do dia. O desacoplamento exige
-pelo menos 3600 amostras, descarta os primeiros 10 minutos e compara a
+pelo menos 3600 amostras (uma hora, na série de 1~Hz), descarta os primeiros
+10 minutos e compara a
 eficiência potência/frequência cardíaca entre as metades. O HRR usa a última
 frequência cardíaca antes do resfriamento como referência e captura os valores
 em 60 e 120 segundos. O campo \code{MaxHR} da atividade é o máximo real da
@@ -535,8 +541,11 @@ A Tabela~\ref{tab:testes} resume a cobertura.
         \midrule
         \code{service/fit} (métricas) & 7 & NP, IF, TSS, zonas de potência e
         de FC, TRIMP, desacoplamento e PMC contra valores de referência \\
-        \code{service/fit} (arquivo) & 1 & Duração do FIT derivada dos registros,
-        não do relógio \\
+        \code{service/fit} (reamostragem) & 3 & Média por segundo a partir de
+        $\approx$3~notificações/s; preenchimento de lacunas; FC zerada ignorada \\
+        \code{service/fit} (arquivo) & 2 & Duração do FIT derivada dos registros;
+        altitude, velocidade e distância preservadas na leitura com expansão de
+        componentes \\
         \code{service/sim} & 2 & Velocidade satisfaz a equação de Martin;
         monotonicidade, descida sem potência e limite de \SI{40}{\meter\per\second} \\
         \code{service/workout} & 1 & Achatamento de passos ZWO e marcação de
@@ -545,15 +554,17 @@ A Tabela~\ref{tab:testes} resume a cobertura.
         descarte de \textit{snapshots} \\
         Raiz (\code{app.go}) & 1 & Recuperação de sessão de ponta a ponta \\
         \midrule
-        Total & 23 & \\
+        Total & 27 & \\
         \bottomrule
     \end{tabular}
     \vspace{0.2cm}
     \par\small Fonte: autoria própria.
 \end{table}
 
-A escrita desses testes revelou dois defeitos, corrigidos antes da versão
-apresentada. O primeiro era de fronteira numérica: como $0{,}55 \times 200$ é
+A escrita desses testes revelou dois defeitos de cálculo, corrigidos antes da
+versão apresentada; outros dois, de maior impacto, surgiram da análise dos
+arquivos do piloto e são discutidos na Seção~\ref{sec:defeitos-avaliacao}. O
+primeiro defeito de cálculo era de fronteira numérica: como $0{,}55 \times 200$ é
 representado em ponto flutuante como 110,00000000000001, uma potência de
 exatamente 110~W com FTP de 200~W era classificada na Z1, e não na Z2; a
 comparação passou a ser feita em percentuais inteiros. O segundo estava no
