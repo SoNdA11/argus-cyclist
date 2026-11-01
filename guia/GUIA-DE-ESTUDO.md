@@ -140,7 +140,7 @@ Não leia os cartões. Uma frase basta.
 
 ## O que aparece na tela
 
-**À esquerda,** um ciclo com quatro círculos ligados por setas tracejadas que se movem:
+**À esquerda,** um ciclo com quatro círculos coloridos ligados por setas tracejadas que se movem. Cada seta tem a cor do bloco de onde sai. As cores têm significado: **Ciclista** em vermelho (o corpo, a cor da FC), **Sensores** em âmbar (a cor da potência, que eles medem), **Software** em verde-azulado (a marca Argus) e **Rolo** em azul.
 
 - **Ciclista** (pedala) → **Sensores** (Bluetooth LE). Acima da seta: *potência · cadência · FC*.
 - **Sensores** → **Software** (Argus Cyclist). Ao lado: *telemetria*.
