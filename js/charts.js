@@ -28,6 +28,7 @@
       animation: !printMode,
       animationDuration: 1600,
       animationEasing: "cubicOut",
+      animationDurationUpdate: 600,
       legend: { top: 0, right: 0, textStyle: { color: C.muted, fontSize: 22 }, itemWidth: 28, itemHeight: 12 },
       grid: { left: 90, right: 90, top: 70, bottom: 70 },
     };
@@ -67,29 +68,7 @@
 
   const builders = {
     // Slide 2 — gancho: a pedalada de Girona, uma camada por fragmento
-    "ch-hook": (chart, step) => {
-      const show = (n) => step >= n;
-      chart.setOption(merge({
-        legend: { show: false },
-        grid: { left: 20, right: 20, top: 20, bottom: 40 },
-        xAxis: { type: "value", min: 0, max: 21, ...axisBase, axisLabel: { ...axisBase.axisLabel, formatter: "{value} km" }, splitLine: { show: false } },
-        yAxis: [
-          { type: "value", min: 0, max: 200, show: false },
-          { type: "value", min: 0, max: 320, show: false },
-        ],
-        series: [
-          { name: "Altitude", type: "line", yAxisIndex: 1, data: gironaPairs("alt"), symbol: "none", smooth: true,
-            lineStyle: { color: C.alt, width: 2 }, areaStyle: { color: C.tintAlt } },
-          { name: "Potência", type: "line", data: show(1) ? gironaPairs("power") : [], symbol: "none",
-            lineStyle: { color: C.power, width: 3 } },
-          { name: "FC", type: "line", data: show(2) ? gironaPairs("hr") : [], symbol: "none", connectNulls: true,
-            lineStyle: { color: C.hr, width: 3 } },
-        ],
-      }), true);
-    },
-
-    // Slide 10 — inclinação bruta x suavizada (Leberg)
-    "ch-grade": (chart, step) => {
+    "ch-grade": (chart, step = 0, fresh = true) => {
       const L = D.leberg;
       chart.setOption(merge({
         legend: { data: ["Altitude", "Inclinação bruta", "Suavizada (±5 pts, ≤25%)"] },
@@ -106,11 +85,11 @@
           { name: "Suavizada (±5 pts, ≤25%)", type: "line", symbol: "none", data: step >= 2 ? L.km.map((x, i) => [x, L.smooth[i]]) : [],
             lineStyle: { color: C.teal, width: 3.5 } },
         ],
-      }), true);
+      }), { notMerge: fresh });
     },
 
     // Slide 10 — velocidade de equilíbrio x inclinação, 200 W
-    "ch-speed": (chart) => {
+    "ch-speed": (chart, step = 0, fresh = true) => {
       const grades = []; for (let g = -6; g <= 15; g += 0.5) grades.push(g);
       chart.setOption(merge({
         legend: { show: false },
@@ -124,11 +103,11 @@
               label: { color: C.text, fontFamily: MONO, fontSize: 20, position: "top", formatter: (p) => p.value + " km/h" },
               data: [0, 6, 12].map((g) => ({ coord: [g, +speedKmh(200, g).toFixed(1)], value: speedKmh(200, g).toFixed(1) })) } },
         ],
-      }), true);
+      }), { notMerge: fresh });
     },
 
     // Slide 11 — média x NP e as duas metades do desacoplamento
-    "ch-physio": (chart, step) => {
+    "ch-physio": (chart, step = 0, fresh = true) => {
       const t = G.km.map((_, i) => +(i * 0.25).toFixed(2)); // blocos de 15 s -> minutos
       const end = t[t.length - 1];
       const mid = 10 + (end - 10) / 2;
@@ -157,11 +136,11 @@
           { name: "FC", type: "line", yAxisIndex: 1, symbol: "none", connectNulls: true,
             data: t.map((x, i) => [x, G.hr[i]]), lineStyle: { color: C.hr, width: 2.5 } },
         ],
-      }), true);
+      }), { notMerge: fresh });
     },
 
     // Slide 12 — PMC real
-    "ch-pmc": (chart) => {
+    "ch-pmc": (chart, step = 0, fresh = true) => {
       const P = D.pmc;
       chart.setOption(merge({
         legend: { data: ["TSS diário", "CTL (42 d)", "ATL (7 d)", "TSB"] },
@@ -175,23 +154,7 @@
           { name: "ATL (7 d)", type: "line", symbol: "none", data: P.atl, lineStyle: { color: C.hr, width: 2.5 }, itemStyle: { color: C.hr } },
           { name: "TSB", type: "line", symbol: "none", data: P.tsb, lineStyle: { color: C.power, width: 2, type: "dashed" }, itemStyle: { color: C.power } },
         ],
-      }), true);
-    },
-
-    // Slide 13 — recordes de potência antes x depois da reamostragem
-    "ch-fix": (chart) => {
-      chart.setOption(merge({
-        legend: { data: ["Por notificação (antes)", "Reamostrado a 1 Hz"] },
-        grid: { left: 90, right: 30, top: 80, bottom: 60 },
-        xAxis: { type: "category", data: ["1 min", "5 min", "20 min"], ...axisBase, axisLabel: { ...axisBase.axisLabel, fontSize: 24 } },
-        yAxis: { type: "value", name: "W", min: 0, max: 450, ...axisBase },
-        series: [
-          { name: "Por notificação (antes)", type: "bar", data: [410, 221, 194], barGap: "10%", barWidth: 70,
-            itemStyle: { color: "rgba(239,79,95,0.55)" }, label: { show: true, position: "top", color: C.muted, fontFamily: MONO, fontSize: 22 } },
-          { name: "Reamostrado a 1 Hz", type: "bar", data: [240, 198, 158], barWidth: 70,
-            itemStyle: { color: C.teal }, label: { show: true, position: "top", color: C.text, fontFamily: MONO, fontSize: 22 } },
-        ],
-      }), true);
+      }), { notMerge: fresh });
     },
   };
 
@@ -206,7 +169,7 @@
   function buildIn(slide, step = 0) {
     slide.querySelectorAll(".chart[id]").forEach((el) => {
       const c = ensure(el);
-      if (c) { c.clear(); builders[el.id](c, step); }
+      if (c) { c.clear(); builders[el.id](c, step, true); }
     });
   }
   function stepOf(slide) {
@@ -222,7 +185,8 @@
     onSlide(slide) { buildIn(slide, stepOf(slide)); },
     onFragment(slide) {
       slide.querySelectorAll(".chart[id]").forEach((el) => {
-        if (el.dataset.stepped && charts[el.id]) builders[el.id](charts[el.id], stepOf(slide));
+        // sem notMerge: só a camada nova anima; a linha de potência não é redesenhada
+        if (el.dataset.stepped && charts[el.id]) builders[el.id](charts[el.id], stepOf(slide), false);
       });
     },
     retheme() { // troca de tema: relê as cores e redesenha o slide atual
@@ -231,7 +195,7 @@
     },
     buildAll() { // modo PDF: tudo de uma vez, no estado final e sem animação
       printMode = true; readTheme();
-      document.querySelectorAll(".chart[id]").forEach((el) => { const c = ensure(el); if (c) builders[el.id](c, 99); });
+      document.querySelectorAll(".chart[id]").forEach((el) => { const c = ensure(el); if (c) builders[el.id](c, 99, true); });
     },
     speedKmh,
   };
