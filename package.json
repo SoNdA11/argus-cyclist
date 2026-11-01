@@ -1,0 +1,13 @@
+{
+  "name": "argus-cyclist-defesa",
+  "private": true,
+  "type": "module",
+  "description": "Apresentação da defesa do TCC (Reveal.js offline).",
+  "scripts": {
+    "dados": "python3 -I scripts/exportar_dados.py",
+    "pdf": "node scripts/exportar_pdf.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.48.2"
+  }
+}
