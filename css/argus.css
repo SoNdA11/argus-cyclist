@@ -386,3 +386,66 @@ html.print-pdf .ponto, html.print-pdf .media, html.print-pdf .dsr-step, html.pri
 .tile-texto span { font-size: 18px; color: var(--muted); line-height: 1.3; }
 .tile-texto .uso-ico { width: 60px; height: 60px; flex: none; border-radius: 14px; }
 .tile-texto .uso-ico svg { width: 34px; height: 34px; }
+
+/* ---------- revisão 01/11, 4ª rodada ---------- */
+/* ciclismo virtual: fotos de competições (clicáveis) */
+.galeria.fotos { grid-template-columns: 1fr; gap: 18px; margin: 0; }
+.galeria.fotos figure { position: relative; }
+.galeria.fotos .ph { aspect-ratio: 2.05 / 1; }
+.galeria.fotos .ph img { object-fit: cover; object-position: center 30%; }
+.galeria.fotos figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 20px 14px; color: rgba(255,255,255,0.85);
+  background: linear-gradient(transparent, rgba(6, 12, 24, 0.92) 55%); font-size: 18px; }
+.galeria.fotos figcaption b { color: #fff; font-size: 23px; }
+
+/* problema: apps entram um a um, arquivos atravessam os elos quebrados */
+.app-node, .elo { opacity: 0; }
+.present .app-node { animation: entra 0.5s ease forwards; animation-delay: calc(var(--i) * 0.35s); }
+.present .elo { animation: entra 0.4s ease forwards; animation-delay: calc(var(--i) * 0.35s + 0.3s); }
+.elo .arquivo { animation: arquivo 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.5s); }
+@keyframes arquivo { 0%, 15% { transform: translateY(0); opacity: 1; } 55% { transform: translateY(14px); opacity: 1; } 75%, 100% { transform: translateY(26px); opacity: 0; } }
+.dores .card h4 { font-size: 28px; }
+.dores .card p { font-size: 23px; }
+html.print-pdf .app-node, html.print-pdf .elo { opacity: 1 !important; animation: none !important; }
+html.print-pdf .elo .arquivo { animation: none !important; }
+@media print { .app-node, .elo { opacity: 1 !important; animation: none !important; } .elo .arquivo { animation: none !important; } }
+
+/* construção: tecnologias por camada, com ícones */
+.camadas { display: flex; flex-direction: column; gap: 14px; }
+.camada { border-left: 6px solid var(--c); background: var(--bg-2); border-radius: 0 14px 14px 0; padding: 12px 18px 14px;
+  box-shadow: 0 2px 10px rgba(14, 31, 61, 0.05); }
+.camada-h { font-family: var(--mono); font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.tecs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
+.tec { display: flex; align-items: center; gap: 12px; }
+.tec-ic { display: flex; gap: 4px; flex: none; }
+.si { width: 34px; height: 34px; display: block; }
+.tec b { display: block; font-size: 21px; font-weight: 700; color: var(--text); line-height: 1.15; }
+.tec i { display: block; font-style: normal; font-size: 16px; color: var(--muted); line-height: 1.2; }
+
+/* FTMS x FE-C: mensagens em bytes */
+.protos2 { display: grid; grid-template-columns: 1fr 300px 1fr; gap: 30px; align-items: stretch; }
+.msg-h { font-size: 20px; color: var(--muted); margin: 6px 0 10px; }
+.bytes { display: flex; gap: 14px; margin-bottom: 16px; }
+.bgrp { display: flex; flex-direction: column; align-items: center; }
+.bb { display: flex; gap: 5px; }
+.byte { font-family: var(--mono); font-size: 22px; font-weight: 600; width: 50px; height: 50px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; background: var(--bg-3); color: var(--text); border: 2px solid transparent; }
+.byte.op { border-color: var(--blue); color: var(--blue); }
+.byte.val { border-color: var(--teal); color: var(--teal); }
+.byte.res { color: var(--faint); }
+.byte.crr { border-color: var(--anotacao); color: var(--anotacao); }
+.bcap { font-size: 16px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.2; }
+.hub { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; }
+.hub svg { position: absolute; top: 50%; left: -30px; right: -30px; width: calc(100% + 60px); transform: translateY(-120%); }
+.hub p { font-size: 22px; margin: 0 0 8px; }
+.hub .proto-argus { position: relative; z-index: 1; }
+
+/* requisitos: faixa de plataformas */
+.plataformas { display: flex; align-items: center; gap: 34px; margin-top: 34px; padding: 18px 26px; border-radius: 16px;
+  background: var(--bg-2); border: 1px solid var(--line); }
+.plat { display: flex; align-items: center; gap: 12px; }
+.plat b { display: block; font-size: 22px; color: var(--text); }
+.plat span { font-size: 17px; color: var(--muted); }
+.plat.ok b::after { content: " ✓"; color: var(--ok); }
+.camadas-par { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.camadas-par .tecs { grid-template-columns: 1fr; }
+.hub .proto-argus { background: var(--bg-2); box-shadow: 0 0 0 14px var(--tint-teal), 0 0 0 15px var(--bg); }
