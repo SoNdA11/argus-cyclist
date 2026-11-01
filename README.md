@@ -18,9 +18,12 @@ servidor.
 | `F` | tela cheia |
 | `Esc` | visão geral dos slides |
 | `B` ou `.` | tela preta |
+| `T` | alterna tema claro (padrão) / escuro — a escolha fica salva no navegador |
 
-As notas de cada slide trazem a fala-chave e o tempo-alvo. O total previsto é
-de cerca de 19 min 40 s.
+As notas de cada slide trazem a fala-chave e o tempo-alvo.
+
+Tema: claro por padrão. Se o projetor da sala lavar as cores, use `T` (ou abra
+`index.html?tema=escuro`).
 
 ## Contingência
 
