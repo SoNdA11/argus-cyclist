@@ -31,7 +31,7 @@ No fim há um glossário, a lista de números para decorar, os pontos delicados 
 | `T` | alterna tema claro (padrão) e escuro |
 | `B` ou `.` | tela preta |
 | `Esc` | visão geral dos slides |
-| clique numa imagem | abre a galeria ampliada (slides 2 e 13); ← → passam, `Esc` fecha |
+| clique numa imagem | abre a galeria ampliada (slides 3 e 14); ← → passam, `Esc` fecha |
 
 A visão do apresentador (`S`) mostra se você está adiantado ou atrasado em relação aos tempos planejados de cada slide. Use-a nos ensaios.
 
@@ -39,12 +39,12 @@ A visão do apresentador (`S`) mostra se você está adiantado ou atrasado em re
 
 A apresentação conta uma história em seis passos:
 
-1. **O mundo:** o ciclismo virtual já é esporte de verdade, de Copa Brasil a Mundial (slide 2).
-2. **O problema:** o ciclista usa quatro aplicativos, exporta arquivos à mão e não sabe como os números são calculados (slides 3 e 4).
-3. **A proposta:** um único fluxo aberto, do GPX ao histórico, servindo a reconhecimento, exploração e treino (slide 5).
-4. **Como foi feito:** pelo método DSR, com uma arquitetura em camadas, conversando com o rolo por Bluetooth e tratando os dados em tempo real (slides 6 a 10).
-5. **A evidência:** as métricas com fórmula aberta, dez meses de uso real, as funcionalidades e os requisitos atendidos (slides 11 a 14).
-6. **A conclusão:** funciona no desktop, cada número pode ser conferido, e os limites estão declarados (slide 15).
+1. **O mundo:** o ciclismo virtual já é esporte de verdade, de Copa Brasil a Mundial (slide 3).
+2. **O problema:** o ciclista usa quatro aplicativos, exporta arquivos à mão e não sabe como os números são calculados (slides 4 e 5).
+3. **A proposta:** um único fluxo aberto, do GPX ao histórico, servindo a reconhecimento, exploração e treino (slide 6).
+4. **Como foi feito:** pelo método DSR, com uma arquitetura em camadas, conversando com o rolo por Bluetooth e tratando os dados em tempo real (slides 7 a 11).
+5. **A evidência:** as métricas com fórmula aberta, dez meses de uso real, as funcionalidades e os requisitos atendidos (slides 12 a 15).
+6. **A conclusão:** funciona no desktop, cada número pode ser conferido, e os limites estão declarados (slide 16).
 
 A frase que amarra tudo: **"o fluxo funciona, e cada número pode ser conferido"**.
 
@@ -53,29 +53,30 @@ A frase que amarra tudo: **"o fluxo funciona, e cada número pode ser conferido"
 | # | Slide | Tempo |
 |---|---|---|
 | 1 | Capa | 0:20 |
-| 2 | O que é ciclismo virtual | 1:20 |
-| 3 | O fluxo do ciclista é fragmentado | 1:00 |
-| 4 | As peças existem, mas não juntas | 1:10 |
-| 5 | Um fluxo para três usos | 0:50 |
-| 6 | Construir, usar e corrigir, em ciclos | 1:00 |
-| 7 | Como o Argus foi construído | 1:10 |
-| 8 | Núcleo em Go, interface web compartilhada | 1:40 |
-| 9 | Como o Argus conversa com o rolo | 1:30 |
-| 10 | Do sensor até o ciclista | 1:15 |
-| 11 | Cada número tem fórmula e limite | 1:50 |
-| 12 | Dez meses de uso real | 1:00 |
-| 13 | Do treino à análise | 1:00 |
-| 14 | Requisitos atendidos | 0:50 |
-| 15 | Conclusão | 1:15 |
-| 16-17 | Referências | 0:10 |
-| 18 | Obrigado | 0:15 |
-| | **Total** | **17:35** |
+| 2 | Sumário | 0:20 |
+| 3 | O que é ciclismo virtual | 1:20 |
+| 4 | O fluxo do ciclista é fragmentado | 1:00 |
+| 5 | As peças existem, mas não juntas | 1:10 |
+| 6 | Um fluxo para três usos | 0:50 |
+| 7 | Construir, usar e corrigir, em ciclos | 1:00 |
+| 8 | Como o Argus foi construído | 1:10 |
+| 9 | Núcleo em Go, interface web compartilhada | 1:40 |
+| 10 | Como o Argus conversa com o rolo | 1:30 |
+| 11 | Do sensor até o ciclista | 1:15 |
+| 12 | Cada número tem fórmula e limite | 1:50 |
+| 13 | Dez meses de uso real | 1:00 |
+| 14 | Do treino à análise | 1:00 |
+| 15 | Requisitos atendidos | 0:50 |
+| 16 | Conclusão | 1:15 |
+| 17-18 | Referências | 0:10 |
+| 19 | Obrigado | 0:15 |
+| | **Total** | **17:55** |
 
-Sobram cerca de 2 min 25 s dos 20 minutos. **Se atrasar**, corte nesta ordem:
+Sobram cerca de 2 min 05 s dos 20 minutos. **Se atrasar**, corte nesta ordem:
 
-1. **Slide 8 (Archify):** fale só "interface, orquestrador, laço, Bluetooth, rolo" e siga. Economiza cerca de 1 min.
-2. **Slide 13 (galeria):** uma frase. Economiza cerca de 40 s.
-3. **Slide 4 (estado da arte):** aponte só a linha do Argus. Economiza cerca de 30 s.
+1. **Slide 9 (Archify):** fale só "interface, orquestrador, laço, Bluetooth, rolo" e siga. Economiza cerca de 1 min.
+2. **Slide 14 (galeria):** uma frase. Economiza cerca de 40 s.
+3. **Slide 5 (estado da arte):** aponte só a linha do Argus. Economiza cerca de 30 s.
 
 
 # Slide 1 · Capa
@@ -104,9 +105,38 @@ Sobram cerca de 2 min 25 s dos 20 minutos. **Se atrasar**, corte nesta ordem:
 Capa e resumo.
 
 
-# Slide 2 · O que é ciclismo virtual
+# Slide 2 · Sumário
 
 ![](img/slide-02.jpg)
+
+## O que aparece na tela
+
+Rótulo "Roteiro da apresentação" e título "Sumário". Seis cartões, que entram em sequência quando o slide abre (sem cliques), cada um com um número grande colorido, o nome da seção, uma linha de descrição e o intervalo de slides:
+
+| # | Seção | Descrição | Slides |
+|---|---|---|---|
+| 01 | Contexto e problema | ciclismo virtual, fluxo fragmentado e estado da arte | 3–5 |
+| 02 | Proposta | um fluxo para três usos | 6 |
+| 03 | Metodologia | Design Science Research, em ciclos | 7 |
+| 04 | Arquitetura e implementação | camadas, Bluetooth e tempo real | 8–11 |
+| 05 | Resultados | análise do treino, uso real, funcionalidades e requisitos | 12–15 |
+| 06 | Conclusão | contribuições, limites e próximos passos | 16 |
+
+As referências (17 e 18) e o agradecimento (19) ficam fora do sumário, como é usual.
+
+## Para que serve
+
+Dá à banca o mapa da fala antes de começar. O rótulo no alto de cada slide (Contexto, Problema, Metodologia...) repete a seção, para que a banca sempre saiba em que parte você está.
+
+## Roteiro da fala (20 s)
+
+"Vou falar do contexto e do problema, da proposta, do método, de como o Argus foi construído, dos resultados e concluir."
+
+Não leia os cartões. Uma frase basta.
+
+# Slide 3 · O que é ciclismo virtual
+
+![](img/slide-03.jpg)
 
 ## O que aparece na tela
 
@@ -143,17 +173,17 @@ E isso já é esporte de verdade. Aqui é a Copa Brasil de Ciclismo eSports, da 
 
 ## Perguntas prováveis
 
-- **(EF) O rolo mede a potência ou estima?** O rolo inteligente mede a potência no próprio equipamento. A velocidade virtual, por outro lado, é calculada pelo modelo físico (slide 11 e glossário).
-- **(Comp.) Por que Bluetooth e não ANT+?** O notebook e o celular têm Bluetooth nativo, enquanto ANT+ precisaria de um dongle USB. O Argus usa o protocolo FE-C (que nasceu no ANT+) transportado por Bluetooth (slide 9).
+- **(EF) O rolo mede a potência ou estima?** O rolo inteligente mede a potência no próprio equipamento. A velocidade virtual, por outro lado, é calculada pelo modelo físico (slide 12 e glossário).
+- **(Comp.) Por que Bluetooth e não ANT+?** O notebook e o celular têm Bluetooth nativo, enquanto ANT+ precisaria de um dongle USB. O Argus usa o protocolo FE-C (que nasceu no ANT+) transportado por Bluetooth (slide 10).
 
 ## No TCC
 
 Cap. 1 (Introdução) e Cap. 2 (Estado da arte, "De simuladores a ecossistemas").
 
 
-# Slide 3 · O fluxo do ciclista é fragmentado
+# Slide 4 · O fluxo do ciclista é fragmentado
 
-![](img/slide-03.jpg)
+![](img/slide-04.jpg)
 
 ## O que aparece na tela
 
@@ -175,7 +205,7 @@ Cap. 1 (Introdução) e Cap. 2 (Estado da arte, "De simuladores a ecossistemas")
 - **GPX:** arquivo com o percurso (latitude, longitude, altitude). É o que se baixa de um app de mapas.
 - **FIT:** arquivo binário com o registro do treino (potência, FC, cadência segundo a segundo). É o padrão da Garmin e o formato que Strava e Intervals.icu aceitam.
 - **CSV:** planilha em texto.
-- **TSS e PMC:** métricas de carga de treino (slides 11 e 12). Em muitos apps elas aparecem sem a fórmula.
+- **TSS e PMC:** métricas de carga de treino (slides 12 e 13). Em muitos apps elas aparecem sem a fórmula.
 
 ## Roteiro da fala (1:00)
 
@@ -195,9 +225,9 @@ O Argus ataca a fragmentação e a caixa-preta, mantendo o dado no seu computado
 Cap. 1 (problema e justificativa) e Cap. 2 ("A lacuna do fluxo integrado").
 
 
-# Slide 4 · As peças existem, mas não juntas
+# Slide 5 · As peças existem, mas não juntas
 
-![](img/slide-04.jpg)
+![](img/slide-05.jpg)
 
 ## O que aparece na tela
 
@@ -241,9 +271,9 @@ O Argus não é pioneiro em nenhuma função isolada. A contribuição é juntar
 Cap. 2: "Síntese comparativa", "Iniciativas de código aberto" e "Quatro eixos de diferenciação".
 
 
-# Slide 5 · Um fluxo para três usos
+# Slide 6 · Um fluxo para três usos
 
-![](img/slide-05.jpg)
+![](img/slide-06.jpg)
 
 ## O que aparece na tela
 
@@ -278,9 +308,9 @@ Chamonix e Tromsø estão no seu histórico real (`chamonix-32km.gpx`, 4 sessõe
 Cap. 1 (objetivos) e Cap. 4 ("Demonstração", os três cenários).
 
 
-# Slide 6 · Construir, usar e corrigir, em ciclos
+# Slide 7 · Construir, usar e corrigir, em ciclos
 
-![](img/slide-06.jpg)
+![](img/slide-07.jpg)
 
 ## O que aparece na tela
 
@@ -337,9 +367,9 @@ O gráfico mostra isso com dados reais. Em azul, a construção, em commits por 
 Cap. 4: "Design Science Research", "Processo de desenvolvimento" (os três ciclos) e "Avaliação".
 
 
-# Slide 7 · Como o Argus foi construído
+# Slide 8 · Como o Argus foi construído
 
-![](img/slide-07.jpg)
+![](img/slide-08.jpg)
 
 ## O que aparece na tela
 
@@ -409,9 +439,9 @@ Na prática, posso trocar o rolo real por um rolo virtual de teste sem mexer nas
 Cap. 5: "*Stack* tecnológica", "Clean Architecture e Ports & Adapters" e "Decisões e compensações" (tabela de ADRs).
 
 
-# Slide 8 · Núcleo em Go, interface web compartilhada
+# Slide 9 · Núcleo em Go, interface web compartilhada
 
-![](img/slide-08.jpg)
+![](img/slide-09.jpg)
 
 ## O que aparece na tela
 
@@ -455,11 +485,11 @@ Ramificações:
 Cap. 5: "Topologia de componentes" e "Arquitetura móvel".
 
 
-# Slide 9 · Como o Argus conversa com o rolo
+# Slide 10 · Como o Argus conversa com o rolo
 
-![](img/slide-09-antes.jpg)
+![](img/slide-10-antes.jpg)
 
-![](img/slide-09.jpg)
+![](img/slide-10.jpg)
 
 ## O que aparece na tela
 
@@ -511,9 +541,9 @@ Existe um detalhe importante: nada no protocolo prova que esses 210 watts vieram
 Cap. 3 ("Bluetooth Low Energy e o modelo GATT", "FTMS", "FE-C sobre BLE") e Cap. 6 ("Integração com o rolo").
 
 
-# Slide 10 · Do sensor até o ciclista
+# Slide 11 · Do sensor até o ciclista
 
-![](img/slide-10.jpg)
+![](img/slide-11.jpg)
 
 ## O que aparece na tela
 
@@ -560,9 +590,9 @@ E o reamostrador agrupa os avisos de cada segundo e tira a média, porque as fó
 Cap. 5 ("Fluxo de telemetria", ADR-04) e Cap. 3 ("Leitura, escalas e taxas de amostragem").
 
 
-# Slide 11 · Cada número tem fórmula e limite
+# Slide 12 · Cada número tem fórmula e limite
 
-![](img/slide-11.jpg)
+![](img/slide-12.jpg)
 
 ## O que aparece na tela
 
@@ -667,9 +697,9 @@ O mais importante é o que está à direita: cada número tem um selo, medido, c
 Cap. 3 ("Análise do treino e carga": FTP e zonas, NP/IF/TSS, TRIMP, PMC, desacoplamento e HRR) e Cap. 6 ("Métricas e análise").
 
 
-# Slide 12 · Dez meses de uso real
+# Slide 13 · Dez meses de uso real
 
-![](img/slide-12.jpg)
+![](img/slide-13.jpg)
 
 ## O que aparece na tela
 
@@ -715,9 +745,9 @@ Cap. 3 ("Análise do treino e carga": FTP e zonas, NP/IF/TSS, TRIMP, PMC, desaco
 Cap. 3 ("PMC: CTL, ATL e TSB") e Cap. 7 ("Estudo piloto").
 
 
-# Slide 13 · Do treino à análise
+# Slide 14 · Do treino à análise
 
-![](img/slide-13.jpg)
+![](img/slide-14.jpg)
 
 ## O que aparece na tela
 
@@ -745,7 +775,7 @@ Uma galeria 5 × 2. **Clicar abre a imagem ampliada** com o fundo desfocado; ←
 
 ## De onde vêm as imagens
 
-- O relatório PDF e a tela de recuperação foram capturados em 01/11/2026 de uma **cópia** do app e dos dados. Na cópia, a Girona recebeu as métricas reprocessadas (NP 106), para o relatório bater com o slide 11.
+- O relatório PDF e a tela de recuperação foram capturados em 01/11/2026 de uma **cópia** do app e dos dados. Na cópia, a Girona recebeu as métricas reprocessadas (NP 106), para o relatório bater com o slide 12.
 - O print da IA é seu, recortado para tirar o seletor de modelo que mostrava "error".
 
 ## Roteiro da fala (1:00)
@@ -762,9 +792,9 @@ Uma galeria 5 × 2. **Clicar abre a imagem ampliada** com o fundo desfocado; ←
 Cap. 6 ("Exportação FIT e recuperação", "Assistente local", "Modo Android") e Cap. 7 ("Avaliação funcional").
 
 
-# Slide 14 · Requisitos atendidos
+# Slide 15 · Requisitos atendidos
 
-![](img/slide-14.jpg)
+![](img/slide-15.jpg)
 
 ## O que aparece na tela
 
@@ -835,9 +865,9 @@ Cap. 6 ("Exportação FIT e recuperação", "Assistente local", "Modo Android") 
 Cap. 4 ("Problema, requisitos e escopo") e Cap. 7 ("Avaliação funcional", "Avaliação de plataformas").
 
 
-# Slide 15 · Conclusão
+# Slide 16 · Conclusão
 
-![](img/slide-15.jpg)
+![](img/slide-16.jpg)
 
 ## O que aparece na tela
 
@@ -879,16 +909,16 @@ Para fechar: mais que o código, a contribuição é mostrar o que um software e
 Cap. 8 inteiro: síntese, contribuições, limitações, trabalhos futuros e considerações finais.
 
 
-# Slides 16 e 17 · Referências
-
-![](img/slide-16.jpg)
+# Slides 17 e 18 · Referências
 
 ![](img/slide-17.jpg)
 
+![](img/slide-18.jpg)
+
 ## O que aparece na tela
 
-- **Slide 16, obras e especificações (15):** ANT+ FE-C, Banister (1991), Bluetooth Core 5.4, Bluetooth FTMS, Coggan & Allen (2010), GPLv3, Garmin FIT SDK, Hevner *et al.* (2004), o certificado do INPI, Kleppmann *et al.* (2019, local-first), Martin *et al.* (1998, modelo de potência), Martin (2017, Clean Architecture), Peffers *et al.* (2007), GPX 1.1 e UCI.
-- **Slide 17, software, serviços e repositórios (21):** em destaque, os **seus dois repositórios**, *Argus Cyclist* (GPLv3) e *Argus Recon*. Depois, as tecnologias e plataformas citadas: ECharts, Biketerra, Capacitor e o plugin BLE, GoldenCheetah, GORM, muktihari/fit, Incyclist, Intervals.icu, MapLibre, Ollama, Rouvy, Simple Icons, SQLite, Strava, TinyGo, TrainingPeaks Virtual, Wails e Zwift.
+- **Slide 17, obras e especificações (15):** ANT+ FE-C, Banister (1991), Bluetooth Core 5.4, Bluetooth FTMS, Coggan & Allen (2010), GPLv3, Garmin FIT SDK, Hevner *et al.* (2004), o certificado do INPI, Kleppmann *et al.* (2019, local-first), Martin *et al.* (1998, modelo de potência), Martin (2017, Clean Architecture), Peffers *et al.* (2007), GPX 1.1 e UCI.
+- **Slide 18, software, serviços e repositórios (21):** em destaque, os **seus dois repositórios**, *Argus Cyclist* (GPLv3) e *Argus Recon*. Depois, as tecnologias e plataformas citadas: ECharts, Biketerra, Capacitor e o plugin BLE, GoldenCheetah, GORM, muktihari/fit, Incyclist, Intervals.icu, MapLibre, Ollama, Rouvy, Simple Icons, SQLite, Strava, TinyGo, TrainingPeaks Virtual, Wails e Zwift.
 
 ## Conceitos
 
@@ -900,9 +930,9 @@ Cap. 8 inteiro: síntese, contribuições, limitações, trabalhos futuros e con
 Não se fala nada; o slide passa em 5 s. Serve para a banca consultar durante a arguição.
 
 
-# Slide 18 · Obrigado
+# Slide 19 · Obrigado
 
-![](img/slide-18.jpg)
+![](img/slide-19.jpg)
 
 ## O que aparece na tela
 
@@ -1061,7 +1091,7 @@ Deixe este slide na tela durante toda a arguição.
 - **O registro do INPI diz "HTML; JavaScript" e o núcleo é Go?** O registro foi da linha de base de janeiro, com a declaração feita naquele momento. O núcleo em Go está documentado no TCC. Se perguntarem, explique que é a descrição do formulário da época.
 - **Como o FIT foi validado?** Strava e Intervals aceitaram os arquivos. Também foi encontrado e corrigido um defeito em que campos não preenchidos eram gravados como zero válido (altitude −500 m). Há testes de *round-trip*.
 - **O que acontece se o app fechar no meio do treino?** O snapshot de recuperação guarda os metadados e as amostras. Ao reabrir, o app oferece salvar (RNF04, 12 testes).
-- **Por que o diagrama do slide 8 é do Archify?** Porque é gerado do código, então mostra a arquitetura real e não a ideal.
+- **Por que o diagrama do slide 9 é do Archify?** Porque é gerado do código, então mostra a arquitetura real e não a ideal.
 
 ## Educação Física
 
@@ -1086,5 +1116,5 @@ Deixe este slide na tela durante toda a arguição.
 - [ ] Abrir `index.html` no Chrome/Chromium com o Wi-Fi desligado. O deck é 100% offline (o mapa da galeria são imagens).
 - [ ] Testar no projetor. Se as cores lavarem, usar o tema escuro (`T`).
 - [ ] Apertar `F` para a tela cheia e `S` para abrir a visão do apresentador no notebook.
-- [ ] Deixar o slide 18 (Obrigado) na tela durante a arguição.
+- [ ] Deixar o slide 19 (Obrigado) na tela durante a arguição.
 - [ ] Na demo, evitar a tela de análise da Girona (pontos delicados 5 e 6), ou explicá-la.
