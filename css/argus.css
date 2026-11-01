@@ -462,3 +462,33 @@ html.print-pdf .elo .arquivo { animation: none !important; }
 .refs-autor em { color: var(--text); font-style: italic; }
 .refs-autor .url { font-family: var(--mono); font-size: 0.85em; color: var(--teal); }
 .refs.refs-sw { margin-top: 20px; font-size: 18.5px; }
+
+/* conclusão */
+.conclusao h2 { font-size: 54px; }
+.qa { display: grid; grid-template-columns: 1.25fr 1fr; margin-top: 28px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); }
+.qa > div { padding: 22px 28px; font-size: 26px; line-height: 1.35; }
+.qa span { display: block; font-family: var(--mono); font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.qa-q { background: var(--bg-2); color: var(--muted); }
+.qa-q span { color: var(--faint); }
+.qa-a { background: var(--tint-teal); color: var(--text); border-left: 1px solid var(--line); }
+.qa-a span { color: var(--teal); }
+.provas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 40px; }
+.prova { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; opacity: 0; }
+.present .prova { animation: entra 0.5s ease forwards; animation-delay: calc(0.2s + var(--i) * 0.15s); }
+.prova-n { font-family: var(--mono); font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+.prova p { font-size: 21px; color: var(--muted); margin: 8px 0 0; line-height: 1.3; }
+.fecho { margin-top: 40px; }
+.fecho .card { padding: 26px 30px; }
+.fecho h4 { font-size: 26px; margin-bottom: 8px; }
+.fecho li { font-size: 22px; margin-bottom: 4px; }
+.lim { border-left: 5px solid var(--warn); }
+.fut { border-left: 5px solid var(--blue); }
+.roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 6px; }
+.roadmap div { position: relative; font-size: 21px; color: var(--muted); line-height: 1.3; padding-top: 44px; }
+.roadmap b { position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--blue); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.roadmap div:not(:last-child)::after { content: ""; position: absolute; top: 17px; left: 44px; right: -6px; height: 2px; background: var(--line); }
+.reveal .frase-final { margin: 56px auto 0; padding-top: 28px; border-top: 1px solid var(--line); max-width: 1300px; font-size: 27px; color: var(--muted); text-align: center; }
+html.print-pdf .prova { opacity: 1 !important; animation: none !important; }
+@media print { .prova { opacity: 1 !important; animation: none !important; } }
+.roadmap em { color: inherit; font-style: italic; }
