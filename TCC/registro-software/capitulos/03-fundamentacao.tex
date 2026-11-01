@@ -140,8 +140,12 @@ página 55 é enviada com valores fixos, e não com o peso do perfil ativo. O pe
 do ciclista entra no motor físico do \argus{}, mas não é reenviado ao rolo
 quando o perfil muda. Em rolos de treinamento que usam a configuração de
 usuário para ajustar a resistência, essa diferença pode afetar a sensação de
-esforço. O trabalho registra o fato; a correção não faz parte do escopo desta
-versão.
+esforço. O mesmo ocorre com o coeficiente de rolamento: a página 51 envia ao
+rolo o valor 0,004, enquanto o motor físico do \textit{desktop} usa 0,005
+(Tabela~\ref{tab:parametros-sim}). A resistência sentida pelo ciclista e a
+velocidade calculada pelo software partem, portanto, de hipóteses ligeiramente
+diferentes sobre o pneu e o piso. O trabalho registra o fato; a correção não
+faz parte do escopo desta versão.
 
 \begin{table}[htbp]
     \centering
