@@ -94,24 +94,27 @@
   <div class="grid" style="grid-template-columns: 1.15fr 1fr; gap:50px; margin-top:16px; align-items:center">
     <svg viewBox="0 0 1000 720" width="100%" font-family="Inter" text-anchor="middle">
       <defs>
-        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
+        <marker id="ah-hr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--hr)"/></marker>
+        <marker id="ah-power" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--power)"/></marker>
+        <marker id="ah-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/></marker>
+        <marker id="ah-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
       </defs>
       <!-- laço: Ciclista (500,110) → Sensores (880,360) → Software (500,610) → Rolo (120,360) -->
-      <path class="flow" d="M600,120 C760,130 860,200 875,255" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M875,465 C860,540 760,600 605,608" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M395,608 C240,600 140,540 125,465" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M125,255 C140,200 240,130 395,120" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
+      <path class="flow" d="M600,120 C760,130 860,200 875,255" fill="none" stroke="var(--hr)" stroke-width="4" marker-end="url(#ah-hr)"/>
+      <path class="flow" d="M875,465 C860,540 760,600 605,608" fill="none" stroke="var(--power)" stroke-width="4" marker-end="url(#ah-power)"/>
+      <path class="flow" d="M395,608 C240,600 140,540 125,465" fill="none" stroke="var(--teal)" stroke-width="4" marker-end="url(#ah-teal)"/>
+      <path class="flow" d="M125,255 C140,200 240,130 395,120" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah-blue)"/>
       <g class="node">
-        <circle cx="500" cy="110" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <circle cx="500" cy="110" r="98" fill="var(--bg-2)" stroke="var(--hr)" stroke-width="5"/><circle cx="500" cy="110" r="98" fill="var(--tint-hr)"/>
         <text x="500" y="106" fill="var(--text)" font-size="34" font-weight="700">Ciclista</text>
         <text x="500" y="140" fill="var(--muted)" font-size="22">pedala</text>
-        <circle cx="880" cy="360" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <circle cx="880" cy="360" r="98" fill="var(--bg-2)" stroke="var(--power)" stroke-width="5"/><circle cx="880" cy="360" r="98" fill="var(--tint-power)"/>
         <text x="880" y="356" fill="var(--text)" font-size="34" font-weight="700">Sensores</text>
         <text x="880" y="390" fill="var(--muted)" font-size="22">Bluetooth LE</text>
-        <circle cx="500" cy="610" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <circle cx="500" cy="610" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="5"/><circle cx="500" cy="610" r="98" fill="var(--tint-teal)"/>
         <text x="500" y="606" fill="var(--text)" font-size="34" font-weight="700">Software</text>
         <text x="500" y="640" fill="var(--muted)" font-size="22">Argus Cyclist</text>
-        <circle cx="120" cy="360" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <circle cx="120" cy="360" r="98" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="5"/><circle cx="120" cy="360" r="98" fill="var(--tint-blue)"/>
         <text x="120" y="356" fill="var(--text)" font-size="34" font-weight="700">Rolo</text>
         <text x="120" y="390" fill="var(--muted)" font-size="22">inteligente</text>
       </g>
@@ -470,6 +473,7 @@
   <svg viewBox="0 0 1700 650" width="100%" style="margin-top:10px" font-family="Inter">
     <defs>
       <marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
+      <marker id="at-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/></marker>
       <path id="tp-rolo" d="M255,190 C340,190 340,300 420,300"/>
       <path id="tp-fc" d="M255,460 C340,460 340,345 420,345"/>
       <path id="tp-tela" d="M700,280 C750,280 750,120 800,120"/>
@@ -531,7 +535,7 @@
     </g>
     <!-- 3 · reamostrador -->
     <g class="fragment" data-fragment-index="3">
-      <use href="#tp-rea" fill="none" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
+      <use href="#tp-rea" fill="none" stroke="var(--teal)" stroke-width="3" marker-end="url(#at-teal)"/>
       <circle r="7" fill="var(--teal)"><animateMotion dur="0.9s" begin="-0.6s" repeatCount="indefinite"><mpath href="#tp-rea"/></animateMotion></circle>
       <rect x="805" y="420" width="875" height="225" rx="18" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
       <text x="835" y="458" fill="var(--teal)" font-size="25" font-weight="700">Reamostrador <tspan fill="var(--muted)" font-weight="400" font-size="21">· tira a média de cada segundo</tspan></text>
@@ -550,7 +554,7 @@
         <g class="ponto" style="--d:1.2s"><circle cx="1255" cy="546" r="7" fill="var(--power)"/><text x="1255" y="530" fill="var(--muted)">211</text></g>
         <text x="905" y="590" fill="var(--faint)" font-size="17">1º segundo</text><text x="1055" y="590" fill="var(--faint)" font-size="17">2º segundo</text><text x="1205" y="590" fill="var(--faint)" font-size="17">3º segundo</text>
       </g>
-      <path d="M1290,524 H1350" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
+      <path d="M1290,524 H1350" stroke="var(--teal)" stroke-width="3" marker-end="url(#at-teal)"/>
       <g class="media" font-family="JetBrains Mono" font-size="19" font-weight="600" text-anchor="middle">
         <rect x="1370" y="508" width="80" height="62" rx="6" fill="var(--power)" opacity="0.85"/><text x="1410" y="498" fill="var(--text)">210</text>
         <rect x="1460" y="500" width="80" height="70" rx="6" fill="var(--power)" opacity="0.85"/><text x="1500" y="490" fill="var(--text)">218</text>
