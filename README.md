@@ -33,10 +33,11 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 
 ## Simulation & Connectivity
 
-* **Smart Trainer Support (BLE & ANT+):** Connects natively to FTMS and ANT+ FE-C compatible trainers (e.g., Tacx, Wahoo, Elite, Thinkrider) and Heart Rate monitors.
+* **Smart Trainer Support (BLE):** Controls trainers over Bluetooth LE using FTMS (desktop) or FE-C messages carried over BLE (desktop and Android), and reads Cycling Power and Heart Rate sensors. Native ANT+ (USB dongle) is not supported. Tested with a ThinkRider X2 MAX.
 * **Physics Engine:** Real-time speed calculation based on power (Watts), rider weight, bike weight, rolling resistance, and aerodynamic drag.
 * **Grade Simulation:** The trainer automatically adjusts resistance based on the virtual terrain slope.
-* **Cloud Integrations:** Direct connection to Strava. Features an **Automatic Sync Queue** database model to gracefully handle expired tokens, refresh credentials, and schedule retry attempts on network failures.
+* **Cloud Integrations (optional):** Manual upload to Strava (OAuth 2.0, with automatic token refresh and one retry on 401) and to Intervals.icu (API key). A sync-queue table exists in the schema, but background retries are not implemented yet.
+* **Session Recovery:** The active session is snapshotted to disk every few seconds; after a crash, the next start offers to recover it and save the `.FIT` file.
 * **Studio Mode:** A dedicated trainer-focused view with a clean, telemetry-only HUD dashboard. Optimized for indoor studio workouts, featuring real-time interval targets, power zones, and countdowns without the 3D map.
 * **Event Mode:** Compete in virtual challenges (Sprints, KOMs, or Time Trials) with strict validation rules and local leaderboard rankings.
 
@@ -52,11 +53,11 @@ Argus Cyclist isn't just for desktop anymore. Powered by **Capacitor.js**, the s
 
 ### Immersive 3D Map
 
-* **MapLibre Integration:** Powered by MapLibre GL JS with 3D Terrain-RGB for realistic topography. Features a 3D Globe projection with atmospheric fog.
-* **Dynamic Themes:** Fully customizable map visualization with crisp **Light** and **Dark** themes.
-* **Smart Route Rendering:** Route lines change color dynamically based on gradient (Green = Flat/Descent, Red = Steep Climb).
+* **MapLibre Integration:** Powered by MapLibre GL JS with raster-DEM 3D terrain (1.5× exaggeration) and a chase camera. Map tiles are fetched online; the simulation itself works offline from the local GPX.
+* **Map Styles:** Three switchable styles: **Satellite** (Esri imagery), **Day** (OpenFreeMap, with 3D buildings) and **Tactical** (dark).
+* **Smart Route Rendering:** Route lines change color dynamically based on gradient (green = flat/descent, then yellow, orange, red and purple as the climb gets steeper).
 * **Occlusion System:** The route renders correctly behind 3D buildings for better depth perception.
-* **Smooth Animation:** Interpolated cyclist movement at 60fps, eliminating GPS "jumping".
+* **Smooth Animation:** Position updates are throttled to 150 ms and the camera eases between them, so movement stays smooth regardless of the sensor rate (~1 Hz).
 
 ### Advanced Analytics & Tools
 
