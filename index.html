@@ -68,11 +68,11 @@
     </svg>
     <div class="galeria fotos">
       <figure data-full="img/copa-brasil-esports.jpg"><div class="ph"><img src="img/copa-brasil-esports.jpg" alt="Copa Brasil de Ciclismo eSports por videochamada"></div><figcaption><b>Copa Brasil de Ciclismo eSports</b>CBC e ZTBR: cada ciclista no seu rolo, em casa, na mesma prova</figcaption></figure>
-      <figure data-full="img/mundial-esports.jpg"><div class="ph"><img src="img/mundial-esports.jpg" alt="Gabriela Guerra no Mundial UCI de Ciclismo eSports"></div><figcaption><b>Mundial UCI de Ciclismo eSports</b>Gabriela Guerra (BRA) em Abu Dhabi</figcaption></figure>
+      <figure data-full="img/mundial-esports.jpg"><div class="ph"><img src="img/mundial-esports.jpg" alt="Gabriela Guerra no Mundial UCI de Ciclismo eSports"></div><figcaption><b>Mundial UCI de Ciclismo eSports</b>Gabriela Guerra (BRA) em Abu Dhabi, 2024</figcaption></figure>
     </div>
   </div>
-  <div class="source">Imagens: transmissão da Copa Brasil de Ciclismo eSports (CBC/ZTBR) e divulgação do Mundial UCI de Ciclismo eSports.</div>
-  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim (potência amarela, FC vermelha). Isso já é competição de verdade: na Copa Brasil, organizada pela CBC com a ZTBR, cada atleta pedala em casa e a organização acompanha pela videochamada (eu estou nessa chamada). No topo, o Mundial da UCI, com a brasileira Gabriela Guerra. Clique nas fotos para ampliar.</aside>
+  <div class="source">Imagens: transmissão da Copa Brasil de Ciclismo eSports (CBC/ZTBR) e divulgação do Mundial UCI de Ciclismo eSports 2024.</div>
+  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim (potência amarela, FC vermelha). Isso já é competição de verdade: na Copa Brasil, organizada pela CBC com a ZTBR, cada atleta pedala em casa e a organização acompanha pela videochamada (eu estou nessa chamada). No topo, o Mundial da UCI de 2024, em Abu Dhabi, com a brasileira Gabriela Guerra. Clique nas fotos para ampliar.</aside>
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
@@ -271,22 +271,42 @@
   <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
   <h2>Como o Argus foi construído</h2>
   <div class="grid" style="grid-template-columns: 0.78fr 1.22fr; gap:50px; margin-top:10px; align-items:center">
-    <svg viewBox="0 0 700 700" width="100%" style="max-height:690px" font-family="Inter" text-anchor="middle">
-      <defs><marker id="ain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
-      <g class="anel" style="--d:0.45s"><circle cx="350" cy="350" r="335" fill="var(--tint-neutral)" stroke="var(--alt)" stroke-width="3"/>
-        <text x="350" y="52" fill="var(--text)" font-size="25" font-weight="700">Interface</text>
-        <text x="350" y="80" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">16,8 mil linhas · JS, CSS, HTML</text></g>
-      <g class="anel" style="--d:0.3s"><circle cx="350" cy="350" r="250" fill="var(--bg-2)" stroke="var(--anotacao)" stroke-width="3"/>
-        <text x="350" y="138" fill="var(--text)" font-size="25" font-weight="700">Adaptadores</text>
-        <text x="350" y="166" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">3,5 mil linhas Go</text></g>
-      <g class="anel" style="--d:0.15s"><circle cx="350" cy="350" r="165" fill="var(--tint-blue)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="350" y="224" fill="var(--text)" font-size="25" font-weight="700">Casos de uso</text>
-        <text x="350" y="252" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">3,2 mil linhas Go</text></g>
-      <g class="anel" style="--d:0s"><circle cx="350" cy="350" r="82" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
-        <text x="350" y="345" fill="var(--teal)" font-size="26" font-weight="800">Domínio</text>
-        <text x="350" y="373" fill="var(--muted)" font-size="18" font-family="JetBrains Mono">478 linhas</text></g>
-      <g class="fragment" data-fragment-index="1" stroke="var(--muted)" stroke-width="3" fill="none">
-        <path d="M350,678 V606" marker-end="url(#ain)"/><path d="M350,594 V520" marker-end="url(#ain)"/><path d="M350,510 V440" marker-end="url(#ain)"/>
+    <svg viewBox="0 0 700 700" width="100%" style="max-height:690px" font-family="Inter">
+      <defs>
+        <marker id="aint" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--alt)"/></marker>
+        <marker id="aadp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--anotacao)"/></marker>
+        <marker id="auc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
+      </defs>
+      <g class="anel" style="--d:0.45s"><rect x="10" y="10" width="680" height="680" rx="22" fill="var(--tint-neutral)" stroke="var(--alt)" stroke-width="3"/>
+        <text x="34" y="48" fill="var(--text)" font-size="24" font-weight="700">Interface</text>
+        <text x="666" y="48" text-anchor="end" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">16,8 mil linhas · JS, CSS, HTML</text></g>
+      <g class="anel" style="--d:0.3s"><rect x="40" y="70" width="620" height="560" rx="18" fill="var(--bg-2)" stroke="var(--anotacao)" stroke-width="3"/>
+        <text x="64" y="108" fill="var(--text)" font-size="24" font-weight="700">Adaptadores</text>
+        <text x="636" y="108" text-anchor="end" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">3,5 mil linhas Go</text></g>
+      <g class="anel" style="--d:0.15s"><rect x="70" y="130" width="560" height="440" rx="16" fill="var(--tint-blue)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="94" y="168" fill="var(--text)" font-size="24" font-weight="700">Casos de uso</text>
+        <text x="606" y="168" text-anchor="end" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">3,2 mil linhas Go</text></g>
+      <g class="anel" style="--d:0s"><rect x="100" y="190" width="500" height="320" rx="14" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="124" y="230" fill="var(--teal)" font-size="26" font-weight="800">Domínio</text>
+        <text x="576" y="230" text-anchor="end" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">478 linhas</text>
+        <g font-size="19" text-anchor="middle">
+          <rect x="124" y="252" width="140" height="44" rx="10" fill="var(--bg-3)"/><text x="194" y="280" fill="var(--text)">Atividade</text>
+          <rect x="280" y="252" width="140" height="44" rx="10" fill="var(--bg-3)"/><text x="350" y="280" fill="var(--text)">Telemetria</text>
+          <rect x="436" y="252" width="140" height="44" rx="10" fill="var(--bg-3)"/><text x="506" y="280" fill="var(--text)">Perfil</text>
+        </g>
+        <rect x="124" y="320" width="452" height="166" rx="12" fill="none" stroke="var(--teal)" stroke-width="2" stroke-dasharray="7 6"/>
+        <text x="144" y="352" fill="var(--text)" font-size="20" font-weight="700">Portas (interfaces)</text>
+        <text x="144" y="384" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">TrainerService · FitService</text>
+        <text x="144" y="410" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">GPXService</text>
+        <text x="144" y="436" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">ActivityRepository · UserRepository</text>
+        <text x="144" y="462" fill="var(--muted)" font-size="17" font-family="JetBrains Mono">+ 4 repositórios</text></g>
+      <g class="fragment" data-fragment-index="1" font-size="17">
+        <path d="M530,560 V516" stroke="var(--blue)" stroke-width="4" marker-end="url(#auc)"/>
+        <text x="94" y="548" fill="var(--text)"><tspan font-weight="700">usam</tspan> as entidades e as portas</text>
+        <path d="M562,618 V490" stroke="var(--anotacao)" stroke-width="4" marker-end="url(#aadp)"/>
+        <text x="64" y="608" fill="var(--text)"><tspan font-weight="700">implementam</tspan> as portas: SQLite, Bluetooth, FIT, GPX</text>
+        <path d="M610,676 V576" stroke="var(--alt)" stroke-width="4" marker-end="url(#aint)"/>
+        <text x="34" y="668" fill="var(--text)"><tspan font-weight="700">chama</tspan> os casos de uso pelo Wails, nunca o banco</text>
       </g>
     </svg>
     <div class="camadas">
@@ -300,7 +320,7 @@
         <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ADD8" d="M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303c-.023.036-.082.07-.117.07zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082zm12.129-2.36c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.174-.199-.303-.327-.548-.444-.737-.362-1.45-.257-2.115.175-.795.514-1.204 1.274-1.192 2.22.011.935.654 1.706 1.577 1.835.795.105 1.46-.175 1.987-.77.105-.13.198-.27.315-.434H10.47c-.245 0-.304-.152-.222-.35.152-.362.432-.97.596-1.274a.315.315 0 01.292-.187h4.253c-.023.316-.023.631-.07.947a4.983 4.983 0 01-.958 2.29c-.841 1.11-1.94 1.8-3.33 1.986-1.145.152-2.209-.07-3.143-.77-.865-.655-1.356-1.52-1.484-2.595-.152-1.274.222-2.419.993-3.424.83-1.086 1.928-1.776 3.272-2.02 1.098-.2 2.15-.07 3.096.571.62.41 1.063.97 1.356 1.648.07.105.023.164-.117.2m3.868 6.461c-1.064-.024-2.034-.328-2.852-1.029a3.665 3.665 0 01-1.262-2.255c-.21-1.32.152-2.489.947-3.529.853-1.122 1.881-1.706 3.272-1.95 1.192-.21 2.314-.095 3.33.595.923.63 1.496 1.484 1.648 2.605.198 1.578-.257 2.863-1.344 3.962-.771.783-1.718 1.273-2.805 1.495-.315.06-.63.07-.934.106zm2.78-4.72c-.011-.153-.011-.27-.034-.387-.21-1.157-1.274-1.81-2.384-1.554-1.087.245-1.788.935-2.045 2.033-.21.912.234 1.835 1.075 2.21.643.28 1.285.244 1.905-.07.923-.48 1.425-1.228 1.484-2.233z"/></svg></span><span><b>Go 1.24</b><i>sessão, treino e armazenamento</i></span></div></div></div>
       <div class="camada" style="--c:var(--teal)"><div class="camada-h">Domínio</div><div class="tecs">
         <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ADD8" d="M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303c-.023.036-.082.07-.117.07zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082zm12.129-2.36c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.174-.199-.303-.327-.548-.444-.737-.362-1.45-.257-2.115.175-.795.514-1.204 1.274-1.192 2.22.011.935.654 1.706 1.577 1.835.795.105 1.46-.175 1.987-.77.105-.13.198-.27.315-.434H10.47c-.245 0-.304-.152-.222-.35.152-.362.432-.97.596-1.274a.315.315 0 01.292-.187h4.253c-.023.316-.023.631-.07.947a4.983 4.983 0 01-.958 2.29c-.841 1.11-1.94 1.8-3.33 1.986-1.145.152-2.209-.07-3.143-.77-.865-.655-1.356-1.52-1.484-2.595-.152-1.274.222-2.419.993-3.424.83-1.086 1.928-1.776 3.272-2.02 1.098-.2 2.15-.07 3.096.571.62.41 1.063.97 1.356 1.648.07.105.023.164-.117.2m3.868 6.461c-1.064-.024-2.034-.328-2.852-1.029a3.665 3.665 0 01-1.262-2.255c-.21-1.32.152-2.489.947-3.529.853-1.122 1.881-1.706 3.272-1.95 1.192-.21 2.314-.095 3.33.595.923.63 1.496 1.484 1.648 2.605.198 1.578-.257 2.863-1.344 3.962-.771.783-1.718 1.273-2.805 1.495-.315.06-.63.07-.934.106zm2.78-4.72c-.011-.153-.011-.27-.034-.387-.21-1.157-1.274-1.81-2.384-1.554-1.087.245-1.788.935-2.045 2.033-.21.912.234 1.835 1.075 2.21.643.28 1.285.244 1.905-.07.923-.48 1.425-1.228 1.484-2.233z"/></svg></span><span><b>Go puro</b><i>atividade, telemetria e perfil</i></span></div></div></div></div>
-      <p class="fragment rise small" data-fragment-index="1" style="margin-top:16px"><span class="c-teal">●</span> <strong>As dependências apontam para dentro:</strong> <span class="muted">o domínio não importa banco, Bluetooth nem interface.</span></p>
+      <p class="fragment rise small" data-fragment-index="1" style="margin-top:16px"><span class="c-teal">●</span> <strong>As dependências apontam para dentro:</strong> <span class="muted">o domínio só declara portas; banco e Bluetooth se encaixam nelas por fora.</span></p>
     </div>
   </div>
   <div class="source">Linhas não vazias, sem testes, contadas no repositório em 01/11/2026. Ícones: Simple Icons (CC0).</div>
@@ -385,43 +405,7 @@
     <div class="c-bad" style="font-size:50px;line-height:1;font-weight:800">!</div>
     <p>O protocolo <strong>não comprova a origem dos dados</strong>: qualquer aparelho, ou um app que imite um sensor, pode enviar a potência que quiser. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>.</p>
   </div>
-  <aside class="notes">Explicar sem jargão. 1) O rolo fica anunciando "sou um rolo e meço potência". 2) O Argus conecta e se inscreve para receber avisos. 3) A partir daí os dados chegam sozinhos, cerca de três avisos por segundo. 4) No sentido contrário, o Argus envia a inclinação do mapa e o rolo ajusta a resistência. Para a banca de Computação, se perguntarem: perfis GATT Cycling Power (0x1818), Heart Rate (0x180D), FTMS (0x1826) e FE-C sobre BLE; o Argus é a central (cliente GATT). Gancho: nada no protocolo prova que os 210 W vieram de um medidor real; um app pode se passar por sensor. É o que estudo no Argus Recon. Só citar, não aprofundar.</aside>
-</section>
-
-<!-- ============================================================ FTMS x FE-C -->
-<section data-section="Comunicação" data-timing="45">
-  <div class="kicker">Controle do rolo · Bluetooth SIG (2017), ANT+ (2024)</div>
-  <h2>Dois idiomas para falar com o rolo</h2>
-  <div class="protos2" style="margin-top:40px">
-    <div class="card proto">
-      <div class="proto-tag">Bluetooth SIG</div>
-      <h3>FTMS</h3>
-      <p class="muted">Fitness Machine Service, o padrão do próprio Bluetooth</p>
-      <div class="msg-h">“subida de 6,5%” vira</div>
-      <div class="bytes"><div class="bgrp"><div class="bb"><span class="byte op">03</span></div><div class="bcap">comando:<br>inclinação</div></div><div class="bgrp"><div class="bb"><span class="byte val">41</span><span class="byte val">00</span></div><div class="bcap">65 → 6,5%</div></div></div>
-      <ul class="small"><li>3 bytes, direto no ponto de controle</li><li>potência-alvo (ERG) usa o comando 0x05</li></ul>
-    </div>
-    <div class="hub">
-      <svg viewBox="0 0 300 120" width="100%"><path class="flow" d="M150,60 H10" stroke="var(--blue)" stroke-width="4"/><path class="flow" d="M150,60 H290" stroke="var(--teal)" stroke-width="4"/></svg>
-      <div class="proto-argus">Argus</div>
-      <p>um único pedido interno:<br><strong>“inclinação 6,5%”</strong></p>
-      <p class="muted">na conexão, vê qual serviço o rolo anuncia e traduz</p>
-    </div>
-    <div class="card proto">
-      <div class="proto-tag ant">ANT+</div>
-      <h3>FE-C</h3>
-      <p class="muted">Fitness Equipment Control, o padrão ANT+ levado ao Bluetooth</p>
-      <div class="msg-h">“subida de 6,5%” vira</div>
-      <div class="bytes"><div class="bgrp"><div class="bb"><span class="byte op">33</span></div><div class="bcap">página 51</div></div><div class="bgrp"><div class="bb"><span class="byte res">FF</span><span class="byte res">FF</span><span class="byte res">FF</span><span class="byte res">FF</span></div><div class="bcap">reservado</div></div><div class="bgrp"><div class="bb"><span class="byte val">AA</span><span class="byte val">50</span></div><div class="bcap">6,5%</div></div><div class="bgrp"><div class="bb"><span class="byte crr">50</span></div><div class="bcap">atrito</div></div></div>
-      <ul class="small"><li>página de 8 bytes, como no ANT+</li><li>antes, envia o perfil do ciclista e o vento</li></ul>
-    </div>
-  </div>
-  <div class="plats fragment rise">
-    <div><b>Desktop</b> FTMS <span class="c-ok">✓</span> &nbsp; FE-C <span class="c-ok">✓</span></div>
-    <div><b>Android</b> FE-C <span class="c-ok">✓</span> &nbsp; FTMS <span class="faint">trabalho futuro</span></div>
-  </div>
-  <div class="source">O rolo usado nos testes fala FE-C; o caminho FTMS está implementado no desktop, mas não foi validado com um rolo só FTMS (Cap. 7).</div>
-  <aside class="notes">FTMS é o padrão do Bluetooth SIG; FE-C é o padrão ANT+ que muitos rolos (por exemplo, os Tacx) também expõem sobre Bluetooth. A mesma ordem, “subida de 6,5%”, vira 3 bytes no FTMS (comando 0x03 e o valor 65, em décimos de por cento) ou uma página de 8 bytes no FE-C (página 51: inclinação em centésimos com deslocamento de 200%, 0x50AA, e o coeficiente de rolamento 0,004). O resto do sistema não sabe qual idioma está em uso. No FE-C, antes de começar, o Argus envia o perfil do ciclista (pág. 55) e a resistência do vento (pág. 50). Android: só FE-C por enquanto. Honestidade: o rolo dos testes expõe FE-C; o caminho FTMS existe no desktop, mas não foi validado com um rolo só FTMS.</aside>
+  <aside class="notes">Explicar sem jargão. 1) O rolo fica anunciando "sou um rolo e meço potência". 2) O Argus conecta e se inscreve para receber avisos. 3) A partir daí os dados chegam sozinhos, cerca de três avisos por segundo. 4) No sentido contrário, o Argus envia a inclinação do mapa e o rolo ajusta a resistência. Para a banca de Computação, se perguntarem: perfis GATT Cycling Power (0x1818), Heart Rate (0x180D), FTMS (0x1826) e FE-C sobre BLE; o Argus é a central (cliente GATT). FTMS x FE-C, se for falar: o Argus fala os dois idiomas no desktop (FTMS: comando 0x03 com a inclinação em 3 bytes; FE-C: página 51 de 8 bytes) e só FE-C no Android; o rolo dos testes usa FE-C, e o caminho FTMS não foi validado com um rolo só FTMS. Gancho: nada no protocolo prova que os 210 W vieram de um medidor real; um app pode se passar por sensor. É o que estudo no Argus Recon. Só citar, não aprofundar.</aside>
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
