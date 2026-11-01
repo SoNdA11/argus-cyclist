@@ -126,7 +126,7 @@ As referências (17 e 18) e o agradecimento (19) ficam fora do sumário, como é
 
 ## Para que serve
 
-Dá à banca o mapa da fala antes de começar. O rótulo no alto de cada slide (Contexto, Problema, Metodologia...) repete a seção, para que a banca sempre saiba em que parte você está.
+Dá à banca o mapa da fala antes de começar. Cada seção tem uma cor: verde-azulado (contexto e problema), azul (proposta), roxo (metodologia), âmbar (arquitetura), cinza-azulado (resultados) e fúcsia (conclusão). O rótulo no alto de cada slide usa a cor da sua seção, para que a banca sempre saiba em que parte você está.
 
 ## Roteiro da fala (20 s)
 
