@@ -5,7 +5,8 @@
   "description": "Apresentação da defesa do TCC (Reveal.js offline).",
   "scripts": {
     "dados": "python3 -I scripts/exportar_dados.py",
-    "pdf": "node scripts/exportar_pdf.mjs"
+    "pdf": "node scripts/exportar_pdf.mjs",
+    "guia": "bash scripts/gerar_guia.sh"
   },
   "devDependencies": {
     "playwright-core": "1.48.2"
