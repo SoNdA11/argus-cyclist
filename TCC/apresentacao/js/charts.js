@@ -153,7 +153,48 @@
             markArea: { silent: true, label: { color: C.muted, fontSize: 20, fontFamily: FONT, position: "insideTop", distance: 8 }, data: faixas } },
           { name: "FC", type: "line", xAxisIndex: 1, yAxisIndex: 1, symbol: "none", connectNulls: true,
             data: t.map((x, i) => [x, G.hr[i]]), lineStyle: { color: C.hr, width: 2 },
+            markLine: { symbol: "none", silent: true, label: { fontFamily: MONO, fontSize: 20, color: C.muted, position: "end", distance: 12, formatter: "média 139" },
+              data: [{ yAxis: 139, lineStyle: { color: C.muted, type: "dashed", width: 2 } }] },
             markArea: { silent: true, label: { show: false }, data: faixasSemRotulo } },
+        ],
+      }), { notMerge: fresh });
+    },
+
+    // Metodologia: construção (commits) e avaliação (sessões) por semana, dois painéis
+    "ch-dsr": (chart, step = 0, fresh = true) => {
+      const W = D.dsr, show = step >= 1 || printMode;
+      const MES = { "01": "jan", "02": "fev", "03": "mar", "04": "abr", "05": "mai", "06": "jun", "07": "jul", "08": "ago", "09": "set", "10": "out" };
+      let ultimo = "";
+      const rotulo = W.semana.map((d) => { const m = d.slice(5, 7); if (m === ultimo) return ""; ultimo = m; return MES[m]; });
+      const L = 110, R = 40;
+      const x = (gi, labels) => ({ type: "category", gridIndex: gi, data: W.semana, ...axisBase,
+        axisLabel: { ...axisBase.axisLabel, show: labels, interval: 0, formatter: (_, i) => rotulo[i] }, axisTick: { show: false } });
+      const marco = (dia, texto) => {
+        const i = W.semana.findIndex((s, k) => s <= dia && (k === W.semana.length - 1 || W.semana[k + 1] > dia));
+        return { xAxis: W.semana[i], label: { formatter: texto } };
+      };
+      const titulo = (top, text, color) => ({ left: L - 4, top, text: "{m|■} " + text,
+        textStyle: { color: C.text, fontSize: 22, fontWeight: 600, fontFamily: FONT, rich: { m: { color, fontSize: 20 } } } });
+      chart.setOption(merge({
+        legend: { show: false },
+        title: [titulo(0, `Construção · commits por semana (${W.total_commits})`, C.blue),
+                titulo(250, `Avaliação · sessões de treino por semana (${W.total_sessoes})`, C.teal)],
+        grid: [{ left: L, right: R, top: 70, height: 150 }, { left: L, right: R, top: 300, height: 90 }],
+        tooltip: { trigger: "axis", backgroundColor: C.bg2, borderColor: C.line, textStyle: { color: C.text, fontFamily: MONO, fontSize: 18 } },
+        axisPointer: { link: [{ xAxisIndex: "all" }] },
+        xAxis: [x(0, false), x(1, true)],
+        yAxis: [
+          { type: "value", gridIndex: 0, max: 32, interval: 15, ...axisBase },
+          { type: "value", gridIndex: 1, max: 8, interval: 4, ...axisBase },
+        ],
+        series: [
+          { name: "commits", type: "bar", xAxisIndex: 0, yAxisIndex: 0, data: show ? W.commits : W.commits.map(() => 0),
+            itemStyle: { color: C.blue, borderRadius: [4, 4, 0, 0] }, barCategoryGap: "25%",
+            markLine: { symbol: "none", silent: true, lineStyle: { color: C.faint, type: "dashed", width: 1.5 },
+              label: { position: "end", color: C.text, fontFamily: FONT, fontSize: 19, fontWeight: 600 },
+              data: [marco("2026-01-20", "INPI"), marco("2026-03-08", "Android"), marco("2026-05-27", "IA local")] } },
+          { name: "sessões", type: "bar", xAxisIndex: 1, yAxisIndex: 1, data: show ? W.sessoes : W.sessoes.map(() => 0),
+            itemStyle: { color: C.teal, borderRadius: [4, 4, 0, 0] }, barCategoryGap: "25%" },
         ],
       }), { notMerge: fresh });
     },

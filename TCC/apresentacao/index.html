@@ -96,7 +96,7 @@
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
-<section data-section="Estado da arte" data-timing="80">
+<section data-section="Estado da arte" data-timing="70">
   <div class="kicker">Estado da arte</div>
   <h2>As peças existem, mas não juntas</h2>
   <table class="t matrix" style="margin-top:28px">
@@ -164,41 +164,92 @@
 </section>
 
 <!-- ============================================================ METODOLOGIA -->
-<section data-section="Metodologia" data-timing="50">
-  <div class="kicker">Metodologia</div>
-  <h2>Design Science Research</h2>
-  <div class="grid g2" style="margin-top:6px;align-items:center">
-    <svg viewBox="0 0 760 760" width="100%" style="max-height:780px" font-family="Inter" text-anchor="middle">
-      <circle cx="380" cy="370" r="262" fill="none" stroke="var(--line)" stroke-width="3"/>
-      <g>
-        <circle cx="380" cy="108" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="380" y="104" fill="var(--text)" font-size="26" font-weight="700">Problema</text>
-        <text x="380" y="134" fill="var(--muted)" font-size="20">fragmentação</text>
-        <circle cx="607" cy="239" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="607" y="235" fill="var(--text)" font-size="26" font-weight="700">Objetivos</text>
-        <text x="607" y="265" fill="var(--muted)" font-size="20">requisitos</text>
-        <circle cx="607" cy="501" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="607" y="497" fill="var(--text)" font-size="26" font-weight="700">Projeto</text>
-        <text x="607" y="527" fill="var(--muted)" font-size="20">artefato</text>
-        <circle cx="380" cy="640" r="118" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="380" y="636" fill="var(--text)" font-size="26" font-weight="700">Demonstração</text>
-        <text x="380" y="666" fill="var(--muted)" font-size="20">3 cenários</text>
-        <circle cx="153" cy="501" r="96" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-        <text x="153" y="497" fill="var(--text)" font-size="26" font-weight="700">Avaliação</text>
-        <text x="153" y="527" fill="var(--muted)" font-size="20">piloto</text>
-        <circle cx="153" cy="239" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="153" y="235" fill="var(--text)" font-size="24" font-weight="700">Comunicação</text>
-        <text x="153" y="265" fill="var(--muted)" font-size="20">TCC · INPI</text>
+<section data-section="Metodologia" data-timing="60">
+  <div class="kicker">Metodologia · Design Science Research (Peffers et al., 2007)</div>
+  <h2>Construir, usar e corrigir, em ciclos</h2>
+  <svg viewBox="0 0 1700 300" width="100%" style="margin-top:14px" font-family="Inter" text-anchor="middle">
+    <defs><marker id="ad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/></marker></defs>
+      <g class="dsr-step" style="--i:0"><polygon points="0,20 252,20 280,80 252,140 0,140" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="140" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">1</text>
+        <text x="140" y="104" fill="var(--text)" font-size="26" font-weight="700">Problema</text>
+        <text x="140" y="182" fill="var(--text)" font-size="21" font-weight="600">fluxo fragmentado</text>
+        <text x="140" y="208" fill="var(--muted)" font-size="19">entre vários apps</text></g>
+      <g class="dsr-step" style="--i:1"><polygon points="285,20 537,20 565,80 537,140 285,140 313,80" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="437" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">2</text>
+        <text x="437" y="104" fill="var(--text)" font-size="26" font-weight="700">Objetivos</text>
+        <text x="437" y="182" fill="var(--text)" font-size="21" font-weight="600">8 requisitos funcionais</text>
+        <text x="437" y="208" fill="var(--muted)" font-size="19">e 5 não funcionais</text></g>
+      <g class="dsr-step" style="--i:2"><polygon points="570,20 822,20 850,80 822,140 570,140 598,80" fill="var(--tint-blue)" stroke="var(--blue)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="722" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">3</text>
+        <text x="722" y="104" fill="var(--text)" font-size="26" font-weight="700">Projeto</text>
+        <text x="722" y="182" fill="var(--text)" font-size="21" font-weight="600">305 commits</text>
+        <text x="722" y="208" fill="var(--muted)" font-size="19">em 3 ciclos</text></g>
+      <g class="dsr-step" style="--i:3"><polygon points="855,20 1107,20 1135,80 1107,140 855,140 883,80" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="1007" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">4</text>
+        <text x="1007" y="104" fill="var(--text)" font-size="26" font-weight="700">Demonstração</text>
+        <text x="1007" y="182" fill="var(--text)" font-size="21" font-weight="600">3 cenários de uso</text>
+        <text x="1007" y="208" fill="var(--muted)" font-size="19">no desktop e Android</text></g>
+      <g class="dsr-step" style="--i:4"><polygon points="1140,20 1392,20 1420,80 1392,140 1140,140 1168,80" fill="var(--tint-teal)" stroke="var(--teal)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="1292" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">5</text>
+        <text x="1292" y="104" fill="var(--text)" font-size="26" font-weight="700">Avaliação</text>
+        <text x="1292" y="182" fill="var(--text)" font-size="21" font-weight="600">piloto de 10 meses</text>
+        <text x="1292" y="208" fill="var(--muted)" font-size="19">114 sessões reais</text></g>
+      <g class="dsr-step" style="--i:5"><polygon points="1425,20 1677,20 1705,80 1677,140 1425,140 1453,80" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+        <text x="1577" y="72" fill="var(--faint)" font-size="20" font-family="JetBrains Mono">6</text>
+        <text x="1577" y="104" fill="var(--text)" font-size="26" font-weight="700">Comunicação</text>
+        <text x="1577" y="182" fill="var(--text)" font-size="21" font-weight="600">este TCC</text>
+        <text x="1577" y="208" fill="var(--muted)" font-size="19">e o registro no INPI</text></g>
+    <g class="fragment" data-fragment-index="1">
+      <path class="flow" d="M1292,222 C1292,290 722,290 722,228" fill="none" stroke="var(--teal)" stroke-width="3.5" marker-end="url(#ad)"/>
+      <rect x="802" y="262" width="410" height="34" rx="17" fill="var(--bg)"/>
+      <text x="1007" y="286" fill="var(--teal)" font-size="21" font-weight="600">o que o uso revelava virava o próximo ciclo</text>
+    </g>
+  </svg>
+  <div id="ch-dsr" class="chart fragment" data-fragment-index="2" data-chart-step="1" data-stepped="1" style="height:440px;margin-top:6px"></div>
+  <div class="source">Commits: histórico Git do branch principal. Sessões: banco local do autor (≥ 10 min). Hevner et al. (2004).</div>
+  <aside class="notes">Peffers: seis etapas. O que importa é o laço entre projeto e avaliação: eu usava o Argus nos treinos e o que dava errado virava correção. O gráfico mostra isso com dados reais: em azul, a construção (commits por semana); em verde, a avaliação (sessões de treino por semana). As duas acontecem juntas de fevereiro a maio. Marcos: INPI em 20/01 (processo BR512026003786-7, fim do 1º ciclo), Android em março (treinos ZWO entraram em fevereiro), IA local em maio. Os três ciclos são temáticos (núcleo; análise e treino; mobilidade e experiência) e se sobrepõem no tempo. Avaliação piloto: o próprio autor, sem inferência estatística.</aside>
+</section>
+
+<!-- ============================================================ STACK E CAMADAS -->
+<section data-section="Arquitetura" data-timing="70">
+  <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
+  <h2>Como o Argus foi construído</h2>
+  <div class="grid" style="grid-template-columns: 0.85fr 1.15fr; gap:56px; margin-top:14px; align-items:center">
+    <svg viewBox="0 0 700 700" width="100%" style="max-height:700px" font-family="Inter" text-anchor="middle">
+      <defs><marker id="ain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+      <g class="anel" style="--d:0.45s"><circle cx="350" cy="350" r="335" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3"/>
+        <text x="350" y="52" fill="var(--text)" font-size="25" font-weight="700">Interface e frameworks</text>
+        <text x="350" y="80" fill="var(--muted)" font-size="19">Wails · MapLibre · ECharts · Capacitor</text></g>
+      <g class="anel" style="--d:0.3s"><circle cx="350" cy="350" r="250" fill="var(--bg-3)" stroke="var(--line)" stroke-width="3"/>
+        <text x="350" y="138" fill="var(--text)" font-size="25" font-weight="700">Adaptadores</text>
+        <text x="350" y="166" fill="var(--muted)" font-size="19">SQLite e GORM · Bluetooth · FIT · GPX</text></g>
+      <g class="anel" style="--d:0.15s"><circle cx="350" cy="350" r="165" fill="var(--tint-blue)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="350" y="224" fill="var(--text)" font-size="25" font-weight="700">Casos de uso</text>
+        <text x="350" y="252" fill="var(--muted)" font-size="19">sessão · treino · dados</text></g>
+      <g class="anel" style="--d:0s"><circle cx="350" cy="350" r="82" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="350" y="340" fill="var(--teal)" font-size="26" font-weight="800">Domínio</text>
+        <text x="350" y="366" fill="var(--muted)" font-size="17">atividade</text>
+        <text x="350" y="388" fill="var(--muted)" font-size="17">telemetria</text></g>
+      <g class="fragment" data-fragment-index="1" stroke="var(--muted)" stroke-width="3" fill="none">
+        <path d="M350,678 V606" marker-end="url(#ain)"/><path d="M350,594 V520" marker-end="url(#ain)"/><path d="M350,510 V440" marker-end="url(#ain)"/>
       </g>
     </svg>
     <div>
-      <div class="card" style="margin-bottom:22px"><h4>3 ciclos iterativos · jan–out/2026</h4><p>305 commits · núcleo e INPI → análise e treino → Android e IA local</p></div>
-      <div class="card" style="margin-bottom:22px"><h4>Registro no INPI · 20/01/2026</h4><p>Processo BR512026003786-7 · linha de base do artefato</p></div>
-      <div class="card"><h4>Avaliação piloto</h4><p>Próprio autor, rolo e sensores reais · sem inferência estatística</p></div>
+      <div class="stack">
+        <div><span>Núcleo</span><b>Go 1.24</b></div>
+        <div><span>Desktop</span><b>Wails 2</b><i>janela nativa que liga Go e JavaScript</i></div>
+        <div><span>Interface</span><b>JavaScript · HTML · CSS</b><i>empacotada com Vite</i></div>
+        <div><span>Mapa 3D</span><b>MapLibre GL 5</b><i>imagens de satélite Esri e relevo AW3D30</i></div>
+        <div><span>Gráficos</span><b>ECharts 6</b><i>relatório em PDF com jsPDF</i></div>
+        <div><span>Bluetooth</span><b>TinyGo Bluetooth</b><i>no Android: plugin BLE do Capacitor</i></div>
+        <div><span>Dados</span><b>SQLite · GORM</b><i>arquivos FIT, GPX e ZWO</i></div>
+        <div><span>Android</span><b>Capacitor 8</b><i>reaproveita a mesma interface</i></div>
+        <div><span>IA local</span><b>Ollama</b><i>roda no próprio computador</i></div>
+      </div>
+      <p class="fragment rise small" data-fragment-index="1" style="margin-top:22px"><span class="c-teal">●</span> <strong>As dependências apontam para dentro:</strong> <span class="muted">o domínio não importa banco, Bluetooth nem interface; trocar o SQLite ou o rolo não muda as regras.</span></p>
     </div>
   </div>
-  <div class="source">Peffers et al. (2007); Hevner et al. (2004).</div>
-  <aside class="notes">DSR: o conhecimento vem de construir e avaliar o artefato. Seis etapas de Peffers; três ciclos de desenvolvimento registrados no Git.</aside>
+  <aside class="notes">Clean Architecture: o centro (domínio: atividade, telemetria, perfil, regras) não depende de nada de fora. Os casos de uso orquestram; os adaptadores falam com SQLite (GORM), Bluetooth (TinyGo), arquivos FIT/GPX; a camada externa é a interface (Wails, MapLibre, ECharts). Concessões, se perguntarem: o app.go concentra a orquestração da sessão; as entidades do domínio carregam tags de persistência do GORM (sem importar o pacote); a física e o GPX foram reimplementados em JavaScript no Android porque o Capacitor não roda Go. Stack: Go no núcleo, interface web compartilhada entre desktop (Wails) e Android (Capacitor).</aside>
 </section>
 
 <!-- ============================================================ ARQUITETURA -->
@@ -282,48 +333,144 @@
   <aside class="notes">Explicar sem jargão. 1) O rolo fica anunciando "sou um rolo e meço potência". 2) O Argus conecta e se inscreve para receber avisos. 3) A partir daí os dados chegam sozinhos, cerca de três avisos por segundo. 4) No sentido contrário, o Argus envia a inclinação do mapa e o rolo ajusta a resistência. Para a banca de Computação, se perguntarem: perfis GATT Cycling Power (0x1818), Heart Rate (0x180D), FTMS (0x1826) e FE-C sobre BLE; o Argus é a central (cliente GATT). Gancho: nada no protocolo prova que os 210 W vieram de um medidor real; um app pode se passar por sensor. É o que estudo no Argus Recon. Só citar, não aprofundar.</aside>
 </section>
 
+<!-- ============================================================ FTMS x FE-C -->
+<section data-section="Comunicação" data-timing="45">
+  <div class="kicker">Controle do rolo · Bluetooth SIG (2017), ANT+ (2024)</div>
+  <h2>Dois idiomas para falar com o rolo</h2>
+  <div class="grid protos" style="margin-top:26px">
+    <div class="card proto">
+      <div class="proto-tag">Bluetooth SIG</div>
+      <h3>FTMS</h3>
+      <p class="muted">Fitness Machine Service: padrão do próprio Bluetooth LE</p>
+      <ul class="small">
+        <li>o Argus pede o controle e envia comandos curtos</li>
+        <li><strong>inclinação</strong> no modo simulação, <strong>potência-alvo</strong> no ERG</li>
+        <li>potência e cadência chegam pelo perfil Cycling Power</li>
+      </ul>
+      <div class="proto-cmd">0x00 controle · 0x03 inclinação · 0x05 potência</div>
+    </div>
+    <div class="proto-mid">
+      <div class="proto-argus">Argus</div>
+      <p>na conexão, vê qual serviço o rolo anuncia e usa o idioma certo</p>
+      <p class="muted">o resto do sistema só pede: “inclinação 6,5%” ou “210 W”</p>
+    </div>
+    <div class="card proto">
+      <div class="proto-tag ant">ANT+</div>
+      <h3>FE-C</h3>
+      <p class="muted">Fitness Equipment Control: padrão ANT+, aqui sobre Bluetooth LE</p>
+      <ul class="small">
+        <li>mensagens em “páginas” de 8 bytes</li>
+        <li>primeiro configura ciclista e vento, depois envia inclinação ou potência</li>
+        <li>o próprio rolo devolve potência e cadência</li>
+      </ul>
+      <div class="proto-cmd">páginas 55 ciclista · 50 vento · 51 inclinação · 49 potência</div>
+    </div>
+  </div>
+  <div class="plats fragment rise">
+    <div><b>Desktop</b> FTMS <span class="c-ok">✓</span> &nbsp; FE-C <span class="c-ok">✓</span></div>
+    <div><b>Android</b> FE-C <span class="c-ok">✓</span> &nbsp; FTMS <span class="faint">ainda não</span></div>
+  </div>
+  <aside class="notes">FTMS é o padrão do Bluetooth SIG; FE-C é o padrão ANT+ que muitos rolos (por exemplo, os Tacx) também expõem sobre Bluetooth. O Argus implementa os dois no desktop: ao conectar, procura o ponto de controle do FTMS (0x2AD9) ou o serviço FE-C sobre BLE e escolhe o caminho. Para o resto do sistema é transparente: o laço pede inclinação ou potência. No FE-C, o Argus envia o perfil do ciclista (pág. 55) e a resistência do vento (pág. 50) antes de começar; a inclinação vai na página 51, com Crr 0,004. No Android, só FE-C por enquanto. FE-C sobre BLE não é ANT+ propriamente dito: é o mesmo formato de página, transportado pelo Bluetooth.</aside>
+</section>
+
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-section="Arquitetura" data-timing="60">
+<section data-section="Arquitetura" data-timing="75">
   <div class="kicker">Tempo real</div>
-  <h2>Da notificação Bluetooth ao número na tela</h2>
-  <svg viewBox="0 0 1700 640" width="100%" style="margin-top:20px" font-family="Inter">
-    <defs><marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker></defs>
-    <!-- trajetos -->
-    <path id="p-rolo" d="M260,110 C420,110 440,300 600,300" fill="none" stroke="var(--line)" stroke-width="3"/>
-    <path id="p-pot" d="M260,300 H600" fill="none" stroke="var(--line)" stroke-width="3"/>
-    <path id="p-fc" d="M260,490 C420,490 440,300 600,300" fill="none" stroke="var(--line)" stroke-width="3"/>
+  <h2>Do sensor até o ciclista</h2>
+  <svg viewBox="0 0 1700 650" width="100%" style="margin-top:10px" font-family="Inter">
+    <defs>
+      <marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
+      <path id="tp-rolo" d="M255,190 C340,190 340,300 420,300"/>
+      <path id="tp-fc" d="M255,460 C340,460 340,345 420,345"/>
+      <path id="tp-tela" d="M700,280 C750,280 750,120 800,120"/>
+      <path id="tp-fit" d="M700,322 H800"/>
+      <path id="tp-rea" d="M700,365 C750,365 750,520 800,520"/>
+      <path id="mini-rota" d="M1505,170 C1530,110 1560,180 1590,120 S1640,90 1655,140"/>
+    </defs>
     <!-- sensores -->
     <g text-anchor="middle">
-      <rect x="20" y="60" width="240" height="100" rx="14" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="2"/><text x="140" y="105" fill="var(--text)" font-size="26" font-weight="700">Rolo</text><text x="140" y="137" fill="var(--muted)" font-size="19">FE-C pág. 25</text>
-      <rect x="20" y="250" width="240" height="100" rx="14" fill="var(--bg-2)" stroke="var(--power)" stroke-width="2"/><text x="140" y="295" fill="var(--text)" font-size="26" font-weight="700">Potência</text><text x="140" y="327" fill="var(--muted)" font-size="19">Cycling Power</text>
-      <rect x="20" y="440" width="240" height="100" rx="14" fill="var(--bg-2)" stroke="var(--hr)" stroke-width="2"/><text x="140" y="485" fill="var(--text)" font-size="26" font-weight="700">Cinta FC</text><text x="140" y="517" fill="var(--muted)" font-size="19">Heart Rate</text>
+      <rect x="20" y="135" width="235" height="110" rx="16" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
+      <text x="137" y="182" fill="var(--text)" font-size="25" font-weight="700">Rolo</text><text x="137" y="214" fill="var(--muted)" font-size="19">potência · cadência</text>
+      <rect x="20" y="405" width="235" height="110" rx="16" fill="var(--bg-2)" stroke="var(--hr)" stroke-width="3"/>
+      <text x="137" y="452" fill="var(--text)" font-size="25" font-weight="700">Cinta cardíaca</text><text x="137" y="484" fill="var(--muted)" font-size="19">frequência cardíaca</text>
     </g>
-    <!-- pacotes -->
-    <circle r="9" fill="var(--teal)"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#p-rolo"/></animateMotion></circle>
-    <circle r="9" fill="var(--power)"><animateMotion dur="1.4s" begin="0.45s" repeatCount="indefinite"><mpath href="#p-pot"/></animateMotion></circle>
-    <circle r="9" fill="var(--hr)"><animateMotion dur="1.4s" begin="0.9s" repeatCount="indefinite"><mpath href="#p-fc"/></animateMotion></circle>
+    <use href="#tp-rolo" fill="none" stroke="var(--line)" stroke-width="3"/><use href="#tp-fc" fill="none" stroke="var(--line)" stroke-width="3"/>
+    <circle r="9" fill="var(--power)"><animateMotion dur="1.1s" repeatCount="indefinite"><mpath href="#tp-rolo"/></animateMotion></circle>
+    <circle r="9" fill="var(--power)"><animateMotion dur="1.1s" begin="-0.45s" repeatCount="indefinite"><mpath href="#tp-rolo"/></animateMotion></circle>
+    <circle r="9" fill="var(--hr)"><animateMotion dur="1.7s" begin="-0.3s" repeatCount="indefinite"><mpath href="#tp-fc"/></animateMotion></circle>
     <!-- laço -->
     <g text-anchor="middle">
-      <rect x="600" y="230" width="300" height="140" rx="16" fill="var(--bg-3)" stroke="var(--blue)" stroke-width="3"/>
-      <text x="750" y="290" fill="var(--text)" font-size="28" font-weight="700">Laço da sessão</text>
-      <text x="750" y="325" fill="var(--power)" font-size="22" font-family="JetBrains Mono">≈ 3 notificações/s</text>
+      <rect x="420" y="215" width="280" height="215" rx="18" fill="var(--bg-3)" stroke="var(--blue)" stroke-width="3"/>
+      <text x="560" y="262" fill="var(--text)" font-size="27" font-weight="700">Laço da sessão</text>
+      <text x="560" y="296" fill="var(--muted)" font-size="19">junta os avisos e calcula</text>
+      <text x="560" y="320" fill="var(--muted)" font-size="19">velocidade, distância e</text>
+      <text x="560" y="344" fill="var(--muted)" font-size="19">posição na rota</text>
+      <text x="560" y="392" fill="var(--power)" font-size="21" font-family="JetBrains Mono">≈ 3 avisos/s</text>
     </g>
-    <!-- saídas -->
-    <g class="fragment" data-fragment-index="1" text-anchor="middle">
-      <path d="M900,270 C1000,270 1000,110 1110,110" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#at)"/>
-      <rect x="1120" y="60" width="300" height="100" rx="14" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/><text x="1270" y="105" fill="var(--text)" font-size="25" font-weight="700">Interface</text><text x="1270" y="137" fill="var(--muted)" font-size="19">HUD e mapa · cada evento</text>
-      <path d="M900,300 H1110" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#at)"/>
-      <rect x="1120" y="250" width="300" height="100" rx="14" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/><text x="1270" y="295" fill="var(--text)" font-size="25" font-weight="700">Arquivo FIT</text><text x="1270" y="327" fill="var(--muted)" font-size="19">todas as notificações</text>
+    <!-- 1 · tela -->
+    <g class="fragment" data-fragment-index="1">
+      <use href="#tp-tela" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#at)"/>
+      <circle r="7" fill="var(--blue)"><animateMotion dur="0.9s" repeatCount="indefinite"><mpath href="#tp-tela"/></animateMotion></circle>
+      <rect x="805" y="20" width="875" height="200" rx="18" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+      <text x="835" y="60" fill="var(--text)" font-size="25" font-weight="700">Tela <tspan fill="var(--muted)" font-weight="400" font-size="21">· atualiza a cada aviso</tspan></text>
+      <g font-family="JetBrains Mono" text-anchor="middle" font-weight="600" font-size="23">
+        <rect x="835" y="80" width="118" height="64" rx="10" fill="var(--bg-3)"/><text x="894" y="120" fill="var(--power)">210 W</text>
+        <rect x="963" y="80" width="118" height="64" rx="10" fill="var(--bg-3)"/><text x="1022" y="120" fill="var(--hr)">142 bpm</text>
+        <rect x="1091" y="80" width="118" height="64" rx="10" fill="var(--bg-3)"/><text x="1150" y="120" fill="var(--cad)">88 rpm</text>
+        <rect x="1219" y="80" width="118" height="64" rx="10" fill="var(--bg-3)"/><text x="1278" y="119" fill="var(--text)" font-size="19">24,8 km/h</text>
+        <rect x="1347" y="80" width="118" height="64" rx="10" fill="var(--bg-3)"/><text x="1406" y="120" fill="var(--teal)">6,5%</text>
+      </g>
+      <rect x="1490" y="72" width="175" height="114" rx="10" fill="var(--bg-3)"/>
+      <use href="#mini-rota" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
+      <circle r="8" fill="var(--power)" stroke="var(--bg-2)" stroke-width="3"><animateMotion dur="5s" repeatCount="indefinite"><mpath href="#mini-rota"/></animateMotion></circle>
+      <text x="835" y="185" fill="var(--muted)" font-size="19">HUD: potência, FC, cadência, velocidade e inclinação</text>
+      <text x="1577" y="208" fill="var(--muted)" font-size="17" text-anchor="middle">mapa: posição</text>
     </g>
-    <g class="fragment" data-fragment-index="2" text-anchor="middle">
-      <path d="M900,330 C1000,330 960,490 1060,490" fill="none" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
-      <rect x="1070" y="440" width="260" height="100" rx="14" fill="var(--bg-3)" stroke="var(--teal)" stroke-width="3"/><text x="1200" y="485" fill="var(--teal)" font-size="25" font-weight="700">Reamostrador</text><text x="1200" y="517" fill="var(--text)" font-size="19">média de cada segundo</text>
-      <path d="M1330,490 H1440" fill="none" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
-      <rect x="1450" y="440" width="230" height="100" rx="14" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/><text x="1565" y="485" fill="var(--text)" font-size="25" font-weight="700">Métricas</text><text x="1565" y="517" fill="var(--muted)" font-size="19">série de 1 Hz</text>
+    <!-- 2 · FIT -->
+    <g class="fragment" data-fragment-index="2">
+      <use href="#tp-fit" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#at)"/>
+      <circle r="7" fill="var(--blue)"><animateMotion dur="0.9s" begin="-0.3s" repeatCount="indefinite"><mpath href="#tp-fit"/></animateMotion></circle>
+      <rect x="805" y="240" width="875" height="160" rx="18" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+      <text x="835" y="280" fill="var(--text)" font-size="25" font-weight="700">Arquivo FIT <tspan fill="var(--muted)" font-weight="400" font-size="21">· guarda todos os avisos, com horário</tspan></text>
+      <g font-family="JetBrains Mono" font-size="19" fill="var(--muted)" class="fit-linhas">
+        <text y="316"><tspan x="835">19:42:58.12</tspan><tspan x="990" fill="var(--power)">210 W</tspan><tspan x="1080" fill="var(--cad)">88 rpm</tspan></text>
+        <text y="344"><tspan x="835">19:42:58.47</tspan><tspan x="990" fill="var(--hr)">142 bpm</tspan></text>
+        <text y="372"><tspan x="835">19:42:58.81</tspan><tspan x="990" fill="var(--power)">212 W</tspan><tspan x="1080" fill="var(--cad)">89 rpm</tspan></text>
+      </g>
+      <text x="1650" y="344" text-anchor="end" fill="var(--teal)" font-size="21" font-weight="600">→ histórico · Strava · Intervals.icu</text>
+    </g>
+    <!-- 3 · reamostrador -->
+    <g class="fragment" data-fragment-index="3">
+      <use href="#tp-rea" fill="none" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
+      <circle r="7" fill="var(--teal)"><animateMotion dur="0.9s" begin="-0.6s" repeatCount="indefinite"><mpath href="#tp-rea"/></animateMotion></circle>
+      <rect x="805" y="420" width="875" height="225" rx="18" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
+      <text x="835" y="458" fill="var(--teal)" font-size="25" font-weight="700">Reamostrador <tspan fill="var(--muted)" font-weight="400" font-size="21">· tira a média de cada segundo</tspan></text>
+      <g font-family="JetBrains Mono" font-size="16" text-anchor="middle">
+        <rect x="835" y="478" width="140" height="92" rx="8" fill="var(--bg-3)"/>
+        <rect x="985" y="478" width="140" height="92" rx="8" fill="var(--bg-3)"/>
+        <rect x="1135" y="478" width="140" height="92" rx="8" fill="var(--bg-3)"/>
+        <g class="ponto" style="--d:0s"><circle cx="855" cy="546" r="7" fill="var(--power)"/><text x="855" y="530" fill="var(--muted)">205</text></g>
+        <g class="ponto" style="--d:.15s"><circle cx="903" cy="546" r="7" fill="var(--power)"/><text x="903" y="530" fill="var(--muted)">214</text></g>
+        <g class="ponto" style="--d:.3s"><circle cx="952" cy="546" r="7" fill="var(--power)"/><text x="952" y="530" fill="var(--muted)">211</text></g>
+        <g class="ponto" style="--d:.45s"><circle cx="1020" cy="546" r="7" fill="var(--power)"/><text x="1020" y="530" fill="var(--muted)">220</text></g>
+        <g class="ponto" style="--d:.6s"><circle cx="1090" cy="546" r="7" fill="var(--power)"/><text x="1090" y="530" fill="var(--muted)">216</text></g>
+        <g class="ponto" style="--d:.75s"><circle cx="1150" cy="546" r="7" fill="var(--power)"/><text x="1150" y="508" fill="var(--muted)">204</text></g>
+        <g class="ponto" style="--d:.9s"><circle cx="1185" cy="546" r="7" fill="var(--power)"/><text x="1185" y="530" fill="var(--muted)">209</text></g>
+        <g class="ponto" style="--d:1.05s"><circle cx="1220" cy="546" r="7" fill="var(--power)"/><text x="1220" y="508" fill="var(--muted)">206</text></g>
+        <g class="ponto" style="--d:1.2s"><circle cx="1255" cy="546" r="7" fill="var(--power)"/><text x="1255" y="530" fill="var(--muted)">211</text></g>
+        <text x="905" y="590" fill="var(--faint)" font-size="17">1º segundo</text><text x="1055" y="590" fill="var(--faint)" font-size="17">2º segundo</text><text x="1205" y="590" fill="var(--faint)" font-size="17">3º segundo</text>
+      </g>
+      <path d="M1290,524 H1350" stroke="var(--teal)" stroke-width="3" marker-end="url(#at)"/>
+      <g class="media" font-family="JetBrains Mono" font-size="19" font-weight="600" text-anchor="middle">
+        <rect x="1370" y="508" width="80" height="62" rx="6" fill="var(--power)" opacity="0.85"/><text x="1410" y="498" fill="var(--text)">210</text>
+        <rect x="1460" y="500" width="80" height="70" rx="6" fill="var(--power)" opacity="0.85"/><text x="1500" y="490" fill="var(--text)">218</text>
+        <rect x="1550" y="512" width="80" height="58" rx="6" fill="var(--power)" opacity="0.85"/><text x="1590" y="502" fill="var(--text)">208</text>
+        <text x="1500" y="592" fill="var(--faint)" font-size="17" font-weight="400" font-family="Inter">1 valor por segundo</text>
+      </g>
+      <text x="835" y="626" fill="var(--text)" font-size="20">As métricas contam <tspan font-weight="700">segundos</tspan>: sem isso, 3 avisos virariam 3 segundos de treino.</text>
     </g>
   </svg>
-  <p class="fragment rise small muted" data-fragment-index="3">Mapa suaviza a câmera a cada 150 ms: <strong>fluidez da tela ≠ taxa de aquisição</strong>.</p>
-  <aside class="notes">Cada sensor notifica de forma independente: ~3 por segundo. Interface e FIT recebem tudo; as métricas recebem a média de cada segundo. As métricas usam a série de 1 Hz. ~1:10.</aside>
+  <aside class="notes">Os sensores mandam avisos quando querem: cerca de 3 por segundo somando rolo e cinta. O laço da sessão junta tudo e calcula a velocidade pela física e a posição na rota. Três destinos: 1) a tela recebe cada aviso: o HUD mostra os números e o mapa move o ciclista (a câmera suaviza a cada 150 ms); 2) o arquivo FIT guarda tudo, com o horário de cada aviso, e é o que vai para o histórico, Strava e Intervals.icu; 3) o reamostrador agrupa os avisos de cada segundo e tira a média, porque as fórmulas (NP com janela de 30 s, TSS, desacoplamento) supõem um valor por segundo. Sem ele, 3 avisos seriam contados como 3 segundos e as métricas ficariam distorcidas, defeito que a própria avaliação encontrou e corrigi.</aside>
 </section>
 
 <!-- ============================================================ 10 GPX → RESISTÊNCIA -->
@@ -393,55 +540,56 @@
 <section data-section="Funcionalidades" data-timing="60">
   <div class="kicker">Funcionalidades · clique em uma imagem para ampliar</div>
   <h2>Do treino à análise</h2>
-  <div class="galeria" style="margin-top:22px">
-    <figure data-full="img/pos-treino.png"><div class="ph"><img src="img/pos-treino.png" alt="Análise pós-treino"></div><figcaption><b>Análise pós-treino</b>potência, FC, cadência, curva de potência</figcaption></figure>
-    <figure data-full="img/relatorio-pdf.png"><div class="ph"><img src="img/relatorio-pdf.png" alt="Relatório do treino em PDF"></div><figcaption><b>Relatório em PDF</b>resumo exportado da sessão de Girona</figcaption></figure>
-    <figure data-full="img/screenshot-06-workout.png"><div class="ph"><img src="img/screenshot-06-workout.png" alt="Sessão no mapa 3D"></div><figcaption><b>Sessão no mapa 3D</b>rota colorida por inclinação, treinos ZWO</figcaption></figure>
+  <div class="galeria" style="margin-top:60px">
+    <figure data-full="img/pos-treino.png"><div class="ph"><img src="img/pos-treino.png" alt="Análise pós-treino"></div><figcaption><b>Análise pós-treino</b>telemetria e curva de potência</figcaption></figure>
+    <figure data-full="img/relatorio-pdf.png"><div class="ph"><img src="img/relatorio-pdf.png" alt="Relatório do treino em PDF"></div><figcaption><b>Relatório em PDF</b>resumo da sessão de Girona</figcaption></figure>
+    <figure data-full="img/screenshot-06-workout.png"><div class="ph"><img src="img/screenshot-06-workout.png" alt="Sessão no mapa 3D"></div><figcaption><b>Sessão no mapa 3D</b>rota colorida e treino ZWO</figcaption></figure>
+    <figure data-full="img/screenshot-10-mobile.jpg"><div class="ph"><img src="img/screenshot-10-mobile.jpg" alt="Argus no Android"></div><figcaption><b>Android</b>HUD e mapa no celular</figcaption></figure>
     <figure data-full="img/screenshot-04-career.png"><div class="ph"><img src="img/screenshot-04-career.png" alt="Carreira"></div><figcaption><b>Carreira</b>PMC e desacoplamento</figcaption></figure>
-    <figure data-full="img/screenshot-09-event.png"><div class="ph"><img src="img/screenshot-09-event.png" alt="Eventos"></div><figcaption><b>Eventos</b>sprint, KOM e contrarrelógio</figcaption></figure>
+    <figure data-full="img/screenshot-09-event.png"><div class="ph"><img src="img/screenshot-09-event.png" alt="Eventos"></div><figcaption><b>Eventos</b>sprint, KOM, contrarrelógio</figcaption></figure>
     <figure data-full="img/screenshot-07-trophy.png"><div class="ph"><img src="img/screenshot-07-trophy.png" alt="Conquistas"></div><figcaption><b>Conquistas</b>níveis e troféus</figcaption></figure>
-    <figure data-full="img/screenshot-11-desgaste.png"><div class="ph"><img src="img/screenshot-11-desgaste.png" alt="Desgaste de componentes"></div><figcaption><b>Desgaste de componentes</b>km de corrente e cassete</figcaption></figure>
-    <figure data-full="img/recuperacao-sessao.jpg"><div class="ph"><img src="img/recuperacao-sessao.jpg" alt="Recuperação de sessão"></div><figcaption><b>Recuperação de sessão</b>treino salvo após uma queda</figcaption></figure>
+    <figure data-full="img/screenshot-11-desgaste.png"><div class="ph"><img src="img/screenshot-11-desgaste.png" alt="Desgaste de componentes"></div><figcaption><b>Desgaste</b>km de corrente e cassete</figcaption></figure>
+    <figure data-full="img/recuperacao-sessao.jpg"><div class="ph"><img src="img/recuperacao-sessao.jpg" alt="Recuperação de sessão"></div><figcaption><b>Recuperação</b>sessão salva após uma queda</figcaption></figure>
+    <div class="tile-texto"><div class="uso-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 3v4M9 12h.01M15 12h.01M9.5 15.5h5"/></svg></div><b>IA local</b><span>Ollama gera treinos no formato ZWO, sem enviar dados para fora</span></div>
   </div>
-  <p class="small muted" style="margin-top:16px"><span class="c-teal">●</span> Também: IA local (Ollama) que gera treinos no formato ZWO.</p>
-  <aside class="notes">Clicar numa imagem abre a galeria ampliada (setas para passar, Esc para fechar). Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. A recuperação salva a sessão se o app fechar no meio do treino. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
+  <aside class="notes">Clicar numa imagem abre a galeria ampliada (setas para passar, Esc para fechar). Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. No Android, a mesma interface roda com HUD e mapa. A recuperação salva a sessão se o app fechar no meio do treino. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
 </section>
 
 <!-- ============================================================ REQUISITOS -->
-<section data-section="Resultados" data-timing="80">
+<section data-section="Resultados" data-timing="50">
   <div class="kicker">Resultados</div>
-  <h2>Requisitos e plataformas</h2>
-  <div class="grid" style="grid-template-columns: 1.05fr 1fr; gap:44px; margin-top:16px">
-    <table class="t compact">
-      <thead><tr><th>Funcional</th><th>Status</th></tr></thead>
-      <tr><td>RF01 · importar GPX e derivar inclinação</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF02 · controlar o rolo pela inclinação</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF03 · registrar potência, FC e cadência</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF04 · NP, IF, TSS, TRIMP, PMC, HRR, Pw:FC</td><td class="c-warn">implementado¹</td></tr>
-      <tr><td>RF05 · histórico local por perfil</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF06 · exportar FIT e integrações</td><td class="c-ok">verificado em amostra</td></tr>
-      <tr><td>RF07 · desktop e Android</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF08 · fluxo de reconhecimento</td><td class="c-ok">demonstrado</td></tr>
-    </table>
+  <h2>Requisitos atendidos</h2>
+  <div class="grid g2" style="gap:70px;margin-top:22px">
     <div>
-      <table class="t compact">
-        <thead><tr><th>Não funcional</th><th>Status</th></tr></thead>
-        <tr><td>RNF01 · processamento local, sem nuvem obrigatória</td><td class="c-ok">atendido²</td></tr>
-        <tr><td>RNF02 · interface responsiva (telas pequenas)</td><td class="c-ok">atendido</td></tr>
-        <tr><td>RNF03 · código aberto (GPLv3)</td><td class="c-ok">atendido</td></tr>
-        <tr><td>RNF04 · integridade e recuperação de sessão</td><td class="c-ok">atendido</td></tr>
-        <tr><td>RNF05 · fórmulas e limites explícitos</td><td class="c-ok">atendido</td></tr>
-      </table>
-      <table class="t compact" style="margin-top:22px">
-        <thead><tr><th>Plataforma</th><th>Situação</th></tr></thead>
-        <tr><td>Windows · Linux</td><td class="c-ok">fluxo completo</td></tr>
-        <tr><td>Android (telefone)</td><td class="c-ok">sessão ao vivo</td></tr>
-        <tr><td>macOS · iOS · tablet</td><td class="faint">preparado · não validado</td></tr>
-      </table>
+      <div class="req-h">Funcionais</div>
+      <ul class="req">
+        <li><b>RF01</b>Importar GPX e calcular a inclinação</li>
+        <li><b>RF02</b>Controlar o rolo pela inclinação</li>
+        <li><b>RF03</b>Registrar potência, FC e cadência</li>
+        <li><b>RF04</b>Calcular NP, IF, TSS, TRIMP, PMC, HRR e Pw:FC<sup>¹</sup></li>
+        <li><b>RF05</b>Manter histórico local por perfil</li>
+        <li><b>RF06</b>Exportar FIT e integrar com Strava e Intervals.icu</li>
+        <li><b>RF07</b>Rodar no desktop e no Android</li>
+        <li><b>RF08</b>Permitir o reconhecimento de percurso</li>
+      </ul>
+    </div>
+    <div>
+      <div class="req-h">Não funcionais</div>
+      <ul class="req">
+        <li><b>RNF01</b>Processar localmente, sem nuvem obrigatória<sup>²</sup></li>
+        <li><b>RNF02</b>Interface responsiva, inclusive em telas pequenas</li>
+        <li><b>RNF03</b>Código aberto (GPLv3)</li>
+        <li><b>RNF04</b>Preservar a sessão em caso de falha</li>
+        <li><b>RNF05</b>Fórmulas e limites explícitos</li>
+      </ul>
+      <div class="card testes">
+        <div class="stat c-blue" style="font-size:64px">27</div>
+        <div><strong>testes automatizados</strong><p>métricas, física, reamostragem, arquivo FIT, recuperação de sessão e ZWO</p></div>
+      </div>
     </div>
   </div>
-  <div class="source">¹ sem validação clínica, conferido por testes automatizados · ² mapas dependem de tiles on-line.</div>
-  <aside class="notes">Funcionais: todos atendidos; as métricas não têm validação clínica (não medimos lactato nem VO2máx). Não funcionais: tudo roda localmente, a exceção são os tiles do mapa. "Multiplataforma" se sustenta pelas plataformas exercitadas, não por promessa.</aside>
+  <div class="source">¹ conferido por testes automatizados, sem validação clínica · ² o mapa depende de imagens on-line. Plataformas: Windows e Linux (fluxo completo), Android (sessão ao vivo).</div>
+  <aside class="notes">Todos os requisitos foram atendidos. Detalhe para a fala: RF01 a RF05 verificados no uso; RF06 verificado em amostra (o Intervals e o Strava aceitaram os FIT); RF07: Windows e Linux com fluxo completo, Android com sessão ao vivo (sem FIT e histórico); macOS e iOS preparados, não validados; RF08 demonstrado com o caso Leberg. As métricas não têm validação clínica (não medi lactato nem VO2máx). Os 27 testes: 7 de métricas (NP, IF/TSS, zonas de potência e FC, TRIMP, desacoplamento, PMC), 2 da física (equação de Martin), 3 do reamostrador, 2 do FIT, 12 da recuperação de sessão e 1 do ZWO.</aside>
 </section>
 
 <!-- ============================================================ CONCLUSÃO -->

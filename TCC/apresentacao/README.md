@@ -21,7 +21,7 @@ servidor.
 | clique numa imagem (slide Funcionalidades) | abre a galeria ampliada; ← → passam, `Esc` fecha |
 
 As notas de cada slide trazem a fala-chave. Cada slide também tem um tempo-alvo
-(`data-timing`), que soma **17 min 50 s** e deixa cerca de 2 min de folga. Na visão
+(`data-timing`), que soma **19 min 30 s**: sobram só 30 s de folga. Na visão
 do apresentador (`S`), o cronômetro de *pacing* mostra se você está adiantado ou
 atrasado em relação a esse plano: é o apoio para os ensaios cronometrados.
 
@@ -54,7 +54,8 @@ O script de dados lê, somente para leitura:
 - a sessão de Girona (`../registro-software/figuras/girona-sessao.csv`);
 - o PMC (`../registro-software/figuras/pmc-dados.csv`);
 - o GPX de Geraardsbergen–Leberg;
-- o banco do perfil.
+- o banco do perfil (volume, PMC e sessões por semana);
+- o `git log` do branch `main` (commits por semana, slide de metodologia).
 
 
 ## Estrutura
