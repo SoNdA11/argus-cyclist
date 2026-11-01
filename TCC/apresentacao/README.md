@@ -17,10 +17,11 @@ servidor.
 | `F` | tela cheia |
 | `Esc` | visão geral dos slides |
 | `B` ou `.` | tela preta |
-| `T` | alterna tema claro (padrão) / escuro — a escolha fica salva no navegador |
+| `T` | alterna tema claro (padrão) / escuro; a escolha fica salva no navegador |
+| clique numa imagem (slide Funcionalidades) | abre a galeria ampliada; ← → passam, `Esc` fecha |
 
 As notas de cada slide trazem a fala-chave. Cada slide também tem um tempo-alvo
-(`data-timing`), que soma **18 min** e deixa 2 min de folga. Na visão
+(`data-timing`), que soma **17 min 50 s** e deixa cerca de 2 min de folga. Na visão
 do apresentador (`S`), o cronômetro de *pacing* mostra se você está adiantado ou
 atrasado em relação a esse plano: é o apoio para os ensaios cronometrados.
 
@@ -63,6 +64,15 @@ index.html        slides e notas do apresentador
 css/argus.css     tema (cores das grandezas fixas: potência amarela, FC vermelha…)
 js/charts.js      gráficos ECharts; a física do slide 10 usa as constantes do motor Go
 js/deck.js        inicialização do Reveal, rodapé, gatilhos dos gráficos
+js/galeria.js     galeria ampliada (lightbox) do slide de funcionalidades
 data/dados.js     gerado por scripts/exportar_dados.py
 vendor/           reveal.js 5.1.0, ECharts 6.0.0, fontes Inter e JetBrains Mono (licenças incluídas)
 ```
+
+## Capturas do app
+
+`img/relatorio-pdf.png` e `img/recuperacao-sessao.jpg` foram capturadas em
+01/11/2026 de uma **cópia** do app e dos dados, rodando num display virtual. O
+banco original não foi alterado. Na cópia, a sessão de Girona recebeu as métricas
+reprocessadas a 1 Hz (NP 106 W, IF 0,69, TSS 49, Pw:FC 8,3%), para o relatório
+bater com o slide de fisiologia.
