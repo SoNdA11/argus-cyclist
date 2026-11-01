@@ -35,7 +35,7 @@
 <section data-section="Contexto" data-timing="80">
   <div class="kicker">Contexto</div>
   <h2>O que é ciclismo virtual</h2>
-  <div class="grid g-60-40" style="margin-top:16px;align-items:center">
+  <div class="grid" style="grid-template-columns: 1.15fr 1fr; gap:50px; margin-top:16px; align-items:center">
     <svg viewBox="0 0 1000 720" width="100%" font-family="Inter" text-anchor="middle">
       <defs>
         <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
@@ -66,33 +66,89 @@
         <text x="210" y="120" text-anchor="end" fill="var(--muted)">sensação de subida</text>
       </g>
     </svg>
-    <div>
-      <div class="fragment rise card" style="margin-bottom:18px"><h4><span class="c-power">Potência</span> · W</h4><p>Quanto trabalho o ciclista produz. É a grandeza central do treino.</p></div>
-      <div class="fragment rise card" style="margin-bottom:18px"><h4><span class="c-hr">Frequência cardíaca</span> · bpm</h4><p>Como o corpo responde a esse trabalho.</p></div>
-      <div class="fragment rise card" style="margin-bottom:18px"><h4><span class="c-cad">Cadência</span> · rpm</h4><p>Ritmo das pedaladas.</p></div>
-      <div class="fragment rise card"><h4><span class="c-alt">Inclinação</span> · %</h4><p>Vem do mapa do percurso; o rolo endurece na subida.</p></div>
+    <div class="galeria fotos">
+      <figure data-full="img/copa-brasil-esports.jpg"><div class="ph"><img src="img/copa-brasil-esports.jpg" alt="Copa Brasil de Ciclismo eSports por videochamada"></div><figcaption><b>Copa Brasil de Ciclismo eSports</b>CBC e ZTBR: cada ciclista no seu rolo, em casa, na mesma prova</figcaption></figure>
+      <figure data-full="img/mundial-esports.jpg"><div class="ph"><img src="img/mundial-esports.jpg" alt="Gabriela Guerra no Mundial UCI de Ciclismo eSports"></div><figcaption><b>Mundial UCI de Ciclismo eSports</b>Gabriela Guerra (BRA) em Abu Dhabi</figcaption></figure>
     </div>
   </div>
-  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim.</aside>
+  <div class="source">Imagens: transmissão da Copa Brasil de Ciclismo eSports (CBC/ZTBR) e divulgação do Mundial UCI de Ciclismo eSports.</div>
+  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim (potência amarela, FC vermelha). Isso já é competição de verdade: na Copa Brasil, organizada pela CBC com a ZTBR, cada atleta pedala em casa e a organização acompanha pela videochamada (eu estou nessa chamada). No topo, o Mundial da UCI, com a brasileira Gabriela Guerra. Clique nas fotos para ampliar.</aside>
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
 <section data-section="Problema" data-timing="60">
   <div class="kicker">Problema</div>
   <h2>O fluxo do ciclista é fragmentado</h2>
-  <div class="grid g4" style="margin-top:60px;text-align:center">
-    <div class="card"><div class="stat c-alt" style="font-size:56px">GPX</div><p style="margin-top:14px">app de rota</p></div>
-    <div class="card"><div class="stat c-teal" style="font-size:56px">rolo</div><p style="margin-top:14px">app de treino</p></div>
-    <div class="card"><div class="stat c-blue" style="font-size:56px">.FIT</div><p style="margin-top:14px">app de análise</p></div>
-    <div class="card"><div class="stat c-power" style="font-size:56px">∑</div><p style="margin-top:14px">planilha</p></div>
-  </div>
-  <div class="grid g3" style="margin-top:56px">
-    <div class="fragment rise"><h3 class="c-text" style="color:var(--text)">Contexto perdido</h3><p class="muted small">cada troca de app separa o percurso do dado</p></div>
-    <div class="fragment rise"><h3 style="color:var(--text)">Custo e conta</h3><p class="muted small">assinaturas em dólar/euro: US$ 19,99/mês (Zwift), € 19,99/mês (Rouvy)</p></div>
-    <div class="fragment rise"><h3 style="color:var(--text)">Caixa-preta</h3><p class="muted small">métricas como TSS e PMC sem fórmula ou parâmetro explícitos</p></div>
+  <svg viewBox="0 0 1700 300" width="100%" style="margin-top:30px" font-family="Inter">
+      <g class="app-node" style="--i:0">
+        <rect x="0" y="30" width="350" height="250" rx="20" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+        <path d="M20,30 h310 a20,20 0 0 1 20,20 v18 h-350 v-18 a20,20 0 0 1 20,-20z" fill="var(--bg-3)"/>
+        <circle cx="26" cy="49" r="6" fill="var(--line)"/><circle cx="46" cy="49" r="6" fill="var(--line)"/><circle cx="66" cy="49" r="6" fill="var(--line)"/>
+        <text x="330" y="55" text-anchor="end" fill="var(--faint)" font-size="16" font-family="JetBrains Mono">login · conta</text>
+        <svg x="139" y="88" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--alt)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18h8a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h8"/></svg>
+        <text x="175" y="214" text-anchor="middle" fill="var(--text)" font-size="28" font-weight="700">Planejar a rota</text>
+        <text x="175" y="248" text-anchor="middle" fill="var(--muted)" font-size="21">app de mapas</text>
+      </g>
+      <g class="app-node" style="--i:1">
+        <rect x="450" y="30" width="350" height="250" rx="20" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+        <path d="M470,30 h310 a20,20 0 0 1 20,20 v18 h-350 v-18 a20,20 0 0 1 20,-20z" fill="var(--bg-3)"/>
+        <circle cx="476" cy="49" r="6" fill="var(--line)"/><circle cx="496" cy="49" r="6" fill="var(--line)"/><circle cx="516" cy="49" r="6" fill="var(--line)"/>
+        <text x="780" y="55" text-anchor="end" fill="var(--faint)" font-size="16" font-family="JetBrains Mono">login · conta</text>
+        <svg x="589" y="88" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7M12 14v7M3 12h7M14 12h7"/></svg>
+        <text x="625" y="214" text-anchor="middle" fill="var(--text)" font-size="28" font-weight="700">Pedalar no rolo</text>
+        <text x="625" y="248" text-anchor="middle" fill="var(--muted)" font-size="21">app de simulação</text>
+      </g>
+      <g class="app-node" style="--i:2">
+        <rect x="900" y="30" width="350" height="250" rx="20" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+        <path d="M920,30 h310 a20,20 0 0 1 20,20 v18 h-350 v-18 a20,20 0 0 1 20,-20z" fill="var(--bg-3)"/>
+        <circle cx="926" cy="49" r="6" fill="var(--line)"/><circle cx="946" cy="49" r="6" fill="var(--line)"/><circle cx="966" cy="49" r="6" fill="var(--line)"/>
+        <text x="1230" y="55" text-anchor="end" fill="var(--faint)" font-size="16" font-family="JetBrains Mono">login · conta</text>
+        <svg x="1039" y="88" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V11M11 21V5M16 21v-7M21 21v-11"/></svg>
+        <text x="1075" y="214" text-anchor="middle" fill="var(--text)" font-size="28" font-weight="700">Analisar o treino</text>
+        <text x="1075" y="248" text-anchor="middle" fill="var(--muted)" font-size="21">plataforma de análise</text>
+      </g>
+      <g class="app-node" style="--i:3">
+        <rect x="1350" y="30" width="350" height="250" rx="20" fill="var(--bg-2)" stroke="var(--line)" stroke-width="2"/>
+        <path d="M1370,30 h310 a20,20 0 0 1 20,20 v18 h-350 v-18 a20,20 0 0 1 20,-20z" fill="var(--bg-3)"/>
+        <circle cx="1376" cy="49" r="6" fill="var(--line)"/><circle cx="1396" cy="49" r="6" fill="var(--line)"/><circle cx="1416" cy="49" r="6" fill="var(--line)"/>
+        <text x="1680" y="55" text-anchor="end" fill="var(--faint)" font-size="16" font-family="JetBrains Mono">login · conta</text>
+        <svg x="1489" y="88" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--power)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>
+        <text x="1525" y="214" text-anchor="middle" fill="var(--text)" font-size="28" font-weight="700">Juntar os números</text>
+        <text x="1525" y="248" text-anchor="middle" fill="var(--muted)" font-size="21">planilha</text>
+      </g>
+      <g class="elo" style="--i:0">
+        <path d="M356,155 H392" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M408,155 H444" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M393,146 l14,18 M407,146 l-14,18" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>
+        <g class="arquivo"><rect x="366" y="94" width="68" height="34" rx="8" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="2"/><text x="400" y="117" text-anchor="middle" fill="var(--bad)" font-size="17" font-weight="700" font-family="JetBrains Mono">GPX</text></g>
+        <text x="400" y="200" text-anchor="middle" fill="var(--muted)" font-size="17">exportar</text>
+        <text x="400" y="221" text-anchor="middle" fill="var(--muted)" font-size="17">e importar</text>
+      </g>
+      <g class="elo" style="--i:1">
+        <path d="M806,155 H842" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M858,155 H894" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M843,146 l14,18 M857,146 l-14,18" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>
+        <g class="arquivo"><rect x="816" y="94" width="68" height="34" rx="8" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="2"/><text x="850" y="117" text-anchor="middle" fill="var(--bad)" font-size="17" font-weight="700" font-family="JetBrains Mono">FIT</text></g>
+        <text x="850" y="200" text-anchor="middle" fill="var(--muted)" font-size="17">exportar</text>
+        <text x="850" y="221" text-anchor="middle" fill="var(--muted)" font-size="17">e enviar</text>
+      </g>
+      <g class="elo" style="--i:2">
+        <path d="M1256,155 H1292" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M1308,155 H1344" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 6"/>
+        <path d="M1293,146 l14,18 M1307,146 l-14,18" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>
+        <g class="arquivo"><rect x="1266" y="94" width="68" height="34" rx="8" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="2"/><text x="1300" y="117" text-anchor="middle" fill="var(--bad)" font-size="17" font-weight="700" font-family="JetBrains Mono">CSV</text></g>
+        <text x="1300" y="200" text-anchor="middle" fill="var(--muted)" font-size="17">copiar</text>
+        <text x="1300" y="221" text-anchor="middle" fill="var(--muted)" font-size="17">os números</text>
+      </g>
+  </svg>
+  <p class="small muted" style="margin:10px 0 0;text-align:center">Quatro aplicativos, três exportações manuais e uma conta em cada um.</p>
+  <div class="grid g3 dores" style="margin-top:40px">
+    <div class="fragment rise card"><h4>Contexto perdido</h4><p>a cada troca de aplicativo, o dado se separa do percurso que o gerou</p></div>
+    <div class="fragment rise card"><h4>Custo e conta</h4><p>assinaturas em dólar ou euro: US$ 19,99/mês (Zwift), € 19,99/mês (Rouvy)</p></div>
+    <div class="fragment rise card"><h4>Caixa-preta</h4><p>métricas como TSS e PMC sem fórmula ou parâmetro explícitos</p></div>
   </div>
   <div class="source">Preços de referência consultados em out/2026 nas páginas oficiais (Cap. 2).</div>
-  <aside class="notes">Três dores: fragmentação, custo/dependência de conta, análise opaca. O Argus ataca fragmentação e opacidade, mantendo o dado local. ~1:00.</aside>
+  <aside class="notes">O ciclista que treina em casa costuma usar quatro ferramentas: uma para montar a rota, outra para pedalar no rolo, outra para analisar e uma planilha para juntar tudo. Entre elas, o dado viaja em arquivos exportados à mão (GPX, FIT, CSV), e cada uma pede conta e login. Três dores: o contexto se perde, o custo se acumula e a análise é uma caixa-preta. O Argus ataca a fragmentação e a opacidade, mantendo o dado local. ~1:00.</aside>
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
@@ -214,42 +270,41 @@
 <section data-section="Arquitetura" data-timing="70">
   <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
   <h2>Como o Argus foi construído</h2>
-  <div class="grid" style="grid-template-columns: 0.85fr 1.15fr; gap:56px; margin-top:14px; align-items:center">
-    <svg viewBox="0 0 700 700" width="100%" style="max-height:700px" font-family="Inter" text-anchor="middle">
+  <div class="grid" style="grid-template-columns: 0.78fr 1.22fr; gap:50px; margin-top:10px; align-items:center">
+    <svg viewBox="0 0 700 700" width="100%" style="max-height:690px" font-family="Inter" text-anchor="middle">
       <defs><marker id="ain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
-      <g class="anel" style="--d:0.45s"><circle cx="350" cy="350" r="335" fill="var(--bg-2)" stroke="var(--line)" stroke-width="3"/>
-        <text x="350" y="52" fill="var(--text)" font-size="25" font-weight="700">Interface e frameworks</text>
-        <text x="350" y="80" fill="var(--muted)" font-size="19">Wails · MapLibre · ECharts · Capacitor</text></g>
-      <g class="anel" style="--d:0.3s"><circle cx="350" cy="350" r="250" fill="var(--bg-3)" stroke="var(--line)" stroke-width="3"/>
+      <g class="anel" style="--d:0.45s"><circle cx="350" cy="350" r="335" fill="var(--tint-neutral)" stroke="var(--alt)" stroke-width="3"/>
+        <text x="350" y="52" fill="var(--text)" font-size="25" font-weight="700">Interface</text>
+        <text x="350" y="80" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">16,8 mil linhas · JS, CSS, HTML</text></g>
+      <g class="anel" style="--d:0.3s"><circle cx="350" cy="350" r="250" fill="var(--bg-2)" stroke="var(--anotacao)" stroke-width="3"/>
         <text x="350" y="138" fill="var(--text)" font-size="25" font-weight="700">Adaptadores</text>
-        <text x="350" y="166" fill="var(--muted)" font-size="19">SQLite e GORM · Bluetooth · FIT · GPX</text></g>
+        <text x="350" y="166" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">3,5 mil linhas Go</text></g>
       <g class="anel" style="--d:0.15s"><circle cx="350" cy="350" r="165" fill="var(--tint-blue)" stroke="var(--blue)" stroke-width="3"/>
         <text x="350" y="224" fill="var(--text)" font-size="25" font-weight="700">Casos de uso</text>
-        <text x="350" y="252" fill="var(--muted)" font-size="19">sessão · treino · dados</text></g>
+        <text x="350" y="252" fill="var(--muted)" font-size="19" font-family="JetBrains Mono">3,2 mil linhas Go</text></g>
       <g class="anel" style="--d:0s"><circle cx="350" cy="350" r="82" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
-        <text x="350" y="340" fill="var(--teal)" font-size="26" font-weight="800">Domínio</text>
-        <text x="350" y="366" fill="var(--muted)" font-size="17">atividade</text>
-        <text x="350" y="388" fill="var(--muted)" font-size="17">telemetria</text></g>
+        <text x="350" y="345" fill="var(--teal)" font-size="26" font-weight="800">Domínio</text>
+        <text x="350" y="373" fill="var(--muted)" font-size="18" font-family="JetBrains Mono">478 linhas</text></g>
       <g class="fragment" data-fragment-index="1" stroke="var(--muted)" stroke-width="3" fill="none">
         <path d="M350,678 V606" marker-end="url(#ain)"/><path d="M350,594 V520" marker-end="url(#ain)"/><path d="M350,510 V440" marker-end="url(#ain)"/>
       </g>
     </svg>
-    <div>
-      <div class="stack">
-        <div><span>Núcleo</span><b>Go 1.24</b></div>
-        <div><span>Desktop</span><b>Wails 2</b><i>janela nativa que liga Go e JavaScript</i></div>
-        <div><span>Interface</span><b>JavaScript · HTML · CSS</b><i>empacotada com Vite</i></div>
-        <div><span>Mapa 3D</span><b>MapLibre GL 5</b><i>imagens de satélite Esri e relevo AW3D30</i></div>
-        <div><span>Gráficos</span><b>ECharts 6</b><i>relatório em PDF com jsPDF</i></div>
-        <div><span>Bluetooth</span><b>TinyGo Bluetooth</b><i>no Android: plugin BLE do Capacitor</i></div>
-        <div><span>Dados</span><b>SQLite · GORM</b><i>arquivos FIT, GPX e ZWO</i></div>
-        <div><span>Android</span><b>Capacitor 8</b><i>reaproveita a mesma interface</i></div>
-        <div><span>IA local</span><b>Ollama</b><i>roda no próprio computador</i></div>
-      </div>
-      <p class="fragment rise small" data-fragment-index="1" style="margin-top:22px"><span class="c-teal">●</span> <strong>As dependências apontam para dentro:</strong> <span class="muted">o domínio não importa banco, Bluetooth nem interface; trocar o SQLite ou o rolo não muda as regras.</span></p>
+    <div class="camadas">
+      <div class="camada" style="--c:var(--alt)"><div class="camada-h">Interface</div><div class="tecs">
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#DF0000" d="m19.67 5.252-7.856 5.039-.369-.459-8.69-.283 1.891 1.904 5.221.106 1.63 1.656-5.878.662 1.77 1.783 5.34-1.185.003-.006.993 1.168-3.079 3.11 7.399.001-1.582-5.002 2.209 3.14H24l-5.385-2.415h4.121l-5.384-2.418h4.117L16.297 9.73l1.088-1.443 4.09-1.076-3.467.248 1.662-2.207zm-3.635 2.322-6.039.43 1.455 1.826 1.813-.476 2.771-1.78zm-.252 2.84-.86 1.145-.001-.002.154-.205.707-.938zM0 12.2l5.615 1.033-1.017-1.027L0 12.2z"/></svg></span><span><b>Wails 2</b><i>janela nativa Go ↔ JS</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#F7DF1E" d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z"/></svg></span><span><b>JavaScript</b><i>com Vite</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E34F26" d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z"/></svg><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1572B6" d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438L1.5 0zm17.09 4.413L5.41 4.41l.213 2.622 10.125.002-.255 2.716h-6.64l.24 2.573h6.182l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.855L12 19.288l5.373-1.53L18.59 4.414z"/></svg></span><span><b>HTML e CSS</b></span></div>
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#396CB2" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm0 3.19c2.937 0 5.371 2.265 5.371 5.035 0 4.111-4.364 7.635-5.035 8.138-.084 0-.084.084-.084.084-.084.084-.168.084-.168.084s-.168 0-.168-.084l-.084-.084c-.84-.503-5.203-3.943-5.203-8.138 0-2.77 2.434-5.036 5.371-5.036zm0 2.601c-1.427 0-2.602 1.173-2.602 2.684 0 1.51 1.175 2.685 2.602 2.685 1.427 0 2.602-1.175 2.602-2.685S13.427 5.79 12 5.79zM8.979 17.287h6.042a.66.66 0 0 1 .67.672v2.014a.66.66 0 0 1-.67.67H8.98a.66.66 0 0 1-.67-.67v-2.014a.66.66 0 0 1 .67-.672zm.755 1.258v.924h4.448v-.924H9.734z"/></svg></span><span><b>MapLibre GL 5</b><i>mapa 3D e relevo</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#AA344D" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm-.792 5.307c2.192-.025 4.366 1.134 5.43 3.304.909 1.852.878 3.61-.098 5.645-.477.995-.487 1.06-.241 1.578.214.452.727.779 1.221.779.454 0 1.15-.586 1.252-1.054.1-.454-.193-1.118-.607-1.377a10.11 10.11 0 0 1-.393-.255c-.129-.1.42-.38.741-.38.687 0 1.247.526 1.375 1.29.055.333.134.422.44.502.859.222 1.297 1.451.755 2.116-.22.27-.23.271-.305.042-.267-.801-.666-1.12-1.403-1.12-.319 0-.572.128-1.098.556-1.006.82-1.866 1.303-2.907 1.632-1.276.384-2.752.478-4.086.156-2.162-.431-4.232-2.11-5.252-4.257C4.758 11.782 5.135 9 7.033 7.077a5.924 5.924 0 0 1 4.175-1.77Z"/></svg></span><span><b>ECharts 6</b><i>gráficos</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#119EFF" d="M24 3.7l-5.766 5.766 5.725 5.736-3.713 3.712L5.073 3.742 8.786.03l5.736 5.726L20.284 0 24 3.7zM.029 8.785l3.713-3.713 15.173 15.173-3.713 3.714-5.732-5.726L3.7 24 0 20.285l5.754-5.764L.029 8.785z"/></svg><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></svg></span><span><b>Capacitor 8</b><i>Android</i></span></div></div></div>
+      <div class="camada" style="--c:var(--anotacao)"><div class="camada-h">Adaptadores</div><div class="tecs">
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0082FC" d="M12 0C6.76 0 3.1484 2.4895 3.1484 12S6.76 24 12 24c5.24 0 8.8516-2.4895 8.8516-12S17.24 0 12 0zm-.7773 1.6816l6.2148 6.2149L13.334 12l4.1035 4.1035-6.2148 6.2149V14.125l-3.418 3.42-1.2422-1.2442L10.8515 12l-4.289-4.3008 1.2422-1.2441 3.418 3.4199V1.6816zm1.748 4.2442v3.9687l1.9844-1.9843-1.9844-1.9844zm0 8.1816v3.9668l1.9844-1.9844-1.9844-1.9824Z"/></svg></span><span><b>TinyGo Bluetooth</b><i>rolo e sensores</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--text)" d="M21.678.521c-1.032-.92-2.28-.55-3.513.544a8.71 8.71 0 0 0-.547.535c-2.109 2.237-4.066 6.38-4.674 9.544.237.48.422 1.093.544 1.561a13.044 13.044 0 0 1 .164.703s-.019-.071-.096-.296l-.05-.146a1.689 1.689 0 0 0-.033-.08c-.138-.32-.518-.995-.686-1.289-.143.423-.27.818-.376 1.176.484.884.778 2.4.778 2.4s-.025-.099-.147-.442c-.107-.303-.644-1.244-.772-1.464-.217.804-.304 1.346-.226 1.478.152.256.296.698.422 1.186.286 1.1.485 2.44.485 2.44l.017.224a22.41 22.41 0 0 0 .056 2.748c.095 1.146.273 2.13.5 2.657l.155-.084c-.334-1.038-.47-2.399-.41-3.967.09-2.398.642-5.29 1.661-8.304 1.723-4.55 4.113-8.201 6.3-9.945-1.993 1.8-4.692 7.63-5.5 9.788-.904 2.416-1.545 4.684-1.931 6.857.666-2.037 2.821-2.912 2.821-2.912s1.057-1.304 2.292-3.166c-.74.169-1.955.458-2.362.629-.6.251-.762.337-.762.337s1.945-1.184 3.613-1.72C21.695 7.9 24.195 2.767 21.678.521m-18.573.543A1.842 1.842 0 0 0 1.27 2.9v16.608a1.84 1.84 0 0 0 1.835 1.834h9.418a22.953 22.953 0 0 1-.052-2.707c-.006-.062-.011-.141-.016-.2a27.01 27.01 0 0 0-.473-2.378c-.121-.47-.275-.898-.369-1.057-.116-.197-.098-.31-.097-.432 0-.12.015-.245.037-.386a9.98 9.98 0 0 1 .234-1.045l.217-.028c-.017-.035-.014-.065-.031-.097l-.041-.381a32.8 32.8 0 0 1 .382-1.194l.2-.019c-.008-.016-.01-.038-.018-.053l-.043-.316c.63-3.28 2.587-7.443 4.8-9.791.066-.069.133-.128.198-.194Z"/></svg></span><span><b>SQLite e GORM</b><i>banco local</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="var(--text)" stroke-width="1.8" stroke-linejoin="round"><path d="M6 2.5h8l4.5 4.5v14.5H6z"/><path d="M14 2.5V7h4.5"/><text x="12.2" y="17.5" font-size="5.6" font-family="JetBrains Mono" font-weight="700" fill="var(--text)" stroke="none" text-anchor="middle">FIT</text></svg></span><span><b>FIT SDK</b><i>arquivo do treino</i></span></div>
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FC4C02" d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg></span><span><b>Strava e Intervals</b><i>integrações</i></span></div><div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--text)" d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"/></svg></span><span><b>Ollama</b><i>IA local</i></span></div></div></div>
+      <div class="camadas-par"><div class="camada" style="--c:var(--blue)"><div class="camada-h">Casos de uso</div><div class="tecs">
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ADD8" d="M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303c-.023.036-.082.07-.117.07zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082zm12.129-2.36c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.174-.199-.303-.327-.548-.444-.737-.362-1.45-.257-2.115.175-.795.514-1.204 1.274-1.192 2.22.011.935.654 1.706 1.577 1.835.795.105 1.46-.175 1.987-.77.105-.13.198-.27.315-.434H10.47c-.245 0-.304-.152-.222-.35.152-.362.432-.97.596-1.274a.315.315 0 01.292-.187h4.253c-.023.316-.023.631-.07.947a4.983 4.983 0 01-.958 2.29c-.841 1.11-1.94 1.8-3.33 1.986-1.145.152-2.209-.07-3.143-.77-.865-.655-1.356-1.52-1.484-2.595-.152-1.274.222-2.419.993-3.424.83-1.086 1.928-1.776 3.272-2.02 1.098-.2 2.15-.07 3.096.571.62.41 1.063.97 1.356 1.648.07.105.023.164-.117.2m3.868 6.461c-1.064-.024-2.034-.328-2.852-1.029a3.665 3.665 0 01-1.262-2.255c-.21-1.32.152-2.489.947-3.529.853-1.122 1.881-1.706 3.272-1.95 1.192-.21 2.314-.095 3.33.595.923.63 1.496 1.484 1.648 2.605.198 1.578-.257 2.863-1.344 3.962-.771.783-1.718 1.273-2.805 1.495-.315.06-.63.07-.934.106zm2.78-4.72c-.011-.153-.011-.27-.034-.387-.21-1.157-1.274-1.81-2.384-1.554-1.087.245-1.788.935-2.045 2.033-.21.912.234 1.835 1.075 2.21.643.28 1.285.244 1.905-.07.923-.48 1.425-1.228 1.484-2.233z"/></svg></span><span><b>Go 1.24</b><i>sessão, treino e armazenamento</i></span></div></div></div>
+      <div class="camada" style="--c:var(--teal)"><div class="camada-h">Domínio</div><div class="tecs">
+        <div class="tec"><span class="tec-ic"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#00ADD8" d="M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303c-.023.036-.082.07-.117.07zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082zm12.129-2.36c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.174-.199-.303-.327-.548-.444-.737-.362-1.45-.257-2.115.175-.795.514-1.204 1.274-1.192 2.22.011.935.654 1.706 1.577 1.835.795.105 1.46-.175 1.987-.77.105-.13.198-.27.315-.434H10.47c-.245 0-.304-.152-.222-.35.152-.362.432-.97.596-1.274a.315.315 0 01.292-.187h4.253c-.023.316-.023.631-.07.947a4.983 4.983 0 01-.958 2.29c-.841 1.11-1.94 1.8-3.33 1.986-1.145.152-2.209-.07-3.143-.77-.865-.655-1.356-1.52-1.484-2.595-.152-1.274.222-2.419.993-3.424.83-1.086 1.928-1.776 3.272-2.02 1.098-.2 2.15-.07 3.096.571.62.41 1.063.97 1.356 1.648.07.105.023.164-.117.2m3.868 6.461c-1.064-.024-2.034-.328-2.852-1.029a3.665 3.665 0 01-1.262-2.255c-.21-1.32.152-2.489.947-3.529.853-1.122 1.881-1.706 3.272-1.95 1.192-.21 2.314-.095 3.33.595.923.63 1.496 1.484 1.648 2.605.198 1.578-.257 2.863-1.344 3.962-.771.783-1.718 1.273-2.805 1.495-.315.06-.63.07-.934.106zm2.78-4.72c-.011-.153-.011-.27-.034-.387-.21-1.157-1.274-1.81-2.384-1.554-1.087.245-1.788.935-2.045 2.033-.21.912.234 1.835 1.075 2.21.643.28 1.285.244 1.905-.07.923-.48 1.425-1.228 1.484-2.233z"/></svg></span><span><b>Go puro</b><i>atividade, telemetria e perfil</i></span></div></div></div></div>
+      <p class="fragment rise small" data-fragment-index="1" style="margin-top:16px"><span class="c-teal">●</span> <strong>As dependências apontam para dentro:</strong> <span class="muted">o domínio não importa banco, Bluetooth nem interface.</span></p>
     </div>
   </div>
-  <aside class="notes">Clean Architecture: o centro (domínio: atividade, telemetria, perfil, regras) não depende de nada de fora. Os casos de uso orquestram; os adaptadores falam com SQLite (GORM), Bluetooth (TinyGo), arquivos FIT/GPX; a camada externa é a interface (Wails, MapLibre, ECharts). Concessões, se perguntarem: o app.go concentra a orquestração da sessão; as entidades do domínio carregam tags de persistência do GORM (sem importar o pacote); a física e o GPX foram reimplementados em JavaScript no Android porque o Capacitor não roda Go. Stack: Go no núcleo, interface web compartilhada entre desktop (Wails) e Android (Capacitor).</aside>
+  <div class="source">Linhas não vazias, sem testes, contadas no repositório em 01/11/2026. Ícones: Simple Icons (CC0).</div>
+  <aside class="notes">Os anéis são a Clean Architecture aplicada ao Argus, com o tamanho real de cada camada: o domínio é pequeno (478 linhas de Go puro: atividade, telemetria, perfil e as regras), os casos de uso têm 3,2 mil linhas, os adaptadores 3,5 mil (Bluetooth, banco, FIT, GPX, integrações, IA) e a interface é a maior parte (16,8 mil linhas de JavaScript, CSS e HTML). À direita, as tecnologias de cada anel. Concessões, se perguntarem: dos 3,2 mil de casos de uso, 3 mil estão no app.go, que concentra a orquestração da sessão; as entidades do domínio carregam tags do GORM (sem importar o pacote); no Android, física e GPX foram reimplementados em JavaScript porque o Capacitor não roda Go.</aside>
 </section>
 
 <!-- ============================================================ ARQUITETURA -->
@@ -337,40 +392,36 @@
 <section data-section="Comunicação" data-timing="45">
   <div class="kicker">Controle do rolo · Bluetooth SIG (2017), ANT+ (2024)</div>
   <h2>Dois idiomas para falar com o rolo</h2>
-  <div class="grid protos" style="margin-top:26px">
+  <div class="protos2" style="margin-top:40px">
     <div class="card proto">
       <div class="proto-tag">Bluetooth SIG</div>
       <h3>FTMS</h3>
-      <p class="muted">Fitness Machine Service: padrão do próprio Bluetooth LE</p>
-      <ul class="small">
-        <li>o Argus pede o controle e envia comandos curtos</li>
-        <li><strong>inclinação</strong> no modo simulação, <strong>potência-alvo</strong> no ERG</li>
-        <li>potência e cadência chegam pelo perfil Cycling Power</li>
-      </ul>
-      <div class="proto-cmd">0x00 controle · 0x03 inclinação · 0x05 potência</div>
+      <p class="muted">Fitness Machine Service, o padrão do próprio Bluetooth</p>
+      <div class="msg-h">“subida de 6,5%” vira</div>
+      <div class="bytes"><div class="bgrp"><div class="bb"><span class="byte op">03</span></div><div class="bcap">comando:<br>inclinação</div></div><div class="bgrp"><div class="bb"><span class="byte val">41</span><span class="byte val">00</span></div><div class="bcap">65 → 6,5%</div></div></div>
+      <ul class="small"><li>3 bytes, direto no ponto de controle</li><li>potência-alvo (ERG) usa o comando 0x05</li></ul>
     </div>
-    <div class="proto-mid">
+    <div class="hub">
+      <svg viewBox="0 0 300 120" width="100%"><path class="flow" d="M150,60 H10" stroke="var(--blue)" stroke-width="4"/><path class="flow" d="M150,60 H290" stroke="var(--teal)" stroke-width="4"/></svg>
       <div class="proto-argus">Argus</div>
-      <p>na conexão, vê qual serviço o rolo anuncia e usa o idioma certo</p>
-      <p class="muted">o resto do sistema só pede: “inclinação 6,5%” ou “210 W”</p>
+      <p>um único pedido interno:<br><strong>“inclinação 6,5%”</strong></p>
+      <p class="muted">na conexão, vê qual serviço o rolo anuncia e traduz</p>
     </div>
     <div class="card proto">
       <div class="proto-tag ant">ANT+</div>
       <h3>FE-C</h3>
-      <p class="muted">Fitness Equipment Control: padrão ANT+, aqui sobre Bluetooth LE</p>
-      <ul class="small">
-        <li>mensagens em “páginas” de 8 bytes</li>
-        <li>primeiro configura ciclista e vento, depois envia inclinação ou potência</li>
-        <li>o próprio rolo devolve potência e cadência</li>
-      </ul>
-      <div class="proto-cmd">páginas 55 ciclista · 50 vento · 51 inclinação · 49 potência</div>
+      <p class="muted">Fitness Equipment Control, o padrão ANT+ levado ao Bluetooth</p>
+      <div class="msg-h">“subida de 6,5%” vira</div>
+      <div class="bytes"><div class="bgrp"><div class="bb"><span class="byte op">33</span></div><div class="bcap">página 51</div></div><div class="bgrp"><div class="bb"><span class="byte res">FF</span><span class="byte res">FF</span><span class="byte res">FF</span><span class="byte res">FF</span></div><div class="bcap">reservado</div></div><div class="bgrp"><div class="bb"><span class="byte val">AA</span><span class="byte val">50</span></div><div class="bcap">6,5%</div></div><div class="bgrp"><div class="bb"><span class="byte crr">50</span></div><div class="bcap">atrito</div></div></div>
+      <ul class="small"><li>página de 8 bytes, como no ANT+</li><li>antes, envia o perfil do ciclista e o vento</li></ul>
     </div>
   </div>
   <div class="plats fragment rise">
     <div><b>Desktop</b> FTMS <span class="c-ok">✓</span> &nbsp; FE-C <span class="c-ok">✓</span></div>
-    <div><b>Android</b> FE-C <span class="c-ok">✓</span> &nbsp; FTMS <span class="faint">ainda não</span></div>
+    <div><b>Android</b> FE-C <span class="c-ok">✓</span> &nbsp; FTMS <span class="faint">trabalho futuro</span></div>
   </div>
-  <aside class="notes">FTMS é o padrão do Bluetooth SIG; FE-C é o padrão ANT+ que muitos rolos (por exemplo, os Tacx) também expõem sobre Bluetooth. O Argus implementa os dois no desktop: ao conectar, procura o ponto de controle do FTMS (0x2AD9) ou o serviço FE-C sobre BLE e escolhe o caminho. Para o resto do sistema é transparente: o laço pede inclinação ou potência. No FE-C, o Argus envia o perfil do ciclista (pág. 55) e a resistência do vento (pág. 50) antes de começar; a inclinação vai na página 51, com Crr 0,004. No Android, só FE-C por enquanto. FE-C sobre BLE não é ANT+ propriamente dito: é o mesmo formato de página, transportado pelo Bluetooth.</aside>
+  <div class="source">O rolo usado nos testes fala FE-C; o caminho FTMS está implementado no desktop, mas não foi validado com um rolo só FTMS (Cap. 7).</div>
+  <aside class="notes">FTMS é o padrão do Bluetooth SIG; FE-C é o padrão ANT+ que muitos rolos (por exemplo, os Tacx) também expõem sobre Bluetooth. A mesma ordem, “subida de 6,5%”, vira 3 bytes no FTMS (comando 0x03 e o valor 65, em décimos de por cento) ou uma página de 8 bytes no FE-C (página 51: inclinação em centésimos com deslocamento de 200%, 0x50AA, e o coeficiente de rolamento 0,004). O resto do sistema não sabe qual idioma está em uso. No FE-C, antes de começar, o Argus envia o perfil do ciclista (pág. 55) e a resistência do vento (pág. 50). Android: só FE-C por enquanto. Honestidade: o rolo dos testes expõe FE-C; o caminho FTMS existe no desktop, mas não foi validado com um rolo só FTMS.</aside>
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
@@ -473,31 +524,6 @@
   <aside class="notes">Os sensores mandam avisos quando querem: cerca de 3 por segundo somando rolo e cinta. O laço da sessão junta tudo e calcula a velocidade pela física e a posição na rota. Três destinos: 1) a tela recebe cada aviso: o HUD mostra os números e o mapa move o ciclista (a câmera suaviza a cada 150 ms); 2) o arquivo FIT guarda tudo, com o horário de cada aviso, e é o que vai para o histórico, Strava e Intervals.icu; 3) o reamostrador agrupa os avisos de cada segundo e tira a média, porque as fórmulas (NP com janela de 30 s, TSS, desacoplamento) supõem um valor por segundo. Sem ele, 3 avisos seriam contados como 3 segundos e as métricas ficariam distorcidas, defeito que a própria avaliação encontrou e corrigi.</aside>
 </section>
 
-<!-- ============================================================ 10 GPX → RESISTÊNCIA -->
-<section data-section="Simulação" data-timing="90">
-  <div class="kicker">Simulação · cenário de reconhecimento: de Geraardsbergen a Leberg (Bélgica)</div>
-  <h2>Do GPX à resistência do rolo</h2>
-  <div class="grid g-60-40" style="margin-top:10px">
-    <div>
-      <div id="ch-grade" class="chart short" data-stepped="1"></div>
-      <p class="small muted" style="margin-top:6px">
-        <span class="fragment" data-chart-step="1">Entre pontos vizinhos: rampas de até <span class="c-bad mono">17,9%</span> e muito ruído.</span>
-        <span class="fragment" data-chart-step="2">Janela de ±5 pontos e limite de ±25%: <strong>a curva que vai para o rolo</strong>.</span>
-      </p>
-    </div>
-    <div class="fragment">
-      <p class="small" style="margin-bottom:6px">Equação de Martin (quase estática), resolvida por bisseção:</p>
-      <p class="mono small" style="background:var(--bg-2);padding:16px 20px;border-radius:12px;border:1px solid var(--line)">
-        η·P = ½ρC<sub>d</sub>A·v³ + m·g·(C<sub>rr</sub>cosθ + sinθ)·v
-      </p>
-      <div id="ch-speed" class="chart" style="height:380px"></div>
-      <p class="tiny faint">Velocidade a 200 W, 84 kg · mesmas constantes e algoritmo do motor Go</p>
-    </div>
-  </div>
-  <div class="source">Martin et al. (1998). Velocidade e distância são <em>estimadas</em> pelo modelo; a potência é <em>medida</em>.</div>
-  <aside class="notes">Por que este percurso: é o caso do cenário de reconhecimento descrito na metodologia (Cap. 4) e usado para demonstrar o RF08; foi escolhido por ter subidas curtas e muito íngremes, onde o ruído do GPX aparece com clareza. GPX vira distância e altitude; a inclinação suavizada vai para o rolo (FE-C pág. 51 / FTMS). A física calcula a velocidade virtual: a mesma potência rende ~33 km/h no plano, ~12 km/h a 6% e ~7 km/h a 12%. Ressaltar: velocidade é modelo, não medida. ~1:30.</aside>
-</section>
-
 <!-- ============================================================ 11 FISIOLOGIA -->
 <section data-section="Fisiologia" data-timing="110">
   <div class="kicker">Fisiologia · sessão de Girona</div>
@@ -550,7 +576,7 @@
     <figure data-full="img/screenshot-07-trophy.png"><div class="ph"><img src="img/screenshot-07-trophy.png" alt="Conquistas"></div><figcaption><b>Conquistas</b>níveis e troféus</figcaption></figure>
     <figure data-full="img/screenshot-11-desgaste.png"><div class="ph"><img src="img/screenshot-11-desgaste.png" alt="Desgaste de componentes"></div><figcaption><b>Desgaste</b>km de corrente e cassete</figcaption></figure>
     <figure data-full="img/recuperacao-sessao.jpg"><div class="ph"><img src="img/recuperacao-sessao.jpg" alt="Recuperação de sessão"></div><figcaption><b>Recuperação</b>sessão salva após uma queda</figcaption></figure>
-    <div class="tile-texto"><div class="uso-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 3v4M9 12h.01M15 12h.01M9.5 15.5h5"/></svg></div><b>IA local</b><span>Ollama gera treinos no formato ZWO, sem enviar dados para fora</span></div>
+    <figure data-full="img/ia-local.png"><div class="ph"><img src="img/ia-local.png" alt="IA local"></div><figcaption><b>IA local</b>Ollama gera treinos ZWO</figcaption></figure>
   </div>
   <aside class="notes">Clicar numa imagem abre a galeria ampliada (setas para passar, Esc para fechar). Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. No Android, a mesma interface roda com HUD e mapa. A recuperação salva a sessão se o app fechar no meio do treino. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
 </section>
@@ -588,7 +614,14 @@
       </div>
     </div>
   </div>
-  <div class="source">¹ conferido por testes automatizados, sem validação clínica · ² o mapa depende de imagens on-line. Plataformas: Windows e Linux (fluxo completo), Android (sessão ao vivo).</div>
+  <div class="plataformas">
+    <div class="req-h" style="border:0;margin:0;padding:0">Multiplataforma</div>
+    <div class="plat ok"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--muted)" d="M3 5.5l7.5-1v7H3zM11.5 4.3L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg><span><b>Windows</b>fluxo completo</span></div>
+    <div class="plat ok"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--text)" d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></svg><span><b>Linux</b>fluxo completo</span></div>
+    <div class="plat ok"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></svg><span><b>Android</b>sessão ao vivo</span></div>
+    <div class="plat"><svg class="si" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="var(--faint)" stroke-width="1.8"/></svg><span><b>macOS · iOS · tablet</b>preparado, não validado</span></div>
+  </div>
+  <div class="source">¹ conferido por testes automatizados, sem validação clínica · ² o mapa depende de imagens on-line.</div>
   <aside class="notes">Todos os requisitos foram atendidos. Detalhe para a fala: RF01 a RF05 verificados no uso; RF06 verificado em amostra (o Intervals e o Strava aceitaram os FIT); RF07: Windows e Linux com fluxo completo, Android com sessão ao vivo (sem FIT e histórico); macOS e iOS preparados, não validados; RF08 demonstrado com o caso Leberg. As métricas não têm validação clínica (não medi lactato nem VO2máx). Os 27 testes: 7 de métricas (NP, IF/TSS, zonas de potência e FC, TRIMP, desacoplamento, PMC), 2 da física (equação de Martin), 3 do reamostrador, 2 do FIT, 12 da recuperação de sessão e 1 do ZWO.</aside>
 </section>
 
