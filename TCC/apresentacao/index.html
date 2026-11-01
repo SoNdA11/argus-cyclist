@@ -31,53 +31,39 @@
   <aside class="notes">Bom dia. Apresento o Argus Cyclist, software de código aberto para ciclismo virtual, registrado no INPI. ~20 s.</aside>
 </section>
 
-<!-- ============================================================ 2 GANCHO -->
-<section data-section="Motivação" data-timing="50">
-  <div class="kicker">Uma pedalada real · 27/04/2026</div>
-  <h2>Uma hora nas colinas de Girona, <span class="c-teal">sem sair de Mossoró</span></h2>
-  <div id="ch-hook" class="chart" data-stepped="1" style="height:560px;margin-top:20px"></div>
-  <div class="grid g3 small" style="margin-top:6px">
-    <div><span class="c-alt">■</span> altitude do percurso (GPX)</div>
-    <div class="fragment" data-chart-step="1"><span class="c-power">■</span> potência do ciclista</div>
-    <div class="fragment" data-chart-step="2"><span class="c-hr">■</span> frequência cardíaca</div>
-  </div>
-  <p class="fragment rise lead" style="margin-top:26px">Como transformar esta pedalada em <strong>números confiáveis</strong> — e saber o que cada número significa?</p>
-  <aside class="notes">Mostrar primeiro só o relevo; clicar: a potência (estável, modo ERG); clicar: a FC que sobe na subida. Fazer a pergunta: é isso que o trabalho responde. ~50 s.</aside>
-</section>
-
-<!-- ============================================================ 3 CICLISMO VIRTUAL -->
+<!-- ============================================================ CICLISMO VIRTUAL -->
 <section data-section="Contexto" data-timing="80">
   <div class="kicker">Contexto</div>
   <h2>O que é ciclismo virtual</h2>
-  <div class="grid g-60-40" style="margin-top:20px;align-items:center">
-    <svg viewBox="0 0 900 640" width="100%">
+  <div class="grid g-60-40" style="margin-top:16px;align-items:center">
+    <svg viewBox="0 0 1000 720" width="100%" font-family="Inter" text-anchor="middle">
       <defs>
         <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
       </defs>
-      <!-- laço -->
-      <path class="flow" d="M450,110 C700,110 790,250 790,320" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M790,360 C790,470 700,540 470,540" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M430,540 C200,540 110,470 110,360" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <path class="flow" d="M110,320 C110,250 200,110 410,110" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
-      <!-- nós -->
-      <g font-family="Inter" text-anchor="middle">
-        <circle cx="450" cy="110" r="70" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-        <text x="450" y="105" fill="var(--text)" font-size="30" font-weight="700">Ciclista</text>
-        <text x="450" y="138" fill="var(--muted)" font-size="20">pedala</text>
-        <circle cx="790" cy="340" r="70" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-        <text x="790" y="335" fill="var(--text)" font-size="28" font-weight="700">Sensores</text>
-        <text x="790" y="366" fill="var(--muted)" font-size="20">Bluetooth LE</text>
-        <circle cx="450" cy="540" r="70" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-        <text x="450" y="535" fill="var(--text)" font-size="28" font-weight="700">Software</text>
-        <text x="450" y="566" fill="var(--muted)" font-size="20">Argus</text>
-        <circle cx="110" cy="340" r="70" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-        <text x="110" y="335" fill="var(--text)" font-size="28" font-weight="700">Rolo</text>
-        <text x="110" y="366" fill="var(--muted)" font-size="20">inteligente</text>
-        <!-- rótulos das setas -->
-        <text x="900" y="62" text-anchor="end" fill="var(--power)" font-size="22">potência · cadência · FC</text>
-        <text x="900" y="490" text-anchor="end" fill="var(--muted)" font-size="22">telemetria</text>
-        <text x="20" y="615" text-anchor="start" fill="var(--teal)" font-size="22">inclinação → resistência</text>
-        <text x="0" y="110" text-anchor="start" fill="var(--muted)" font-size="22">sensação de subida</text>
+      <!-- laço: Ciclista (500,110) → Sensores (880,360) → Software (500,610) → Rolo (120,360) -->
+      <path class="flow" d="M600,120 C760,130 860,200 875,255" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
+      <path class="flow" d="M875,465 C860,540 760,600 605,608" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
+      <path class="flow" d="M395,608 C240,600 140,540 125,465" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
+      <path class="flow" d="M125,255 C140,200 240,130 395,120" fill="none" stroke="var(--blue)" stroke-width="4" marker-end="url(#ah)"/>
+      <g class="node">
+        <circle cx="500" cy="110" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="500" y="106" fill="var(--text)" font-size="34" font-weight="700">Ciclista</text>
+        <text x="500" y="140" fill="var(--muted)" font-size="22">pedala</text>
+        <circle cx="880" cy="360" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="880" y="356" fill="var(--text)" font-size="34" font-weight="700">Sensores</text>
+        <text x="880" y="390" fill="var(--muted)" font-size="22">Bluetooth LE</text>
+        <circle cx="500" cy="610" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="500" y="606" fill="var(--text)" font-size="34" font-weight="700">Software</text>
+        <text x="500" y="640" fill="var(--muted)" font-size="22">Argus Cyclist</text>
+        <circle cx="120" cy="360" r="98" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/>
+        <text x="120" y="356" fill="var(--text)" font-size="34" font-weight="700">Rolo</text>
+        <text x="120" y="390" fill="var(--muted)" font-size="22">inteligente</text>
+      </g>
+      <g font-size="24" font-weight="600">
+        <text x="760" y="70" text-anchor="middle" fill="var(--power)">potência · cadência · FC</text>
+        <text x="790" y="625" text-anchor="start" fill="var(--muted)">telemetria</text>
+        <text x="210" y="625" text-anchor="end" fill="var(--teal)">inclinação → resistência</text>
+        <text x="210" y="120" text-anchor="end" fill="var(--muted)">sensação de subida</text>
       </g>
     </svg>
     <div>
@@ -87,7 +73,7 @@
       <div class="fragment rise card"><h4><span class="c-alt">Inclinação</span> · %</h4><p>Vem do mapa do percurso; o rolo endurece na subida.</p></div>
     </div>
   </div>
-  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim. ~1:20.</aside>
+  <aside class="notes">Para o professor de EF e a plateia: o rolo inteligente recebe a inclinação e ajusta a resistência; os sensores devolvem potência, FC e cadência. Estas cores ficam fixas até o fim.</aside>
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
@@ -149,23 +135,33 @@
   <aside class="notes">Mesmo fluxo atende três públicos. As quatro operações sem trocar de aplicativo. ~50 s.</aside>
 </section>
 
-<!-- ============================================================ 7 METODOLOGIA -->
+<!-- ============================================================ METODOLOGIA -->
 <section data-section="Metodologia" data-timing="50">
   <div class="kicker">Metodologia</div>
   <h2>Design Science Research</h2>
-  <div class="grid g2" style="margin-top:20px;align-items:center">
-    <svg viewBox="0 0 640 620" width="100%" font-family="Inter" text-anchor="middle">
-      <circle cx="320" cy="310" r="215" fill="none" stroke="var(--line)" stroke-width="3"/>
-      <g font-size="23" fill="var(--text)">
-        <g><circle cx="320" cy="95" r="62" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="2"/><text x="320" y="92">Problema</text><text x="320" y="118" fill="var(--muted)" font-size="18">fragmentação</text></g>
-        <g><circle cx="506" cy="203" r="62" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="2"/><text x="506" y="200">Objetivos</text><text x="506" y="226" fill="var(--muted)" font-size="18">requisitos</text></g>
-        <g><circle cx="506" cy="417" r="62" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="2"/><text x="506" y="414">Projeto</text><text x="506" y="440" fill="var(--muted)" font-size="18">artefato</text></g>
-        <g><circle cx="320" cy="525" r="62" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="2"/><text x="320" y="522">Demonstração</text><text x="320" y="548" fill="var(--muted)" font-size="18">3 cenários</text></g>
-        <g><circle cx="134" cy="417" r="62" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text x="134" y="414">Avaliação</text><text x="134" y="440" fill="var(--muted)" font-size="18">piloto n=1</text></g>
-        <g><circle cx="134" cy="203" r="62" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="2"/><text x="134" y="200">Comunicação</text><text x="134" y="226" fill="var(--muted)" font-size="18">TCC · INPI</text></g>
+  <div class="grid g2" style="margin-top:6px;align-items:center">
+    <svg viewBox="0 0 760 740" width="100%" font-family="Inter" text-anchor="middle">
+      <circle cx="380" cy="370" r="262" fill="none" stroke="var(--line)" stroke-width="3"/>
+      <g>
+        <circle cx="380" cy="108" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="380" y="104" fill="var(--text)" font-size="26" font-weight="700">Problema</text>
+        <text x="380" y="134" fill="var(--muted)" font-size="20">fragmentação</text>
+        <circle cx="607" cy="239" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="607" y="235" fill="var(--text)" font-size="26" font-weight="700">Objetivos</text>
+        <text x="607" y="265" fill="var(--muted)" font-size="20">requisitos</text>
+        <circle cx="607" cy="501" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="607" y="497" fill="var(--text)" font-size="26" font-weight="700">Projeto</text>
+        <text x="607" y="527" fill="var(--muted)" font-size="20">artefato</text>
+        <circle cx="380" cy="632" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="380" y="628" fill="var(--text)" font-size="24" font-weight="700">Demonstração</text>
+        <text x="380" y="658" fill="var(--muted)" font-size="20">3 cenários</text>
+        <circle cx="153" cy="501" r="96" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
+        <text x="153" y="497" fill="var(--text)" font-size="26" font-weight="700">Avaliação</text>
+        <text x="153" y="527" fill="var(--muted)" font-size="20">piloto</text>
+        <circle cx="153" cy="239" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="153" y="235" fill="var(--text)" font-size="24" font-weight="700">Comunicação</text>
+        <text x="153" y="265" fill="var(--muted)" font-size="20">TCC · INPI</text>
       </g>
-      <path class="flow fragment" d="M190,390 C260,340 400,360 450,410" fill="none" stroke="var(--teal)" stroke-width="4"/>
-      <text class="fragment" x="320" y="330" fill="var(--teal)" font-size="22">avaliação → nova iteração</text>
     </svg>
     <div>
       <div class="card" style="margin-bottom:22px"><h4>3 ciclos iterativos · jan–out/2026</h4><p>305 commits · núcleo e INPI → análise e treino → Android e IA local</p></div>
@@ -174,66 +170,85 @@
     </div>
   </div>
   <div class="source">Peffers et al. (2007); Hevner et al. (2004).</div>
-  <aside class="notes">DSR: o conhecimento vem de construir e avaliar o artefato. Destacar a seta avaliação → iteração: vou mostrar um exemplo concreto disso adiante. ~50 s.</aside>
+  <aside class="notes">DSR: o conhecimento vem de construir e avaliar o artefato. Seis etapas de Peffers; três ciclos de desenvolvimento registrados no Git.</aside>
 </section>
 
-<!-- ============================================================ 8 ARQUITETURA -->
+<!-- ============================================================ ARQUITETURA -->
 <section data-section="Arquitetura" data-timing="100">
-  <div class="kicker">Arquitetura</div>
+  <div class="kicker">Arquitetura · diagrama gerado com Archify a partir do código</div>
   <h2>Núcleo em Go, interface web compartilhada</h2>
-  <svg viewBox="0 0 1700 760" width="100%" style="margin-top:6px" font-family="Inter">
-    <defs><marker id="ad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker></defs>
-    <g class="layer fragment" data-fragment-index="1">
-      <rect x="0" y="0" width="1160" height="100" rx="14"/>
-      <text x="30" y="45" font-size="30" font-weight="700">Interface (JavaScript)</text>
-      <text class="sub" x="30" y="78">HUD · mapa MapLibre · gráficos ECharts · barramento de telemetria</text>
+  <div class="archify" style="margin-top:4px">
+    <img class="so-claro" src="img/archify-claro.png" alt="Diagrama de arquitetura do Argus Cyclist">
+    <img class="so-escuro" src="img/archify-escuro.png" alt="Diagrama de arquitetura do Argus Cyclist">
+  </div>
+  <div class="grid g3" style="margin-top:12px;font-size:23px;line-height:1.3">
+    <div class="fragment rise"><span class="c-teal">●</span> <strong>Regra da dependência:</strong> o domínio não importa GORM, Wails nem TinyGo</div>
+    <div class="fragment rise"><span class="c-warn">●</span> <strong>Concessão declarada:</strong> o app orquestrador concentra a sessão</div>
+    <div class="fragment rise"><span class="c-blue">●</span> <strong>Android:</strong> mesma interface; física e GPX reimplementados em JS</div>
+  </div>
+  <aside class="notes">Percorrer da esquerda para a direita: interface → Wails → app orquestrador → loop de tempo real → serviço BLE → rolo. Abaixo, persistência por perfil e exportação FIT. Concessões: app.go concentra orquestração; fachada instancia SQLite. Android reaproveita a interface, mas física e GPX são reimplementados (Capacitor não roda Go).</aside>
+</section>
+
+<!-- ============================================================ BLUETOOTH -->
+<section data-section="Comunicação" data-timing="100">
+  <div class="kicker">Comunicação com o equipamento · Bluetooth SIG (2017; 2023), ANT+ (2024)</div>
+  <h2>Como o Argus conversa com o rolo via Bluetooth LE</h2>
+  <svg viewBox="0 0 1700 640" width="100%" style="margin-top:10px" font-family="Inter">
+    <defs>
+      <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
+      <marker id="ab2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/></marker>
+    </defs>
+    <!-- central e periférico -->
+    <g text-anchor="middle">
+      <rect x="0" y="40" width="300" height="560" rx="20" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+      <text x="150" y="95" fill="var(--text)" font-size="32" font-weight="700">Argus</text>
+      <text x="150" y="128" fill="var(--muted)" font-size="21">central (cliente GATT)</text>
+      <rect x="25" y="420" width="250" height="70" rx="10" fill="var(--bg-3)" stroke="var(--line)"/>
+      <text x="150" y="450" fill="var(--text)" font-size="20" font-weight="700">desktop</text>
+      <text x="150" y="476" fill="var(--muted)" font-size="18">Go · TinyGo Bluetooth</text>
+      <rect x="25" y="505" width="250" height="70" rx="10" fill="var(--bg-3)" stroke="var(--line)"/>
+      <text x="150" y="535" fill="var(--text)" font-size="20" font-weight="700">Android</text>
+      <text x="150" y="561" fill="var(--muted)" font-size="18">plugin BLE do Capacitor</text>
+      <rect x="1240" y="40" width="460" height="560" rx="20" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
+      <text x="1470" y="95" fill="var(--text)" font-size="32" font-weight="700">Rolo / sensor</text>
+      <text x="1470" y="128" fill="var(--muted)" font-size="21">periférico (servidor GATT)</text>
     </g>
-    <g class="layer fragment" data-fragment-index="2">
-      <path class="flow" d="M580,104 V138" stroke="var(--blue)" stroke-width="3" marker-end="url(#ad)"/>
-      <rect x="0" y="140" width="1160" height="80" rx="14"/>
-      <text x="30" y="190" font-size="28" font-weight="700">Ponte Wails <tspan class="sub" font-weight="400">  métodos Go expostos · eventos para a interface</tspan></text>
+    <!-- árvore GATT -->
+    <g font-size="21">
+      <rect x="1270" y="160" width="400" height="190" rx="12" fill="var(--bg-3)" stroke="var(--line)"/>
+      <text x="1290" y="196" fill="var(--text)" font-weight="700">Serviço Cycling Power · 0x1818</text>
+      <text x="1310" y="236" fill="var(--muted)">└ Característica 0x2A63</text>
+      <text x="1330" y="268" fill="var(--power)" font-family="JetBrains Mono">notify: potência, cadência</text>
+      <text x="1290" y="318" fill="var(--text)" font-weight="700">Heart Rate · 0x180D</text>
+      <rect x="1270" y="370" width="400" height="200" rx="12" fill="var(--bg-3)" stroke="var(--line)"/>
+      <text x="1290" y="406" fill="var(--text)" font-weight="700">Fitness Machine · 0x1826</text>
+      <text x="1310" y="446" fill="var(--muted)">└ Ponto de controle 0x2AD9</text>
+      <text x="1330" y="478" fill="var(--teal)" font-family="JetBrains Mono">write: inclinação, ERG</text>
+      <text x="1290" y="528" fill="var(--muted)">ou FE-C sobre BLE</text>
+      <text x="1290" y="556" fill="var(--muted)">(páginas 49 e 51)</text>
     </g>
-    <g class="layer fragment" data-fragment-index="3">
-      <path class="flow" d="M580,224 V258" stroke="var(--blue)" stroke-width="3" marker-end="url(#ad)"/>
-      <rect x="0" y="260" width="1160" height="90" rx="14"/>
-      <text x="30" y="305" font-size="28" font-weight="700">Aplicação · app.go</text>
-      <text class="sub" x="30" y="335">ciclo da sessão · controle do rolo · recuperação · exportação</text>
-    </g>
-    <g class="layer core fragment" data-fragment-index="4">
-      <path class="flow" d="M580,354 V388" stroke="var(--blue)" stroke-width="3" marker-end="url(#ad)"/>
-      <rect x="0" y="390" width="1160" height="90" rx="14"/>
-      <text x="30" y="435" font-size="28" font-weight="700" fill="var(--teal)">Domínio</text>
-      <text class="sub" x="30" y="465">entidades · porta TrainerService · contratos de repositório</text>
-    </g>
-    <g class="layer fragment" data-fragment-index="5">
-      <path class="flow" d="M580,514 V484" stroke="var(--blue)" stroke-width="3" marker-end="url(#ad)"/>
-      <rect x="0" y="520" width="1160" height="100" rx="14"/>
-      <text x="30" y="562" font-size="28" font-weight="700">Adaptadores</text>
-      <text class="sub" x="30" y="594">BLE (FTMS · FE-C) · física · GPX · FIT · SQLite · IA local (Ollama) · Strava</text>
-      <rect x="0" y="650" width="1160" height="80" rx="14" fill="none" stroke="var(--line)" stroke-dasharray="8 8"/>
-      <text class="sub" x="30" y="698">Infraestrutura: rolo e sensores · arquivos · banco por perfil · tiles · serviços externos</text>
-    </g>
-    <g class="fragment" data-fragment-index="6">
-      <rect x="1220" y="0" width="480" height="730" rx="18" fill="none" stroke="var(--anotacao)" stroke-width="2.5" stroke-dasharray="10 8"/>
-      <text x="1460" y="50" text-anchor="middle" fill="var(--anotacao)" font-size="28" font-weight="700">Android (Capacitor)</text>
-      <g class="layer"><rect x="1260" y="90" width="400" height="100" rx="14"/><text x="1460" y="135" text-anchor="middle" font-size="26" font-weight="700">mesma interface</text><text class="sub" x="1460" y="165" text-anchor="middle">WebView</text></g>
-      <g class="layer"><rect x="1260" y="230" width="400" height="100" rx="14"/><text x="1460" y="275" text-anchor="middle" font-size="26" font-weight="700">BLE nativo</text><text class="sub" x="1460" y="305" text-anchor="middle">plugin · FE-C</text></g>
-      <g class="layer"><rect x="1260" y="370" width="400" height="100" rx="14"/><text x="1460" y="415" text-anchor="middle" font-size="26" font-weight="700">física + GPX em JS</text><text class="sub" x="1460" y="445" text-anchor="middle">reimplementados</text></g>
-      <text x="1460" y="540" text-anchor="middle" fill="var(--muted)" font-size="22">sessão ao vivo</text>
-      <text x="1460" y="572" text-anchor="middle" fill="var(--muted)" font-size="22">sem FIT nem histórico</text>
-    </g>
-    <g class="fragment" data-fragment-index="7" font-family="Inter">
-      <rect x="-8" y="252" width="1176" height="106" rx="18" fill="none" stroke="var(--warn)" stroke-width="3" stroke-dasharray="10 7"/>
-      <text x="1140" y="300" text-anchor="end" fill="var(--warn)" font-size="22" font-weight="700">concessão: orquestração concentrada</text>
-      <rect x="-8" y="382" width="1176" height="106" rx="18" fill="none" stroke="var(--teal)" stroke-width="3"/>
-      <text x="1140" y="430" text-anchor="end" fill="var(--teal)" font-size="22" font-weight="700">não importa GORM, Wails nem TinyGo</text>
+    <!-- sequência -->
+    <g font-size="23" fill="var(--text)">
+      <g class="fragment" data-fragment-index="1"><path d="M1235,180 H310" stroke="var(--line)" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#ab)"/><text x="770" y="168" text-anchor="middle"><tspan font-weight="700">1 · anúncio</tspan>  “tenho o serviço 0x1818”</text></g>
+      <g class="fragment" data-fragment-index="2"><path d="M310,250 H1235" stroke="var(--blue)" stroke-width="3" marker-end="url(#ab)"/><text x="770" y="238" text-anchor="middle"><tspan font-weight="700">2 · conexão e descoberta</tspan> de serviços</text></g>
+      <g class="fragment" data-fragment-index="3"><path d="M310,320 H1235" stroke="var(--blue)" stroke-width="3" marker-end="url(#ab)"/><text x="770" y="308" text-anchor="middle"><tspan font-weight="700">3 · assinatura</tspan> das notificações (CCCD)</text></g>
+      <g class="fragment" data-fragment-index="4">
+        <path d="M1235,390 H310" stroke="var(--power)" stroke-width="3" marker-end="url(#ab)"/><path d="M1235,410 H310" stroke="var(--power)" stroke-width="3" opacity="0.6"/><path d="M1235,430 H310" stroke="var(--power)" stroke-width="3" opacity="0.35"/>
+        <text x="770" y="378" text-anchor="middle"><tspan font-weight="700">4 · notificações</tspan> contínuas de telemetria</text>
+        <text x="770" y="470" text-anchor="middle" font-family="JetBrains Mono" font-size="24"><tspan fill="var(--muted)">00 00 </tspan><tspan fill="var(--power)" font-weight="600">D2 00</tspan><tspan fill="var(--muted)">  →  flags | potência = 0x00D2 = </tspan><tspan fill="var(--power)" font-weight="600">210 W</tspan></text>
+      </g>
+      <g class="fragment" data-fragment-index="5"><path d="M310,540 H1235" stroke="var(--teal)" stroke-width="4" marker-end="url(#ab2)"/><text x="770" y="528" text-anchor="middle"><tspan font-weight="700">5 · escrita</tspan> no ponto de controle: “inclinação = 6,5%”</text></g>
     </g>
   </svg>
-  <aside class="notes">Construir camada a camada. Regra da dependência: o domínio não importa GORM, Wails nem TinyGo. Concessões: app.go concentra orquestração; fachada instancia SQLite. Android reaproveita a interface, mas física e GPX são reimplementados em JS (Capacitor não roda Go). ~1:40.</aside>
+  <div class="fragment rise card" data-fragment-index="6" style="margin-top:14px;border-color:var(--warn);display:flex;gap:28px;align-items:center">
+    <div style="font-size:54px;line-height:1" class="c-warn">!</div>
+    <p style="font-size:26px;color:var(--text)">Os perfis GATT de ciclismo <strong>não autenticam a origem dos dados</strong>: um dispositivo — ou um app que emule um sensor — pode anunciar o mesmo serviço e enviar qualquer potência. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>, outro projeto do autor.</p>
+  </div>
+  <aside class="notes">Modelo central/periférico: o rolo é servidor GATT, o Argus é cliente. Anúncio → conexão → descoberta → assinatura → notificações (a telemetria chega sozinha) → escrita no ponto de controle para mudar a resistência. Exemplo de decodificação: os bytes D2 00 em little-endian valem 210 W. Gancho: nada no protocolo prova que esses 210 W vieram de um medidor real — em competições virtuais isso abre espaço para fraude; é o que estudo no Argus Recon. Não aprofundar: só citar.</aside>
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-section="Arquitetura" data-timing="70">
+<section data-section="Arquitetura" data-timing="60">
   <div class="kicker">Tempo real</div>
   <h2>Da notificação Bluetooth ao número na tela</h2>
   <svg viewBox="0 0 1700 640" width="100%" style="margin-top:20px" font-family="Inter">
@@ -273,7 +288,7 @@
     </g>
   </svg>
   <p class="fragment rise small muted" data-fragment-index="3">Mapa suaviza a câmera a cada 150 ms: <strong>fluidez da tela ≠ taxa de aquisição</strong>.</p>
-  <aside class="notes">Cada sensor notifica de forma independente: ~3 por segundo. Interface e FIT recebem tudo; as métricas recebem a média de cada segundo. Esse reamostrador é consequência da avaliação — retomo no slide de defeitos. ~1:10.</aside>
+  <aside class="notes">Cada sensor notifica de forma independente: ~3 por segundo. Interface e FIT recebem tudo; as métricas recebem a média de cada segundo. As métricas usam a série de 1 Hz. ~1:10.</aside>
 </section>
 
 <!-- ============================================================ 10 GPX → RESISTÊNCIA -->
@@ -339,192 +354,114 @@
   <aside class="notes">Os números documentam uso continuado, não desempenho. O PMC mostra blocos de treino (mar–mai, out) e pausas. ~1:00.</aside>
 </section>
 
-<!-- ============================================================ 13 DEFEITOS -->
-<section data-section="Resultados" data-timing="90">
-  <div class="kicker">Avaliação → nova iteração</div>
-  <h2>A análise dos dados encontrou defeitos</h2>
-  <div class="grid g-40-60" style="margin-top:16px">
-    <div>
-      <div class="card" style="margin-bottom:22px">
-        <h4>Amostragem</h4>
-        <p>Cada sensor notifica sozinho: <strong class="mono">2,95</strong> amostras/s, mas as métricas contavam <strong>amostra = segundo</strong>.</p>
-      </div>
-      <div class="fragment card" style="margin-bottom:22px">
-        <h4>Exportação FIT</h4>
-        <p>~80 campos gravados como zero “válido”: leitores padrão viam altitude de <strong class="mono">−500 m</strong>.</p>
-      </div>
-      <div class="fragment card">
-        <h4>Correção</h4>
-        <p>Reamostragem a 1 Hz, mensagens FIT sem campos espúrios e testes automatizados (13 → 27).</p>
-      </div>
-    </div>
-    <div>
-      <div id="ch-fix" class="chart" style="height:470px"></div>
-      <div class="grid g2" style="gap:20px">
-        <div class="delta small"><span class="faint tiny">NP de Girona</span><br><span class="from">138</span><span class="arrow">→</span><span class="to">106 W</span></div>
-        <div class="delta small"><span class="faint tiny">sessões com desacoplamento</span><br><span class="from">55</span><span class="arrow">→</span><span class="to">25</span></div>
-      </div>
-    </div>
-  </div>
-  <p class="fragment rise small" style="margin-top:20px">Aceito pelo Strava ≠ correto. <span class="c-teal">Fórmula explícita = erro detectável.</span></p>
-  <div class="source">Identificado após a entrega do texto; 82 arquivos FIT reprocessados sem alterar o banco (scripts/recalcular).</div>
-  <aside class="notes">Mensagem central do ponto de vista de DSR: a avaliação modificou o artefato. Os recordes de "1 min" eram esforços de ~20 s; testes de FTP superestimavam. TSS e TRIMP quase não mudaram (usam o relógio). Os arquivos sempre tiveram os dados reais; o defeito era de campos extras. Explicar com tranquilidade: é resultado, não falha escondida. ~1:30.</aside>
-</section>
-
-<!-- ============================================================ 14 FUNCIONALIDADES -->
+<!-- ============================================================ FUNCIONALIDADES -->
 <section data-section="Funcionalidades" data-timing="60">
   <div class="kicker">Funcionalidades</div>
-  <h2>Além do simulador</h2>
-  <div class="bento" style="margin-top:24px">
-    <div class="cell wide tall"><img src="img/screenshot-06-workout.png" alt=""><div class="cap"><b>Sessão no mapa 3D</b>rota colorida por inclinação · treinos ZWO e testes de FTP</div></div>
-    <div class="cell"><img src="img/screenshot-09-event.png" alt=""><div class="cap"><b>Eventos</b>sprint · KOM · contrarrelógio</div></div>
-    <div class="cell"><img src="img/screenshot-04-career.png" alt=""><div class="cap"><b>Carreira</b>PMC e desacoplamento</div></div>
-    <div class="cell"><img src="img/screenshot-11-desgaste.png" alt=""><div class="cap"><b>Desgaste de componentes</b>corrente · pneus · cassete</div></div>
-    <div class="cell"><img src="img/screenshot-07-trophy.png" alt=""><div class="cap"><b>Gamificação</b>XP · níveis · metas</div></div>
+  <h2>Do treino à análise</h2>
+  <div class="bento" style="margin-top:22px">
+    <div class="cell wide tall"><img src="img/pos-treino.png" alt="Análise pós-treino"><div class="cap"><b>Análise pós-treino</b>potência · FC · cadência · elevação · curva de potência · NP · TSS · TRIMP</div></div>
+    <div class="cell wide"><img src="img/screenshot-06-workout.png" alt="Sessão no mapa 3D"><div class="cap"><b>Sessão no mapa 3D</b>rota colorida por inclinação · treinos ZWO e testes de FTP</div></div>
+    <div class="cell"><img src="img/screenshot-04-career.png" alt="Carreira"><div class="cap"><b>Carreira</b>PMC e desacoplamento</div></div>
+    <div class="cell"><img src="img/screenshot-09-event.png" alt="Eventos"><div class="cap"><b>Eventos</b>sprint · KOM · contrarrelógio</div></div>
   </div>
-  <div class="grid g3 small muted" style="margin-top:22px">
-    <div><span class="c-teal">●</span> IA local (Ollama) gera treinos ZWO</div>
-    <div><span class="c-teal">●</span> Recuperação de sessão após falha</div>
-    <div><span class="c-teal">●</span> Multiperfil · Strava · Intervals.icu</div>
+  <div class="grid g4 small muted" style="margin-top:20px">
+    <div><span class="c-teal">●</span> Relatório do treino em PDF</div>
+    <div><span class="c-teal">●</span> IA local (Ollama) gera treinos</div>
+    <div><span class="c-teal">●</span> Desgaste de componentes</div>
+    <div><span class="c-teal">●</span> Recuperação de sessão</div>
   </div>
-  <aside class="notes">Passar rápido: 1 frase por card. A IA roda no próprio computador (privacidade), mas só valida o formato do treino, não a adequação fisiológica. ~1:00.</aside>
+  <aside class="notes">Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
 </section>
 
-<!-- ============================================================ 15 RESULTADOS -->
+<!-- ============================================================ REQUISITOS -->
 <section data-section="Resultados" data-timing="80">
   <div class="kicker">Resultados</div>
   <h2>Requisitos e plataformas</h2>
-  <div class="grid g-60-40" style="margin-top:20px">
-    <table class="t" style="font-size:23px">
-      <thead><tr><th>Requisito</th><th>Status</th></tr></thead>
+  <div class="grid" style="grid-template-columns: 1.05fr 1fr; gap:44px; margin-top:16px">
+    <table class="t compact">
+      <thead><tr><th>Funcional</th><th>Status</th></tr></thead>
       <tr><td>RF01 · importar GPX e derivar inclinação</td><td class="c-ok">verificado</td></tr>
       <tr><td>RF02 · controlar o rolo pela inclinação</td><td class="c-ok">verificado</td></tr>
       <tr><td>RF03 · registrar potência, FC e cadência</td><td class="c-ok">verificado</td></tr>
-      <tr><td>RF04 · NP, IF, TSS, TRIMP, PMC, HRR, Pw:FC</td><td class="c-warn">implementado · sem validação clínica</td></tr>
+      <tr><td>RF04 · NP, IF, TSS, TRIMP, PMC, HRR, Pw:FC</td><td class="c-warn">implementado¹</td></tr>
       <tr><td>RF05 · histórico local por perfil</td><td class="c-ok">verificado</td></tr>
       <tr><td>RF06 · exportar FIT e integrações</td><td class="c-ok">verificado em amostra</td></tr>
       <tr><td>RF07 · desktop e Android</td><td class="c-ok">verificado</td></tr>
       <tr><td>RF08 · fluxo de reconhecimento</td><td class="c-ok">demonstrado</td></tr>
     </table>
     <div>
-      <table class="t" style="font-size:24px">
+      <table class="t compact">
+        <thead><tr><th>Não funcional</th><th>Status</th></tr></thead>
+        <tr><td>RNF01 · processamento local, sem nuvem obrigatória</td><td class="c-ok">atendido²</td></tr>
+        <tr><td>RNF02 · interface responsiva (telas pequenas)</td><td class="c-ok">atendido</td></tr>
+        <tr><td>RNF03 · código aberto (GPLv3)</td><td class="c-ok">atendido</td></tr>
+        <tr><td>RNF04 · integridade e recuperação de sessão</td><td class="c-ok">atendido</td></tr>
+        <tr><td>RNF05 · fórmulas e limites explícitos</td><td class="c-ok">atendido</td></tr>
+      </table>
+      <table class="t compact" style="margin-top:22px">
         <thead><tr><th>Plataforma</th><th>Situação</th></tr></thead>
         <tr><td>Windows · Linux</td><td class="c-ok">fluxo completo</td></tr>
         <tr><td>Android (telefone)</td><td class="c-ok">sessão ao vivo</td></tr>
-        <tr><td>macOS</td><td class="faint">compilável · não validado</td></tr>
-        <tr><td>iOS · tablet</td><td class="faint">preparado · não validado</td></tr>
+        <tr><td>macOS · iOS · tablet</td><td class="faint">preparado · não validado</td></tr>
       </table>
-      <div class="grid g2" style="margin-top:34px">
-        <div><div class="stat c-teal" style="font-size:64px">27</div><div class="stat-label">testes automatizados</div></div>
-        <div><div class="stat" style="font-size:64px">GPLv3</div><div class="stat-label">código aberto · INPI</div></div>
-      </div>
     </div>
   </div>
-  <aside class="notes">"Multiplataforma" se sustenta pelas plataformas exercitadas, não por promessa. Android não exporta FIT nem guarda histórico. ~1:20.</aside>
+  <div class="source">¹ sem validação clínica, conferido por testes automatizados · ² mapas dependem de tiles on-line.</div>
+  <aside class="notes">Funcionais: todos atendidos; as métricas não têm validação clínica (não medimos lactato nem VO2máx). Não funcionais: tudo roda localmente, a exceção são os tiles do mapa. "Multiplataforma" se sustenta pelas plataformas exercitadas, não por promessa.</aside>
 </section>
 
-<!-- ============================================================ 16 CONCLUSÃO -->
-<section data-section="Conclusão" data-timing="80">
+<!-- ============================================================ CONCLUSÃO -->
+<section data-section="Conclusão" data-timing="60">
   <div class="kicker">Conclusão</div>
   <h2>O fluxo funciona — e é auditável</h2>
-  <div class="grid g3" style="margin-top:30px">
-    <div class="card"><h4 class="c-teal">Contribuições</h4><p>Artefato aberto que integra percurso, simulação, fisiologia e histórico local · fórmulas documentadas · processo rastreável</p></div>
-    <div class="card fragment"><h4 class="c-warn">Limitações</h4><p>Piloto com um participante · sem validação clínica · Android sem FIT/histórico · mapa depende de rede</p></div>
-    <div class="card fragment"><h4 class="c-blue">Trabalhos futuros</h4><p>Reconhecimento automático e pacing · estudo de usabilidade · núcleo único (WebAssembly) · mapas offline</p></div>
+  <p class="lead" style="margin-top:10px">Do GPX à análise fisiológica, em um único artefato aberto, com o dado no dispositivo.</p>
+  <div class="grid g3" style="margin-top:40px">
+    <div class="card"><h4 class="c-teal">Contribuições</h4><ul class="small"><li>Integração de percurso, simulação, fisiologia e histórico local</li><li>Fórmulas e parâmetros documentados</li><li>Código aberto e registro no INPI</li></ul></div>
+    <div class="card fragment"><h4 class="c-warn">Limitações</h4><ul class="small"><li>Piloto com um participante</li><li>Sem validação clínica das métricas</li><li>Android sem FIT e histórico</li></ul></div>
+    <div class="card fragment"><h4 class="c-blue">Trabalhos futuros</h4><ul class="small"><li>Reconhecimento automático e <em>pacing</em></li><li>Estudo de usabilidade com ciclistas</li><li>Núcleo único (WebAssembly) e mapas offline</li></ul></div>
   </div>
-  <div class="fragment" style="margin-top:60px;display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <h1 style="font-size:84px">Obrigado.</h1>
-      <p class="muted" style="margin-top:12px">Após a arguição: demonstração com o rolo e os sensores.</p>
-    </div>
-    <div class="mono small muted" style="text-align:right">github.com/SoNdA11/argus-cyclist<br>INPI BR512026003786-7</div>
-  </div>
-  <aside class="notes">Retomar a pergunta do início: o software transforma a pedalada em números, e cada número diz de onde vem. Convidar para a demo física depois. ~1:20.</aside>
+  <aside class="notes">Retomar o objetivo: integrar o fluxo e deixar cada número explicável. Limitações declaradas. Futuro em três frentes.</aside>
 </section>
 
-<!-- ============================================================ APÊNDICE -->
-<section data-section="Apêndice">
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <div class="kicker">Para a arguição</div>
-    <h2>Slides de apoio</h2>
-    <p class="muted">↓ protocolos · desktop × Android · escolha de stack · métricas · testes</p>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>FTMS × FE-C sobre BLE</h2>
-    <table class="t" style="margin-top:24px">
-      <thead><tr><th></th><th>FTMS</th><th>FE-C sobre BLE</th></tr></thead>
-      <tr><td>Origem</td><td>padrão Bluetooth SIG</td><td>perfil ANT+ em serviço proprietário</td></tr>
-      <tr><td>Controle</td><td>ponto 0x2AD9 · opcodes 0x03 / 0x05</td><td>páginas 49 (ERG) e 51 (inclinação)</td></tr>
-      <tr><td>No Argus</td><td>desktop</td><td>desktop e Android</td></tr>
-      <tr><td>Limite</td><td>sem leitura da confirmação do rolo</td><td>não é ANT+ nativo; peso fixo 75+10 kg</td></tr>
-    </table>
-    <p class="mono small" style="margin-top:30px">A4 09 4F 05 <span class="c-teal">33</span> FF FF FF FF <span class="c-power">(inclinação+200)/0,01</span> <span class="c-blue">C<sub>rr</sub></span> <span class="c-hr">XOR</span></p>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>Desktop × Android</h2>
-    <table class="t" style="margin-top:24px">
-      <thead><tr><th></th><th>Desktop (Go)</th><th>Android (JavaScript)</th></tr></thead>
-      <tr><td>Solução da física</td><td>bisseção, 0–40 m/s</td><td>Newton–Raphson, 10 iterações</td></tr>
-      <tr><td>C<sub>rr</sub> · η</td><td>0,005 · 0,96</td><td>0,004 · 0,97</td></tr>
-      <tr><td>Distância GPX</td><td>3D (com elevação)</td><td>horizontal (Haversine)</td></tr>
-      <tr><td>Suavização</td><td>±5 pontos, limite ±25%</td><td>±2 pontos, sem limite</td></tr>
-      <tr><td>FIT · histórico</td><td>sim</td><td>não</td></tr>
-    </table>
-    <p class="small muted" style="margin-top:24px">Por quê: o Capacitor não executa Go. Futuro: núcleo único via WebAssembly.</p>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>Por que Go + Wails?</h2>
-    <div class="grid g3" style="margin-top:30px">
-      <div class="card"><h4>Wails</h4><p>Reaproveita a interface web; ponte direta com o núcleo Go; um executável; WebView do sistema.</p></div>
-      <div class="card"><h4>Electron</h4><p>Embutiria Node + Chromium; núcleo BLE teria de ir para JS ou processo à parte.</p></div>
-      <div class="card"><h4>Tauri</h4><p>WebView + Rust; exigiria reescrever o núcleo Go existente.</p></div>
+<!-- ============================================================ OBRIGADO -->
+<section data-section="Agradecimentos" data-timing="15" class="thanks">
+  <div class="thanks-wrap">
+    <img class="simbolo so-claro" src="img/argus-simbolo-claro.png" alt="Símbolo do Argus Cyclist"><img class="simbolo so-escuro" src="img/argus-simbolo-escuro.png" alt="">
+    <h1>Obrigado.</h1>
+    <div class="thanks-names">
+      <div><b>Paulo Sérgio Silva de Medeiros</b><span>orientando</span></div>
+      <div><b>Prof. Dr. Isaac de Lima Oliveira Filho</b><span>orientador</span></div>
     </div>
-    <p class="small muted" style="margin-top:30px">Decisão de adequação ao código existente — não foi feito benchmark de memória ou tamanho.</p>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>Fórmulas e ressalvas</h2>
-    <table class="t" style="margin-top:20px;font-size:24px">
-      <tr><td>NP</td><td class="mono">(média(p̄<sub>30s</sub>⁴))<sup>¼</sup></td><td class="muted">picos pesam mais</td></tr>
-      <tr><td>TSS</td><td class="mono">t·NP·IF / (FTP·3600) ·100</td><td class="muted">1 h no FTP = 100</td></tr>
-      <tr><td>TRIMP</td><td class="mono">t<sub>min</sub>·r·0,64·e<sup>1,92r</sup></td><td class="muted">coeficiente masculino, sem individualização</td></tr>
-      <tr><td>PMC</td><td class="mono">CTL ← 42 d · ATL ← 7 d</td><td class="muted">tendência, não preditor</td></tr>
-      <tr><td>HRR</td><td class="mono">FC<sub>final</sub> − FC<sub>60 s / 120 s</sub></td><td class="muted">referência é a última FC, não o pico</td></tr>
-      <tr><td>Zonas FC</td><td class="mono">% da FC máxima</td><td class="muted">LTHR/Karvonen não usados</td></tr>
-      <tr><td>FTP</td><td class="mono">rampa ·0,75 · 20 min ·0,95 · 5 min ·0,80</td><td class="muted">convenções internas</td></tr>
-    </table>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>Testes automatizados (27)</h2>
-    <table class="t" style="margin-top:20px;font-size:24px">
-      <thead><tr><th>Pacote</th><th>Nº</th><th>Verifica</th></tr></thead>
-      <tr><td>fit · métricas</td><td class="num">7</td><td>NP, IF, TSS, zonas, TRIMP, desacoplamento, PMC</td></tr>
-      <tr><td>fit · reamostragem</td><td class="num">3</td><td>média por segundo, lacunas, FC zerada</td></tr>
-      <tr><td>fit · arquivo</td><td class="num">2</td><td>duração pelos registros; ida e volta com expansão de componentes</td></tr>
-      <tr><td>sim</td><td class="num">2</td><td>velocidade satisfaz Martin; monotonicidade</td></tr>
-      <tr><td>workout</td><td class="num">1</td><td>passos ZWO e FreeRide</td></tr>
-      <tr><td>recovery + e2e</td><td class="num">12</td><td>snapshots, corrupção parcial, recuperação ponta a ponta</td></tr>
-    </table>
-  </section>
-  <section>
-    <span class="appendix-tag">APÊNDICE</span>
-    <h2>Telas</h2>
-    <div class="grid g2" style="margin-top:20px">
-      <img class="shot" src="img/screenshot-03-history.png" alt="Histórico">
-      <img class="shot" src="img/screenshot-10-mobile.jpg" alt="Android">
-    </div>
-  </section>
+    <img class="uern" src="img/uern-logo.png" alt="UERN">
+  </div>
+  <aside class="notes">Agradecer à banca, ao orientador e a todos. Abrir para a arguição.</aside>
+</section>
+
+<!-- ============================================================ REFERÊNCIAS -->
+<section data-section="Referências" data-timing="5">
+  <div class="kicker">Referências</div>
+  <h2>Referências</h2>
+  <div class="refs">
+    <p>ANT+ ALLIANCE. <em>ANT+ Fitness Equipment Control (FE-C) Profile</em>. 2024.</p>
+    <p>BANISTER, E. W. Modeling elite athletic performance. <em>In</em>: MACDOUGALL, J. D. <em>et al.</em> (ed.). <em>Physiological Testing of the High-Performance Athlete</em>. Champaign: Human Kinetics, 1991. p. 403–424.</p>
+    <p>BLUETOOTH SIG. <em>Fitness Machine Service (FTMS) Specification v1.0</em>. 2017.</p>
+    <p>BLUETOOTH SIG. <em>Bluetooth Core Specification, version 5.4</em>. 2023.</p>
+    <p>COGGAN, A.; ALLEN, H. <em>Training and Racing with a Power Meter</em>. 2. ed. Boulder: VeloPress, 2010.</p>
+    <p>GARMIN. <em>FIT SDK (Flexible and Interoperable Data Transfer)</em>. 2024.</p>
+    <p>HEVNER, A. R. <em>et al.</em> Design science in information systems research. <em>MIS Quarterly</em>, v. 28, n. 1, p. 75–105, 2004.</p>
+    <p>KLEPPMANN, M. <em>et al.</em> Local-first software: you own your data, in spite of the cloud. <em>In</em>: ONWARD! 2019. ACM, 2019. p. 154–178.</p>
+    <p>MARTIN, J. C. <em>et al.</em> Validation of a mathematical model for road cycling power. <em>Journal of Applied Biomechanics</em>, v. 14, n. 3, p. 276–291, 1998.</p>
+    <p>MARTIN, R. C. <em>Clean Architecture</em>: a craftsman’s guide to software structure and design. Boston: Prentice Hall, 2017.</p>
+    <p>PEFFERS, K. <em>et al.</em> A design science research methodology for information systems research. <em>Journal of Management Information Systems</em>, v. 24, n. 3, p. 45–77, 2007.</p>
+    <p>TOPOGRAFIX. <em>GPX: GPS Exchange Format v1.1</em>. 2004.</p>
+  </div>
+  <aside class="notes">Referências completas no Capítulo de referências do TCC.</aside>
 </section>
 
 </div>
 </div>
 
-<div class="deck-footer"><span class="brand">ARGUS CYCLIST · UERN 2026</span><span id="footer-section"></span><span id="footer-num"></span></div>
+<div class="deck-footer"><span class="brand">ARGUS CYCLIST · UERN 2026</span><span id="footer-num"></span></div>
 
 <script src="vendor/reveal/reveal.js"></script>
 <script src="vendor/reveal/plugin/notes/notes.js"></script>
