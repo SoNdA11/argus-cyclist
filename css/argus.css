@@ -35,6 +35,7 @@
   --tint-teal: rgba(10, 158, 136, 0.09);
   --tint-alt: rgba(122, 135, 157, 0.20);
   --tint-blue: rgba(47, 107, 216, 0.08);
+  --tint-hr: rgba(214, 56, 75, 0.08);
   --tint-neutral: rgba(122, 135, 157, 0.09);
   /* cores das seções do sumário (também no rótulo de cada slide) */
   --sec1: #0a9e88; --sec2: #2f6bd8; --sec3: #7c4ddb; --sec4: #b06c00; --sec5: #5f6f89; --sec6: #b5179e;
@@ -69,6 +70,7 @@ html[data-tema="escuro"] {
   --tint-teal: rgba(46, 230, 201, 0.10);
   --tint-alt: rgba(138, 151, 173, 0.22);
   --tint-blue: rgba(91, 141, 239, 0.12);
+  --tint-hr: rgba(239, 79, 95, 0.12);
   --tint-neutral: rgba(138, 151, 173, 0.08);
   --sec1: #2ee6c9; --sec2: #5b8def; --sec3: #b794f6; --sec4: #f5b82e; --sec5: #9fb0c8; --sec6: #f472d0;
   --tint-power: rgba(245, 184, 46, 0.16);
