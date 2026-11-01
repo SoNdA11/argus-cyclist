@@ -5,7 +5,8 @@ Fontes (somente leitura):
   - TCC/registro-software/figuras/girona-sessao.csv  (sessão de 27/04, via fit2csv)
   - TCC/registro-software/figuras/pmc-dados.csv      (PMC, via exportar_pmc.py)
   - workouts/gpx/Geraardsbergen_To_Leberg.gpx        (perfil e suavização)
-  - users_data/<perfil>.db                           (volume mensal)
+  - users_data/<perfil>.db                           (volume mensal, sessões por semana)
+  - git log do branch main                           (commits por semana)
 
 O resultado é um arquivo JavaScript (window.ARGUS_DATA = {...}) para que o
 deck abra direto por file://, sem servidor e sem fetch.
@@ -17,6 +18,8 @@ import csv
 import json
 import math
 import sqlite3
+import subprocess
+from datetime import date, timedelta
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -101,15 +104,47 @@ def mensal():
             "km": [r[2] for r in rows], "horas": [r[3] for r in rows]}
 
 
+def dsr():
+    """Construção x avaliação por semana (segunda a domingo), jan a out/2026."""
+    inicio, fim = date(2026, 1, 5), date(2026, 10, 31)
+    semanas = []
+    d = inicio
+    while d <= fim:
+        semanas.append(d)
+        d += timedelta(days=7)
+    idx = lambda dia: (dia - inicio).days // 7
+
+    commits = [0] * len(semanas)
+    log = subprocess.run(["git", "-C", str(ROOT), "log", "main", "--before=2026-11-01",
+                          "--format=%ad", "--date=short"], capture_output=True, text=True, check=True)
+    for linha in log.stdout.split():
+        dia = date.fromisoformat(linha)
+        if inicio <= dia <= fim:
+            commits[idx(dia)] += 1
+        elif dia < inicio:
+            commits[0] += 1  # 06/01 cai na primeira semana
+
+    sessoes = [0] * len(semanas)
+    con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    for (criado,) in con.execute("SELECT substr(created_at, 1, 10) FROM activities "
+                                 "WHERE deleted_at IS NULL AND duration >= 600"):
+        dia = date.fromisoformat(criado)
+        if inicio <= dia <= fim:
+            sessoes[idx(dia)] += 1
+    return {"semana": [s.isoformat() for s in semanas], "commits": commits, "sessoes": sessoes,
+            "total_commits": sum(commits), "total_sessoes": sum(sessoes)}
+
+
 def main():
-    data = {"girona": girona(), "pmc": pmc(), "leberg": leberg(), "mensal": mensal()}
+    data = {"girona": girona(), "pmc": pmc(), "leberg": leberg(), "mensal": mensal(), "dsr": dsr()}
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("// Gerado por scripts/exportar_dados.py — não editar à mão.\n"
                    "window.ARGUS_DATA = " + json.dumps(data, ensure_ascii=False) + ";\n",
                    encoding="utf-8")
     print(f"{OUT.relative_to(ROOT)}: {OUT.stat().st_size // 1024} KB; "
           f"Leberg {data['leberg']['total_km']} km, rampa bruta máx {data['leberg']['max_raw']}%, "
-          f"suavizada {data['leberg']['max_smooth']}%")
+          f"suavizada {data['leberg']['max_smooth']}%; DSR {data['dsr']['total_commits']} commits, "
+          f"{data['dsr']['total_sessoes']} sessões")
 
 
 if __name__ == "__main__":
