@@ -34,6 +34,9 @@
   --bad: #d6384b;
   --tint-teal: rgba(10, 158, 136, 0.09);
   --tint-alt: rgba(122, 135, 157, 0.20);
+  --tint-blue: rgba(47, 107, 216, 0.08);
+  --tint-neutral: rgba(122, 135, 157, 0.09);
+  --tint-power: rgba(209, 143, 0, 0.16);
   --shadow: 0 14px 40px rgba(14, 31, 61, 0.14);
   --mono: "JetBrains Mono", ui-monospace, monospace;
   --sans: "Inter", system-ui, sans-serif;
@@ -61,8 +64,11 @@ html[data-tema="escuro"] {
   --ok: #34d399;
   --warn: #f5b82e;
   --bad: #ef4f5f;
-  --tint-teal: var(--tint-teal);
+  --tint-teal: rgba(46, 230, 201, 0.10);
   --tint-alt: rgba(138, 151, 173, 0.22);
+  --tint-blue: rgba(91, 141, 239, 0.12);
+  --tint-neutral: rgba(138, 151, 173, 0.08);
+  --tint-power: rgba(245, 184, 46, 0.16);
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
@@ -311,3 +317,7 @@ html.print-pdf .reveal .slides section.arch { padding-top: 70px !important; }
 .lb-close { position: absolute; top: 2.5vh; right: 2vw; }
 @media print { .lightbox { display: none; } }
 .passos b, .galeria figcaption b { font-weight: 700; }
+
+/* Bluetooth: quando o impostor entra, o resto da explicação sai de foco */
+.desfoca { transition: filter 0.6s ease, opacity 0.6s ease; }
+.reveal section:has(.spoof.visible) .desfoca { filter: blur(4px); opacity: 0.35; }
