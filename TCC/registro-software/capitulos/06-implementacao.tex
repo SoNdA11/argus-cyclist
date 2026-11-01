@@ -516,67 +516,12 @@ sessão, mas não é usado como referência do HRR. Essas escolhas estão descri
 conceitualmente no Capítulo~\ref{cap:fundamentacao} e são avaliadas no
 Capítulo~\ref{cap:resultados}.
 
-\subsection{Verificação automatizada}
-\label{sec:testes-automatizados}
-
-As fórmulas descritas no Capítulo~\ref{cap:fundamentacao} são fixadas por
-testes unitários em Go, executados com \code{go test ./...}. Cada caso compara a
-saída do código com um valor de referência calculado de forma independente: uma
-hora no FTP deve produzir TSS igual a 100; uma série de 60 segundos a 0~W
-seguida de 60 segundos a 400~W deve produzir NP de 318~W, acima da média
-aritmética de 200~W; e a velocidade devolvida pelo motor físico deve satisfazer
-a Equação~\ref{eq:martin-estatica} dentro da tolerância de parada da bisseção.
-A Tabela~\ref{tab:testes} resume a cobertura.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Testes automatizados do \textit{backend}}
-    \label{tab:testes}
-    \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.4cm}
-        >{\raggedright\arraybackslash}p{1.4cm}
-        >{\raggedright\arraybackslash}p{8.0cm}@{}}
-        \toprule
-        \textbf{Pacote} & \textbf{Testes} & \textbf{O que verificam} \\
-        \midrule
-        \code{service/fit} (métricas) & 7 & NP, IF, TSS, zonas de potência e
-        de FC, TRIMP, desacoplamento e PMC contra valores de referência \\
-        \code{service/fit} (reamostragem) & 3 & Média por segundo a partir de
-        $\approx$3~notificações/s; preenchimento de lacunas; FC zerada ignorada \\
-        \code{service/fit} (arquivo) & 2 & Duração do FIT derivada dos registros;
-        altitude, velocidade e distância preservadas na leitura com expansão de
-        componentes \\
-        \code{service/sim} & 2 & Velocidade satisfaz a equação de Martin;
-        monotonicidade, descida sem potência e limite de \SI{40}{\meter\per\second} \\
-        \code{service/workout} & 1 & Achatamento de passos ZWO e marcação de
-        \textit{FreeRide} \\
-        \code{service/recovery} & 11 & Gravação, leitura, corrupção parcial e
-        descarte de \textit{snapshots} \\
-        Raiz (\code{app.go}) & 1 & Recuperação de sessão de ponta a ponta \\
-        \midrule
-        Total & 27 & \\
-        \bottomrule
-    \end{tabular}
-    \vspace{0.2cm}
-    \par\small Fonte: autoria própria.
-\end{table}
-
-A escrita desses testes revelou dois defeitos de cálculo, corrigidos antes da
-versão apresentada; outros dois, de maior impacto, surgiram da análise dos
-arquivos do piloto e são discutidos na Seção~\ref{sec:defeitos-avaliacao}. O
-primeiro defeito de cálculo era de fronteira numérica: como $0{,}55 \times 200$ é
-representado em ponto flutuante como 110,00000000000001, uma potência de
-exatamente 110~W com FTP de 200~W era classificada na Z1, e não na Z2; a
-comparação passou a ser feita em percentuais inteiros. O segundo estava no
-carregador ZWO: passos \textit{FreeRide} eram convertidos sem a marcação
-correspondente e, por isso, executados em modo ERG com potência alvo nula, em
-vez do modo simulação. Os casos são um exemplo concreto do argumento do
-trabalho: tornar a fórmula explícita também a torna verificável.
-
-Os testes cobrem o cálculo, não a aquisição. Não há testes automatizados para a
-camada BLE, para o \textit{parser} GPX nem para o \textit{frontend}; essas
-partes foram verificadas manualmente, nas sessões descritas no
-Capítulo~\ref{cap:resultados}.
+As fórmulas de NP, IF, TSS, zonas, TRIMP, desacoplamento e PMC, assim como a
+solução da equação de Martin pelo motor físico, são fixadas por testes
+unitários em Go que comparam a saída do código com valores de referência
+calculados de forma independente (por exemplo, uma hora no FTP deve produzir
+TSS igual a 100). Os testes cobrem o cálculo, não a aquisição: a camada BLE, o
+\textit{parser} GPX e o \textit{frontend} foram verificados manualmente.
 
 \section{Interface e fluxo de eventos}
 \label{sec:implementacao-frontend}

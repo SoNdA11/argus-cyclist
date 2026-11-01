@@ -356,9 +356,8 @@ O FIT registra uma amostra por notificação, preservando o sinal como chegou.
 As métricas, por outro lado, são calculadas sobre \code{sessionPowerData} e
 \code{sessionHRData}, que recebem uma entrada por segundo de tempo ativo: um
 componente de reamostragem agrupa as notificações de cada segundo e entrega a
-média. Essa camada não existia na versão inicial; sua ausência foi identificada
-na avaliação, quando os arquivos do piloto mostraram cerca de três notificações
-por segundo (Seção~\ref{sec:defeitos-avaliacao}).
+média. Nos arquivos do piloto, a taxa de chegada foi de cerca de três
+notificações por segundo, o que torna essa camada necessária.
 
 \section{Arquitetura móvel}
 \label{sec:arquitetura-mobile}

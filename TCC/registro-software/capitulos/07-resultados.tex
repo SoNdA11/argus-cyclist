@@ -68,9 +68,8 @@ evidência observados e ao status atribuído.
         exibida e gravada por notificação BLE; no Android, HUD ao vivo &
         Verificado \\
         RF04 & Cálculo de NP, IF, TSS, TRIMP, PMC, HRR e desacoplamento &
-        No desktop, métricas disponíveis, fórmulas documentadas e fixadas por
-        testes unitários (Tabela~\ref{tab:testes}) &
-        Verificado no cálculo; sem validação clínica \\
+        No desktop, métricas disponíveis e fórmulas documentadas &
+        Implementado, sem validação clínica \\
         RF05 & Reinício do aplicativo e troca de perfil & No desktop, dados
         preservados e perfis isolados no SQLite & Verificado \\
         RF06 & Exportação FIT e envio ao Strava/Intervals.icu & No desktop,
@@ -78,9 +77,8 @@ evidência observados e ao status atribuído.
         RF07 & Execução em Windows, Linux e Android & Fluxo completo no
         desktop; sessão ao vivo no Android, com adaptações de layout &
         Verificado \\
-        RF08 & Caso Girona (Seção~\ref{sec:caso-girona}) & No desktop,
-        importação, perfil, sessão e análise do FIT; no Android, perfil e
-        sessão ao vivo com rotas do acervo &
+        RF08 & Caso Geraardsbergen--Leberg & No desktop, importação, perfil,
+        sessão e análise do FIT; no Android, perfil e sessão ao vivo &
         Demonstrado \\
         \bottomrule
     \end{tabular}
@@ -194,9 +192,6 @@ foi verificado e o que permanece em aberto.
         Coerentes \\
         Potência e frequência cardíaca & Comparação de médias e amostras &
         Coerentes nos casos conferidos \\
-        Séries por amostra (altitude, velocidade, distância) & Leitura com
-        expansão de componentes & Defeito encontrado e corrigido
-        (Seção~\ref{sec:defeitos-avaliacao}) \\
         Elevação & Comparação com o perfil do GPX & Aproximada, dependente do
         arquivo \\
         Validação formal FIT SDK & Aceitação prática verificada &
@@ -219,9 +214,8 @@ telefone Android, com durações típicas de 30 a 60 minutos.
 Três cenários organizaram o uso no desktop:
 
 \begin{enumerate}
-    \item \textbf{reconhecimento}: um percurso de colinas na região de
-        Girona (aproximadamente 21~km e 335~m de ganho), detalhado na
-        Seção~\ref{sec:caso-girona};
+    \item \textbf{reconhecimento}: o percurso Geraardsbergen--Leberg
+        (aproximadamente 21~km, 297~m de ganho e rampas de até 18,2\%);
     \item \textbf{exploração}: uma rota de outra região, escolhida para
         verificar a leitura do mapa e do perfil;
     \item \textbf{treino}: uma sessão estruturada, com exportação e conferência
@@ -264,218 +258,6 @@ próprio aplicativo; o teste não foi repetido em tablet.
 sem rede, o restante do fluxo continuou, mas o mapa ficou incompleto. Isso
 mostra que a expressão ``local-first'' se aplica ao dado e ao processamento, não
 a todos os recursos visuais.
-
-\subsection{Dados descritivos do acervo de sessões}
-\label{sec:piloto-descritivo}
-
-Para complementar as observações qualitativas, o banco local do perfil do autor
-foi consultado em modo somente leitura (levantamento de 01/11/2026). Foram
-consideradas apenas as atividades com duração igual ou superior a 10 minutos;
-26 registros mais curtos, em geral testes de conexão e sessões interrompidas,
-foram excluídos. A Tabela~\ref{tab:piloto-descritivo} resume o acervo
-resultante.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Estatística descritiva das sessões registradas no \textit{desktop}}
-    \label{tab:piloto-descritivo}
-    \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{7.6cm}
-        >{\raggedright\arraybackslash}p{6.0cm}@{}}
-        \toprule
-        \textbf{Indicador} & \textbf{Valor} \\
-        \midrule
-        Período & 21/01/2026 a 31/10/2026 \\
-        Sessões com duração $\geq$ 10 min & 114 \\
-        Distância virtual acumulada & \SI{2181.6}{\kilo\meter} \\
-        Tempo ativo acumulado & \SI{91.6}{\hour} (média de \SI{48.2}{\minute} por sessão) \\
-        Ganho de elevação acumulado & \SI{7470}{\meter} \\
-        Sessão mais longa & \SI{2.0}{\hour} \\
-        Sessões com NP, IF e TSS calculados & 81 (TSS médio 35,8 após
-        reprocessamento; 37,6 no banco) \\
-        Sessões com frequência cardíaca & 63 \\
-        Sessões elegíveis ao desacoplamento ($\geq$ 1~h) & 25 (12 acima de 5\%) \\
-        Sessões com HRR registrado & 51 (HRR\textsubscript{1} médio 14,6 bpm;
-        HRR\textsubscript{2} médio 18,4 bpm) \\
-        Sessões enviadas ao Strava & 47 \\
-        Arquivos \texttt{.FIT} no diretório de trabalho & 282 (98 sessões livres
-        ou estruturadas e 184 de modos de evento) \\
-        \bottomrule
-    \end{tabular}
-    \vspace{0.2cm}
-    \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
-    autor e do reprocessamento dos arquivos FIT
-    (Seção~\ref{sec:defeitos-avaliacao}).
-\end{table}
-
-A distribuição temporal acompanha os ciclos de desenvolvimento descritos no
-Capítulo~\ref{cap:metodologia}. As 31 sessões de janeiro e fevereiro não
-possuem NP, IF e TSS porque o módulo de análise só foi incorporado no segundo
-ciclo; a partir de março, todas as sessões com potência passaram a ter essas
-métricas. Da mesma forma, a frequência cardíaca só aparece nas sessões em que o
-sensor estava conectado, o que explica a diferença entre o número de sessões
-com TSS e com TRIMP.
-
-Os números devem ser lidos com as ressalvas da Seção~\ref{sec:validade}. Eles
-documentam o uso continuado do artefato por cerca de dez meses e a execução
-repetida do fluxo de registro, cálculo e persistência; não constituem medida
-de desempenho, de adaptação fisiológica ou de usabilidade. As métricas
-dependentes da taxa de amostragem (desacoplamento e recordes de potência) foram
-recalculadas a partir dos arquivos FIT com o método corrigido descrito na
-Seção~\ref{sec:defeitos-avaliacao}; as 31 sessões de janeiro e fevereiro não
-têm arquivo FIT no diretório de trabalho e mantêm os valores do banco, que,
-nesse período, não incluíam métricas fisiológicas.
-
-A Figura~\ref{fig:pmc-real} reconstrói o PMC a partir das 81 sessões com TSS,
-com as mesmas constantes de 42 e 7 dias implementadas no sistema. O gráfico
-torna visíveis os blocos de maior volume (março a maio e outubro) e as
-interrupções de junho a setembro, quando o TSB se aproxima de zero e a carga
-crônica decai. A leitura é de tendência: o gráfico mostra como o sistema
-transforma o histórico local em uma série interpretável, não uma evolução de
-aptidão comprovada.
-
-\begin{figure}[htbp]
-    \centering
-    \caption{PMC reconstruído a partir das sessões do piloto (mar.--out. 2026)}
-    \label{fig:pmc-real}
-    \input{figuras/grafico-pmc}
-    \vspace{0.1cm}
-    \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
-    autor e de \code{scripts/exportar\_pmc.py}.
-\end{figure}
-
-\subsection{Caso principal: colinas de Girona}
-\label{sec:caso-girona}
-
-A sessão de 27/04/2026 no percurso de Girona reúne, em um único registro, as
-etapas do fluxo e todas as métricas do sistema. O GPX foi importado sem edição,
-o percurso, com uma subida de cerca de \SI{75}{\meter} a \SI{263}{\meter} ao
-longo dos primeiros 15~km seguida de descida, foi pedalado do início ao fim, e
-a sessão foi encerrada com
-resfriamento, o que permitiu registrar a recuperação da frequência cardíaca. A
-Figura~\ref{fig:sessao-girona} mostra as séries extraídas do arquivo FIT e a
-Tabela~\ref{tab:caso-girona}, as métricas calculadas com o método corrigido
-(Seção~\ref{sec:defeitos-avaliacao}).
-
-\begin{figure}[htbp]
-    \centering
-    \caption{Sessão no percurso de Girona: altitude, potência e frequência
-    cardíaca ao longo da distância}
-    \label{fig:sessao-girona}
-    \input{figuras/grafico-girona}
-    \vspace{0.1cm}
-    \par\small Fonte: autoria própria, a partir do arquivo FIT da sessão
-    (médias em blocos de 15~s).
-\end{figure}
-
-\begin{table}[htbp]
-    \centering
-    \caption{Métricas da sessão no percurso de Girona}
-    \label{tab:caso-girona}
-    \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.6cm}
-        >{\raggedright\arraybackslash}p{2.6cm}
-        >{\raggedright\arraybackslash}p{5.4cm}@{}}
-        \toprule
-        \textbf{Métrica} & \textbf{Valor} & \textbf{Natureza
-        (Tabela~\ref{tab:medido-estimado})} \\
-        \midrule
-        Distância virtual & \SI{20.95}{\kilo\meter} & Estimada (modelo físico) \\
-        Tempo ativo & \SI{61}{\minute} & Medida \\
-        Ganho de elevação & \SI{335}{\meter} & Derivada do GPX \\
-        Potência média & \SI{96}{\watt} & Medida \\
-        Potência normalizada (NP) & \SI{106}{\watt} & Calculada \\
-        IF / TSS (FTP de \SI{153}{\watt}) & 0,69 / 49 & Calculada \\
-        FC média / máxima & 139 / 169~bpm & Medida \\
-        TRIMP & 71 & Calculada \\
-        Desacoplamento (Pw:HR) & 8,3\% & Calculada \\
-        HRR\textsubscript{1} / HRR\textsubscript{2} & 26 / 28~bpm & Calculada \\
-        \bottomrule
-    \end{tabular}
-    \vspace{0.2cm}
-    \par\small Fonte: autoria própria. NP, IF, TSS e desacoplamento
-    reprocessados a 1~Hz; no banco, gravados com o método anterior, constavam
-    NP de \SI{138}{\watt} e TSS de 83,1.
-\end{table}
-
-A leitura conjunta da figura e da tabela ilustra o uso pretendido. A potência
-se mantém estável na subida, entre 100 e \SI{115}{\watt}, enquanto a
-frequência cardíaca sobe de cerca de 130 para 150~bpm; na descida, a potência
-cai e a frequência cardíaca acompanha. O desacoplamento de 8,3\% fica acima do
-limiar convencional de 5\%, o que é coerente com uma frequência cardíaca que
-sobe ao longo da subida para a mesma potência; como discutido no
-Capítulo~\ref{cap:fundamentacao}, o número não identifica a causa e é pouco
-informativo em um percurso que não tem intensidade constante. A diferença entre
-os valores do banco e os reprocessados, registrada na fonte da tabela, é o
-exemplo mais visível do defeito de amostragem discutido a seguir.
-
-\section{Defeitos identificados pela avaliação}
-\label{sec:defeitos-avaliacao}
-
-A análise dos arquivos do piloto, feita para produzir as tabelas e figuras
-deste capítulo, revelou dois defeitos que os testes manuais de uso não haviam
-mostrado. Ambos foram corrigidos, e o ciclo de identificação, correção e
-reavaliação é, ele próprio, um resultado no sentido da \textit{Design Science
-Research}: o artefato foi modificado em resposta à sua avaliação.
-
-\textbf{Taxa de amostragem.} O laço da sessão registrava uma amostra por
-notificação BLE, e cada sensor conectado notifica de forma independente. Nos
-98 arquivos FIT de sessões livres e estruturadas, a taxa mediana foi de 2,95
-amostras por segundo, e não de 1~Hz, como o texto e as métricas pressupunham.
-O efeito sobre cada métrica dependia de como ela usa o tempo
-(Tabela~\ref{tab:reprocessamento}). TSS e TRIMP já usavam a duração medida pelo
-relógio e quase não mudaram. A NP também mudou pouco: a média de quarta
-potência é pouco sensível ao tamanho exato da janela. As métricas que contam
-amostras como segundos, ao contrário, ficaram fortemente distorcidas: o
-desacoplamento era calculado em sessões a partir de cerca de 20 minutos, e os
-recordes de potência de ``1 minuto'' e ``20 minutos'' correspondiam, na
-verdade, a esforços de cerca de 20 segundos e 7 minutos. Pela mesma razão, os
-testes de FTP superestimavam o resultado. A correção introduziu a reamostragem
-a \SI{1}{\hertz} descrita no Capítulo~\ref{cap:implementacao}.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Efeito da reamostragem a 1~Hz sobre as métricas do piloto}
-    \label{tab:reprocessamento}
-    \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.4cm}
-        >{\raggedright\arraybackslash}p{3.6cm}
-        >{\raggedright\arraybackslash}p{4.6cm}@{}}
-        \toprule
-        \textbf{Métrica} & \textbf{Por notificação} & \textbf{Reamostrada a 1~Hz} \\
-        \midrule
-        Diferença de NP (mediana) & --- & 0~W \\
-        TSS médio (81 sessões) & 37,6 & 35,8 \\
-        Sessões com desacoplamento calculado & 55 & 25 \\
-        Melhor potência de 1 min & \SI{410}{\watt} & \SI{240}{\watt} \\
-        Melhor potência de 5 min & \SI{221}{\watt} & \SI{198}{\watt} \\
-        Melhor potência de 20 min & \SI{194}{\watt} & \SI{158}{\watt} \\
-        \bottomrule
-    \end{tabular}
-    \vspace{0.2cm}
-    \par\small Fonte: autoria própria, a partir dos 82 arquivos FIT com
-    duração $\geq$ 10 min, reprocessados por \code{scripts/recalcular}; TSS e
-    desacoplamento ``por notificação'' são os valores gravados no banco.
-\end{table}
-
-\textbf{Campos zerados na exportação FIT.} Ao extrair os registros para as
-figuras, verificou-se que cada amostra do arquivo continha, além dos campos
-preenchidos pelo \argus{}, cerca de 80 campos com valor zero. Isso acontecia
-porque as mensagens eram montadas como estruturas literais em Go, cujos campos
-não preenchidos assumem o valor zero, que o FIT interpreta como dado válido, e
-não como ausência. Leitores que expandem componentes, como o próprio
-decodificador usado pelo \argus{} no histórico, substituíam a altitude e a
-velocidade reais por \SI{-500}{\meter} e \SI{0}{\kilo\meter\per\hour} e
-corrompiam a distância. As plataformas de destino aceitavam os arquivos e
-exibiam totais coerentes, porque os totais da sessão estavam corretos; o defeito
-afetava as séries por amostra. A correção passou a criar as mensagens com os
-valores inválidos do perfil e a ler os arquivos antigos sem expansão de
-componentes, o que recupera os dados reais, que sempre estiveram no arquivo.
-Um teste de ida e volta (Tabela~\ref{tab:testes}) cobre o caso.
-
-Os dois defeitos reforçam um argumento do trabalho: a aceitação de um arquivo
-por uma plataforma externa é evidência de interoperabilidade, não de correção,
-e explicitar fórmulas e escalas é o que torna esse tipo de erro detectável.
 
 \section{Discussão}
 \label{sec:discussao-resultados}

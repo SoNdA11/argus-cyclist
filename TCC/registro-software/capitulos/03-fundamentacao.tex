@@ -60,7 +60,7 @@ depende do dispositivo, do firmware, do intervalo de conexão e das condições 
 rádio. Além disso, cada sensor conectado notifica de forma independente: com
 rolo, medidor de potência e cinta cardíaca, o laço da sessão recebe várias
 notificações por segundo. Nos arquivos do piloto, a taxa mediana foi de 2,95
-notificações por segundo (Capítulo~\ref{cap:resultados}). Como várias métricas
+notificações por segundo. Como várias métricas
 de treino são definidas sobre séries de um segundo (janela de 30~s da NP, tempo
 em zonas, recordes de potência), o \argus{} converte as notificações em uma
 série de \SI{1}{\hertz} antes de calculá-las. O
@@ -197,8 +197,7 @@ para integrar a distância e para agrupar as amostras em segundos de tempo
 ativo: cada segundo dos vetores de potência e de frequência cardíaca é a média
 das notificações recebidas nele. Sem esse passo, uma taxa de três notificações
 por segundo faria as métricas que somam amostras como segundos triplicarem o
-tempo; foi exatamente o que a avaliação encontrou na versão anterior
-(Seção~\ref{sec:defeitos-avaliacao}).
+tempo.
 
 \section{Formatos de percurso, atividade e treino}
 \label{sec:formatos}
