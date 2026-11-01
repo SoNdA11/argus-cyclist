@@ -14,6 +14,7 @@
       teal: css("--teal"), blue: css("--blue"), power: css("--power"), hr: css("--hr"),
       cad: css("--cad"), alt: css("--alt"), bad: css("--bad"), anot: css("--anotacao"),
       tintAlt: css("--tint-alt"), tintTeal: css("--tint-teal"),
+      tintBlue: css("--tint-blue"), tintNeutral: css("--tint-neutral"), tintPower: css("--tint-power"), calc: css("--calculado"), bg2: css("--bg-2"),
     };
     axisBase = {
       axisLine: { lineStyle: { color: C.line } },
@@ -106,35 +107,53 @@
       }), { notMerge: fresh });
     },
 
-    // Slide 11 — média x NP e as duas metades do desacoplamento
+    // Slide 11: dois painéis com o mesmo eixo de tempo (potência em cima, FC embaixo),
+    // sem eixo duplo. Média = medido (neutro); NP = calculado (azul dos selos).
     "ch-physio": (chart, step = 0, fresh = true) => {
       const t = G.km.map((_, i) => +(i * 0.25).toFixed(2)); // blocos de 15 s -> minutos
       const end = t[t.length - 1];
       const mid = 10 + (end - 10) / 2;
+      const L = 100, R = 150; // margens: rótulos das linhas ficam à direita, fora dos dados
+      const xBase = (gi, show) => ({ type: "value", gridIndex: gi, min: 0, max: Math.ceil(end), interval: 10, ...axisBase,
+        axisLabel: { ...axisBase.axisLabel, show }, splitLine: { show: false },
+        name: show ? "minutos" : "", nameLocation: "middle", nameGap: 44 });
+      const panelTitle = (top, text, color) => ({ left: L - 2, top, text: "{m|━} " + text,
+        textStyle: { color: C.text, fontSize: 24, fontWeight: 600, fontFamily: FONT, rich: { m: { color, fontSize: 24 } } } });
+      const faixas = step < 2 ? [] : [
+        [{ xAxis: 0, name: "descarte", itemStyle: { color: C.tintNeutral } }, { xAxis: 10 }],
+        [{ xAxis: 10, name: "1ª metade", itemStyle: { color: "transparent" } }, { xAxis: mid }],
+        [{ xAxis: mid, name: "2ª metade · Pw:FC −8,3%", itemStyle: { color: C.tintBlue } }, { xAxis: end }],
+      ];
+      const faixasSemRotulo = faixas.map(([a, b]) => [{ ...a, name: "" }, b]);
       chart.setOption(merge({
-        legend: { data: ["Potência", "FC"] },
-        xAxis: { type: "value", min: 0, max: Math.ceil(end), name: "minutos", nameLocation: "middle", nameGap: 44, ...axisBase, splitLine: { show: false } },
+        legend: { show: false },
+        title: [panelTitle(0, "Potência (W)", C.power), panelTitle(372, "Frequência cardíaca (bpm)", C.hr)],
+        grid: [
+          { left: L, right: R, top: 50, height: 270 },
+          { left: L, right: R, top: 422, height: 210 },
+        ],
+        tooltip: { trigger: "axis", backgroundColor: C.bg2, borderColor: C.line, textStyle: { color: C.text, fontFamily: MONO, fontSize: 18 },
+          axisPointer: { type: "line", lineStyle: { color: C.faint } },
+          valueFormatter: (v) => (v == null ? "–" : Math.round(v)) },
+        axisPointer: { link: [{ xAxisIndex: "all" }] },
+        xAxis: [xBase(0, false), xBase(1, true)],
         yAxis: [
-          { type: "value", name: "W", min: 0, max: 200, ...axisBase },
-          { type: "value", name: "bpm", min: 60, max: 180, ...axisBase, splitLine: { show: false } },
+          { type: "value", gridIndex: 0, min: 0, max: 150, interval: 50, ...axisBase },
+          { type: "value", gridIndex: 1, min: 60, max: 180, interval: 40, ...axisBase, axisLabel: { ...axisBase.axisLabel, showMinLabel: false } },
         ],
         series: [
-          { name: "Potência", type: "line", symbol: "none", data: t.map((x, i) => [x, G.power[i]]),
-            lineStyle: { color: C.power, width: 2.5 },
-            markLine: { symbol: "none", label: { fontFamily: MONO, fontSize: 20, color: C.text, position: "insideEndTop" },
+          { name: "Potência", type: "line", xAxisIndex: 0, yAxisIndex: 0, symbol: "none", data: t.map((x, i) => [x, G.power[i]]),
+            lineStyle: { color: C.power, width: 2 },
+            areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: C.tintPower }, { offset: 1, color: "rgba(0,0,0,0)" }] } },
+            markLine: { symbol: "none", silent: true, label: { fontFamily: MONO, fontSize: 20, color: C.text, position: "end", distance: 12 },
               data: [
-                { yAxis: 96, lineStyle: { color: C.muted, type: "dashed", width: 2 }, label: { formatter: "média 96 W" } },
-                ...(step >= 1 ? [{ yAxis: 106, lineStyle: { color: C.power, type: "solid", width: 3 }, label: { formatter: "NP 106 W", position: "insideStartTop" } }] : []),
+                { yAxis: 96, lineStyle: { color: C.muted, type: "dashed", width: 2 }, label: { formatter: "média 96", color: C.muted, offset: [0, 12] } },
+                ...(step >= 1 ? [{ yAxis: 106, lineStyle: { color: C.calc, type: "solid", width: 3 }, label: { formatter: "NP 106", color: C.calc, fontWeight: 700, offset: [0, -12] } }] : []),
               ] },
-            markArea: { silent: true, itemStyle: { color: "rgba(127,127,127,0.10)" },
-              label: { color: C.muted, fontSize: 20, fontFamily: FONT, position: "insideBottom", distance: 14 },
-              data: step < 2 ? [] : [
-                [{ xAxis: 0, name: "descarte" }, { xAxis: 10 }],
-                [{ xAxis: 10, name: "1ª metade", itemStyle: { color: "rgba(91,141,239,0.08)" } }, { xAxis: mid }],
-                [{ xAxis: mid, name: "2ª metade", itemStyle: { color: "rgba(239,79,95,0.08)" } }, { xAxis: end }],
-              ] } },
-          { name: "FC", type: "line", yAxisIndex: 1, symbol: "none", connectNulls: true,
-            data: t.map((x, i) => [x, G.hr[i]]), lineStyle: { color: C.hr, width: 2.5 } },
+            markArea: { silent: true, label: { color: C.muted, fontSize: 20, fontFamily: FONT, position: "insideTop", distance: 8 }, data: faixas } },
+          { name: "FC", type: "line", xAxisIndex: 1, yAxisIndex: 1, symbol: "none", connectNulls: true,
+            data: t.map((x, i) => [x, G.hr[i]]), lineStyle: { color: C.hr, width: 2 },
+            markArea: { silent: true, label: { show: false }, data: faixasSemRotulo } },
         ],
       }), { notMerge: fresh });
     },
