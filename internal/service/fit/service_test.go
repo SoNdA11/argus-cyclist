@@ -86,3 +86,63 @@ func TestSaveDerivesElapsedTimeFromRecords(t *testing.T) {
 		t.Errorf("TotalElapsedTime = %v, want about %v (recorded span, not wall clock)", got, recordedSpan)
 	}
 }
+
+// TestSaveRoundTripsWithComponentExpansion decodes an exported file the way a
+// standard FIT reader does (with component expansion enabled). Before records
+// were built with NewRecord(nil), unset fields were encoded as valid zeros and
+// the expansion of altitude/speed/compressed_speed_distance overwrote the real
+// values with -500 m, 0 km/h and a garbage distance.
+func TestSaveRoundTripsWithComponentExpansion(t *testing.T) {
+	svc := NewService()
+	start := time.Date(2026, 3, 25, 10, 0, 0, 0, time.UTC)
+	svc.StartSession(start)
+	for i := 0; i < 10; i++ {
+		svc.AddRecord(domain.Telemetry{
+			Timestamp:     start.Add(time.Duration(i) * time.Second),
+			Power:         200,
+			HeartRate:     140,
+			Cadence:       90,
+			Speed:         36, // km/h -> 10 m/s
+			TotalDistance: float64(i * 10),
+			Altitude:      1000 + float64(i),
+			Latitude:      45.92,
+			Longitude:     6.87,
+		})
+	}
+	path := filepath.Join(t.TempDir(), "roundtrip.fit")
+	if err := svc.Save(path); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	fitFile, err := decoder.New(f).Decode() // component expansion ON
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	i := 0
+	for k := range fitFile.Messages {
+		msg := &fitFile.Messages[k]
+		if msg.Num != mesgnum.Record {
+			continue
+		}
+		r := mesgdef.NewRecord(msg)
+		if got, want := r.EnhancedAltitudeScaled(), 1000+float64(i); got < want-0.5 || got > want+0.5 {
+			t.Errorf("record %d: altitude = %.1f m, want %.0f", i, got, want)
+		}
+		if got := r.EnhancedSpeedScaled(); got < 9.9 || got > 10.1 {
+			t.Errorf("record %d: speed = %.2f m/s, want 10", i, got)
+		}
+		if got, want := r.DistanceScaled(), float64(i*10); got < want-0.1 || got > want+0.1 {
+			t.Errorf("record %d: distance = %.2f m, want %.0f", i, got, want)
+		}
+		i++
+	}
+	if i != 10 {
+		t.Fatalf("decoded %d records, want 10", i)
+	}
+}
