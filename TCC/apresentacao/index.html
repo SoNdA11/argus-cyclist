@@ -13,7 +13,7 @@
 <div class="slides">
 
 <!-- ============================================================ 1 CAPA -->
-<section data-section="Abertura">
+<section data-section="Abertura" data-timing="20">
   <div class="cover">
     <div>
       <div class="kicker">Trabalho de Conclusão de Curso · Ciência da Computação</div>
@@ -32,7 +32,7 @@
 </section>
 
 <!-- ============================================================ 2 GANCHO -->
-<section data-section="Motivação">
+<section data-section="Motivação" data-timing="50">
   <div class="kicker">Uma pedalada real · 27/04/2026</div>
   <h2>Uma hora nas colinas de Girona, <span class="c-teal">sem sair de Mossoró</span></h2>
   <div id="ch-hook" class="chart" data-stepped="1" style="height:560px;margin-top:20px"></div>
@@ -46,7 +46,7 @@
 </section>
 
 <!-- ============================================================ 3 CICLISMO VIRTUAL -->
-<section data-section="Contexto">
+<section data-section="Contexto" data-timing="80">
   <div class="kicker">Contexto</div>
   <h2>O que é ciclismo virtual</h2>
   <div class="grid g-60-40" style="margin-top:20px;align-items:center">
@@ -91,7 +91,7 @@
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
-<section data-section="Problema">
+<section data-section="Problema" data-timing="60">
   <div class="kicker">Problema</div>
   <h2>O fluxo do ciclista é fragmentado</h2>
   <div class="grid g4" style="margin-top:60px;text-align:center">
@@ -110,7 +110,7 @@
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
-<section data-section="Estado da arte">
+<section data-section="Estado da arte" data-timing="80">
   <div class="kicker">Estado da arte</div>
   <h2>As peças existem — a combinação, não</h2>
   <table class="t matrix" style="margin-top:28px">
@@ -131,7 +131,7 @@
 </section>
 
 <!-- ============================================================ 6 PROPOSTA -->
-<section data-section="Proposta">
+<section data-section="Proposta" data-timing="50">
   <div class="kicker">Proposta</div>
   <h2>Um fluxo, três usos</h2>
   <div class="grid g3" style="margin-top:36px">
@@ -150,7 +150,7 @@
 </section>
 
 <!-- ============================================================ 7 METODOLOGIA -->
-<section data-section="Metodologia">
+<section data-section="Metodologia" data-timing="50">
   <div class="kicker">Metodologia</div>
   <h2>Design Science Research</h2>
   <div class="grid g2" style="margin-top:20px;align-items:center">
@@ -178,7 +178,7 @@
 </section>
 
 <!-- ============================================================ 8 ARQUITETURA -->
-<section data-section="Arquitetura">
+<section data-section="Arquitetura" data-timing="100">
   <div class="kicker">Arquitetura</div>
   <h2>Núcleo em Go, interface web compartilhada</h2>
   <svg viewBox="0 0 1700 760" width="100%" style="margin-top:6px" font-family="Inter">
@@ -222,12 +222,18 @@
       <text x="1460" y="540" text-anchor="middle" fill="var(--muted)" font-size="22">sessão ao vivo</text>
       <text x="1460" y="572" text-anchor="middle" fill="var(--muted)" font-size="22">sem FIT nem histórico</text>
     </g>
+    <g class="fragment" data-fragment-index="7" font-family="Inter">
+      <rect x="-8" y="252" width="1176" height="106" rx="18" fill="none" stroke="var(--warn)" stroke-width="3" stroke-dasharray="10 7"/>
+      <text x="1140" y="300" text-anchor="end" fill="var(--warn)" font-size="22" font-weight="700">concessão: orquestração concentrada</text>
+      <rect x="-8" y="382" width="1176" height="106" rx="18" fill="none" stroke="var(--teal)" stroke-width="3"/>
+      <text x="1140" y="430" text-anchor="end" fill="var(--teal)" font-size="22" font-weight="700">não importa GORM, Wails nem TinyGo</text>
+    </g>
   </svg>
   <aside class="notes">Construir camada a camada. Regra da dependência: o domínio não importa GORM, Wails nem TinyGo. Concessões: app.go concentra orquestração; fachada instancia SQLite. Android reaproveita a interface, mas física e GPX são reimplementados em JS (Capacitor não roda Go). ~1:40.</aside>
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-section="Arquitetura">
+<section data-section="Arquitetura" data-timing="70">
   <div class="kicker">Tempo real</div>
   <h2>Da notificação Bluetooth ao número na tela</h2>
   <svg viewBox="0 0 1700 640" width="100%" style="margin-top:20px" font-family="Inter">
@@ -271,13 +277,16 @@
 </section>
 
 <!-- ============================================================ 10 GPX → RESISTÊNCIA -->
-<section data-section="Simulação">
+<section data-section="Simulação" data-timing="90">
   <div class="kicker">Simulação · caso Geraardsbergen–Leberg</div>
   <h2>Do GPX à resistência do rolo</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div>
-      <div id="ch-grade" class="chart short"></div>
-      <p class="small muted" style="margin-top:6px">Rampas de até <span class="c-bad mono">17,9%</span> entre pontos; a janela de ±5 pontos remove o ruído do GPS.</p>
+      <div id="ch-grade" class="chart short" data-stepped="1"></div>
+      <p class="small muted" style="margin-top:6px">
+        <span class="fragment" data-chart-step="1">Entre pontos vizinhos: rampas de até <span class="c-bad mono">17,9%</span> e muito ruído.</span>
+        <span class="fragment" data-chart-step="2">Janela de ±5 pontos e limite de ±25%: <strong>a curva que vai para o rolo</strong>.</span>
+      </p>
     </div>
     <div class="fragment">
       <p class="small" style="margin-bottom:6px">Equação de Martin (quase estática), resolvida por bisseção:</p>
@@ -293,18 +302,18 @@
 </section>
 
 <!-- ============================================================ 11 FISIOLOGIA -->
-<section data-section="Fisiologia">
+<section data-section="Fisiologia" data-timing="110">
   <div class="kicker">Fisiologia · sessão de Girona</div>
   <h2>Cada número com fórmula — e com limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
-    <div id="ch-physio" class="chart" style="height:700px"></div>
+    <div id="ch-physio" class="chart" style="height:700px" data-stepped="1"></div>
     <div>
       <table class="t" style="font-size:24px">
         <tr><td>Potência média</td><td class="num">96 W</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl"><td><strong>NP</strong> <span class="faint tiny">(média⁴ de 30 s)</span></td><td class="num">106 W</td><td><span class="pill calculado">calculado</span></td></tr>
+        <tr class="fragment hl" data-chart-step="1"><td><strong>NP</strong> <span class="faint tiny">(média⁴ de 30 s)</span></td><td class="num">106 W</td><td><span class="pill calculado">calculado</span></td></tr>
         <tr class="fragment"><td>IF · TSS <span class="faint tiny">(FTP 153 W)</span></td><td class="num">0,69 · 49</td><td><span class="pill calculado">calculado</span></td></tr>
         <tr class="fragment"><td>FC média · máx</td><td class="num">139 · 169</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl"><td><strong>Desacoplamento</strong> <span class="faint tiny">(Pw:FC)</span></td><td class="num">8,3%</td><td><span class="pill calculado">calculado</span></td></tr>
+        <tr class="fragment hl" data-chart-step="2"><td><strong>Desacoplamento</strong> <span class="faint tiny">(Pw:FC)</span></td><td class="num">8,3%</td><td><span class="pill calculado">calculado</span></td></tr>
         <tr class="fragment"><td>Recuperação da FC (1 · 2 min)</td><td class="num">26 · 28</td><td><span class="pill calculado">calculado</span></td></tr>
         <tr class="fragment"><td>VT1 / VT2</td><td class="num">—</td><td><span class="pill anotacao">anotação</span></td></tr>
       </table>
@@ -316,7 +325,7 @@
 </section>
 
 <!-- ============================================================ 12 DADOS REAIS -->
-<section data-section="Resultados">
+<section data-section="Resultados" data-timing="60">
   <div class="kicker">Avaliação piloto · jan–out/2026</div>
   <h2>Dez meses de uso real</h2>
   <div class="grid g4" style="margin-top:24px">
@@ -331,7 +340,7 @@
 </section>
 
 <!-- ============================================================ 13 DEFEITOS -->
-<section data-section="Resultados">
+<section data-section="Resultados" data-timing="90">
   <div class="kicker">Avaliação → nova iteração</div>
   <h2>A análise dos dados encontrou defeitos</h2>
   <div class="grid g-40-60" style="margin-top:16px">
@@ -363,7 +372,7 @@
 </section>
 
 <!-- ============================================================ 14 FUNCIONALIDADES -->
-<section data-section="Funcionalidades">
+<section data-section="Funcionalidades" data-timing="60">
   <div class="kicker">Funcionalidades</div>
   <h2>Além do simulador</h2>
   <div class="bento" style="margin-top:24px">
@@ -382,7 +391,7 @@
 </section>
 
 <!-- ============================================================ 15 RESULTADOS -->
-<section data-section="Resultados">
+<section data-section="Resultados" data-timing="80">
   <div class="kicker">Resultados</div>
   <h2>Requisitos e plataformas</h2>
   <div class="grid g-60-40" style="margin-top:20px">
@@ -415,7 +424,7 @@
 </section>
 
 <!-- ============================================================ 16 CONCLUSÃO -->
-<section data-section="Conclusão">
+<section data-section="Conclusão" data-timing="80">
   <div class="kicker">Conclusão</div>
   <h2>O fluxo funciona — e é auditável</h2>
   <div class="grid g3" style="margin-top:30px">
