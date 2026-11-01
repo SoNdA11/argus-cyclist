@@ -2,6 +2,17 @@
 (function () {
   const printing = /print-pdf/i.test(window.location.search);
 
+  // Tema: claro por padrão; ?tema=escuro ou a tecla T alternam (lembrado no navegador).
+  const root = document.documentElement;
+  function storedTheme() { try { return localStorage.getItem("argus-tema"); } catch (e) { return null; } }
+  function setTheme(t) {
+    if (t === "escuro") root.setAttribute("data-tema", "escuro"); else root.removeAttribute("data-tema");
+    try { localStorage.setItem("argus-tema", t); } catch (e) { /* armazenamento indisponível */ }
+  }
+  const qs = new URLSearchParams(window.location.search).get("tema");
+  setTheme(qs || (printing ? "claro" : storedTheme()) || "claro");
+  window.ArgusCharts.retheme(); // charts.js leu as cores antes de o tema ser aplicado
+
   Reveal.initialize({
     width: 1920,
     height: 1080,
@@ -19,6 +30,12 @@
     // ?print-pdf gera uma página por clique (fragmento): espelha a apresentação
     pdfSeparateFragments: true,
     plugins: [RevealNotes],
+  });
+
+  Reveal.addKeyBinding({ keyCode: 84, key: "T", description: "Alternar tema claro/escuro" }, () => {
+    setTheme(root.getAttribute("data-tema") === "escuro" ? "claro" : "escuro");
+    window.ArgusCharts.retheme();
+    window.ArgusCharts.onSlide(Reveal.getCurrentSlide());
   });
 
   const footSection = document.getElementById("footer-section");

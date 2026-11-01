@@ -3,29 +3,36 @@
 (function () {
   const D = window.ARGUS_DATA;
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const C = {
-    text: css("--text"), muted: css("--muted"), faint: css("--faint"), line: css("--line"),
-    teal: css("--teal"), blue: css("--blue"), power: css("--power"), hr: css("--hr"),
-    cad: css("--cad"), alt: css("--alt"), bad: css("--bad"), anot: css("--anotacao"),
-  };
   const FONT = "Inter, system-ui, sans-serif";
   const MONO = "JetBrains Mono, monospace";
+  let C, axisBase, base, printMode = false;
 
-  const axisBase = {
-    axisLine: { lineStyle: { color: C.line } },
-    axisTick: { show: false },
-    axisLabel: { color: C.muted, fontSize: 20, fontFamily: MONO },
-    nameTextStyle: { color: C.muted, fontSize: 20, fontFamily: FONT },
-    splitLine: { lineStyle: { color: C.line, opacity: 0.5 } },
-  };
-  const base = {
-    backgroundColor: "transparent",
-    textStyle: { fontFamily: FONT, color: C.text },
-    animationDuration: 1600,
-    animationEasing: "cubicOut",
-    legend: { top: 0, right: 0, textStyle: { color: C.muted, fontSize: 22 }, itemWidth: 28, itemHeight: 12 },
-    grid: { left: 90, right: 90, top: 70, bottom: 70 },
-  };
+  // Lê as cores do tema atual (claro ou escuro) a partir das variáveis CSS.
+  function readTheme() {
+    C = {
+      text: css("--text"), muted: css("--muted"), faint: css("--faint"), line: css("--line"),
+      teal: css("--teal"), blue: css("--blue"), power: css("--power"), hr: css("--hr"),
+      cad: css("--cad"), alt: css("--alt"), bad: css("--bad"), anot: css("--anotacao"),
+      tintAlt: css("--tint-alt"), tintTeal: css("--tint-teal"),
+    };
+    axisBase = {
+      axisLine: { lineStyle: { color: C.line } },
+      axisTick: { show: false },
+      axisLabel: { color: C.muted, fontSize: 20, fontFamily: MONO },
+      nameTextStyle: { color: C.muted, fontSize: 20, fontFamily: FONT },
+      splitLine: { lineStyle: { color: C.line, opacity: 0.6 } },
+    };
+    base = {
+      backgroundColor: "transparent",
+      textStyle: { fontFamily: FONT, color: C.text },
+      animation: !printMode,
+      animationDuration: 1600,
+      animationEasing: "cubicOut",
+      legend: { top: 0, right: 0, textStyle: { color: C.muted, fontSize: 22 }, itemWidth: 28, itemHeight: 12 },
+      grid: { left: 90, right: 90, top: 70, bottom: 70 },
+    };
+  }
+  readTheme();
   const merge = (o) => {
     const out = Object.assign({}, base, o);
     out.legend = Object.assign({}, base.legend, o.legend || {});
@@ -72,7 +79,7 @@
         ],
         series: [
           { name: "Altitude", type: "line", yAxisIndex: 1, data: gironaPairs("alt"), symbol: "none", smooth: true,
-            lineStyle: { color: C.alt, width: 2 }, areaStyle: { color: "rgba(138,151,173,0.22)" } },
+            lineStyle: { color: C.alt, width: 2 }, areaStyle: { color: C.tintAlt } },
           { name: "Potência", type: "line", data: show(1) ? gironaPairs("power") : [], symbol: "none",
             lineStyle: { color: C.power, width: 3 } },
           { name: "FC", type: "line", data: show(2) ? gironaPairs("hr") : [], symbol: "none", connectNulls: true,
@@ -93,7 +100,7 @@
         ],
         series: [
           { name: "Altitude", type: "line", yAxisIndex: 1, symbol: "none", data: L.km.map((x, i) => [x, L.alt[i]]),
-            lineStyle: { color: C.alt, width: 1 }, areaStyle: { color: "rgba(138,151,173,0.18)" } },
+            lineStyle: { color: C.alt, width: 1 }, areaStyle: { color: C.tintAlt } },
           { name: "Inclinação bruta", type: "line", symbol: "none", data: L.km.map((x, i) => [x, L.raw[i]]),
             lineStyle: { color: C.bad, width: 1.5, opacity: 0.75 } },
           { name: "Suavizada (±5 pts, ≤25%)", type: "line", symbol: "none", data: L.km.map((x, i) => [x, L.smooth[i]]),
@@ -112,7 +119,7 @@
         yAxis: { type: "value", min: 0, max: 70, name: "km/h", ...axisBase },
         series: [
           { type: "line", symbol: "none", smooth: true, data: grades.map((g) => [g, +speedKmh(200, g).toFixed(1)]),
-            lineStyle: { color: C.teal, width: 4 }, areaStyle: { color: "rgba(46,230,201,0.10)" },
+            lineStyle: { color: C.teal, width: 4 }, areaStyle: { color: C.tintTeal },
             markPoint: { symbol: "circle", symbolSize: 14, itemStyle: { color: C.power },
               label: { color: C.text, fontFamily: MONO, fontSize: 20, position: "top", formatter: (p) => p.value + " km/h" },
               data: [0, 6, 12].map((g) => ({ coord: [g, +speedKmh(200, g).toFixed(1)], value: speedKmh(200, g).toFixed(1) })) } },
@@ -140,7 +147,7 @@
                 { yAxis: 96, lineStyle: { color: C.muted, type: "dashed", width: 2 }, label: { formatter: "média 96 W" } },
                 { yAxis: 106, lineStyle: { color: C.power, type: "solid", width: 2 }, label: { formatter: "NP 106 W", position: "insideStartTop" } },
               ] },
-            markArea: { silent: true, itemStyle: { color: "rgba(255,255,255,0.035)" },
+            markArea: { silent: true, itemStyle: { color: "rgba(127,127,127,0.10)" },
               label: { color: C.muted, fontSize: 20, fontFamily: FONT, position: "insideBottom", distance: 14 },
               data: [
                 [{ xAxis: 0, name: "descarte" }, { xAxis: 10 }],
@@ -163,7 +170,7 @@
           interval: (i, v) => v.endsWith("-01") } },
         yAxis: { type: "value", min: -40, max: 120, ...axisBase },
         series: [
-          { name: "TSS diário", type: "bar", data: P.tss, itemStyle: { color: "rgba(138,151,173,0.45)" }, barWidth: 2 },
+          { name: "TSS diário", type: "bar", data: P.tss, itemStyle: { color: C.tintAlt }, barWidth: 2 },
           { name: "CTL (42 d)", type: "line", symbol: "none", data: P.ctl, lineStyle: { color: C.blue, width: 3.5 }, itemStyle: { color: C.blue } },
           { name: "ATL (7 d)", type: "line", symbol: "none", data: P.atl, lineStyle: { color: C.hr, width: 2.5 }, itemStyle: { color: C.hr } },
           { name: "TSB", type: "line", symbol: "none", data: P.tsb, lineStyle: { color: C.power, width: 2, type: "dashed" }, itemStyle: { color: C.power } },
@@ -213,8 +220,12 @@
         if (el.dataset.stepped && charts[el.id]) builders[el.id](charts[el.id], stepOf(slide));
       });
     },
+    retheme() { // troca de tema: relê as cores e redesenha o slide atual
+      readTheme();
+      Object.keys(charts).forEach((id) => { charts[id].dispose(); delete charts[id]; });
+    },
     buildAll() { // modo PDF: tudo de uma vez, no estado final e sem animação
-      base.animation = false;
+      printMode = true; readTheme();
       document.querySelectorAll(".chart[id]").forEach((el) => { const c = ensure(el); if (c) builders[el.id](c, 99); });
     },
     speedKmh,
