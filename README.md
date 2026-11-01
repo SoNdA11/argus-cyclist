@@ -43,7 +43,9 @@ Tema: claro por padrão. Se o projetor da sala lavar as cores, use `T` (ou abra
 npm run dados   # equivale a: python3 -I scripts/exportar_dados.py
 ```
 
-Logo da capa: `img/argus-cyclist-claro.png` é gerado do logo original
+Logo da capa: `img/argus-cyclist-mono-{claro,escuro}.png` (mesma cor do símbolo do
+agradecimento) sai de `scripts/logo_monocromatico.py`, a partir de
+`img/argus-cyclist-claro.png`, que por sua vez é gerado do logo original
 (fundo navy) por `scripts/logo_fundo_claro.py` — extrai a transparência por
 color-to-alpha e ajusta a intensidade para fundo claro.
 
