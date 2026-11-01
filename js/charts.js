@@ -89,7 +89,7 @@
     },
 
     // Slide 10 — inclinação bruta x suavizada (Leberg)
-    "ch-grade": (chart) => {
+    "ch-grade": (chart, step) => {
       const L = D.leberg;
       chart.setOption(merge({
         legend: { data: ["Altitude", "Inclinação bruta", "Suavizada (±5 pts, ≤25%)"] },
@@ -101,9 +101,9 @@
         series: [
           { name: "Altitude", type: "line", yAxisIndex: 1, symbol: "none", data: L.km.map((x, i) => [x, L.alt[i]]),
             lineStyle: { color: C.alt, width: 1 }, areaStyle: { color: C.tintAlt } },
-          { name: "Inclinação bruta", type: "line", symbol: "none", data: L.km.map((x, i) => [x, L.raw[i]]),
+          { name: "Inclinação bruta", type: "line", symbol: "none", data: step >= 1 ? L.km.map((x, i) => [x, L.raw[i]]) : [],
             lineStyle: { color: C.bad, width: 1.5, opacity: 0.75 } },
-          { name: "Suavizada (±5 pts, ≤25%)", type: "line", symbol: "none", data: L.km.map((x, i) => [x, L.smooth[i]]),
+          { name: "Suavizada (±5 pts, ≤25%)", type: "line", symbol: "none", data: step >= 2 ? L.km.map((x, i) => [x, L.smooth[i]]) : [],
             lineStyle: { color: C.teal, width: 3.5 } },
         ],
       }), true);
@@ -128,7 +128,7 @@
     },
 
     // Slide 11 — média x NP e as duas metades do desacoplamento
-    "ch-physio": (chart) => {
+    "ch-physio": (chart, step) => {
       const t = G.km.map((_, i) => +(i * 0.25).toFixed(2)); // blocos de 15 s -> minutos
       const end = t[t.length - 1];
       const mid = 10 + (end - 10) / 2;
@@ -145,11 +145,11 @@
             markLine: { symbol: "none", label: { fontFamily: MONO, fontSize: 20, color: C.text, position: "insideEndTop" },
               data: [
                 { yAxis: 96, lineStyle: { color: C.muted, type: "dashed", width: 2 }, label: { formatter: "média 96 W" } },
-                { yAxis: 106, lineStyle: { color: C.power, type: "solid", width: 2 }, label: { formatter: "NP 106 W", position: "insideStartTop" } },
+                ...(step >= 1 ? [{ yAxis: 106, lineStyle: { color: C.power, type: "solid", width: 3 }, label: { formatter: "NP 106 W", position: "insideStartTop" } }] : []),
               ] },
             markArea: { silent: true, itemStyle: { color: "rgba(127,127,127,0.10)" },
               label: { color: C.muted, fontSize: 20, fontFamily: FONT, position: "insideBottom", distance: 14 },
-              data: [
+              data: step < 2 ? [] : [
                 [{ xAxis: 0, name: "descarte" }, { xAxis: 10 }],
                 [{ xAxis: 10, name: "1ª metade", itemStyle: { color: "rgba(91,141,239,0.08)" } }, { xAxis: mid }],
                 [{ xAxis: mid, name: "2ª metade", itemStyle: { color: "rgba(239,79,95,0.08)" } }, { xAxis: end }],
@@ -210,7 +210,12 @@
     });
   }
   function stepOf(slide) {
-    return slide.querySelectorAll(".fragment.visible[data-chart-step]").length;
+    // o passo é o maior data-chart-step entre os fragmentos já visíveis
+    let step = 0;
+    slide.querySelectorAll(".fragment.visible[data-chart-step]").forEach((el) => {
+      step = Math.max(step, Number(el.dataset.chartStep) || 0);
+    });
+    return step;
   }
 
   window.ArgusCharts = {

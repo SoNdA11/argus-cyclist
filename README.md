@@ -20,7 +20,10 @@ servidor.
 | `B` ou `.` | tela preta |
 | `T` | alterna tema claro (padrão) / escuro — a escolha fica salva no navegador |
 
-As notas de cada slide trazem a fala-chave e o tempo-alvo.
+As notas de cada slide trazem a fala-chave. Cada slide também tem um tempo-alvo
+(`data-timing`), que soma **18 min 50 s** e deixa 1 min 10 s de folga. Na visão
+do apresentador (`S`), o cronômetro de *pacing* mostra se você está adiantado ou
+atrasado em relação a esse plano: é o apoio para os ensaios cronometrados.
 
 Tema: claro por padrão. Se o projetor da sala lavar as cores, use `T` (ou abra
 `index.html?tema=escuro`).

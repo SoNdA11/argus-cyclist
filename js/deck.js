@@ -29,6 +29,9 @@
     backgroundTransition: "none",
     // ?print-pdf gera uma página por clique (fragmento): espelha a apresentação
     pdfSeparateFragments: true,
+    // ritmo do ensaio: cada slide tem data-timing (s); a visão do apresentador (S)
+    // compara o tempo decorrido com o planejado
+    defaultTiming: 60,
     plugins: [RevealNotes],
   });
 
