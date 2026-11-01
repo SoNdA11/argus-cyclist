@@ -111,7 +111,7 @@ Capa e resumo.
 
 ## O que aparece na tela
 
-Rótulo "Roteiro da apresentação" e título "Sumário". Seis cartões, que entram em sequência quando o slide abre (sem cliques), cada um com um número grande colorido, o nome da seção, uma linha de descrição e o intervalo de slides:
+Rótulo "Roteiro da apresentação" e título "Sumário". O roteiro é desenhado como uma **rota de ciclismo**: uma estrada sinuosa vai da "largada" à "chegada" (bandeira quadriculada) e se desenha quando o slide abre. As seis seções são paradas na estrada, círculos numerados de 01 a 06 na cor da seção, que aparecem uma a uma, sem cliques. As paradas 01, 03 e 05 ficam no alto, com o texto acima; as 02, 04 e 06 ficam embaixo, com o texto abaixo. Cada texto traz o título, a descrição e o intervalo de slides. Um ponto amarelo (o ciclista) percorre a rota sem parar e passa por trás das paradas:
 
 | # | Seção | Descrição | Slides |
 |---|---|---|---|
