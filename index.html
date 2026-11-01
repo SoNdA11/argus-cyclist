@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Argus Cyclist — Defesa do TCC</title>
+<title>Argus Cyclist · Defesa do TCC</title>
 <link rel="stylesheet" href="vendor/reveal/reset.css">
 <link rel="stylesheet" href="vendor/reveal/reveal.css">
 <link rel="stylesheet" href="css/argus.css">
@@ -98,7 +98,7 @@
 <!-- ============================================================ 5 ESTADO DA ARTE -->
 <section data-section="Estado da arte" data-timing="80">
   <div class="kicker">Estado da arte</div>
-  <h2>As peças existem — a combinação, não</h2>
+  <h2>As peças existem, mas não juntas</h2>
   <table class="t matrix" style="margin-top:28px">
     <thead><tr><th>Plataforma</th><th>GPX do usuário</th><th>Controla o rolo</th><th>Análise fisiológica</th><th>Histórico local</th><th>Código aberto</th></tr></thead>
     <tbody>
@@ -111,28 +111,56 @@
       <tr class="argus fragment"><td>Argus Cyclist</td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td><td class="y"></td></tr>
     </tbody>
   </table>
-  <p class="fragment rise small muted" style="margin-top:22px">Contribuição: <strong>integração</strong> e <strong>transparência</strong> — não pioneirismo em cada função.</p>
-  <div class="source">● atende · ◐ parcial · ○ não é o foco — leitura do autor a partir de páginas oficiais e repositórios (out/2026), Cap. 2.</div>
+  <p class="fragment rise small muted" style="margin-top:22px">Contribuição: <strong>integração</strong> e <strong>transparência</strong>, não pioneirismo em cada função.</p>
+  <div class="source">● atende · ◐ parcial · ○ não é o foco. Leitura do autor a partir de páginas oficiais e repositórios (out/2026), Cap. 2.</div>
   <aside class="notes">Não reivindicar superioridade. TP Virtual prova que o caso de uso existe (GPXplore), mas é fechado. Incyclist é o mais próximo aberto; o diferencial é o eixo de análise fisiológica + histórico local. ~1:20.</aside>
 </section>
 
 <!-- ============================================================ 6 PROPOSTA -->
 <section data-section="Proposta" data-timing="50">
   <div class="kicker">Proposta</div>
-  <h2>Um fluxo, três usos</h2>
-  <div class="grid g3" style="margin-top:36px">
-    <div class="card"><h4>Reconhecimento</h4><p>Ensaiar o percurso de uma prova antes de ir.</p></div>
-    <div class="card"><h4>Exploração</h4><p>Pedalar um lugar que talvez nunca visite.</p></div>
-    <div class="card"><h4>Treino</h4><p>Treinar com carga fisiológica mensurável.</p></div>
+  <h2>Um fluxo para três usos</h2>
+  <div class="grid g3" style="margin-top:30px">
+    <div class="card uso">
+      <div class="uso-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2.5 4 2.5 4H5"/></svg></div>
+      <div><h4>Reconhecimento</h4><p>Ensaiar a subida de uma prova antes do dia.</p></div>
+    </div>
+    <div class="card uso">
+      <div class="uso-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></div>
+      <div><h4>Exploração</h4><p>Pedalar em Chamonix ou Tromsø sem sair de casa.</p></div>
+    </div>
+    <div class="card uso">
+      <div class="uso-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg></div>
+      <div><h4>Treino</h4><p>Carga fisiológica medida, com fórmula aberta.</p></div>
+    </div>
   </div>
-  <svg viewBox="0 0 1700 200" width="100%" style="margin-top:60px" font-family="Inter">
-    <g class="fragment" data-fragment-index="1"><rect x="0" y="40" width="360" height="120" rx="16" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text x="180" y="95" text-anchor="middle" fill="var(--text)" font-size="34" font-weight="700">Entrada</text><text x="180" y="132" text-anchor="middle" fill="var(--muted)" font-size="22">GPX → relevo</text></g>
-    <g class="fragment" data-fragment-index="2"><path d="M370,100 H440" stroke="var(--blue)" stroke-width="4"/><rect x="450" y="40" width="360" height="120" rx="16" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text x="630" y="95" text-anchor="middle" fill="var(--text)" font-size="34" font-weight="700">Simulação</text><text x="630" y="132" text-anchor="middle" fill="var(--muted)" font-size="22">rolo + física</text></g>
-    <g class="fragment" data-fragment-index="3"><path d="M820,100 H890" stroke="var(--blue)" stroke-width="4"/><rect x="900" y="40" width="360" height="120" rx="16" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text x="1080" y="95" text-anchor="middle" fill="var(--text)" font-size="34" font-weight="700">Análise</text><text x="1080" y="132" text-anchor="middle" fill="var(--muted)" font-size="22">fórmulas explícitas</text></g>
-    <g class="fragment" data-fragment-index="4"><path d="M1270,100 H1330" stroke="var(--blue)" stroke-width="4"/><rect x="1340" y="40" width="360" height="120" rx="16" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text x="1520" y="95" text-anchor="middle" fill="var(--text)" font-size="34" font-weight="700">Persistência</text><text x="1520" y="132" text-anchor="middle" fill="var(--muted)" font-size="22">SQLite local + FIT</text></g>
+  <svg class="trilha" viewBox="0 0 1700 400" width="100%" style="margin-top:34px" font-family="Inter" text-anchor="middle">
+    <path d="M0,270 C60,270 100,250 150,250 C330,250 420,140 600,140 C780,140 900,210 1100,210 C1300,210 1380,100 1560,100 C1620,100 1670,110 1700,110 L1700,300 L0,300 Z" fill="var(--tint-teal)"/>
+    <path id="trilha" class="draw" style="--len:2100" d="M0,270 C60,270 100,250 150,250 C330,250 420,140 600,140 C780,140 900,210 1100,210 C1300,210 1380,100 1560,100 C1620,100 1670,110 1700,110" fill="none" stroke="var(--teal)" stroke-width="5" stroke-linecap="round"/>
+    <g class="fragment" data-fragment-index="1">
+      <path d="M150,276 V310" stroke="var(--line)" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="150" cy="250" r="22" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/><text x="150" y="259" fill="var(--teal)" font-size="24" font-weight="800">1</text>
+      <text x="150" y="350" fill="var(--text)" font-size="32" font-weight="700">Entrada</text><text x="150" y="385" fill="var(--muted)" font-size="22">o GPX vira relevo</text>
+    </g>
+    <g class="fragment" data-fragment-index="2">
+      <path d="M600,166 V310" stroke="var(--line)" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="600" cy="140" r="22" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/><text x="600" y="149" fill="var(--teal)" font-size="24" font-weight="800">2</text>
+      <text x="600" y="350" fill="var(--text)" font-size="32" font-weight="700">Simulação</text><text x="600" y="385" fill="var(--muted)" font-size="22">o rolo sente a subida</text>
+    </g>
+    <g class="fragment" data-fragment-index="3">
+      <path d="M1100,236 V310" stroke="var(--line)" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="1100" cy="210" r="22" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/><text x="1100" y="219" fill="var(--teal)" font-size="24" font-weight="800">3</text>
+      <text x="1100" y="350" fill="var(--text)" font-size="32" font-weight="700">Análise</text><text x="1100" y="385" fill="var(--muted)" font-size="22">métricas com fórmula explícita</text>
+    </g>
+    <g class="fragment" data-fragment-index="4">
+      <path d="M1560,126 V310" stroke="var(--line)" stroke-width="3" stroke-dasharray="5 6"/>
+      <circle cx="1560" cy="100" r="22" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="4"/><text x="1560" y="109" fill="var(--teal)" font-size="24" font-weight="800">4</text>
+      <text x="1560" y="350" fill="var(--text)" font-size="32" font-weight="700">Histórico</text><text x="1560" y="385" fill="var(--muted)" font-size="22">SQLite local e FIT</text>
+    </g>
+    <g class="ciclista"><circle r="14" fill="var(--power)" stroke="var(--bg-2)" stroke-width="5"/><animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"><mpath href="#trilha"/></animateMotion></g>
   </svg>
-  <p class="fragment rise small muted" data-fragment-index="5" style="margin-top:30px">Código aberto (GPLv3) · dados no dispositivo · integrações (Strava, Intervals.icu) opcionais</p>
-  <aside class="notes">Mesmo fluxo atende três públicos. As quatro operações sem trocar de aplicativo. ~50 s.</aside>
+  <p class="fragment rise small muted" data-fragment-index="5" style="margin-top:18px">Tudo no mesmo aplicativo: código aberto (GPLv3), dados no dispositivo; Strava e Intervals.icu são opcionais.</p>
+  <aside class="notes">Os três usos compartilham o mesmo fluxo. Reconhecimento: ensaiar a prova; exploração: pedalar rotas de outros lugares (Chamonix e Tromsø estão no histórico real); treino: carga mensurável. O ponto amarelo é o ciclista percorrendo o perfil: entrada, simulação, análise e histórico, sem trocar de aplicativo. ~50 s.</aside>
 </section>
 
 <!-- ============================================================ METODOLOGIA -->
@@ -140,7 +168,7 @@
   <div class="kicker">Metodologia</div>
   <h2>Design Science Research</h2>
   <div class="grid g2" style="margin-top:6px;align-items:center">
-    <svg viewBox="0 0 760 740" width="100%" font-family="Inter" text-anchor="middle">
+    <svg viewBox="0 0 760 760" width="100%" style="max-height:780px" font-family="Inter" text-anchor="middle">
       <circle cx="380" cy="370" r="262" fill="none" stroke="var(--line)" stroke-width="3"/>
       <g>
         <circle cx="380" cy="108" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
@@ -152,9 +180,9 @@
         <circle cx="607" cy="501" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
         <text x="607" y="497" fill="var(--text)" font-size="26" font-weight="700">Projeto</text>
         <text x="607" y="527" fill="var(--muted)" font-size="20">artefato</text>
-        <circle cx="380" cy="632" r="96" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-        <text x="380" y="628" fill="var(--text)" font-size="24" font-weight="700">Demonstração</text>
-        <text x="380" y="658" fill="var(--muted)" font-size="20">3 cenários</text>
+        <circle cx="380" cy="640" r="118" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+        <text x="380" y="636" fill="var(--text)" font-size="26" font-weight="700">Demonstração</text>
+        <text x="380" y="666" fill="var(--muted)" font-size="20">3 cenários</text>
         <circle cx="153" cy="501" r="96" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
         <text x="153" y="497" fill="var(--text)" font-size="26" font-weight="700">Avaliação</text>
         <text x="153" y="527" fill="var(--muted)" font-size="20">piloto</text>
@@ -174,77 +202,84 @@
 </section>
 
 <!-- ============================================================ ARQUITETURA -->
-<section data-section="Arquitetura" data-timing="100">
+<section data-section="Arquitetura" data-timing="100" class="arch">
   <div class="kicker">Arquitetura · diagrama gerado com Archify a partir do código</div>
   <h2>Núcleo em Go, interface web compartilhada</h2>
   <div class="archify" style="margin-top:4px">
     <img class="so-claro" src="img/archify-claro.png" alt="Diagrama de arquitetura do Argus Cyclist">
     <img class="so-escuro" src="img/archify-escuro.png" alt="Diagrama de arquitetura do Argus Cyclist">
   </div>
-  <div class="grid g3" style="margin-top:12px;font-size:23px;line-height:1.3">
-    <div class="fragment rise"><span class="c-teal">●</span> <strong>Regra da dependência:</strong> o domínio não importa GORM, Wails nem TinyGo</div>
-    <div class="fragment rise"><span class="c-warn">●</span> <strong>Concessão declarada:</strong> o app orquestrador concentra a sessão</div>
-    <div class="fragment rise"><span class="c-blue">●</span> <strong>Android:</strong> mesma interface; física e GPX reimplementados em JS</div>
-  </div>
   <aside class="notes">Percorrer da esquerda para a direita: interface → Wails → app orquestrador → loop de tempo real → serviço BLE → rolo. Abaixo, persistência por perfil e exportação FIT. Concessões: app.go concentra orquestração; fachada instancia SQLite. Android reaproveita a interface, mas física e GPX são reimplementados (Capacitor não roda Go).</aside>
 </section>
 
 <!-- ============================================================ BLUETOOTH -->
-<section data-section="Comunicação" data-timing="100">
+<section data-section="Comunicação" data-timing="90">
   <div class="kicker">Comunicação com o equipamento · Bluetooth SIG (2017; 2023), ANT+ (2024)</div>
-  <h2>Como o Argus conversa com o rolo via Bluetooth LE</h2>
-  <svg viewBox="0 0 1700 640" width="100%" style="margin-top:10px" font-family="Inter">
+  <h2>Como o Argus conversa com o rolo</h2>
+  <svg viewBox="0 0 1700 450" width="100%" style="margin-top:8px" font-family="Inter" text-anchor="middle">
     <defs>
-      <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/></marker>
-      <marker id="ab2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--teal)"/></marker>
+      <path id="bt-up" d="M1335,165 H365"/>
+      <path id="bt-down" d="M365,255 H1335"/>
+      <path id="bt-fake" d="M1305,395 C900,400 420,420 200,335"/>
     </defs>
-    <!-- central e periférico -->
-    <g text-anchor="middle">
-      <rect x="0" y="40" width="300" height="560" rx="20" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
-      <text x="150" y="95" fill="var(--text)" font-size="32" font-weight="700">Argus</text>
-      <text x="150" y="128" fill="var(--muted)" font-size="21">central (cliente GATT)</text>
-      <rect x="25" y="420" width="250" height="70" rx="10" fill="var(--bg-3)" stroke="var(--line)"/>
-      <text x="150" y="450" fill="var(--text)" font-size="20" font-weight="700">desktop</text>
-      <text x="150" y="476" fill="var(--muted)" font-size="18">Go · TinyGo Bluetooth</text>
-      <rect x="25" y="505" width="250" height="70" rx="10" fill="var(--bg-3)" stroke="var(--line)"/>
-      <text x="150" y="535" fill="var(--text)" font-size="20" font-weight="700">Android</text>
-      <text x="150" y="561" fill="var(--muted)" font-size="18">plugin BLE do Capacitor</text>
-      <rect x="1240" y="40" width="460" height="560" rx="20" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
-      <text x="1470" y="95" fill="var(--text)" font-size="32" font-weight="700">Rolo / sensor</text>
-      <text x="1470" y="128" fill="var(--muted)" font-size="21">periférico (servidor GATT)</text>
+    <!-- 2 · canal aberto -->
+    <g class="fragment" data-fragment-index="2">
+      <path d="M365,165 H1335" stroke="var(--line)" stroke-width="4"/>
+      <path d="M365,255 H1335" stroke="var(--line)" stroke-width="4"/>
     </g>
-    <!-- árvore GATT -->
-    <g font-size="21">
-      <rect x="1270" y="160" width="400" height="190" rx="12" fill="var(--bg-3)" stroke="var(--line)"/>
-      <text x="1290" y="196" fill="var(--text)" font-weight="700">Serviço Cycling Power · 0x1818</text>
-      <text x="1310" y="236" fill="var(--muted)">└ Característica 0x2A63</text>
-      <text x="1330" y="268" fill="var(--power)" font-family="JetBrains Mono">notify: potência, cadência</text>
-      <text x="1290" y="318" fill="var(--text)" font-weight="700">Heart Rate · 0x180D</text>
-      <rect x="1270" y="370" width="400" height="200" rx="12" fill="var(--bg-3)" stroke="var(--line)"/>
-      <text x="1290" y="406" fill="var(--text)" font-weight="700">Fitness Machine · 0x1826</text>
-      <text x="1310" y="446" fill="var(--muted)">└ Ponto de controle 0x2AD9</text>
-      <text x="1330" y="478" fill="var(--teal)" font-family="JetBrains Mono">write: inclinação, ERG</text>
-      <text x="1290" y="528" fill="var(--muted)">ou FE-C sobre BLE</text>
-      <text x="1290" y="556" fill="var(--muted)">(páginas 49 e 51)</text>
+    <!-- 3 · telemetria chegando -->
+    <g class="fragment" data-fragment-index="3">
+      <text x="850" y="125" fill="var(--text)" font-size="24" font-weight="700">cerca de 3 avisos por segundo</text>
+      <g><rect x="-72" y="-26" width="144" height="52" rx="26" fill="var(--bg-2)" stroke="var(--power)" stroke-width="3"/><text y="9" fill="var(--power)" font-size="25" font-weight="700" font-family="JetBrains Mono">210 W</text><animateMotion dur="4.5s" begin="-0s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
+      <g><rect x="-80" y="-26" width="160" height="52" rx="26" fill="var(--bg-2)" stroke="var(--hr)" stroke-width="3"/><text y="9" fill="var(--hr)" font-size="25" font-weight="700" font-family="JetBrains Mono">142 bpm</text><animateMotion dur="4.5s" begin="-1.5s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
+      <g><rect x="-72" y="-26" width="144" height="52" rx="26" fill="var(--bg-2)" stroke="var(--cad)" stroke-width="3"/><text y="9" fill="var(--cad)" font-size="25" font-weight="700" font-family="JetBrains Mono">88 rpm</text><animateMotion dur="4.5s" begin="-3s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
     </g>
-    <!-- sequência -->
-    <g font-size="23" fill="var(--text)">
-      <g class="fragment" data-fragment-index="1"><path d="M1235,180 H310" stroke="var(--line)" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#ab)"/><text x="770" y="168" text-anchor="middle"><tspan font-weight="700">1 · anúncio</tspan>  “tenho o serviço 0x1818”</text></g>
-      <g class="fragment" data-fragment-index="2"><path d="M310,250 H1235" stroke="var(--blue)" stroke-width="3" marker-end="url(#ab)"/><text x="770" y="238" text-anchor="middle"><tspan font-weight="700">2 · conexão e descoberta</tspan> de serviços</text></g>
-      <g class="fragment" data-fragment-index="3"><path d="M310,320 H1235" stroke="var(--blue)" stroke-width="3" marker-end="url(#ab)"/><text x="770" y="308" text-anchor="middle"><tspan font-weight="700">3 · assinatura</tspan> das notificações (CCCD)</text></g>
-      <g class="fragment" data-fragment-index="4">
-        <path d="M1235,390 H310" stroke="var(--power)" stroke-width="3" marker-end="url(#ab)"/><path d="M1235,410 H310" stroke="var(--power)" stroke-width="3" opacity="0.6"/><path d="M1235,430 H310" stroke="var(--power)" stroke-width="3" opacity="0.35"/>
-        <text x="770" y="378" text-anchor="middle"><tspan font-weight="700">4 · notificações</tspan> contínuas de telemetria</text>
-        <text x="770" y="470" text-anchor="middle" font-family="JetBrains Mono" font-size="24"><tspan fill="var(--muted)">00 00 </tspan><tspan fill="var(--power)" font-weight="600">D2 00</tspan><tspan fill="var(--muted)">  →  flags | potência = 0x00D2 = </tspan><tspan fill="var(--power)" font-weight="600">210 W</tspan></text>
-      </g>
-      <g class="fragment" data-fragment-index="5"><path d="M310,540 H1235" stroke="var(--teal)" stroke-width="4" marker-end="url(#ab2)"/><text x="770" y="528" text-anchor="middle"><tspan font-weight="700">5 · escrita</tspan> no ponto de controle: “inclinação = 6,5%”</text></g>
+    <!-- 4 · comando de volta -->
+    <g class="fragment" data-fragment-index="4">
+      <g><rect x="-110" y="-26" width="220" height="52" rx="26" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text y="9" fill="var(--teal)" font-size="25" font-weight="700" font-family="JetBrains Mono">subida 6,5%</text><animateMotion dur="4.5s" begin="-2s" repeatCount="indefinite"><mpath href="#bt-down"/></animateMotion></g>
+      <text x="850" y="306" fill="var(--text)" font-size="24" font-weight="700">o Argus responde com a inclinação, e o rolo endurece</text>
+    </g>
+    <!-- 5 · impostor -->
+    <g class="fragment" data-fragment-index="5">
+      <path d="M1305,395 C900,400 420,420 200,335" fill="none" stroke="var(--bad)" stroke-width="3" stroke-dasharray="10 10"/>
+      <g><rect x="-90" y="-26" width="180" height="52" rx="26" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="3"/><text y="9" fill="var(--bad)" font-size="25" font-weight="700" font-family="JetBrains Mono">1.200 W</text><animateMotion dur="4.5s" begin="-1s" repeatCount="indefinite"><mpath href="#bt-fake"/></animateMotion></g>
+      <rect x="1310" y="350" width="370" height="90" rx="16" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="3" stroke-dasharray="10 8"/>
+      <text x="1495" y="388" fill="var(--bad)" font-size="24" font-weight="700">app que imita um sensor</text>
+      <text x="1495" y="420" fill="var(--muted)" font-size="19">mesmo anúncio, dados inventados</text>
+    </g>
+    <!-- nós (por cima das bolhas) -->
+    <g>
+      <rect x="20" y="80" width="340" height="250" rx="22" fill="var(--bg-2)" stroke="var(--blue)" stroke-width="3"/>
+      <rect x="135" y="112" width="110" height="72" rx="8" fill="none" stroke="var(--blue)" stroke-width="5"/>
+      <path d="M112,194 H268 L256,208 H124 Z" fill="var(--blue)"/>
+      <text x="190" y="260" fill="var(--text)" font-size="31" font-weight="700">Argus Cyclist</text>
+      <text x="190" y="295" fill="var(--muted)" font-size="21">computador ou celular</text>
+      <rect x="1340" y="80" width="340" height="250" rx="22" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/>
+      <circle cx="1510" cy="150" r="44" fill="none" stroke="var(--teal)" stroke-width="5"/>
+      <circle cx="1510" cy="150" r="10" fill="var(--teal)"/>
+      <path d="M1510,106 V194 M1466,150 H1554 M1479,119 L1541,181 M1541,119 L1479,181" stroke="var(--teal)" stroke-width="2" opacity="0.5"/>
+      <text x="1510" y="260" fill="var(--text)" font-size="31" font-weight="700">Rolo e sensores</text>
+      <text x="1510" y="295" fill="var(--muted)" font-size="21">potência · FC · cadência</text>
+    </g>
+    <!-- 1 · anúncio -->
+    <g class="fragment ondas" data-fragment-index="1">
+      <path d="M1600,62 a40,40 0 0 1 40,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M1600,46 a56,56 0 0 1 56,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M1600,30 a72,72 0 0 1 72,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
+      <text x="1330" y="40" text-anchor="end" fill="var(--muted)" font-size="24" font-style="italic">“sou um rolo e meço potência”</text>
     </g>
   </svg>
-  <div class="fragment rise card" data-fragment-index="6" style="margin-top:14px;border-color:var(--warn);display:flex;gap:28px;align-items:center">
-    <div style="font-size:54px;line-height:1" class="c-warn">!</div>
-    <p style="font-size:26px;color:var(--text)">Os perfis GATT de ciclismo <strong>não autenticam a origem dos dados</strong>: um dispositivo — ou um app que emule um sensor — pode anunciar o mesmo serviço e enviar qualquer potência. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>, outro projeto do autor.</p>
+  <div class="grid g4 passos" style="margin-top:6px">
+    <div class="fragment rise" data-fragment-index="1"><b>1 · Encontrar</b>o rolo anuncia o que sabe medir</div>
+    <div class="fragment rise" data-fragment-index="2"><b>2 · Conectar</b>o Argus se inscreve nos avisos</div>
+    <div class="fragment rise" data-fragment-index="3"><b>3 · Receber</b>potência, FC e cadência chegam sozinhas</div>
+    <div class="fragment rise" data-fragment-index="4"><b>4 · Comandar</b>a inclinação do mapa vira resistência</div>
   </div>
-  <aside class="notes">Modelo central/periférico: o rolo é servidor GATT, o Argus é cliente. Anúncio → conexão → descoberta → assinatura → notificações (a telemetria chega sozinha) → escrita no ponto de controle para mudar a resistência. Exemplo de decodificação: os bytes D2 00 em little-endian valem 210 W. Gancho: nada no protocolo prova que esses 210 W vieram de um medidor real — em competições virtuais isso abre espaço para fraude; é o que estudo no Argus Recon. Não aprofundar: só citar.</aside>
+  <div class="fragment rise card alerta" data-fragment-index="5">
+    <div class="c-bad" style="font-size:50px;line-height:1;font-weight:800">!</div>
+    <p>O protocolo <strong>não comprova a origem dos dados</strong>: qualquer aparelho, ou um app que imite um sensor, pode enviar a potência que quiser. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>, outro projeto do autor.</p>
+  </div>
+  <aside class="notes">Explicar sem jargão. 1) O rolo fica anunciando "sou um rolo e meço potência". 2) O Argus conecta e se inscreve para receber avisos. 3) A partir daí os dados chegam sozinhos, cerca de três avisos por segundo. 4) No sentido contrário, o Argus envia a inclinação do mapa e o rolo ajusta a resistência. Para a banca de Computação, se perguntarem: perfis GATT Cycling Power (0x1818), Heart Rate (0x180D), FTMS (0x1826) e FE-C sobre BLE; o Argus é a central (cliente GATT). Gancho: nada no protocolo prova que os 210 W vieram de um medidor real; um app pode se passar por sensor. É o que estudo no Argus Recon. Só citar, não aprofundar.</aside>
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
@@ -293,7 +328,7 @@
 
 <!-- ============================================================ 10 GPX → RESISTÊNCIA -->
 <section data-section="Simulação" data-timing="90">
-  <div class="kicker">Simulação · caso Geraardsbergen–Leberg</div>
+  <div class="kicker">Simulação · cenário de reconhecimento: de Geraardsbergen a Leberg (Bélgica)</div>
   <h2>Do GPX à resistência do rolo</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div>
@@ -313,13 +348,13 @@
     </div>
   </div>
   <div class="source">Martin et al. (1998). Velocidade e distância são <em>estimadas</em> pelo modelo; a potência é <em>medida</em>.</div>
-  <aside class="notes">GPX vira distância e altitude; a inclinação suavizada vai para o rolo (FE-C pág. 51 / FTMS). A física calcula a velocidade virtual: a mesma potência rende ~33 km/h no plano, ~12 km/h a 6% e ~7 km/h a 12%. Ressaltar: velocidade é modelo, não medida. ~1:30.</aside>
+  <aside class="notes">Por que este percurso: é o caso do cenário de reconhecimento descrito na metodologia (Cap. 4) e usado para demonstrar o RF08; foi escolhido por ter subidas curtas e muito íngremes, onde o ruído do GPX aparece com clareza. GPX vira distância e altitude; a inclinação suavizada vai para o rolo (FE-C pág. 51 / FTMS). A física calcula a velocidade virtual: a mesma potência rende ~33 km/h no plano, ~12 km/h a 6% e ~7 km/h a 12%. Ressaltar: velocidade é modelo, não medida. ~1:30.</aside>
 </section>
 
 <!-- ============================================================ 11 FISIOLOGIA -->
 <section data-section="Fisiologia" data-timing="110">
   <div class="kicker">Fisiologia · sessão de Girona</div>
-  <h2>Cada número com fórmula — e com limite</h2>
+  <h2>Cada número tem fórmula e limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div id="ch-physio" class="chart" style="height:700px" data-stepped="1"></div>
     <div>
@@ -344,33 +379,32 @@
   <div class="kicker">Avaliação piloto · jan–out/2026</div>
   <h2>Dez meses de uso real</h2>
   <div class="grid g4" style="margin-top:24px">
-    <div><div class="stat c-teal">114</div><div class="stat-label">sessões ≥ 10 min</div></div>
+    <div><div class="stat c-teal">114</div><div class="stat-label">sessões ≥ 10 min (de 140)</div></div>
     <div><div class="stat">2.182<span class="small"> km</span></div><div class="stat-label">distância virtual</div></div>
     <div><div class="stat">92<span class="small"> h</span></div><div class="stat-label">tempo ativo</div></div>
-    <div><div class="stat c-blue">282</div><div class="stat-label">arquivos FIT</div></div>
+    <div><div class="stat c-blue">282</div><div class="stat-label">FIT: 98 treinos + 184 eventos</div></div>
   </div>
   <div id="ch-pmc" class="chart" style="height:520px;margin-top:24px"></div>
   <div class="source">PMC (CTL/ATL/TSB) reconstruído com as constantes do sistema (42 e 7 dias) a partir do banco local do autor.</div>
-  <aside class="notes">Os números documentam uso continuado, não desempenho. O PMC mostra blocos de treino (mar–mai, out) e pausas. ~1:00.</aside>
+  <aside class="notes">Se perguntarem por que 114 e 282 diferem: contam coisas diferentes. 114 são as atividades de treino com 10 min ou mais (140 no total no histórico). Os 282 FIT são 98 arquivos de treino (os mais antigos, de jan a mar, não ficaram no disco) mais 184 tentativas do modo eventos (sprint, KOM e contrarrelógio), que também geram FIT mas não entram no histórico de treinos. Os números documentam uso continuado, não desempenho. O PMC mostra blocos de treino (mar–mai, out) e pausas. ~1:00.</aside>
 </section>
 
 <!-- ============================================================ FUNCIONALIDADES -->
 <section data-section="Funcionalidades" data-timing="60">
-  <div class="kicker">Funcionalidades</div>
+  <div class="kicker">Funcionalidades · clique em uma imagem para ampliar</div>
   <h2>Do treino à análise</h2>
-  <div class="bento" style="margin-top:22px">
-    <div class="cell wide tall"><img src="img/pos-treino.png" alt="Análise pós-treino"><div class="cap"><b>Análise pós-treino</b>potência · FC · cadência · elevação · curva de potência · NP · TSS · TRIMP</div></div>
-    <div class="cell wide"><img src="img/screenshot-06-workout.png" alt="Sessão no mapa 3D"><div class="cap"><b>Sessão no mapa 3D</b>rota colorida por inclinação · treinos ZWO e testes de FTP</div></div>
-    <div class="cell"><img src="img/screenshot-04-career.png" alt="Carreira"><div class="cap"><b>Carreira</b>PMC e desacoplamento</div></div>
-    <div class="cell"><img src="img/screenshot-09-event.png" alt="Eventos"><div class="cap"><b>Eventos</b>sprint · KOM · contrarrelógio</div></div>
+  <div class="galeria" style="margin-top:22px">
+    <figure data-full="img/pos-treino.png"><div class="ph"><img src="img/pos-treino.png" alt="Análise pós-treino"></div><figcaption><b>Análise pós-treino</b>potência, FC, cadência, curva de potência</figcaption></figure>
+    <figure data-full="img/relatorio-pdf.png"><div class="ph"><img src="img/relatorio-pdf.png" alt="Relatório do treino em PDF"></div><figcaption><b>Relatório em PDF</b>resumo exportado da sessão de Girona</figcaption></figure>
+    <figure data-full="img/screenshot-06-workout.png"><div class="ph"><img src="img/screenshot-06-workout.png" alt="Sessão no mapa 3D"></div><figcaption><b>Sessão no mapa 3D</b>rota colorida por inclinação, treinos ZWO</figcaption></figure>
+    <figure data-full="img/screenshot-04-career.png"><div class="ph"><img src="img/screenshot-04-career.png" alt="Carreira"></div><figcaption><b>Carreira</b>PMC e desacoplamento</figcaption></figure>
+    <figure data-full="img/screenshot-09-event.png"><div class="ph"><img src="img/screenshot-09-event.png" alt="Eventos"></div><figcaption><b>Eventos</b>sprint, KOM e contrarrelógio</figcaption></figure>
+    <figure data-full="img/screenshot-07-trophy.png"><div class="ph"><img src="img/screenshot-07-trophy.png" alt="Conquistas"></div><figcaption><b>Conquistas</b>níveis e troféus</figcaption></figure>
+    <figure data-full="img/screenshot-11-desgaste.png"><div class="ph"><img src="img/screenshot-11-desgaste.png" alt="Desgaste de componentes"></div><figcaption><b>Desgaste de componentes</b>km de corrente e cassete</figcaption></figure>
+    <figure data-full="img/recuperacao-sessao.jpg"><div class="ph"><img src="img/recuperacao-sessao.jpg" alt="Recuperação de sessão"></div><figcaption><b>Recuperação de sessão</b>treino salvo após uma queda</figcaption></figure>
   </div>
-  <div class="grid g4 small muted" style="margin-top:20px">
-    <div><span class="c-teal">●</span> Relatório do treino em PDF</div>
-    <div><span class="c-teal">●</span> IA local (Ollama) gera treinos</div>
-    <div><span class="c-teal">●</span> Desgaste de componentes</div>
-    <div><span class="c-teal">●</span> Recuperação de sessão</div>
-  </div>
-  <aside class="notes">Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
+  <p class="small muted" style="margin-top:16px"><span class="c-teal">●</span> Também: IA local (Ollama) que gera treinos no formato ZWO.</p>
+  <aside class="notes">Clicar numa imagem abre a galeria ampliada (setas para passar, Esc para fechar). Ao abrir uma atividade do histórico, o Argus mostra a telemetria completa, a curva de potência e as métricas; o resumo pode ser exportado em PDF. A recuperação salva a sessão se o app fechar no meio do treino. A IA roda no próprio computador e só valida o formato do treino, não a adequação fisiológica.</aside>
 </section>
 
 <!-- ============================================================ REQUISITOS -->
@@ -413,28 +447,14 @@
 <!-- ============================================================ CONCLUSÃO -->
 <section data-section="Conclusão" data-timing="60">
   <div class="kicker">Conclusão</div>
-  <h2>O fluxo funciona — e é auditável</h2>
+  <h2>O fluxo funciona e pode ser auditado</h2>
   <p class="lead" style="margin-top:10px">Do GPX à análise fisiológica, em um único artefato aberto, com o dado no dispositivo.</p>
   <div class="grid g3" style="margin-top:40px">
     <div class="card"><h4 class="c-teal">Contribuições</h4><ul class="small"><li>Integração de percurso, simulação, fisiologia e histórico local</li><li>Fórmulas e parâmetros documentados</li><li>Código aberto e registro no INPI</li></ul></div>
-    <div class="card fragment"><h4 class="c-warn">Limitações</h4><ul class="small"><li>Piloto com um participante</li><li>Sem validação clínica das métricas</li><li>Android sem FIT e histórico</li></ul></div>
-    <div class="card fragment"><h4 class="c-blue">Trabalhos futuros</h4><ul class="small"><li>Reconhecimento automático e <em>pacing</em></li><li>Estudo de usabilidade com ciclistas</li><li>Núcleo único (WebAssembly) e mapas offline</li></ul></div>
+    <div class="card"><h4 class="c-warn">Limitações</h4><ul class="small"><li>Piloto com um participante</li><li>Sem validação clínica das métricas</li><li>Android sem FIT e histórico</li></ul></div>
+    <div class="card"><h4 class="c-blue">Trabalhos futuros</h4><ul class="small"><li>Reconhecimento automático e <em>pacing</em></li><li>Estudo de usabilidade com ciclistas</li><li>Núcleo único (WebAssembly) e mapas offline</li></ul></div>
   </div>
   <aside class="notes">Retomar o objetivo: integrar o fluxo e deixar cada número explicável. Limitações declaradas. Futuro em três frentes.</aside>
-</section>
-
-<!-- ============================================================ OBRIGADO -->
-<section data-section="Agradecimentos" data-timing="15" class="thanks">
-  <div class="thanks-wrap">
-    <img class="simbolo so-claro" src="img/argus-simbolo-claro.png" alt="Símbolo do Argus Cyclist"><img class="simbolo so-escuro" src="img/argus-simbolo-escuro.png" alt="">
-    <h1>Obrigado.</h1>
-    <div class="thanks-names">
-      <div><b>Paulo Sérgio Silva de Medeiros</b><span>orientando</span></div>
-      <div><b>Prof. Dr. Isaac de Lima Oliveira Filho</b><span>orientador</span></div>
-    </div>
-    <img class="uern" src="img/uern-logo.png" alt="UERN">
-  </div>
-  <aside class="notes">Agradecer à banca, ao orientador e a todos. Abrir para a arguição.</aside>
 </section>
 
 <!-- ============================================================ REFERÊNCIAS -->
@@ -458,7 +478,28 @@
   <aside class="notes">Referências completas no Capítulo de referências do TCC.</aside>
 </section>
 
+<!-- ============================================================ OBRIGADO -->
+<section data-section="Agradecimentos" data-timing="15" class="thanks">
+  <div class="thanks-wrap">
+    <img class="simbolo so-claro" src="img/argus-simbolo-claro.png" alt="Símbolo do Argus Cyclist"><img class="simbolo so-escuro" src="img/argus-simbolo-escuro.png" alt="">
+    <h1>Obrigado.</h1>
+    <div class="thanks-names">
+      <div><b>Paulo Sérgio Silva de Medeiros</b><span>orientando</span></div>
+      <div><b>Prof. Dr. Isaac de Lima Oliveira Filho</b><span>orientador</span></div>
+    </div>
+    <img class="uern" src="img/uern-logo.png" alt="UERN">
+  </div>
+  <aside class="notes">Agradecer à banca, ao orientador e a todos. Abrir para a arguição.</aside>
+</section>
+
 </div>
+</div>
+
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <button class="lb-btn lb-close" aria-label="Fechar">×</button>
+  <button class="lb-btn lb-prev" aria-label="Anterior">‹</button>
+  <figure><img alt=""><figcaption></figcaption></figure>
+  <button class="lb-btn lb-next" aria-label="Próxima">›</button>
 </div>
 
 <div class="deck-footer"><span class="brand">ARGUS CYCLIST · UERN 2026</span><span id="footer-num"></span></div>
@@ -469,5 +510,6 @@
 <script src="data/dados.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/deck.js"></script>
+<script src="js/galeria.js"></script>
 </body>
 </html>
