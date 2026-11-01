@@ -280,13 +280,23 @@ sinal congelado seja interpretado como esforço contínuo, mas também pode zera
 uma leitura válida em caso de perda temporária de pacotes. O comportamento é
 uma escolha de robustez, não uma reconstrução estatística do sinal.
 
+Há ainda uma perda possível na entrada do laço. O canal que liga o serviço BLE
+ao laço da sessão não tem \textit{buffer}, e os \textit{callbacks} de
+notificação descartam a amostra quando o laço ainda está ocupado com a anterior.
+A escolha evita que notificações atrasadas se acumulem e cheguem fora de ordem,
+mas significa que o vetor da sessão pode ter menos amostras do que o sensor
+enviou. Nos equipamentos testados o laço é rápido o suficiente para que o
+efeito não tenha sido percebido; ele não foi, contudo, medido.
+
 \section{Integração com o rolo}
 \label{sec:implementacao-ble}
 
 \subsection{Descoberta, assinatura e leitura}
 \label{sec:implementacao-descoberta}
 
-O serviço BLE real escaneia por até 15 segundos, conecta ao endereço escolhido,
+O serviço BLE real faz uma varredura de cinco segundos para listar os
+dispositivos próximos; depois da escolha do usuário, procura o endereço
+selecionado por até 15 segundos, conecta-se a ele,
 descobre serviços e características e habilita notificações. Para o rolo,
 ele procura o serviço FE-C, o serviço FTMS e o Cycling Power Service. Para o
 sensor de frequência cardíaca, procura o Heart Rate Service. A leitura de
@@ -428,8 +438,7 @@ relate o intervalo inteiro como duração. Há um teste automatizado específico
 para esse comportamento, o
 \code{TestSaveDerivesElapsedTimeFromRecords}; ele verifica o tempo de sessão e
 de volta no arquivo gerado. A validação de conformidade com o validador oficial
-do FIT SDK e a cobertura automatizada de todas as métricas fisiológicas
-permanecem como trabalho futuro.
+do FIT SDK permanece como trabalho futuro.
 
 A exportação não inclui \textit{developer fields}, dados de equilíbrio
 esquerda/direita, análise de pedalada ou voltas intermediárias. A altitude é
@@ -501,6 +510,63 @@ sessão, mas não é usado como referência do HRR. Essas escolhas estão descri
 conceitualmente no Capítulo~\ref{cap:fundamentacao} e são avaliadas no
 Capítulo~\ref{cap:resultados}.
 
+\subsection{Verificação automatizada}
+\label{sec:testes-automatizados}
+
+As fórmulas descritas no Capítulo~\ref{cap:fundamentacao} são fixadas por
+testes unitários em Go, executados com \code{go test ./...}. Cada caso compara a
+saída do código com um valor de referência calculado de forma independente: uma
+hora no FTP deve produzir TSS igual a 100; uma série de 60 segundos a 0~W
+seguida de 60 segundos a 400~W deve produzir NP de 318~W, acima da média
+aritmética de 200~W; e a velocidade devolvida pelo motor físico deve satisfazer
+a Equação~\ref{eq:martin-estatica} dentro da tolerância de parada da bisseção.
+A Tabela~\ref{tab:testes} resume a cobertura.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Testes automatizados do \textit{backend}}
+    \label{tab:testes}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.4cm}
+        >{\raggedright\arraybackslash}p{1.4cm}
+        >{\raggedright\arraybackslash}p{8.0cm}@{}}
+        \toprule
+        \textbf{Pacote} & \textbf{Testes} & \textbf{O que verificam} \\
+        \midrule
+        \code{service/fit} (métricas) & 7 & NP, IF, TSS, zonas de potência e
+        de FC, TRIMP, desacoplamento e PMC contra valores de referência \\
+        \code{service/fit} (arquivo) & 1 & Duração do FIT derivada dos registros,
+        não do relógio \\
+        \code{service/sim} & 2 & Velocidade satisfaz a equação de Martin;
+        monotonicidade, descida sem potência e limite de \SI{40}{\meter\per\second} \\
+        \code{service/workout} & 1 & Achatamento de passos ZWO e marcação de
+        \textit{FreeRide} \\
+        \code{service/recovery} & 11 & Gravação, leitura, corrupção parcial e
+        descarte de \textit{snapshots} \\
+        Raiz (\code{app.go}) & 1 & Recuperação de sessão de ponta a ponta \\
+        \midrule
+        Total & 23 & \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria.
+\end{table}
+
+A escrita desses testes revelou dois defeitos, corrigidos antes da versão
+apresentada. O primeiro era de fronteira numérica: como $0{,}55 \times 200$ é
+representado em ponto flutuante como 110,00000000000001, uma potência de
+exatamente 110~W com FTP de 200~W era classificada na Z1, e não na Z2; a
+comparação passou a ser feita em percentuais inteiros. O segundo estava no
+carregador ZWO: passos \textit{FreeRide} eram convertidos sem a marcação
+correspondente e, por isso, executados em modo ERG com potência alvo nula, em
+vez do modo simulação. Os casos são um exemplo concreto do argumento do
+trabalho: tornar a fórmula explícita também a torna verificável.
+
+Os testes cobrem o cálculo, não a aquisição. Não há testes automatizados para a
+camada BLE, para o \textit{parser} GPX nem para o \textit{frontend}; essas
+partes foram verificadas manualmente, nas sessões descritas no
+Capítulo~\ref{cap:resultados}.
+
 \section{Interface e fluxo de eventos}
 \label{sec:implementacao-frontend}
 
@@ -547,6 +613,13 @@ inclinação. Os \textit{tiles} são remotos; sem rede, o relevo e a imagem de
 fundo podem não carregar, embora o perfil altimétrico e a simulação continuem
 funcionando com o GPX local. Essa dependência parcial explica por que o sistema
 é local-first no dado, mas não na visualização cartográfica completa.
+
+O mesmo módulo oferece um editor de rotas, herdado da versão registrada no
+INPI: o usuário marca pontos no mapa, o traçado entre eles é calculado pelo
+serviço público OSRM e as altitudes são obtidas da API Open-Elevation, gerando
+um percurso que pode ser exportado como GPX e pedalado como qualquer outro.
+Como depende desses dois serviços externos, o editor exige conexão; a
+simulação do percurso gerado, não.
 
 \section{Assistente local}
 \label{sec:implementacao-ia}
