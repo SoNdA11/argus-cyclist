@@ -13,7 +13,6 @@ servidor.
 |---|---|
 | → / espaço | próximo clique (fragmento) ou slide |
 | ← | voltar |
-| ↓ | entrar no apêndice (último slide: slides de apoio da arguição) |
 | `S` | visão do apresentador: notas, cronômetro e próximo slide |
 | `F` | tela cheia |
 | `Esc` | visão geral dos slides |
@@ -21,7 +20,7 @@ servidor.
 | `T` | alterna tema claro (padrão) / escuro — a escolha fica salva no navegador |
 
 As notas de cada slide trazem a fala-chave. Cada slide também tem um tempo-alvo
-(`data-timing`), que soma **18 min 50 s** e deixa 1 min 10 s de folga. Na visão
+(`data-timing`), que soma **18 min** e deixa 2 min de folga. Na visão
 do apresentador (`S`), o cronômetro de *pacing* mostra se você está adiantado ou
 atrasado em relação a esse plano: é o apoio para os ensaios cronometrados.
 
@@ -44,14 +43,16 @@ Tema: claro por padrão. Se o projetor da sala lavar as cores, use `T` (ou abra
 npm run dados   # equivale a: python3 -I scripts/exportar_dados.py
 ```
 
-O script lê, somente para leitura:
+Logo da capa: `img/argus-cyclist-claro.png` é gerado do logo original
+(fundo navy) por `scripts/logo_fundo_claro.py` — extrai a transparência por
+color-to-alpha e ajusta a intensidade para fundo claro.
+
+O script de dados lê, somente para leitura:
 - a sessão de Girona (`../registro-software/figuras/girona-sessao.csv`);
 - o PMC (`../registro-software/figuras/pmc-dados.csv`);
 - o GPX de Geraardsbergen–Leberg;
 - o banco do perfil.
 
-Os números do slide 13 (antes × depois da reamostragem) vêm de
-`../registro-software/scripts/recalculo-metricas.csv`.
 
 ## Estrutura
 

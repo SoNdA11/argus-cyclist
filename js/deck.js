@@ -41,22 +41,16 @@
     window.ArgusCharts.onSlide(Reveal.getCurrentSlide());
   });
 
-  const footSection = document.getElementById("footer-section");
+  const footer = document.querySelector(".deck-footer");
   const footNum = document.getElementById("footer-num");
-  const mainCount = document.querySelectorAll(".reveal .slides > section:not([data-section='Apêndice'])").length;
-
-  function sectionOf(slide) {
-    let s = slide;
-    while (s && !s.dataset.section) s = s.parentElement && s.parentElement.closest("section");
-    return s ? s.dataset.section : "";
-  }
+  const total = document.querySelectorAll(".reveal .slides > section").length;
 
   function update(ev) {
     const slide = ev.currentSlide;
-    const name = sectionOf(slide);
-    footSection.textContent = name.toUpperCase();
-    const h = Reveal.getIndices(slide).h + 1;
-    footNum.textContent = name === "Apêndice" ? "A" : `${h} / ${mainCount}`;
+    footNum.textContent = `${Reveal.getIndices(slide).h + 1} / ${total}`;
+    // capa e agradecimentos sem rodapé
+    const bare = Reveal.getIndices(slide).h === 0 || slide.classList.contains("thanks");
+    footer.style.visibility = bare ? "hidden" : "visible";
     window.ArgusCharts.onSlide(slide);
   }
 
