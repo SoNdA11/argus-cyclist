@@ -492,3 +492,16 @@ html.print-pdf .elo .arquivo { animation: none !important; }
 html.print-pdf .prova { opacity: 1 !important; animation: none !important; }
 @media print { .prova { opacity: 1 !important; animation: none !important; } }
 .roadmap em { color: inherit; font-style: italic; }
+
+/* sumário */
+.sumario { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 110px; }
+.sum-item { position: relative; display: flex; gap: 22px; align-items: flex-start; background: var(--bg-2); border: 1px solid var(--line);
+  border-top: 6px solid var(--c); border-radius: 18px; padding: 30px 30px 54px; opacity: 0; box-shadow: 0 2px 10px rgba(14, 31, 61, 0.05); }
+.present .sum-item { animation: entra 0.5s ease forwards; animation-delay: calc(0.15s + var(--i) * 0.12s); }
+.sum-n { font-family: var(--mono); font-size: 60px; font-weight: 600; line-height: 0.9; color: var(--c); }
+.sum-item h4 { margin: 4px 0 8px; font-size: 31px; font-weight: 700; color: var(--text); line-height: 1.15; }
+.sum-item p { margin: 0; font-size: 23px; color: var(--muted); line-height: 1.35; }
+.sum-sl { position: absolute; right: 26px; bottom: 18px; font-family: var(--mono); font-size: 17px; letter-spacing: 0.08em; color: var(--faint); }
+html[data-tema="escuro"] .sum-item { box-shadow: none; }
+html.print-pdf .sum-item { opacity: 1 !important; animation: none !important; }
+@media print { .sum-item { opacity: 1 !important; animation: none !important; } }
