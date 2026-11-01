@@ -1,0 +1,33 @@
+% Sessão de 27/04/2026 em Girona (dados: figuras/girona-sessao.csv, blocos de 15 s,
+% extraídos do FIT por scripts/fit2csv)
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=6.5cm,
+    xmin=0, xmax=21, ymin=0, ymax=320,
+    axis y line*=right, axis x line=none,
+    ylabel={Altitude (m)}, ylabel style={font=\footnotesize},
+    tick label style={font=\footnotesize},
+]
+\addplot[fill=gray!25, draw=gray!60] table[x=dist_km, y=alt_m, col sep=comma]
+    {figuras/girona-sessao.csv} \closedcycle;
+\end{axis}
+\begin{axis}[
+    width=\textwidth, height=6.5cm,
+    xmin=0, xmax=21, ymin=0, ymax=200,
+    axis y line*=left,
+    xlabel={Distância (km)}, ylabel={Potência (W) / FC (bpm)},
+    label style={font=\footnotesize}, tick label style={font=\footnotesize},
+    grid=major, grid style={gray!15},
+    legend style={at={(0.5,-0.22)}, anchor=north, legend columns=3, draw=none, font=\footnotesize},
+    unbounded coords=jump,
+]
+\addplot[color=orange!90!black, thick] table[x=dist_km, y=power_w, col sep=comma]
+    {figuras/girona-sessao.csv};
+\addlegendentry{Potência}
+\addplot[color=red!75!black, thick] table[x=dist_km, y=hr_bpm, col sep=comma]
+    {figuras/girona-sessao.csv};
+\addlegendentry{Frequência cardíaca}
+\addlegendimage{area legend, fill=gray!25, draw=gray!60}
+\addlegendentry{Altitude}
+\end{axis}
+\end{tikzpicture}

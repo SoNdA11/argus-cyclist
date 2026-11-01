@@ -78,8 +78,9 @@ evidência observados e ao status atribuído.
         RF07 & Execução em Windows, Linux e Android & Fluxo completo no
         desktop; sessão ao vivo no Android, com adaptações de layout &
         Verificado \\
-        RF08 & Caso Geraardsbergen--Leberg & No desktop, importação, perfil,
-        sessão e análise do FIT; no Android, perfil e sessão ao vivo &
+        RF08 & Caso Girona (Seção~\ref{sec:caso-girona}) & No desktop,
+        importação, perfil, sessão e análise do FIT; no Android, perfil e
+        sessão ao vivo com rotas do acervo &
         Demonstrado \\
         \bottomrule
     \end{tabular}
@@ -218,8 +219,9 @@ telefone Android, com durações típicas de 30 a 60 minutos.
 Três cenários organizaram o uso no desktop:
 
 \begin{enumerate}
-    \item \textbf{reconhecimento}: o percurso Geraardsbergen--Leberg
-        (aproximadamente 21~km, 297~m de ganho e rampas de até 18,2\%);
+    \item \textbf{reconhecimento}: um percurso de colinas na região de
+        Girona (aproximadamente 21~km e 335~m de ganho), detalhado na
+        Seção~\ref{sec:caso-girona};
     \item \textbf{exploração}: uma rota de outra região, escolhida para
         verificar a leitura do mapa e do perfil;
     \item \textbf{treino}: uma sessão estruturada, com exportação e conferência
@@ -341,6 +343,71 @@ aptidão comprovada.
     \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
     autor e de \code{scripts/exportar\_pmc.py}.
 \end{figure}
+
+\subsection{Caso principal: colinas de Girona}
+\label{sec:caso-girona}
+
+A sessão de 27/04/2026 no percurso de Girona reúne, em um único registro, as
+etapas do fluxo e todas as métricas do sistema. O GPX foi importado sem edição,
+o percurso, com uma subida de cerca de \SI{75}{\meter} a \SI{263}{\meter} ao
+longo dos primeiros 15~km seguida de descida, foi pedalado do início ao fim, e
+a sessão foi encerrada com
+resfriamento, o que permitiu registrar a recuperação da frequência cardíaca. A
+Figura~\ref{fig:sessao-girona} mostra as séries extraídas do arquivo FIT e a
+Tabela~\ref{tab:caso-girona}, as métricas calculadas com o método corrigido
+(Seção~\ref{sec:defeitos-avaliacao}).
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Sessão no percurso de Girona: altitude, potência e frequência
+    cardíaca ao longo da distância}
+    \label{fig:sessao-girona}
+    \input{figuras/grafico-girona}
+    \vspace{0.1cm}
+    \par\small Fonte: autoria própria, a partir do arquivo FIT da sessão
+    (médias em blocos de 15~s).
+\end{figure}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Métricas da sessão no percurso de Girona}
+    \label{tab:caso-girona}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.6cm}
+        >{\raggedright\arraybackslash}p{2.6cm}
+        >{\raggedright\arraybackslash}p{5.4cm}@{}}
+        \toprule
+        \textbf{Métrica} & \textbf{Valor} & \textbf{Natureza
+        (Tabela~\ref{tab:medido-estimado})} \\
+        \midrule
+        Distância virtual & \SI{20.95}{\kilo\meter} & Estimada (modelo físico) \\
+        Tempo ativo & \SI{61}{\minute} & Medida \\
+        Ganho de elevação & \SI{335}{\meter} & Derivada do GPX \\
+        Potência média & \SI{96}{\watt} & Medida \\
+        Potência normalizada (NP) & \SI{106}{\watt} & Calculada \\
+        IF / TSS (FTP de \SI{153}{\watt}) & 0,69 / 49 & Calculada \\
+        FC média / máxima & 139 / 169~bpm & Medida \\
+        TRIMP & 71 & Calculada \\
+        Desacoplamento (Pw:HR) & 8,3\% & Calculada \\
+        HRR\textsubscript{1} / HRR\textsubscript{2} & 26 / 28~bpm & Calculada \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria. NP, IF, TSS e desacoplamento
+    reprocessados a 1~Hz; no banco, gravados com o método anterior, constavam
+    NP de \SI{138}{\watt} e TSS de 83,1.
+\end{table}
+
+A leitura conjunta da figura e da tabela ilustra o uso pretendido. A potência
+se mantém estável na subida, entre 100 e \SI{115}{\watt}, enquanto a
+frequência cardíaca sobe de cerca de 130 para 150~bpm; na descida, a potência
+cai e a frequência cardíaca acompanha. O desacoplamento de 8,3\% fica acima do
+limiar convencional de 5\%, o que é coerente com uma frequência cardíaca que
+sobe ao longo da subida para a mesma potência; como discutido no
+Capítulo~\ref{cap:fundamentacao}, o número não identifica a causa e é pouco
+informativo em um percurso que não tem intensidade constante. A diferença entre
+os valores do banco e os reprocessados, registrada na fonte da tabela, é o
+exemplo mais visível do defeito de amostragem discutido a seguir.
 
 \section{Defeitos identificados pela avaliação}
 \label{sec:defeitos-avaliacao}
