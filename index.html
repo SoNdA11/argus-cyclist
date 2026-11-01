@@ -229,7 +229,7 @@
     </g>
     <!-- 3 · telemetria chegando -->
     <g class="fragment" data-fragment-index="3">
-      <text x="850" y="125" fill="var(--text)" font-size="24" font-weight="700">cerca de 3 avisos por segundo</text>
+      <text class="desfoca" x="850" y="125" fill="var(--text)" font-size="24" font-weight="700">cerca de 3 avisos por segundo</text>
       <g><rect x="-72" y="-26" width="144" height="52" rx="26" fill="var(--bg-2)" stroke="var(--power)" stroke-width="3"/><text y="9" fill="var(--power)" font-size="25" font-weight="700" font-family="JetBrains Mono">210 W</text><animateMotion dur="4.5s" begin="-0s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
       <g><rect x="-80" y="-26" width="160" height="52" rx="26" fill="var(--bg-2)" stroke="var(--hr)" stroke-width="3"/><text y="9" fill="var(--hr)" font-size="25" font-weight="700" font-family="JetBrains Mono">142 bpm</text><animateMotion dur="4.5s" begin="-1.5s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
       <g><rect x="-72" y="-26" width="144" height="52" rx="26" fill="var(--bg-2)" stroke="var(--cad)" stroke-width="3"/><text y="9" fill="var(--cad)" font-size="25" font-weight="700" font-family="JetBrains Mono">88 rpm</text><animateMotion dur="4.5s" begin="-3s" repeatCount="indefinite"><mpath href="#bt-up"/></animateMotion></g>
@@ -237,10 +237,10 @@
     <!-- 4 · comando de volta -->
     <g class="fragment" data-fragment-index="4">
       <g><rect x="-110" y="-26" width="220" height="52" rx="26" fill="var(--bg-2)" stroke="var(--teal)" stroke-width="3"/><text y="9" fill="var(--teal)" font-size="25" font-weight="700" font-family="JetBrains Mono">subida 6,5%</text><animateMotion dur="4.5s" begin="-2s" repeatCount="indefinite"><mpath href="#bt-down"/></animateMotion></g>
-      <text x="850" y="306" fill="var(--text)" font-size="24" font-weight="700">o Argus responde com a inclinação, e o rolo endurece</text>
+      <text class="desfoca" x="850" y="306" fill="var(--text)" font-size="24" font-weight="700">o Argus responde com a inclinação, e o rolo endurece</text>
     </g>
     <!-- 5 · impostor -->
-    <g class="fragment" data-fragment-index="5">
+    <g class="fragment spoof" data-fragment-index="5">
       <path d="M1305,395 C900,400 420,420 200,335" fill="none" stroke="var(--bad)" stroke-width="3" stroke-dasharray="10 10"/>
       <g><rect x="-90" y="-26" width="180" height="52" rx="26" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="3"/><text y="9" fill="var(--bad)" font-size="25" font-weight="700" font-family="JetBrains Mono">1.200 W</text><animateMotion dur="4.5s" begin="-1s" repeatCount="indefinite"><mpath href="#bt-fake"/></animateMotion></g>
       <rect x="1310" y="350" width="370" height="90" rx="16" fill="var(--bg-2)" stroke="var(--bad)" stroke-width="3" stroke-dasharray="10 8"/>
@@ -262,14 +262,14 @@
       <text x="1510" y="295" fill="var(--muted)" font-size="21">potência · FC · cadência</text>
     </g>
     <!-- 1 · anúncio -->
-    <g class="fragment ondas" data-fragment-index="1">
+    <g class="fragment ondas desfoca" data-fragment-index="1">
       <path d="M1600,62 a40,40 0 0 1 40,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
       <path d="M1600,46 a56,56 0 0 1 56,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
       <path d="M1600,30 a72,72 0 0 1 72,-40" fill="none" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
       <text x="1330" y="40" text-anchor="end" fill="var(--muted)" font-size="24" font-style="italic">“sou um rolo e meço potência”</text>
     </g>
   </svg>
-  <div class="grid g4 passos" style="margin-top:6px">
+  <div class="grid g4 passos desfoca" style="margin-top:6px">
     <div class="fragment rise" data-fragment-index="1"><b>1 · Encontrar</b>o rolo anuncia o que sabe medir</div>
     <div class="fragment rise" data-fragment-index="2"><b>2 · Conectar</b>o Argus se inscreve nos avisos</div>
     <div class="fragment rise" data-fragment-index="3"><b>3 · Receber</b>potência, FC e cadência chegam sozinhas</div>
@@ -277,7 +277,7 @@
   </div>
   <div class="fragment rise card alerta" data-fragment-index="5">
     <div class="c-bad" style="font-size:50px;line-height:1;font-weight:800">!</div>
-    <p>O protocolo <strong>não comprova a origem dos dados</strong>: qualquer aparelho, ou um app que imite um sensor, pode enviar a potência que quiser. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>, outro projeto do autor.</p>
+    <p>O protocolo <strong>não comprova a origem dos dados</strong>: qualquer aparelho, ou um app que imite um sensor, pode enviar a potência que quiser. Esse risco de fraude é o tema do <strong class="c-teal">Argus Recon</strong>.</p>
   </div>
   <aside class="notes">Explicar sem jargão. 1) O rolo fica anunciando "sou um rolo e meço potência". 2) O Argus conecta e se inscreve para receber avisos. 3) A partir daí os dados chegam sozinhos, cerca de três avisos por segundo. 4) No sentido contrário, o Argus envia a inclinação do mapa e o rolo ajusta a resistência. Para a banca de Computação, se perguntarem: perfis GATT Cycling Power (0x1818), Heart Rate (0x180D), FTMS (0x1826) e FE-C sobre BLE; o Argus é a central (cliente GATT). Gancho: nada no protocolo prova que os 210 W vieram de um medidor real; um app pode se passar por sensor. É o que estudo no Argus Recon. Só citar, não aprofundar.</aside>
 </section>
