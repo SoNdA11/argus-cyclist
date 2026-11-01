@@ -1,0 +1,29 @@
+% PMC real do piloto (dados: figuras/pmc-dados.csv, gerado por scripts/exportar_pmc.py)
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=7cm,
+    xmin=0, xmax=239,
+    xtick={0,26,56,87,117,148,179,209},
+    xticklabels={mar,abr,mai,jun,jul,ago,set,out},
+    ylabel={TSS/dia e carga},
+    axis y line*=left,
+    ymin=-40, ymax=120,
+    grid=major, grid style={gray!20},
+    legend style={at={(0.5,-0.15)}, anchor=north, legend columns=4, draw=none, font=\footnotesize},
+    tick label style={font=\footnotesize}, label style={font=\footnotesize},
+]
+\addplot[ybar, bar width=0.6pt, fill=gray!45, draw=gray!45, area legend]
+    table[x=dia, y=tss, col sep=comma] {figuras/pmc-dados.csv};
+\addlegendentry{TSS diário}
+\addplot[thick, color=blue!70!black]
+    table[x=dia, y=ctl, col sep=comma] {figuras/pmc-dados.csv};
+\addlegendentry{CTL (42 d)}
+\addplot[thick, color=red!75!black]
+    table[x=dia, y=atl, col sep=comma] {figuras/pmc-dados.csv};
+\addlegendentry{ATL (7 d)}
+\addplot[thick, dashed, color=orange!85!black]
+    table[x=dia, y=tsb, col sep=comma] {figuras/pmc-dados.csv};
+\addlegendentry{TSB}
+\draw[gray] (axis cs:0,0) -- (axis cs:239,0);
+\end{axis}
+\end{tikzpicture}

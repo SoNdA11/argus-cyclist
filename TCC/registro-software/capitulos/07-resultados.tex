@@ -259,6 +259,82 @@ sem rede, o restante do fluxo continuou, mas o mapa ficou incompleto. Isso
 mostra que a expressão ``local-first'' se aplica ao dado e ao processamento, não
 a todos os recursos visuais.
 
+\subsection{Dados descritivos do acervo de sessões}
+\label{sec:piloto-descritivo}
+
+Para complementar as observações qualitativas, o banco local do perfil do autor
+foi consultado em modo somente leitura (levantamento de 01/11/2026). Foram
+consideradas apenas as atividades com duração igual ou superior a 10 minutos;
+26 registros mais curtos, em geral testes de conexão e sessões interrompidas,
+foram excluídos. A Tabela~\ref{tab:piloto-descritivo} resume o acervo
+resultante.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Estatística descritiva das sessões registradas no \textit{desktop}}
+    \label{tab:piloto-descritivo}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{7.6cm}
+        >{\raggedright\arraybackslash}p{6.0cm}@{}}
+        \toprule
+        \textbf{Indicador} & \textbf{Valor} \\
+        \midrule
+        Período & 21/01/2026 a 31/10/2026 \\
+        Sessões com duração $\geq$ 10 min & 114 \\
+        Distância virtual acumulada & \SI{2181.6}{\kilo\meter} \\
+        Tempo ativo acumulado & \SI{91.6}{\hour} (média de \SI{48.2}{\minute} por sessão) \\
+        Ganho de elevação acumulado & \SI{7470}{\meter} \\
+        Sessão mais longa & \SI{2.0}{\hour} \\
+        Sessões com NP, IF e TSS calculados & 81 (TSS médio 37,6; IF médio 0,67) \\
+        Sessões com frequência cardíaca & 63 \\
+        Sessões com desacoplamento calculado & 55 (31 acima de 5\%) \\
+        Sessões com HRR registrado & 51 (HRR\textsubscript{1} médio 14,6 bpm;
+        HRR\textsubscript{2} médio 18,4 bpm) \\
+        Sessões enviadas ao Strava & 47 \\
+        Arquivos \texttt{.FIT} no diretório de trabalho & 282 (98 sessões livres
+        ou estruturadas e 184 de modos de evento) \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.2cm}
+    \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
+    autor.
+\end{table}
+
+A distribuição temporal acompanha os ciclos de desenvolvimento descritos no
+Capítulo~\ref{cap:metodologia}. As 31 sessões de janeiro e fevereiro não
+possuem NP, IF e TSS porque o módulo de análise só foi incorporado no segundo
+ciclo; a partir de março, todas as sessões com potência passaram a ter essas
+métricas. Da mesma forma, a frequência cardíaca só aparece nas sessões em que o
+sensor estava conectado, o que explica a diferença entre o número de sessões
+com TSS e com TRIMP.
+
+Os números devem ser lidos com as ressalvas da Seção~\ref{sec:validade}. Eles
+documentam o uso continuado do artefato por cerca de dez meses e a execução
+repetida do fluxo de registro, cálculo e persistência; não constituem medida
+de desempenho, de adaptação fisiológica ou de usabilidade. A amplitude dos
+valores de desacoplamento, que inclui resultados negativos, também reflete a
+limitação discutida no Capítulo~\ref{cap:fundamentacao}: a métrica só é
+informativa em sessões de intensidade relativamente constante, e parte do
+acervo é composta por treinos intervalados e percursos com relevo variável.
+
+A Figura~\ref{fig:pmc-real} reconstrói o PMC a partir das 81 sessões com TSS,
+com as mesmas constantes de 42 e 7 dias implementadas no sistema. O gráfico
+torna visíveis os blocos de maior volume (março a maio e outubro) e as
+interrupções de junho a setembro, quando o TSB se aproxima de zero e a carga
+crônica decai. A leitura é de tendência: o gráfico mostra como o sistema
+transforma o histórico local em uma série interpretável, não uma evolução de
+aptidão comprovada.
+
+\begin{figure}[htbp]
+    \centering
+    \caption{PMC reconstruído a partir das sessões do piloto (mar.--out. 2026)}
+    \label{fig:pmc-real}
+    \input{figuras/grafico-pmc}
+    \vspace{0.1cm}
+    \par\small Fonte: autoria própria, a partir do banco SQLite do perfil do
+    autor e de \code{scripts/exportar\_pmc.py}.
+\end{figure}
+
 \section{Discussão}
 \label{sec:discussao-resultados}
 
