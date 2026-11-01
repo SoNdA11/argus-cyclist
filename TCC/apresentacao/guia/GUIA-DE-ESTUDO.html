@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Paulo Sérgio Silva de Medeiros" />
+  <title>Guia de estudo · Argus Cyclist</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="guia.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Argus Cyclist · Guia de estudo da apresentação</h1>
+<p class="subtitle">Defesa do TCC · UERN · 19 de novembro de 2026</p>
+<p class="author">Paulo Sérgio Silva de Medeiros</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#como-usar-este-guia" id="toc-como-usar-este-guia">Como
+usar este guia</a></li>
+<li><a href="#slide-1-capa" id="toc-slide-1-capa">Slide 1 ·
+Capa</a></li>
+<li><a href="#slide-2-o-que-é-ciclismo-virtual"
+id="toc-slide-2-o-que-é-ciclismo-virtual">Slide 2 · O que é ciclismo
+virtual</a></li>
+<li><a href="#slide-3-o-fluxo-do-ciclista-é-fragmentado"
+id="toc-slide-3-o-fluxo-do-ciclista-é-fragmentado">Slide 3 · O fluxo do
+ciclista é fragmentado</a></li>
+<li><a href="#slide-4-as-peças-existem-mas-não-juntas"
+id="toc-slide-4-as-peças-existem-mas-não-juntas">Slide 4 · As peças
+existem, mas não juntas</a></li>
+<li><a href="#slide-5-um-fluxo-para-três-usos"
+id="toc-slide-5-um-fluxo-para-três-usos">Slide 5 · Um fluxo para três
+usos</a></li>
+<li><a href="#slide-6-construir-usar-e-corrigir-em-ciclos"
+id="toc-slide-6-construir-usar-e-corrigir-em-ciclos">Slide 6 ·
+Construir, usar e corrigir, em ciclos</a></li>
+<li><a href="#slide-7-como-o-argus-foi-construído"
+id="toc-slide-7-como-o-argus-foi-construído">Slide 7 · Como o Argus foi
+construído</a></li>
+<li><a href="#slide-8-núcleo-em-go-interface-web-compartilhada"
+id="toc-slide-8-núcleo-em-go-interface-web-compartilhada">Slide 8 ·
+Núcleo em Go, interface web compartilhada</a></li>
+<li><a href="#slide-9-como-o-argus-conversa-com-o-rolo"
+id="toc-slide-9-como-o-argus-conversa-com-o-rolo">Slide 9 · Como o Argus
+conversa com o rolo</a></li>
+<li><a href="#slide-10-do-sensor-até-o-ciclista"
+id="toc-slide-10-do-sensor-até-o-ciclista">Slide 10 · Do sensor até o
+ciclista</a></li>
+<li><a href="#slide-11-cada-número-tem-fórmula-e-limite"
+id="toc-slide-11-cada-número-tem-fórmula-e-limite">Slide 11 · Cada
+número tem fórmula e limite</a></li>
+<li><a href="#slide-12-dez-meses-de-uso-real"
+id="toc-slide-12-dez-meses-de-uso-real">Slide 12 · Dez meses de uso
+real</a></li>
+<li><a href="#slide-13-do-treino-à-análise"
+id="toc-slide-13-do-treino-à-análise">Slide 13 · Do treino à
+análise</a></li>
+<li><a href="#slide-14-requisitos-atendidos"
+id="toc-slide-14-requisitos-atendidos">Slide 14 · Requisitos
+atendidos</a></li>
+<li><a href="#slide-15-conclusão" id="toc-slide-15-conclusão">Slide 15 ·
+Conclusão</a></li>
+<li><a href="#slides-16-e-17-referências"
+id="toc-slides-16-e-17-referências">Slides 16 e 17 ·
+Referências</a></li>
+<li><a href="#slide-18-obrigado" id="toc-slide-18-obrigado">Slide 18 ·
+Obrigado</a></li>
+<li><a href="#glossário" id="toc-glossário">Glossário</a></li>
+<li><a href="#números-para-decorar"
+id="toc-números-para-decorar">Números para decorar</a></li>
+<li><a href="#pontos-delicados-e-respostas-honestas"
+id="toc-pontos-delicados-e-respostas-honestas">Pontos delicados e
+respostas honestas</a></li>
+<li><a href="#banco-de-perguntas-extras"
+id="toc-banco-de-perguntas-extras">Banco de perguntas extras</a></li>
+<li><a href="#checklist-do-dia" id="toc-checklist-do-dia">Checklist do
+dia</a></li>
+</ul>
+</nav>
+<h1 id="como-usar-este-guia">Como usar este guia</h1>
+<p>Este guia explica, slide por slide, tudo o que aparece na
+apresentação. Em cada capítulo você encontra:</p>
+<ul>
+<li><strong>O que aparece na tela:</strong> a descrição de cada elemento
+e do que entra a cada clique.</li>
+<li><strong>Conceitos:</strong> os termos do slide, explicados do
+zero.</li>
+<li><strong>De onde vêm os números:</strong> a fonte e, quando for o
+caso, a conta.</li>
+<li><strong>Roteiro da fala:</strong> o que dizer, no tempo
+previsto.</li>
+<li><strong>Perguntas prováveis:</strong> o que a banca pode perguntar e
+como responder.</li>
+<li><strong>No TCC:</strong> onde o assunto está no documento que a
+banca já leu.</li>
+</ul>
+<p>No fim há um glossário, a lista de números para decorar, os pontos
+delicados (com respostas honestas), um banco de perguntas extras e o
+checklist do dia.</p>
+<p><strong>Sugestão de estudo.</strong> Leia uma vez inteiro. Depois
+ensaie com o deck aberto, um capítulo por vez, falando em voz alta. Na
+véspera, releia só os “Roteiros” e os “Pontos delicados”.</p>
+<h2 id="teclas-da-apresentação">Teclas da apresentação</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tecla</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>→ ou espaço</td>
+<td>próximo clique ou próximo slide</td>
+</tr>
+<tr>
+<td>←</td>
+<td>volta</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>visão do apresentador: notas, cronômetro e próximo slide</td>
+</tr>
+<tr>
+<td><code>F</code></td>
+<td>tela cheia</td>
+</tr>
+<tr>
+<td><code>T</code></td>
+<td>alterna tema claro (padrão) e escuro</td>
+</tr>
+<tr>
+<td><code>B</code> ou <code>.</code></td>
+<td>tela preta</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>visão geral dos slides</td>
+</tr>
+<tr>
+<td>clique numa imagem</td>
+<td>abre a galeria ampliada (slides 2 e 13); ← → passam,
+<code>Esc</code> fecha</td>
+</tr>
+</tbody>
+</table>
+<p>A visão do apresentador (<code>S</code>) mostra se você está
+adiantado ou atrasado em relação aos tempos planejados de cada slide.
+Use-a nos ensaios.</p>
+<h2 id="a-história-em-um-minuto">A história em um minuto</h2>
+<p>A apresentação conta uma história em seis passos:</p>
+<ol type="1">
+<li><strong>O mundo:</strong> o ciclismo virtual já é esporte de
+verdade, de Copa Brasil a Mundial (slide 2).</li>
+<li><strong>O problema:</strong> o ciclista usa quatro aplicativos,
+exporta arquivos à mão e não sabe como os números são calculados (slides
+3 e 4).</li>
+<li><strong>A proposta:</strong> um único fluxo aberto, do GPX ao
+histórico, servindo a reconhecimento, exploração e treino (slide
+5).</li>
+<li><strong>Como foi feito:</strong> pelo método DSR, com uma
+arquitetura em camadas, conversando com o rolo por Bluetooth e tratando
+os dados em tempo real (slides 6 a 10).</li>
+<li><strong>A evidência:</strong> as métricas com fórmula aberta, dez
+meses de uso real, as funcionalidades e os requisitos atendidos (slides
+11 a 14).</li>
+<li><strong>A conclusão:</strong> funciona no desktop, cada número pode
+ser conferido, e os limites estão declarados (slide 15).</li>
+</ol>
+<p>A frase que amarra tudo: <strong>“o fluxo funciona, e cada número
+pode ser conferido”</strong>.</p>
+<h2 id="tabela-de-tempos">Tabela de tempos</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Slide</th>
+<th>Tempo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Capa</td>
+<td>0:20</td>
+</tr>
+<tr>
+<td>2</td>
+<td>O que é ciclismo virtual</td>
+<td>1:20</td>
+</tr>
+<tr>
+<td>3</td>
+<td>O fluxo do ciclista é fragmentado</td>
+<td>1:00</td>
+</tr>
+<tr>
+<td>4</td>
+<td>As peças existem, mas não juntas</td>
+<td>1:10</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Um fluxo para três usos</td>
+<td>0:50</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Construir, usar e corrigir, em ciclos</td>
+<td>1:00</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Como o Argus foi construído</td>
+<td>1:10</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Núcleo em Go, interface web compartilhada</td>
+<td>1:40</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Como o Argus conversa com o rolo</td>
+<td>1:30</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Do sensor até o ciclista</td>
+<td>1:15</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Cada número tem fórmula e limite</td>
+<td>1:50</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Dez meses de uso real</td>
+<td>1:00</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Do treino à análise</td>
+<td>1:00</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Requisitos atendidos</td>
+<td>0:50</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Conclusão</td>
+<td>1:15</td>
+</tr>
+<tr>
+<td>16-17</td>
+<td>Referências</td>
+<td>0:10</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Obrigado</td>
+<td>0:15</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Total</strong></td>
+<td><strong>17:35</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Sobram cerca de 2 min 25 s dos 20 minutos. <strong>Se
+atrasar</strong>, corte nesta ordem:</p>
+<ol type="1">
+<li><strong>Slide 8 (Archify):</strong> fale só “interface,
+orquestrador, laço, Bluetooth, rolo” e siga. Economiza cerca de 1
+min.</li>
+<li><strong>Slide 13 (galeria):</strong> uma frase. Economiza cerca de
+40 s.</li>
+<li><strong>Slide 4 (estado da arte):</strong> aponte só a linha do
+Argus. Economiza cerca de 30 s.</li>
+</ol>
+<h1 id="slide-1-capa">Slide 1 · Capa</h1>
+<p><img src="img/slide-01.jpg" /></p>
+<h2 id="o-que-aparece-na-tela">O que aparece na tela</h2>
+<ul>
+<li><strong>Rótulo no alto:</strong> “Trabalho de Conclusão de Curso ·
+Ciência da Computação”.</li>
+<li><strong>Título:</strong> “Argus Cyclist”, com o subtítulo “Um
+ecossistema multiplataforma e de código aberto para o ciclismo
+virtual”.</li>
+<li><strong>Identificação:</strong> seu nome, o orientador
+(Prof. Dr. Isaac de Lima Oliveira Filho), Mossoró/RN e a data.</li>
+<li><strong>Logos:</strong> o da UERN e, à direita, o do Argus Cyclist
+em cor sólida (no tema escuro, ele fica claro).</li>
+</ul>
+<h2 id="conceitos">Conceitos</h2>
+<ul>
+<li><strong>Ecossistema:</strong> não é um aplicativo único. São o app
+desktop (Windows e Linux), o app Android e os arquivos abertos (GPX,
+FIT, ZWO) que conversam com outras plataformas.</li>
+<li><strong>Multiplataforma:</strong> roda no desktop e no Android com a
+mesma interface.</li>
+<li><strong>Código aberto:</strong> o código está público no GitHub sob
+a licença GPLv3.</li>
+</ul>
+<h2 id="roteiro-da-fala-20-s">Roteiro da fala (20 s)</h2>
+<p>“Bom dia. Eu sou o Paulo Sérgio, e apresento o Argus Cyclist, um
+software de código aberto para ciclismo virtual, registrado no INPI,
+orientado pelo professor Isaac.”</p>
+<h2 id="no-tcc">No TCC</h2>
+<p>Capa e resumo.</p>
+<h1 id="slide-2-o-que-é-ciclismo-virtual">Slide 2 · O que é ciclismo
+virtual</h1>
+<p><img src="img/slide-02.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-1">O que aparece na tela</h2>
+<p><strong>À esquerda,</strong> um ciclo com quatro círculos ligados por
+setas tracejadas que se movem:</p>
+<ul>
+<li><strong>Ciclista</strong> (pedala) → <strong>Sensores</strong>
+(Bluetooth LE). Acima da seta: <em>potência · cadência · FC</em>.</li>
+<li><strong>Sensores</strong> → <strong>Software</strong> (Argus
+Cyclist). Ao lado: <em>telemetria</em>.</li>
+<li><strong>Software</strong> → <strong>Rolo inteligente</strong>. Ao
+lado: <em>inclinação → resistência</em>.</li>
+<li><strong>Rolo</strong> → <strong>Ciclista</strong>. Ao lado:
+<em>sensação de subida</em>.</li>
+</ul>
+<p><strong>À direita,</strong> duas fotos (clicar amplia):</p>
+<ul>
+<li><strong>Copa Brasil de Ciclismo eSports (CBC e ZTBR):</strong> uma
+videochamada com dezenas de ciclistas, cada um no seu rolo, em casa, na
+mesma prova. <strong>Você aparece nessa chamada.</strong></li>
+<li><strong>Mundial UCI de Ciclismo eSports, Abu Dhabi, 2024:</strong>
+Gabriela Guerra (BRA) competindo.</li>
+</ul>
+<h2 id="conceitos-1">Conceitos</h2>
+<ul>
+<li><strong>Rolo inteligente (smart trainer):</strong> aparelho onde se
+prende a bicicleta. Ele mede a potência e muda a resistência sozinho,
+recebendo comandos do software.</li>
+<li><strong>Sensores:</strong> o próprio rolo, um medidor de potência e
+a cinta cardíaca mandam dados pelo Bluetooth.</li>
+<li><strong>As quatro grandezas e suas cores</strong> (que se mantêm até
+o fim do deck):
+<ul>
+<li><strong>potência (W),</strong> amarelo: o trabalho que o ciclista
+produz, a grandeza central do treino;</li>
+<li><strong>frequência cardíaca (bpm),</strong> vermelho: a resposta do
+corpo;</li>
+<li><strong>cadência (rpm),</strong> azul: o ritmo das pedaladas;</li>
+<li><strong>inclinação (%),</strong> do mapa do percurso: faz o rolo
+endurecer na subida.</li>
+</ul></li>
+<li><strong>Ciclismo eSports:</strong> competição oficial em rolo. A
+UCI, federação internacional, organiza o Mundial; no Brasil há a Copa
+Brasil da CBC.</li>
+</ul>
+<h2 id="roteiro-da-fala-120">Roteiro da fala (1:20)</h2>
+<p>“Ciclismo virtual é pedalar a sua bicicleta num rolo inteligente
+enquanto um software simula o percurso. O ciclo é este: eu pedalo, os
+sensores mandam potência, cadência e frequência cardíaca por Bluetooth,
+o software calcula onde eu estou no mapa e manda a inclinação de volta
+para o rolo, que endurece na subida. Então eu <em>sinto</em> a
+subida.</p>
+<p>Guardem estas cores, que vão até o fim: potência em amarelo,
+frequência cardíaca em vermelho.</p>
+<p>E isso já é esporte de verdade. Aqui é a Copa Brasil de Ciclismo
+eSports, da CBC com a ZTBR: cada atleta pedala em casa e a organização
+acompanha pela videochamada (eu estou nessa chamada). E aqui é o Mundial
+da UCI, em Abu Dhabi, em 2024, com a brasileira Gabriela Guerra.”</p>
+<h2 id="perguntas-prováveis">Perguntas prováveis</h2>
+<ul>
+<li><strong>(EF) O rolo mede a potência ou estima?</strong> O rolo
+inteligente mede a potência no próprio equipamento. A velocidade
+virtual, por outro lado, é calculada pelo modelo físico (slide 11 e
+glossário).</li>
+<li><strong>(Comp.) Por que Bluetooth e não ANT+?</strong> O notebook e
+o celular têm Bluetooth nativo, enquanto ANT+ precisaria de um dongle
+USB. O Argus usa o protocolo FE-C (que nasceu no ANT+) transportado por
+Bluetooth (slide 9).</li>
+</ul>
+<h2 id="no-tcc-1">No TCC</h2>
+<p>Cap. 1 (Introdução) e Cap. 2 (Estado da arte, “De simuladores a
+ecossistemas”).</p>
+<h1 id="slide-3-o-fluxo-do-ciclista-é-fragmentado">Slide 3 · O fluxo do
+ciclista é fragmentado</h1>
+<p><img src="img/slide-03.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-2">O que aparece na tela</h2>
+<ul>
+<li><strong>Quatro janelas de aplicativo,</strong> que entram em
+sequência, cada uma com “login · conta” no topo:
+<ol type="1">
+<li><strong>Planejar a rota</strong> (app de mapas);</li>
+<li><strong>Pedalar no rolo</strong> (app de simulação);</li>
+<li><strong>Analisar o treino</strong> (plataforma de análise);</li>
+<li><strong>Juntar os números</strong> (planilha).</li>
+</ol></li>
+<li><strong>Entre as janelas,</strong> elos vermelhos quebrados com um
+“X”. Arquivos “caem” no caminho: <strong>GPX</strong> (exportar e
+importar), <strong>FIT</strong> (exportar e enviar) e
+<strong>CSV</strong> (copiar os números).</li>
+<li><strong>Frase:</strong> “Quatro aplicativos, três exportações
+manuais e uma conta em cada um.”</li>
+<li><strong>Três cartões, um por clique:</strong>
+<ul>
+<li><strong>Contexto perdido:</strong> a cada troca de aplicativo, o
+dado se separa do percurso que o gerou.</li>
+<li><strong>Custo e conta:</strong> assinaturas em dólar ou euro, como
+US$ 19,99/mês (Zwift) e € 19,99/mês (Rouvy).</li>
+<li><strong>Caixa-preta:</strong> métricas como TSS e PMC aparecem sem
+fórmula ou parâmetro explícitos.</li>
+</ul></li>
+<li><strong>Rodapé:</strong> os preços foram consultados em out/2026 nas
+páginas oficiais (Cap. 2).</li>
+</ul>
+<h2 id="conceitos-2">Conceitos</h2>
+<ul>
+<li><strong>GPX:</strong> arquivo com o percurso (latitude, longitude,
+altitude). É o que se baixa de um app de mapas.</li>
+<li><strong>FIT:</strong> arquivo binário com o registro do treino
+(potência, FC, cadência segundo a segundo). É o padrão da Garmin e o
+formato que Strava e Intervals.icu aceitam.</li>
+<li><strong>CSV:</strong> planilha em texto.</li>
+<li><strong>TSS e PMC:</strong> métricas de carga de treino (slides 11 e
+12). Em muitos apps elas aparecem sem a fórmula.</li>
+</ul>
+<h2 id="roteiro-da-fala-100">Roteiro da fala (1:00)</h2>
+<p>“Hoje, quem treina em casa usa quatro ferramentas: uma para montar a
+rota, outra para pedalar no rolo, outra para analisar e uma planilha
+para juntar tudo. Entre elas, o dado viaja em arquivos exportados à mão,
+e cada uma pede conta e login.</p>
+<p>Isso gera três dores. O contexto se perde: o número de potência se
+separa da subida que o gerou. O custo se acumula, com assinaturas em
+dólar e euro. E a análise é uma caixa-preta: o app mostra um TSS, mas
+não diz como calculou.</p>
+<p>O Argus ataca a fragmentação e a caixa-preta, mantendo o dado no seu
+computador.”</p>
+<h2 id="perguntas-prováveis-1">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Por que não usar o Strava para tudo?</strong> O
+Strava analisa, mas não controla o rolo nem simula percurso. Além disso,
+os dados ficam na nuvem dele.</li>
+<li><strong>De onde vêm os preços?</strong> Das páginas oficiais,
+consultadas em out/2026. As referências são <code>zwift_pricing</code> e
+<code>rouvy_pricing</code> no TCC.</li>
+</ul>
+<h2 id="no-tcc-2">No TCC</h2>
+<p>Cap. 1 (problema e justificativa) e Cap. 2 (“A lacuna do fluxo
+integrado”).</p>
+<h1 id="slide-4-as-peças-existem-mas-não-juntas">Slide 4 · As peças
+existem, mas não juntas</h1>
+<p><img src="img/slide-04.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-3">O que aparece na tela</h2>
+<p>Uma matriz de capacidades. As linhas são as plataformas e as colunas,
+cinco capacidades:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Plataforma</th>
+<th>GPX do usuário</th>
+<th>Controla o rolo</th>
+<th>Análise do treino</th>
+<th>Histórico local</th>
+<th>Código aberto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zwift</td>
+<td>○</td>
+<td>●</td>
+<td>◐</td>
+<td>○</td>
+<td>○</td>
+</tr>
+<tr>
+<td>Rouvy</td>
+<td>○</td>
+<td>●</td>
+<td>◐</td>
+<td>○</td>
+<td>○</td>
+</tr>
+<tr>
+<td>Biketerra</td>
+<td>●</td>
+<td>●</td>
+<td>◐</td>
+<td>○</td>
+<td>○</td>
+</tr>
+<tr>
+<td>TrainingPeaks Virtual</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+<td>○</td>
+<td>○</td>
+</tr>
+<tr>
+<td>GoldenCheetah</td>
+<td>◐</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+</tr>
+<tr>
+<td>Incyclist</td>
+<td>●</td>
+<td>●</td>
+<td>◐</td>
+<td>◐</td>
+<td>●</td>
+</tr>
+<tr>
+<td><strong>Argus Cyclist</strong> (clique)</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+<td>●</td>
+</tr>
+</tbody>
+</table>
+<p>● atende · ◐ parcial · ○ não é o foco. A leitura é do autor, a partir
+de páginas oficiais e repositórios (out/2026).</p>
+<p>No clique seguinte aparece a frase: “Contribuição:
+<strong>integração</strong> e <strong>transparência</strong>, não
+pioneirismo em cada função.”</p>
+<h2 id="conceitos-3">Conceitos</h2>
+<ul>
+<li><strong>GPX do usuário:</strong> poder pedalar um percurso que
+<em>você</em> escolheu, e não só os mundos prontos do app.</li>
+<li><strong>Histórico local:</strong> os treinos ficam no seu
+computador, não só na nuvem da empresa.</li>
+<li><strong>TrainingPeaks Virtual:</strong> o concorrente comercial mais
+parecido. Ele aceita GPX (recurso “GPXplore”) e tem análise, mas é
+fechado e na nuvem.</li>
+<li><strong>GoldenCheetah:</strong> software livre de análise. É muito
+forte em análise, mas não é um simulador de percurso.</li>
+<li><strong>Incyclist:</strong> o mais próximo em código aberto. Simula
+vídeo e GPX, mas a análise é parcial.</li>
+</ul>
+<h2 id="roteiro-da-fala-110">Roteiro da fala (1:10)</h2>
+<p>“As peças já existem separadas. Zwift e Rouvy controlam o rolo, mas
+são mundos fechados. O TrainingPeaks Virtual prova que o caso de uso
+existe, porque já deixa pedalar o seu GPX, mas é fechado. O
+GoldenCheetah é aberto e analisa muito bem, mas não simula o percurso. O
+Incyclist é o mais próximo em código aberto.</p>
+<p>O Argus não é pioneiro em nenhuma função isolada. A contribuição é
+juntar as cinco num só artefato aberto, com as fórmulas expostas.”</p>
+<h2 id="perguntas-prováveis-2">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Quem preencheu a matriz? Não é tendencioso?</strong>
+É a leitura do autor a partir de documentação oficial, e está declarada
+no rodapé. Não reivindico superioridade, só a combinação.</li>
+<li><strong>(Comp.) Por que não contribuir com o Incyclist em vez de
+criar outro?</strong> O Incyclist tem outra arquitetura (Electron/Node)
+e foco em vídeo. A proposta aqui era um núcleo em Go com análise de
+treino e dado local como eixo central. Contribuir lá fica como
+possibilidade futura.</li>
+</ul>
+<h2 id="no-tcc-3">No TCC</h2>
+<p>Cap. 2: “Síntese comparativa”, “Iniciativas de código aberto” e
+“Quatro eixos de diferenciação”.</p>
+<h1 id="slide-5-um-fluxo-para-três-usos">Slide 5 · Um fluxo para três
+usos</h1>
+<p><img src="img/slide-05.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-4">O que aparece na tela</h2>
+<ul>
+<li><strong>Três cartões com ícone:</strong>
+<ul>
+<li><strong>Reconhecimento:</strong> ensaiar a subida de uma prova antes
+do dia.</li>
+<li><strong>Exploração:</strong> pedalar em Chamonix ou Tromsø sem sair
+de casa.</li>
+<li><strong>Treino:</strong> carga de treino medida, com fórmula
+aberta.</li>
+</ul></li>
+<li><strong>Um perfil de subida</strong> que se desenha, com um ponto
+amarelo (o ciclista) andando sobre ele. A cada clique entra uma estação:
+<ol type="1">
+<li><strong>Entrada:</strong> o GPX vira relevo;</li>
+<li><strong>Simulação:</strong> o rolo sente a subida;</li>
+<li><strong>Análise:</strong> métricas com fórmula explícita;</li>
+<li><strong>Histórico:</strong> SQLite local e FIT.</li>
+</ol></li>
+<li><strong>Último clique:</strong> “Tudo no mesmo aplicativo: código
+aberto (GPLv3), dados no dispositivo; Strava e Intervals.icu são
+opcionais.”</li>
+</ul>
+<h2 id="conceitos-4">Conceitos</h2>
+<ul>
+<li><strong>Reconhecimento de percurso:</strong> pedalar antes a rota de
+uma prova real para conhecer as subidas e planejar o esforço.</li>
+<li><strong>SQLite:</strong> um banco de dados que é um arquivo local,
+sem servidor.</li>
+<li><strong>GPLv3:</strong> licença de software livre. Quem distribuir
+versões modificadas precisa manter o código aberto.</li>
+<li><strong>Strava e Intervals.icu:</strong> plataformas on-line para
+onde o Argus <em>pode</em> enviar o FIT. É opcional.</li>
+</ul>
+<h2 id="de-onde-vêm-os-números">De onde vêm os números</h2>
+<p>Chamonix e Tromsø estão no seu histórico real
+(<code>chamonix-32km.gpx</code>, 4 sessões; <code>Tromsø.gpx</code>, 2
+sessões).</p>
+<h2 id="roteiro-da-fala-50-s">Roteiro da fala (50 s)</h2>
+<p>“A proposta atende três usos com o mesmo fluxo: reconhecer o percurso
+de uma prova, explorar lugares que talvez eu nunca visite (Chamonix e
+Tromsø estão no meu histórico) e treinar com carga medida. O fluxo tem
+quatro etapas: o GPX entra e vira relevo, o rolo simula a subida, as
+métricas são calculadas com fórmula aberta e tudo fica guardado
+localmente, em SQLite e FIT. Tudo no mesmo aplicativo.”</p>
+<h2 id="no-tcc-4">No TCC</h2>
+<p>Cap. 1 (objetivos) e Cap. 4 (“Demonstração”, os três cenários).</p>
+<h1 id="slide-6-construir-usar-e-corrigir-em-ciclos">Slide 6 ·
+Construir, usar e corrigir, em ciclos</h1>
+<p><img src="img/slide-06.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-5">O que aparece na tela</h2>
+<ul>
+<li><strong>Seis setas em sequência:</strong> as etapas da DSR de
+Peffers <em>et al.</em> (2007), cada uma com o que corresponde no
+projeto.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Etapa</th>
+<th>No Argus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Problema</td>
+<td>fluxo fragmentado entre vários apps</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Objetivos</td>
+<td>8 requisitos funcionais e 5 não funcionais</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Projeto</strong> (azul)</td>
+<td>305 commits em 3 ciclos</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Demonstração</td>
+<td>3 cenários de uso no desktop e no Android</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Avaliação</strong> (verde)</td>
+<td>piloto de 10 meses, 114 sessões reais</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Comunicação</td>
+<td>este TCC e o registro no INPI</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Clique 1:</strong> uma seta tracejada volta da Avaliação
+para o Projeto, com a frase “o que o uso revelava virava o próximo
+ciclo”.</li>
+<li><strong>Clique 2:</strong> um gráfico em dois painéis com o mesmo
+eixo de tempo (jan a out/2026):
+<ul>
+<li><strong>em cima, Construção:</strong> commits por semana (azul),
+total 305, com marcos verticais em <strong>INPI</strong> (20/01),
+<strong>Android</strong> (08/03) e <strong>IA local</strong>
+(27/05);</li>
+<li><strong>embaixo, Avaliação:</strong> sessões de treino por semana
+(verde), total 114.</li>
+</ul></li>
+</ul>
+<h2 id="conceitos-5">Conceitos</h2>
+<ul>
+<li><strong>DSR (Design Science Research):</strong> método de pesquisa
+em que o conhecimento vem de <strong>construir e avaliar um
+artefato</strong> (aqui, o software). A versão de Peffers tem seis
+etapas. Hevner <em>et al.</em> (2004) dão a base teórica.</li>
+<li><strong>Artefato:</strong> o produto da pesquisa, o Argus
+Cyclist.</li>
+<li><strong>Ciclo iterativo:</strong> construir, usar, achar problemas e
+corrigir, várias vezes.</li>
+<li><strong>Os três ciclos do TCC</strong> são temáticos e se sobrepõem
+no tempo:
+<ol type="1">
+<li><strong>núcleo e linha de base,</strong> até o registro no INPI
+(20/01);</li>
+<li><strong>análise, treino e integrações:</strong> ZWO, testes de FTP,
+eventos, PMC, Strava e Intervals;</li>
+<li><strong>mobilidade e experiência:</strong> Android, MapLibre, IA
+local e desgaste de componentes.</li>
+</ol></li>
+<li><strong>Commit:</strong> cada alteração registrada no Git.</li>
+</ul>
+<h2 id="de-onde-vêm-os-números-1">De onde vêm os números</h2>
+<ul>
+<li><strong>305 commits:</strong> <code>git log</code> do branch
+<code>main</code> até 31/10/2026.</li>
+<li><strong>114 sessões:</strong> atividades com 10 min ou mais no banco
+local (são 140 no total).</li>
+<li>Os dois saem do script <code>scripts/exportar_dados.py</code>.</li>
+<li><strong>INPI:</strong> processo BR512026003786-7, de
+20/01/2026.</li>
+</ul>
+<p><strong>Atenção:</strong> o TCC diz <strong>301 commits</strong>,
+porque o levantamento foi feito em 18/10. O deck usa 305, o número
+atualizado. Se perguntarem, explique a diferença de data.</p>
+<h2 id="roteiro-da-fala-100-1">Roteiro da fala (1:00)</h2>
+<p>“O método é a Design Science Research: o conhecimento vem de
+construir e avaliar o artefato. São seis etapas, e cada uma tem um
+correspondente no projeto. O que importa é o laço entre projeto e
+avaliação: eu usava o Argus nos meus treinos, e o que dava errado virava
+correção no ciclo seguinte.</p>
+<p>O gráfico mostra isso com dados reais. Em azul, a construção, em
+commits por semana; em verde, a avaliação, em sessões de treino por
+semana. As duas andam juntas de fevereiro a maio, e a avaliação continua
+depois. Os marcos são o registro no INPI em janeiro, o Android em março
+e a IA local em maio.”</p>
+<h2 id="perguntas-prováveis-3">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Avaliação com um único usuário (n = 1) é suficiente
+para DSR?</strong> Para um estudo piloto, sim. A DSR admite avaliação
+por demonstração e uso, e o TCC declara que não há inferência
+estatística nem estudo de usabilidade com terceiros (é trabalho
+futuro).</li>
+<li><strong>(Comp.) Por que os commits caem depois de junho?</strong> O
+núcleo estabilizou e o trabalho passou a ser de uso e escrita. A
+avaliação (verde) continua até outubro.</li>
+<li><strong>(Comp.) Commits medem qualidade?</strong> Não. O TCC diz
+explicitamente que o histórico é evidência de continuidade e
+rastreabilidade, não de qualidade.</li>
+</ul>
+<h2 id="no-tcc-5">No TCC</h2>
+<p>Cap. 4: “Design Science Research”, “Processo de desenvolvimento” (os
+três ciclos) e “Avaliação”.</p>
+<h1 id="slide-7-como-o-argus-foi-construído">Slide 7 · Como o Argus foi
+construído</h1>
+<p><img src="img/slide-07.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-6">O que aparece na tela</h2>
+<p><strong>À esquerda, quatro retângulos um dentro do outro</strong> (as
+camadas da Clean Architecture), cada um com o nome e o tamanho em linhas
+de código:</p>
+<ul>
+<li><strong>Interface:</strong> 16,8 mil linhas (JS, CSS e HTML);
+<ul>
+<li><strong>Adaptadores:</strong> 3,5 mil linhas de Go;
+<ul>
+<li><strong>Casos de uso:</strong> 3,2 mil linhas de Go;
+<ul>
+<li><strong>Domínio:</strong> 478 linhas. Dentro dele estão as entidades
+<strong>Atividade, Telemetria e Perfil</strong> e uma caixa tracejada
+<strong>“Portas (interfaces)”</strong> com <code>TrainerService</code>,
+<code>FitService</code>, <code>GPXService</code>,
+<code>ActivityRepository</code>, <code>UserRepository</code> e mais 4
+repositórios.</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><strong>No clique, três setas verticais coloridas</strong>, cada uma
+com um verbo:</p>
+<ul>
+<li>Casos de uso <strong>usam</strong> as entidades e as portas;</li>
+<li>Adaptadores <strong>implementam</strong> as portas: SQLite,
+Bluetooth, FIT, GPX (a seta termina dentro da caixa de portas);</li>
+<li>Interface <strong>chama</strong> os casos de uso pelo Wails, nunca o
+banco.</li>
+</ul>
+<p><strong>À direita,</strong> as tecnologias com ícones, agrupadas pela
+cor da camada:</p>
+<ul>
+<li><strong>Interface:</strong> Wails 2, JavaScript (com Vite), HTML e
+CSS, MapLibre GL 5, ECharts 6, Capacitor 8 (Android);</li>
+<li><strong>Adaptadores:</strong> TinyGo Bluetooth, SQLite e GORM, FIT
+SDK, Strava e Intervals, Ollama;</li>
+<li><strong>Casos de uso:</strong> Go 1.24;</li>
+<li><strong>Domínio:</strong> Go puro.</li>
+</ul>
+<p><strong>Frase final:</strong> “As dependências apontam para dentro: o
+domínio só declara portas; banco e Bluetooth se encaixam nelas por
+fora.”</p>
+<h2 id="conceitos-6">Conceitos</h2>
+<ul>
+<li><strong>Clean Architecture (Martin, 2017):</strong> organizar o
+código em camadas concêntricas. A regra é que <strong>o código de dentro
+não conhece o de fora</strong>: o domínio (as regras do negócio) não
+importa banco, Bluetooth nem interface.</li>
+<li><strong>Portas e adaptadores:</strong> o domínio declara
+<em>interfaces</em> (as portas), por exemplo “um serviço de rolo deve
+saber <code>SetGrade</code>”. Os adaptadores <em>implementam</em> essas
+interfaces: o Bluetooth real, um rolo virtual de teste, o SQLite. Isso
+permite trocar o rolo real por um simulado sem mudar as regras.</li>
+<li><strong>Inversão de dependência:</strong> quem está fora depende de
+quem está dentro, nunca o contrário.</li>
+<li><strong>Tecnologias:</strong>
+<ul>
+<li><strong>Go:</strong> linguagem do núcleo, compilada e rápida.</li>
+<li><strong>Wails:</strong> cria um app desktop com interface web e
+núcleo em Go, ligando os dois (<em>bindings</em>).</li>
+<li><strong>Capacitor:</strong> empacota a mesma interface web como app
+Android.</li>
+<li><strong>MapLibre GL:</strong> mapa 3D de código aberto (imagens Esri
+e relevo AW3D30).</li>
+<li><strong>ECharts:</strong> gráficos.</li>
+<li><strong>TinyGo Bluetooth:</strong> biblioteca BLE para Go.</li>
+<li><strong>GORM:</strong> biblioteca que faz a ponte entre o Go e o
+SQLite.</li>
+<li><strong>Ollama:</strong> roda modelos de IA localmente.</li>
+</ul></li>
+</ul>
+<h2 id="de-onde-vêm-os-números-2">De onde vêm os números</h2>
+<p>Linhas não vazias, sem arquivos de teste, contadas no repositório em
+01/11/2026:</p>
+<ul>
+<li><strong>domínio:</strong> <code>internal/domain</code>, 478;</li>
+<li><strong>casos de uso:</strong> <code>internal/usecase</code> (224) +
+<code>app.go</code>, <code>gamification.go</code> e <code>main.go</code>
+(3.017) = 3,2 mil;</li>
+<li><strong>adaptadores:</strong> <code>internal/service</code> (2.731)
++ <code>internal/repository</code> (721) = 3,5 mil;</li>
+<li><strong>interface:</strong> JS 8.135 + CSS 6.540 + HTML 2.081 = 16,8
+mil.</li>
+</ul>
+<h2 id="roteiro-da-fala-110-1">Roteiro da fala (1:10)</h2>
+<p>“A arquitetura segue a Clean Architecture. No centro está o domínio,
+pequeno, com 478 linhas de Go puro: atividade, telemetria, perfil e as
+<strong>portas</strong>, que são as interfaces que o sistema precisa. Os
+casos de uso usam essas portas. Os adaptadores, como Bluetooth, SQLite e
+FIT, implementam as portas por fora. E a interface chama os casos de uso
+pelo Wails, nunca o banco direto.</p>
+<p>Na prática, posso trocar o rolo real por um rolo virtual de teste sem
+mexer nas regras. À direita está a stack: Go no núcleo, Wails no
+desktop, Capacitor no Android, MapLibre no mapa, ECharts nos gráficos,
+SQLite para os dados e Ollama para a IA local.”</p>
+<h2 id="perguntas-prováveis-4">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Por que Wails e não Electron ou Tauri?</strong> O
+núcleo já era Go, com biblioteca BLE em Go. Electron embutiria Node e
+Chromium; Tauri usaria Rust. O Wails liga o Go à interface com menos
+distância. O TCC é honesto: não houve <em>benchmark</em> de memória nem
+de tamanho. Foi adequação ao código existente.</li>
+<li><strong>(Comp.) Onde a Clean Architecture vaza?</strong> Há duas
+concessões declaradas:
+<ol type="1">
+<li>O <code>app.go</code> concentra a orquestração da sessão: dos 3,2
+mil de casos de uso, 3 mil estão nele.</li>
+<li>As entidades do domínio carregam tags do GORM
+(<code>gorm:"primaryKey"</code>), mas sem importar o pacote.</li>
+</ol></li>
+<li><strong>(Comp.) Por que a física é reimplementada em JS no
+Android?</strong> O Capacitor não executa Go. Portar o núcleo para
+WebAssembly exigiria outra cadeia de compilação, fora do escopo. É a
+decisão mais custosa (ADR-06) e um caminho para trabalho futuro.</li>
+<li><strong>(Comp.) Por que a interface tem tantas linhas?</strong>
+Porque o HUD, o mapa, os gráficos, os modais e o CSS responsivo para o
+celular estão nela. O CSS sozinho tem 6,5 mil linhas.</li>
+</ul>
+<h2 id="no-tcc-6">No TCC</h2>
+<p>Cap. 5: “<em>Stack</em> tecnológica”, “Clean Architecture e Ports
+&amp; Adapters” e “Decisões e compensações” (tabela de ADRs).</p>
+<h1 id="slide-8-núcleo-em-go-interface-web-compartilhada">Slide 8 ·
+Núcleo em Go, interface web compartilhada</h1>
+<p><img src="img/slide-08.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-7">O que aparece na tela</h2>
+<p>O diagrama de arquitetura <strong>gerado pelo Archify a partir do
+código</strong>, com 14 componentes. A legenda de cores é: Frontend
+(azul-claro), Backend (verde), Banco de dados (roxo), Nuvem (laranja) e
+Externo (cinza).</p>
+<p>Siga o caminho principal da esquerda para a direita:</p>
+<ol type="1">
+<li><strong>Interface do ciclista</strong> (HUD, mapa, gráficos) ⇄
+<strong>Runtime Wails</strong> (bindings JS ↔︎ Go): comandos vão, eventos
+voltam.</li>
+<li><strong>App orquestrador</strong> (sessão, perfis, treino): recebe
+as chamadas Go.</li>
+<li><strong>Loop de tempo real</strong> (gameLoop, por amostra): a
+sessão acontece aqui.</li>
+<li><strong>Serviço BLE</strong> (FTMS, FE-C, FC): manda rampa/ERG para
+o <strong>Trainer e sensores</strong> e devolve a telemetria ao
+orquestrador.</li>
+</ol>
+<p>Ramificações:</p>
+<ul>
+<li>o Loop chama o <strong>Motor de física</strong>
+(<code>sim.Engine</code>, que calcula a velocidade);</li>
+<li>o orquestrador finaliza na <strong>Exportação FIT</strong> (TSS,
+zonas, arquivo);</li>
+<li>o orquestrador usa a <strong>Fachada de storage</strong>
+(repositórios GORM), que grava nos <strong>Bancos globais</strong>
+(contas, ranking) e no <strong>Banco por usuário</strong> (SQLite,
+atividades);</li>
+<li>o orquestrador fala com as <strong>Integrações externas</strong>
+(Strava, Intervals, Ollama);</li>
+<li>a Interface busca <strong>Mapas e DEM</strong> (tiles ESRI,
+elevação);</li>
+<li>o <strong>App Android</strong> (Capacitor, BLE nativo) hospeda o
+mesmo <em>bundle</em> da interface.</li>
+</ul>
+<h2 id="conceitos-7">Conceitos</h2>
+<ul>
+<li><strong>Archify:</strong> ferramenta que gera o diagrama a partir do
+código. O desenho reflete o código real, não uma idealização.</li>
+<li><strong>Bindings:</strong> funções Go chamáveis do JavaScript,
+criadas pelo Wails.</li>
+<li><strong>gameLoop:</strong> o laço da sessão que processa cada aviso
+dos sensores.</li>
+<li><strong>DEM:</strong> modelo digital de elevação, a altitude do
+terreno para o mapa 3D.</li>
+<li><strong>Bundle:</strong> o pacote da interface web (HTML, JS, CSS)
+que o Android reaproveita.</li>
+</ul>
+<h2 id="roteiro-da-fala-140">Roteiro da fala (1:40)</h2>
+<p>“Este é o diagrama gerado pelo Archify a partir do código. Da
+esquerda para a direita: a interface, o runtime Wails ligando o
+JavaScript ao Go, o app orquestrador, o laço de tempo real e o serviço
+Bluetooth, que fala com o rolo. O laço usa o motor de física para
+calcular a velocidade. No fim da sessão, o orquestrador exporta o FIT e
+grava no banco do usuário. O Android reaproveita a mesma interface, mas
+a física e o GPX foram reescritos em JavaScript, porque o Capacitor não
+roda Go.”</p>
+<h2 id="perguntas-prováveis-5">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Os bancos são separados por quê?</strong> O banco
+por usuário (um SQLite por perfil) isola os dados de cada ciclista. O
+banco global guarda as contas e o ranking dos eventos.</li>
+<li><strong>(Comp.) O app orquestrador não é um “god object”?</strong>
+Em parte, sim. É a concessão declarada (ADR-08, monólito modular).</li>
+</ul>
+<h2 id="no-tcc-7">No TCC</h2>
+<p>Cap. 5: “Topologia de componentes” e “Arquitetura móvel”.</p>
+<h1 id="slide-9-como-o-argus-conversa-com-o-rolo">Slide 9 · Como o Argus
+conversa com o rolo</h1>
+<p><img src="img/slide-09-antes.jpg" /></p>
+<p><img src="img/slide-09.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-8">O que aparece na tela</h2>
+<ul>
+<li><strong>À esquerda,</strong> o Argus Cyclist (computador ou
+celular). <strong>À direita,</strong> o rolo e os sensores (potência,
+FC, cadência).</li>
+<li>Quatro cliques constroem a conversa; os passos aparecem também numa
+faixa embaixo:
+<ol type="1">
+<li><strong>Encontrar:</strong> ondas saem do rolo com “sou um rolo e
+meço potência” (o rolo anuncia o que sabe medir).</li>
+<li><strong>Conectar:</strong> aparecem duas linhas entre os dois (o
+Argus se conecta e se inscreve nos avisos).</li>
+<li><strong>Receber:</strong> bolhas “210 W”, “142 bpm” e “88 rpm”
+correm do rolo para o Argus, com a legenda “cerca de 3 avisos por
+segundo”.</li>
+<li><strong>Comandar:</strong> uma bolha “subida 6,5%” vai do Argus para
+o rolo (“o Argus responde com a inclinação, e o rolo endurece”).</li>
+</ol></li>
+<li><strong>Clique 5, o impostor:</strong> surge um “app que imita um
+sensor” (mesmo anúncio, dados inventados) mandando “1.200 W” para o
+Argus. <strong>Todo o resto fica desfocado</strong> (veja as duas
+imagens acima). O alerta diz: “O protocolo <strong>não comprova a origem
+dos dados</strong>: qualquer aparelho, ou um app que imite um sensor,
+pode enviar a potência que quiser. Esse risco de fraude é o tema do
+<strong>Argus Recon</strong>.”</li>
+</ul>
+<h2 id="conceitos-8">Conceitos</h2>
+<ul>
+<li><strong>Bluetooth LE (Low Energy):</strong> a versão de baixo
+consumo do Bluetooth, usada por sensores esportivos.</li>
+<li><strong>GATT:</strong> a forma como o BLE organiza os dados, em
+<em>serviços</em> com <em>características</em>.
+<ul>
+<li>Exemplo: o serviço Cycling Power (<code>0x1818</code>) tem a
+característica de medição (<code>0x2A63</code>), que carrega potência e
+cadência.</li>
+<li>Outros serviços usados: Heart Rate (<code>0x180D</code>) e Fitness
+Machine (<code>0x1826</code>).</li>
+</ul></li>
+<li><strong>Central e periférico:</strong> o rolo é o periférico
+(servidor GATT, anuncia e guarda os dados). O Argus é a central
+(cliente, conecta e pede).</li>
+<li><strong>Anúncio (advertising):</strong> o rolo transmite
+periodicamente “existo e ofereço este serviço”.</li>
+<li><strong>Assinatura ou notificação:</strong> o Argus pede para ser
+avisado quando o valor muda. A partir daí os dados chegam sozinhos, sem
+precisar perguntar. Tecnicamente, é escrever no descritor CCCD.</li>
+<li><strong>Escrita no ponto de controle:</strong> é como o Argus manda
+comandos ao rolo (inclinação ou potência-alvo).</li>
+<li><strong>FTMS × FE-C</strong>, os dois “idiomas” de controle:
+<ul>
+<li><strong>FTMS</strong> é o padrão do Bluetooth. “Subida de 6,5%” vira
+3 bytes: o comando <code>0x03</code> e o valor 65 (em décimos de por
+cento).</li>
+<li><strong>FE-C</strong> é o padrão ANT+, aqui levado ao Bluetooth. A
+mensagem é uma página de 8 bytes (página 51, inclinação em centésimos
+com deslocamento de 200%). Antes de começar, o Argus envia o perfil do
+ciclista (página 55) e o vento (página 50).</li>
+<li>No desktop, o Argus fala os dois; no Android, só FE-C.</li>
+</ul></li>
+<li><strong>Spoofing (falsificação):</strong> um dispositivo se passa
+por outro. Os perfis de ciclismo do BLE não autenticam a origem do
+dado.</li>
+<li><strong>Argus Recon:</strong> o seu outro projeto, uma ferramenta de
+segurança para analisar o BLE de dispositivos de ciclismo
+(<code>github.com/SoNdA11/argus-recon</code>).</li>
+</ul>
+<h2 id="de-onde-vêm-os-números-3">De onde vêm os números</h2>
+<ul>
+<li><strong>“≈ 3 avisos por segundo”:</strong> medido nas sessões reais.
+A Girona teve 10.870 notificações em 3.678 s ativos, ou 2,96 por
+segundo.</li>
+<li><strong>210 W, 142 bpm, 88 rpm e 6,5%:</strong> são exemplos
+ilustrativos.</li>
+</ul>
+<h2 id="roteiro-da-fala-130">Roteiro da fala (1:30)</h2>
+<p>“Como o Argus conversa com o rolo? Primeiro, o rolo se anuncia: ‘sou
+um rolo e meço potência’. O Argus conecta e se inscreve para receber
+avisos. A partir daí os dados chegam sozinhos, cerca de três por segundo
+somando os sensores. No sentido contrário, o Argus envia a inclinação do
+mapa, e o rolo endurece.</p>
+<p>Existe um detalhe importante: nada no protocolo prova que esses 210
+watts vieram de um medidor de verdade. Um aplicativo pode se passar por
+sensor e mandar 1.200 watts. Em competições virtuais isso abre espaço
+para fraude, e é o tema do Argus Recon, um outro projeto meu.”</p>
+<h2 id="perguntas-prováveis-6">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) O Argus detecta o spoofing?</strong> Não. O Argus
+não autentica; ele confia no sensor, como todos os apps do mercado. A
+análise de fraude é o objeto do Argus Recon. Só citar, não
+aprofundar.</li>
+<li><strong>(Comp.) FTMS foi testado?</strong> O rolo usado nos testes
+fala FE-C. O caminho FTMS está implementado no desktop, mas <strong>não
+foi validado com um rolo que só tenha FTMS</strong> (Cap. 7). Há ainda
+um defeito conhecido, descrito no Cap. 6: o opcode <code>0x00</code>
+também é enviado à característica <code>0x2A66</code>.</li>
+<li><strong>(Comp.) Por que só FE-C no Android?</strong> Foi uma decisão
+de escopo: o plugin Capacitor foi implementado para o caminho do
+hardware de teste. Implementar FTMS no Android é trabalho futuro.</li>
+<li><strong>(Comp.) Notificações podem se perder?</strong> Sim. Se o
+laço estiver ocupado, uma notificação pode ser descartada, porque o
+canal não tem buffer. Está registrado como limitação de amostragem.</li>
+</ul>
+<h2 id="no-tcc-8">No TCC</h2>
+<p>Cap. 3 (“Bluetooth Low Energy e o modelo GATT”, “FTMS”, “FE-C sobre
+BLE”) e Cap. 6 (“Integração com o rolo”).</p>
+<h1 id="slide-10-do-sensor-até-o-ciclista">Slide 10 · Do sensor até o
+ciclista</h1>
+<p><img src="img/slide-10.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-9">O que aparece na tela</h2>
+<ul>
+<li><strong>À esquerda,</strong> o <strong>Rolo</strong> (potência,
+cadência) e a <strong>Cinta cardíaca</strong> (FC) mandam pacotes
+animados (bolinhas) para o <strong>Laço da sessão</strong>. O laço junta
+os avisos e calcula a velocidade, a distância e a posição na rota (≈ 3
+avisos/s).</li>
+<li>Três saídas, uma por clique:
+<ol type="1">
+<li><strong>Tela</strong> (atualiza a cada aviso): um mini HUD com 210
+W, 142 bpm, 88 rpm, 24,8 km/h e 6,5%, e um mini mapa com o ciclista
+andando. Legenda: “HUD: potência, FC, cadência, velocidade e inclinação;
+mapa: posição”.</li>
+<li><strong>Arquivo FIT</strong> (guarda todos os avisos, com horário):
+três linhas de registro com horários de frações de segundo, que seguem
+para o histórico, o Strava e o Intervals.icu.</li>
+<li><strong>Reamostrador</strong> (tira a média de cada segundo): pontos
+caem em três caixas, “1º, 2º e 3º segundo”:
+<ul>
+<li>1º segundo: 205, 214, 211 → <strong>210</strong>;</li>
+<li>2º segundo: 220, 216 → <strong>218</strong>;</li>
+<li>3º segundo: 204, 209, 206, 211 → <strong>208</strong>.</li>
+</ul>
+Embaixo: “As métricas contam <strong>segundos</strong>: sem isso, 3
+avisos virariam 3 segundos de treino.”</li>
+</ol></li>
+</ul>
+<h2 id="conceitos-9">Conceitos</h2>
+<ul>
+<li><strong>Laço da sessão (gameLoop):</strong> o código que recebe cada
+aviso, atualiza a física e distribui os dados.</li>
+<li><strong>HUD:</strong> os números sobrepostos ao mapa durante o
+treino.</li>
+<li><strong>Por que a tela recebe tudo:</strong> para ficar responsiva.
+O mapa suaviza a câmera a cada 150 ms. A fluidez da tela não é a mesma
+coisa que a taxa de aquisição.</li>
+<li><strong>Por que o FIT recebe tudo:</strong> é o registro bruto e
+fiel, com o horário de cada aviso, e é o que vai para as plataformas
+externas.</li>
+<li><strong>Reamostrador:</strong> os sensores mandam avisos em horários
+irregulares, cerca de 3 por segundo. As fórmulas (NP com janela de 30 s,
+TSS, desacoplamento, HRR) supõem <strong>um valor por segundo</strong>.
+O reamostrador agrupa os avisos de cada segundo e tira a média.</li>
+<li><strong>O que acontecia sem ele:</strong> 3 avisos eram contados
+como 3 segundos, e as métricas ficavam distorcidas. Na Girona, o NP
+calculado era 138 W em vez de 106 W.</li>
+<li><strong>Lacunas:</strong> se passar mais de 5 s sem aviso, o
+reamostrador trata o intervalo como pausa.</li>
+</ul>
+<h2 id="de-onde-vêm-os-números-4">De onde vêm os números</h2>
+<ul>
+<li><strong>Valores do reamostrador:</strong> são um exemplo, mas a
+conta das médias é exata. (205+214+211)/3 = 210; (220+216)/2 = 218;
+(204+209+206+211)/4 = 207,5, arredondado para 208.</li>
+<li><strong>Código:</strong>
+<code>internal/service/fit/resample.go</code>
+(<code>SecondResampler</code>), com 3 testes automatizados.</li>
+</ul>
+<h2 id="roteiro-da-fala-115">Roteiro da fala (1:15)</h2>
+<p>“Os sensores mandam avisos quando querem, cerca de três por segundo.
+O laço da sessão junta tudo e calcula a velocidade pela física e a
+posição na rota. Os dados vão para três lugares. A tela recebe cada
+aviso: o HUD mostra os números e o mapa move o ciclista. O arquivo FIT
+guarda tudo, com o horário de cada aviso, e é o que vai para o
+histórico, o Strava e o Intervals.</p>
+<p>E o reamostrador agrupa os avisos de cada segundo e tira a média,
+porque as fórmulas supõem um valor por segundo. Sem ele, três avisos
+virariam três segundos de treino. Esse defeito foi encontrado pela
+própria avaliação e corrigido.”</p>
+<h2 id="perguntas-prováveis-7">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Por que média e não o último valor?</strong> A média
+usa toda a informação do segundo e suaviza o ruído. O último valor
+descartaria amostras. Um segundo sem dados é tratado como pausa.</li>
+<li><strong>(Comp.) E os treinos antigos, calculados errado?</strong> O
+banco guarda os valores antigos e não foi reescrito, por decisão do
+autor. Os números do deck foram reprocessados a 1 Hz a partir dos FIT,
+pelo script <code>recalcular</code>. O app corrigido já calcula certo
+nas sessões novas.</li>
+<li><strong>(EF) A média de um segundo muda a potência?</strong> Não, de
+forma relevante. A potência média da sessão é a mesma; o que muda é o
+<em>peso</em> de cada segundo nas métricas.</li>
+</ul>
+<h2 id="no-tcc-9">No TCC</h2>
+<p>Cap. 5 (“Fluxo de telemetria”, ADR-04) e Cap. 3 (“Leitura, escalas e
+taxas de amostragem”).</p>
+<h1 id="slide-11-cada-número-tem-fórmula-e-limite">Slide 11 · Cada
+número tem fórmula e limite</h1>
+<p><img src="img/slide-11.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-10">O que aparece na tela</h2>
+<p><strong>À esquerda, um gráfico em dois painéis</strong> da sessão de
+Girona (27/04/2026, 61 min, em modo ERG):</p>
+<ul>
+<li><strong>Potência (W), em amarelo:</strong>
+<ul>
+<li>a linha tracejada cinza é a “média 96”;</li>
+<li>no clique, entra a linha azul “<strong>NP 106</strong>”;</li>
+<li>no clique seguinte, entram as faixas: <strong>descarte</strong> (0 a
+10 min, cinza), <strong>1ª metade</strong> e <strong>2ª metade · Pw:FC
+−8,3%</strong> (azul-claro).</li>
+</ul></li>
+<li><strong>Frequência cardíaca (bpm), em vermelho:</strong> a linha
+tracejada é a “média 139”.</li>
+</ul>
+<p><strong>À direita, uma tabela</strong> cujas linhas entram por
+clique, cada uma com um selo (medido, calculado ou anotação):</p>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+<th>Natureza</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Potência média</td>
+<td>96 W</td>
+<td>medido</td>
+</tr>
+<tr>
+<td>NP (média⁴ de 30 s)</td>
+<td>106 W</td>
+<td>calculado</td>
+</tr>
+<tr>
+<td>IF · TSS (FTP 153 W)</td>
+<td>0,69 · 49</td>
+<td>calculado</td>
+</tr>
+<tr>
+<td>FC média · máx</td>
+<td>139 · 169</td>
+<td>medido</td>
+</tr>
+<tr>
+<td>Desacoplamento (Pw:FC)</td>
+<td>8,3%</td>
+<td>calculado</td>
+</tr>
+<tr>
+<td>Recuperação da FC (1 · 2 min)</td>
+<td>26 · 28</td>
+<td>calculado</td>
+</tr>
+<tr>
+<td>VT1 / VT2</td>
+<td>n/a</td>
+<td>anotação</td>
+</tr>
+</tbody>
+</table>
+<p>Nota abaixo: “Limiares são marcados pelo usuário; o teste de 5 min é
+proxy de potência aeróbia, <strong>não</strong> mede VO₂máx; zonas de FC
+por % da máxima.”</p>
+<p>Rodapé: “Coggan &amp; Allen (2010); Banister (1991). Sessão em modo
+ERG (potência-alvo fixa); valores reprocessados a 1 Hz.”</p>
+<h2
+id="conceitos-o-slide-mais-importante-para-o-professor-de-ef">Conceitos
+(o slide mais importante para o professor de EF)</h2>
+<p><strong>Carga externa × carga interna.</strong> Esta é a distinção
+que organiza as métricas.</p>
+<ul>
+<li><strong>Carga externa</strong> é o trabalho mecânico, medido pela
+potência: NP, IF, TSS e PMC.</li>
+<li><strong>Carga interna</strong> é a resposta do corpo, medida pela
+FC: TRIMP, HRR e Pw:FC (o desacoplamento relaciona as duas).</li>
+<li>Nenhuma métrica mede lactato nem VO₂. No texto do TCC o conjunto
+aparece como “análise fisiológica”; no deck, “análise do treino”.</li>
+</ul>
+<p><strong>FTP (Functional Threshold Power).</strong> É a maior potência
+que se sustenta por cerca de uma hora. O Argus estima o FTP por três
+testes:</p>
+<ul>
+<li>teste de rampa: melhor potência de 1 min × 0,75;</li>
+<li>teste de 20 min: melhor potência de 20 min × 0,95;</li>
+<li>teste de 5 min: melhor potência de 5 min × 0,80.</li>
+</ul>
+<p>Na Girona, o FTP era 153 W (o atual é 181 W).</p>
+<p><strong>NP (Normalized Power).</strong> É a potência “equivalente” a
+um esforço constante. Passo a passo:</p>
+<ol type="1">
+<li>média móvel de 30 s da potência;</li>
+<li>elevar cada valor à 4ª potência;</li>
+<li>tirar a média;</li>
+<li>tirar a raiz quarta.</li>
+</ol>
+<p>Picos pesam mais, por isso NP (106) &gt; média (96). Na Girona havia
+paradas e retomadas; essas variações sobem o NP.</p>
+<p><strong>IF (Intensity Factor).</strong> IF = NP / FTP = 106 / 153 =
+<strong>0,69</strong>. Um IF perto de 0,7 é ritmo de endurance; perto de
+1,0 é limiar.</p>
+<p><strong>TSS (Training Stress Score).</strong> TSS = (segundos × NP ×
+IF) / (FTP × 3600) × 100. Na Girona: (3678 × 106 × 0,693) / (153 × 3600)
+× 100 ≈ <strong>49</strong>. Uma hora no FTP vale 100.</p>
+<p><strong>Desacoplamento aeróbio (Pw:FC).</strong> Mede se o coração
+“se descola” da potência ao longo do treino:</p>
+<ol type="1">
+<li>descarta os primeiros 10 min (aquecimento);</li>
+<li>divide o resto em duas metades;</li>
+<li>calcula, em cada metade, a eficiência EF = potência média / FC
+média;</li>
+<li>Desacoplamento = (EF₁ − EF₂) / EF₁.</li>
+</ol>
+<p>O valor foi <strong>8,3%</strong>, acima do limiar convencional de
+5%. Mas o número não diz a causa (fadiga, calor, hidratação) e é pouco
+informativo em percurso variável. Exige pelo menos 1 hora de dados.</p>
+<p><strong>HRR (recuperação da FC).</strong> FC no fim do esforço menos
+a FC 60 s e 120 s depois: <strong>26 e 28 bpm</strong>. Limitação
+declarada: usa a FC final, não o pico, e por isso pode subestimar.</p>
+<p><strong>TRIMP (Banister).</strong> Duração (min) × HRr × 0,64 ×
+e^(1,92 × HRr), em que HRr é a fração da reserva de FC. Os coeficientes
+0,64 e 1,92 são os da versão masculina, usados como base genérica.</p>
+<p><strong>VT1/VT2.</strong> São os limiares ventilatórios. O Argus
+<strong>não detecta</strong>: o usuário marca as linhas no gráfico (são
+uma anotação).</p>
+<p><strong>Zonas de FC.</strong> São calculadas por % da FC máxima: Z1
+&lt; 60%, Z2 de 60 a 70%, e assim por diante. É uma aproximação, não
+Karvonen nem LTHR.</p>
+<p><strong>Selos.</strong> “Medido” vem do sensor; “calculado” vem de
+fórmula; “anotação” é marcado pelo usuário. Essa é a honestidade
+epistêmica do trabalho.</p>
+<p><strong>Modo ERG.</strong> O rolo segura uma potência-alvo fixa,
+independentemente da inclinação. Por isso a linha de potência é tão
+plana.</p>
+<h2 id="de-onde-vêm-os-números-5">De onde vêm os números</h2>
+<ul>
+<li><strong>Sessão:</strong>
+<code>workouts/workout_2026-04-27_19-42-58.fit</code>, reprocessada a 1
+Hz pelo script <code>TCC/registro-software/scripts/recalcular</code>
+(arquivo <code>recalculo-metricas.csv</code>).</li>
+<li><strong>Antigo × novo:</strong> NP 138 → 106 W; desacoplamento 8,9%
+→ 8,3%.</li>
+<li><strong>Os outros valores</strong> (média, FC, HRR) vêm do mesmo
+FIT.</li>
+</ul>
+<h2 id="roteiro-da-fala-150">Roteiro da fala (1:50)</h2>
+<p>“Este é o slide para o professor de Educação Física. A sessão é a de
+Girona: 61 minutos em modo ERG. A potência média foi 96 watts, e o NP
+foi 106. O NP é maior porque os picos pesam mais: é uma média de quarta
+potência. Com o FTP de 153 da época, o IF foi 0,69 e o TSS, 49.</p>
+<p>O desacoplamento compara as duas metades depois de descartar o
+aquecimento: a razão entre potência e FC caiu 8,3%. Isso está acima do
+limiar convencional de 5%, mas o número não diz a causa.</p>
+<p>O mais importante é o que está à direita: cada número tem um selo,
+medido, calculado ou anotação. E o que <em>não</em> medimos está
+escrito: os limiares são marcados pelo usuário, o teste de 5 minutos não
+mede VO₂máx e as zonas de FC são por percentual da máxima.”</p>
+<h2 id="perguntas-prováveis-ef">Perguntas prováveis (EF)</h2>
+<ul>
+<li><strong>O teste de 5 min mede VO₂máx?</strong> Não. É um proxy de
+potência aeróbia máxima (MAP). O VO₂máx exige análise de gases.</li>
+<li><strong>Por que zonas por %FCmáx e não Karvonen ou LTHR?</strong> É
+uma simplificação declarada. Karvonen e LTHR exigiriam FC de repouso
+confiável ou teste de limiar. Fica como melhoria futura.</li>
+<li><strong>TRIMP com coeficiente masculino?</strong> Sim, como base
+genérica, sem seleção de sexo nem individualização. Está declarado no
+Cap. 3.</li>
+<li><strong>Se a potência era fixa (ERG), o desacoplamento
+vale?</strong> É justamente o melhor cenário: com a potência quase
+constante, a subida relativa da FC fica mais visível. Mesmo assim, o
+número não diz a causa.</li>
+<li><strong>O simulador melhora o desempenho?</strong> Não foi avaliado;
+não é objetivo do trabalho.</li>
+</ul>
+<h2 id="no-tcc-10">No TCC</h2>
+<p>Cap. 3 (“Análise do treino e carga”: FTP e zonas, NP/IF/TSS, TRIMP,
+PMC, desacoplamento e HRR) e Cap. 6 (“Métricas e análise”).</p>
+<h1 id="slide-12-dez-meses-de-uso-real">Slide 12 · Dez meses de uso
+real</h1>
+<p><img src="img/slide-12.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-11">O que aparece na tela</h2>
+<ul>
+<li><strong>Quatro números grandes:</strong>
+<ul>
+<li><strong>114</strong> sessões de 10 min ou mais (de 140);</li>
+<li><strong>2.182 km</strong> de distância virtual;</li>
+<li><strong>92 h</strong> de tempo ativo;</li>
+<li><strong>282 FIT</strong>: 98 de treino + 184 de eventos.</li>
+</ul></li>
+<li><strong>O gráfico PMC</strong> (mar a out/2026):
+<ul>
+<li>barras cinza: TSS diário;</li>
+<li>linha azul: CTL (42 dias);</li>
+<li>linha vermelha: ATL (7 dias);</li>
+<li>tracejado amarelo: TSB.</li>
+</ul></li>
+<li>Rodapé: “PMC reconstruído com as constantes do sistema (42 e 7 dias)
+a partir do banco local do autor.”</li>
+</ul>
+<h2 id="conceitos-10">Conceitos</h2>
+<ul>
+<li><strong>PMC (Performance Management Chart):</strong>
+<ul>
+<li><strong>CTL (“fitness”):</strong> média exponencial do TSS diário
+com constante de 42 dias. É o condicionamento acumulado.</li>
+<li><strong>ATL (“fadiga”):</strong> a mesma conta com 7 dias. É a carga
+recente.</li>
+<li><strong>TSB (“forma”):</strong> CTL − ATL. Negativo indica carga
+recente alta; positivo indica descanso.</li>
+<li>Como o Argus calcula, a cada dia: CTL ← CTL + (TSS − CTL)/42 e ATL ←
+ATL + (TSS − ATL)/7.</li>
+</ul></li>
+<li><strong>Leitura do gráfico:</strong> há blocos de treino (mar a mai
+e out), com a ATL subindo e a TSB negativa, e pausas (jun a set), com a
+CTL caindo devagar.</li>
+</ul>
+<h2 id="de-onde-vêm-os-números-6">De onde vêm os números</h2>
+<ul>
+<li><strong>140 atividades</strong> no banco, das quais
+<strong>114</strong> têm 10 min ou mais. As 26 curtas são testes e
+sessões interrompidas.</li>
+<li><strong>282 FIT</strong> = 98 em <code>workouts/</code> + 184 em
+<code>workouts/events/</code>. Cada tentativa de evento (sprint, KOM,
+contrarrelógio) gera um FIT, mas não entra no histórico de treinos. Os
+FIT de jan a mar não ficaram no disco.</li>
+<li><strong>2.182 km e 92 h:</strong> soma das 114 sessões.</li>
+<li><strong>Atenção:</strong> o TCC diz <strong>274 FIT</strong>
+(levantamento de 18/10). O deck usa 282, a contagem atualizada.</li>
+</ul>
+<h2 id="roteiro-da-fala-100-2">Roteiro da fala (1:00)</h2>
+<p>“Os números documentam uso continuado, não desempenho: 114 sessões,
+2.182 quilômetros e 92 horas em dez meses. O PMC mostra blocos de
+treino, de março a maio e em outubro, e pausas no meio do ano. A CTL é o
+condicionamento de 42 dias, a ATL a fadiga de 7 dias, e a TSB a
+diferença entre as duas.”</p>
+<h2 id="perguntas-prováveis-8">Perguntas prováveis</h2>
+<ul>
+<li><strong>Por que 114 e 282 são diferentes?</strong> Contam coisas
+diferentes: 114 são treinos de 10 min ou mais; 282 são arquivos FIT,
+incluindo 184 tentativas do modo eventos.</li>
+<li><strong>(EF) A CTL ficou baixa (~20). Isso diz algo do
+atleta?</strong> Diz só que o volume foi moderado e irregular. O
+objetivo era avaliar o software, não o atleta.</li>
+</ul>
+<h2 id="no-tcc-11">No TCC</h2>
+<p>Cap. 3 (“PMC: CTL, ATL e TSB”) e Cap. 7 (“Estudo piloto”).</p>
+<h1 id="slide-13-do-treino-à-análise">Slide 13 · Do treino à
+análise</h1>
+<p><img src="img/slide-13.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-12">O que aparece na tela</h2>
+<p>Uma galeria 5 × 2. <strong>Clicar abre a imagem ampliada</strong> com
+o fundo desfocado; ← → passam e <code>Esc</code> fecha.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Imagem</th>
+<th>O que mostra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Análise pós-treino</td>
+<td>telemetria completa e curva de potência de uma atividade</td>
+</tr>
+<tr>
+<td>Relatório em PDF</td>
+<td>resumo exportado da sessão de Girona</td>
+</tr>
+<tr>
+<td>Sessão no mapa 3D</td>
+<td>rota colorida por inclinação e treino ZWO</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>HUD e mapa no celular</td>
+</tr>
+<tr>
+<td>Carreira</td>
+<td>PMC e desacoplamento ao longo do tempo</td>
+</tr>
+<tr>
+<td>Eventos</td>
+<td>sprint, KOM e contrarrelógio</td>
+</tr>
+<tr>
+<td>Conquistas</td>
+<td>níveis e troféus (gamificação)</td>
+</tr>
+<tr>
+<td>Desgaste</td>
+<td>km de corrente e cassete</td>
+</tr>
+<tr>
+<td>Recuperação</td>
+<td>sessão salva após uma queda do app</td>
+</tr>
+<tr>
+<td>IA local</td>
+<td>o Ollama gera treinos no formato ZWO</td>
+</tr>
+</tbody>
+</table>
+<h2 id="conceitos-11">Conceitos</h2>
+<ul>
+<li><strong>ZWO:</strong> o formato de treino estruturado (blocos de
+aquecimento, intervalos e desaquecimento) criado pela Zwift.</li>
+<li><strong>KOM (King of the Mountain):</strong> prova de subida.</li>
+<li><strong>Recuperação de sessão:</strong> durante o treino, o Argus
+grava um <em>snapshot</em> contínuo (metadados mais amostras em NDJSON).
+Se o app fechar, ao reabrir ele oferece “Recover &amp; Save”. É o RNF04,
+e tem 12 testes.</li>
+<li><strong>IA local:</strong> o Ollama roda um modelo de linguagem no
+próprio computador, sem enviar dados para fora. A IA <strong>só valida o
+formato</strong> do treino, não a adequação fisiológica.</li>
+</ul>
+<h2 id="de-onde-vêm-as-imagens">De onde vêm as imagens</h2>
+<ul>
+<li>O relatório PDF e a tela de recuperação foram capturados em
+01/11/2026 de uma <strong>cópia</strong> do app e dos dados. Na cópia, a
+Girona recebeu as métricas reprocessadas (NP 106), para o relatório
+bater com o slide 11.</li>
+<li>O print da IA é seu, recortado para tirar o seletor de modelo que
+mostrava “error”.</li>
+</ul>
+<h2 id="roteiro-da-fala-100-3">Roteiro da fala (1:00)</h2>
+<p>“Estas são as telas reais. Ao abrir uma atividade do histórico, o
+Argus mostra a telemetria e a curva de potência, e o resumo pode ser
+exportado em PDF. Aqui está o Android, com a mesma interface. E há os
+eventos, as conquistas, o desgaste de componentes, a recuperação de
+sessão se o app cair e a IA local que gera treinos.”</p>
+<h2 id="perguntas-prováveis-9">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) A IA pode gerar um treino perigoso?</strong> A
+validação é só sintática (o formato ZWO). Não há validação fisiológica,
+e isso está declarado (ADR-07).</li>
+<li><strong>(EF) A IA usa o histórico do atleta?</strong> Em parte. O
+<em>prompt</em> de sistema leva o perfil (FTP, peso) e um resumo das
+<strong>últimas 10 atividades</strong> e dos totais
+(<code>internal/service/ai/prompts.go</code>). Uma busca no histórico
+completo (recuperação de informação, RAG) é trabalho futuro (Cap.
+8).</li>
+</ul>
+<h2 id="no-tcc-12">No TCC</h2>
+<p>Cap. 6 (“Exportação FIT e recuperação”, “Assistente local”, “Modo
+Android”) e Cap. 7 (“Avaliação funcional”).</p>
+<h1 id="slide-14-requisitos-atendidos">Slide 14 · Requisitos
+atendidos</h1>
+<p><img src="img/slide-14.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-13">O que aparece na tela</h2>
+<p><strong>Duas listas com ✓.</strong></p>
+<p><strong>Funcionais:</strong></p>
+<ul>
+<li>RF01: importar GPX e calcular a inclinação;</li>
+<li>RF02: controlar o rolo pela inclinação;</li>
+<li>RF03: registrar potência, FC e cadência;</li>
+<li>RF04: calcular NP, IF, TSS, TRIMP, PMC, HRR e Pw:FC¹;</li>
+<li>RF05: manter histórico local por perfil;</li>
+<li>RF06: exportar FIT e integrar com Strava e Intervals.icu;</li>
+<li>RF07: rodar no desktop e no Android;</li>
+<li>RF08: permitir o reconhecimento de percurso.</li>
+</ul>
+<p><strong>Não funcionais:</strong></p>
+<ul>
+<li>RNF01: processar localmente, sem nuvem obrigatória²;</li>
+<li>RNF02: interface responsiva, inclusive em telas pequenas;</li>
+<li>RNF03: código aberto (GPLv3);</li>
+<li>RNF04: preservar a sessão em caso de falha;</li>
+<li>RNF05: fórmulas e limites explícitos.</li>
+</ul>
+<p><strong>Cartão “27 testes automatizados”:</strong> métricas, física,
+reamostragem, arquivo FIT, recuperação de sessão e ZWO.</p>
+<p><strong>Faixa “Multiplataforma”:</strong></p>
+<ul>
+<li>Windows ✓ e Linux ✓, fluxo completo;</li>
+<li>Android ✓, sessão ao vivo;</li>
+<li>macOS, iOS e tablet: preparado, não validado.</li>
+</ul>
+<p><strong>Notas de rodapé:</strong></p>
+<ul>
+<li>¹ conferido por testes automatizados, sem validação clínica;</li>
+<li>² o mapa depende de imagens on-line.</li>
+</ul>
+<h2 id="conceitos-12">Conceitos</h2>
+<ul>
+<li><strong>Requisito funcional:</strong> o <em>que</em> o sistema
+faz.</li>
+<li><strong>Requisito não funcional:</strong> <em>como</em> o sistema é
+(local, aberto, responsivo, robusto).</li>
+<li><strong>Os 27 testes</strong> (<code>go test ./...</code>):
+<ul>
+<li>7 de métricas (NP, IF/TSS, zonas de potência, zonas de FC, TRIMP,
+desacoplamento, PMC);</li>
+<li>2 de física (equação de Martin);</li>
+<li>3 do reamostrador;</li>
+<li>2 de FIT (round-trip e tempo derivado dos registros);</li>
+<li>12 de recuperação de sessão;</li>
+<li>1 de ZWO.</li>
+</ul></li>
+</ul>
+<h2 id="o-detalhe-de-cada-requisito-para-a-fala-se-perguntarem">O
+detalhe de cada requisito (para a fala, se perguntarem)</h2>
+<ul>
+<li><strong>RF01 a RF05:</strong> verificados no uso.</li>
+<li><strong>RF06:</strong> verificado em amostra (Strava e Intervals
+aceitaram os FIT).</li>
+<li><strong>RF07:</strong> fluxo completo no Windows e Linux; sessão ao
+vivo no Android.</li>
+<li><strong>RF08:</strong> demonstrado com o caso Geraardsbergen a
+Leberg (Bélgica), o cenário de reconhecimento do Cap. 4.</li>
+</ul>
+<h2 id="roteiro-da-fala-50-s-1">Roteiro da fala (50 s)</h2>
+<p>“Todos os requisitos foram atendidos. As métricas são conferidas por
+27 testes automatizados, mas sem validação clínica, porque não medimos
+lactato nem VO₂máx. Tudo roda localmente; a exceção são as imagens do
+mapa. E ‘multiplataforma’ aqui significa o que foi exercitado de fato:
+Windows e Linux com o fluxo completo e o Android com a sessão ao vivo.
+macOS e iOS estão preparados, mas não validados.”</p>
+<h2 id="perguntas-prováveis-10">Perguntas prováveis</h2>
+<ul>
+<li><strong>(Comp.) Testes garantem que as métricas estão
+corretas?</strong> Garantem que o código implementa a fórmula
+documentada. Isso não equivale a validação clínica nem a comparação com
+equipamento de laboratório.</li>
+<li><strong>(Comp.) Por que só 27 testes?</strong> O foco foram as
+partes críticas (métricas, física, dados e recuperação). Cobrir a
+interface e o BLE com hardware fica para trabalho futuro.</li>
+</ul>
+<h2 id="no-tcc-13">No TCC</h2>
+<p>Cap. 4 (“Problema, requisitos e escopo”) e Cap. 7 (“Avaliação
+funcional”, “Avaliação de plataformas”).</p>
+<h1 id="slide-15-conclusão">Slide 15 · Conclusão</h1>
+<p><img src="img/slide-15.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-14">O que aparece na tela</h2>
+<ul>
+<li><strong>Título:</strong> “O fluxo funciona, e cada número pode ser
+conferido”.</li>
+<li><strong>Pergunta:</strong> “Dá para reunir percurso, simulação,
+análise do treino e histórico em um único software aberto?”</li>
+<li><strong>Resposta:</strong> “<strong>Sim, no desktop</strong>, nas
+condições testadas. No Android, a sessão ao vivo.”</li>
+<li><strong>Quatro provas:</strong>
+<ul>
+<li><strong>1 fluxo:</strong> GPX → rolo → métricas → histórico, sem
+trocar de aplicativo;</li>
+<li><strong>7 métricas:</strong> carga externa (NP, IF, TSS, PMC) e
+resposta cardíaca (TRIMP, HRR, Pw:FC), com fórmula aberta e 27
+testes;</li>
+<li><strong>10 meses:</strong> 114 sessões e 2.182 km de uso real no
+piloto;</li>
+<li><strong>GPLv3 · INPI:</strong> código aberto e registrado, com o
+processo documentado no Git.</li>
+</ul></li>
+<li><strong>O que este trabalho não mostra:</strong>
+<ul>
+<li>eficácia de treino (o piloto teve um participante);</li>
+<li>validação clínica das métricas (sem lactato nem VO₂máx);</li>
+<li>Android completo (hoje, só a sessão ao vivo, sem FIT e
+histórico).</li>
+</ul></li>
+<li><strong>Próximos passos:</strong>
+<ol type="1">
+<li>estudo de usabilidade com ciclistas;</li>
+<li>reconhecimento automático e <em>pacing</em>;</li>
+<li>mapas offline e mais rolos testados.</li>
+</ol></li>
+<li><strong>Frase final:</strong> “Mais que o código: mostrar o que um
+software esportivo mede, <strong>como mede</strong> e <strong>para que
+serve</strong>.”</li>
+</ul>
+<h2 id="conceitos-13">Conceitos</h2>
+<ul>
+<li><strong>Pacing:</strong> estratégia de distribuição do esforço ao
+longo de uma prova (por exemplo, quanto empurrar em cada subida).</li>
+<li><strong>A ressalva “nas condições testadas”:</strong> a confirmação
+é de engenharia (o fluxo funciona), não de eficácia de treino nem de
+usabilidade por terceiros.</li>
+</ul>
+<h2 id="roteiro-da-fala-115-1">Roteiro da fala (1:15)</h2>
+<p>“Voltando à pergunta do início: dá para reunir percurso, simulação,
+análise do treino e histórico num só software aberto? No desktop, sim,
+nas condições testadas; no Android, a sessão ao vivo.</p>
+<p>As provas são quatro: um fluxo sem trocar de aplicativo; sete
+métricas com fórmula aberta e 27 testes; dez meses de uso real; e o
+código aberto e registrado.</p>
+<p>E o que este trabalho não mostra: eficácia de treino, porque foi um
+participante; validação clínica; e o Android completo. Os próximos
+passos são um estudo com ciclistas, o reconhecimento automático com
+<em>pacing</em> e os mapas offline.</p>
+<p>Para fechar: mais que o código, a contribuição é mostrar o que um
+software esportivo mede, como mede e para que serve.”</p>
+<h2 id="no-tcc-14">No TCC</h2>
+<p>Cap. 8 inteiro: síntese, contribuições, limitações, trabalhos futuros
+e considerações finais.</p>
+<h1 id="slides-16-e-17-referências">Slides 16 e 17 · Referências</h1>
+<p><img src="img/slide-16.jpg" /></p>
+<p><img src="img/slide-17.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-15">O que aparece na tela</h2>
+<ul>
+<li><strong>Slide 16, obras e especificações (15):</strong> ANT+ FE-C,
+Banister (1991), Bluetooth Core 5.4, Bluetooth FTMS, Coggan &amp; Allen
+(2010), GPLv3, Garmin FIT SDK, Hevner <em>et al.</em> (2004), o
+certificado do INPI, Kleppmann <em>et al.</em> (2019, local-first),
+Martin <em>et al.</em> (1998, modelo de potência), Martin (2017, Clean
+Architecture), Peffers <em>et al.</em> (2007), GPX 1.1 e UCI.</li>
+<li><strong>Slide 17, software, serviços e repositórios (21):</strong>
+em destaque, os <strong>seus dois repositórios</strong>, <em>Argus
+Cyclist</em> (GPLv3) e <em>Argus Recon</em>. Depois, as tecnologias e
+plataformas citadas: ECharts, Biketerra, Capacitor e o plugin BLE,
+GoldenCheetah, GORM, muktihari/fit, Incyclist, Intervals.icu, MapLibre,
+Ollama, Rouvy, Simple Icons, SQLite, Strava, TinyGo, TrainingPeaks
+Virtual, Wails e Zwift.</li>
+</ul>
+<h2 id="conceitos-14">Conceitos</h2>
+<ul>
+<li><strong>Local-first (Kleppmann):</strong> princípio de que o dado
+mora no dispositivo do usuário, e a nuvem é opcional.</li>
+<li><strong>Martin <em>et al.</em> (1998):</strong> o modelo físico que
+relaciona potência, peso, inclinação, arrasto e velocidade. O Argus usa
+esse modelo para calcular a velocidade virtual. As constantes são ρ =
+1,225, CdA = 0,32, Crr = 0,005 e η = 0,96, e a equação é resolvida por
+bisseção.</li>
+</ul>
+<h2 id="roteiro">Roteiro</h2>
+<p>Não se fala nada; o slide passa em 5 s. Serve para a banca consultar
+durante a arguição.</p>
+<h1 id="slide-18-obrigado">Slide 18 · Obrigado</h1>
+<p><img src="img/slide-18.jpg" /></p>
+<h2 id="o-que-aparece-na-tela-16">O que aparece na tela</h2>
+<p>O símbolo do Argus, “Obrigado.”, os nomes (Paulo Sérgio Silva de
+Medeiros, orientando; Prof. Dr. Isaac de Lima Oliveira Filho,
+orientador) e o logo da UERN.</p>
+<h2 id="roteiro-15-s">Roteiro (15 s)</h2>
+<p>“Agradeço à banca, ao meu orientador e a todos. Fico à disposição
+para as perguntas. Depois da arguição, posso mostrar o equipamento
+funcionando.”</p>
+<p>Deixe este slide na tela durante toda a arguição.</p>
+<h1 id="glossário">Glossário</h1>
+<p><strong>ATL (Acute Training Load):</strong> “fadiga”; média
+exponencial de 7 dias do TSS.</p>
+<p><strong>Bisseção:</strong> método numérico que acha a raiz de uma
+equação dividindo um intervalo ao meio repetidamente. O Argus usa para
+achar a velocidade que equilibra a potência na equação de Martin.</p>
+<p><strong>BLE (Bluetooth Low Energy):</strong> Bluetooth de baixo
+consumo, usado por sensores esportivos.</p>
+<p><strong>Cadência:</strong> pedaladas por minuto (rpm).</p>
+<p><strong>Capacitor:</strong> ferramenta que transforma uma interface
+web em app Android (e iOS).</p>
+<p><strong>Carga externa:</strong> o trabalho mecânico, medido pela
+potência (NP, IF, TSS, PMC).</p>
+<p><strong>Carga interna:</strong> a resposta do corpo, medida pela FC
+(TRIMP, HRR, Pw:FC).</p>
+<p><strong>CCCD:</strong> descritor BLE onde se escreve para ativar as
+notificações.</p>
+<p><strong>Central / periférico:</strong> no BLE, quem conecta e pede
+(central, o Argus) e quem anuncia e serve (periférico, o rolo).</p>
+<p><strong>Clean Architecture:</strong> organização em camadas em que as
+dependências apontam para dentro, para o domínio.</p>
+<p><strong>CTL (Chronic Training Load):</strong> “condicionamento”;
+média exponencial de 42 dias do TSS.</p>
+<p><strong>Desacoplamento (Pw:FC):</strong> queda da razão potência/FC
+entre a 1ª e a 2ª metade do treino, depois de descartados os 10 min
+iniciais.</p>
+<p><strong>DEM:</strong> modelo digital de elevação (altitude do
+terreno).</p>
+<p><strong>DSR (Design Science Research):</strong> método de pesquisa
+baseado em construir e avaliar um artefato.</p>
+<p><strong>ERG (modo):</strong> o rolo mantém uma potência-alvo
+fixa.</p>
+<p><strong>FC:</strong> frequência cardíaca, em batimentos por minuto
+(bpm).</p>
+<p><strong>FE-C:</strong> perfil ANT+ de controle de equipamentos de
+fitness, usado pelo Argus sobre Bluetooth. As mensagens são páginas de 8
+bytes.</p>
+<p><strong>FIT:</strong> formato binário de atividade da Garmin; o
+padrão do mercado.</p>
+<p><strong>FTMS:</strong> serviço Bluetooth padrão para máquinas de
+fitness. Os comandos são curtos, enviados ao ponto de controle
+<code>0x2AD9</code>.</p>
+<p><strong>FTP (Functional Threshold Power):</strong> potência
+sustentável por cerca de uma hora.</p>
+<p><strong>GATT:</strong> a estrutura de serviços e características do
+BLE.</p>
+<p><strong>GORM:</strong> biblioteca Go que liga o código ao banco
+SQLite.</p>
+<p><strong>GPX:</strong> formato de percurso (pontos com latitude,
+longitude e altitude).</p>
+<p><strong>HRR (Heart Rate Recovery):</strong> queda da FC em 1 e 2
+minutos após o esforço.</p>
+<p><strong>HUD:</strong> os números sobrepostos ao mapa durante o
+treino.</p>
+<p><strong>IF (Intensity Factor):</strong> NP ÷ FTP.</p>
+<p><strong>MapLibre GL:</strong> biblioteca aberta de mapas 3D.</p>
+<p><strong>NP (Normalized Power):</strong> raiz quarta da média da 4ª
+potência das médias móveis de 30 s.</p>
+<p><strong>Ollama:</strong> plataforma que roda modelos de IA
+localmente.</p>
+<p><strong>PMC (Performance Management Chart):</strong> o gráfico de
+CTL, ATL e TSB.</p>
+<p><strong>Portas e adaptadores:</strong> interfaces declaradas no
+domínio (portas) e implementações concretas fora dele (adaptadores).</p>
+<p><strong>Reamostrador:</strong> componente que transforma os ~3 avisos
+por segundo em 1 valor por segundo (a média), para as métricas.</p>
+<p><strong>SIM (modo):</strong> o rolo segue a inclinação do
+percurso.</p>
+<p><strong>SQLite:</strong> banco de dados em arquivo local, sem
+servidor.</p>
+<p><strong>TRIMP:</strong> impulso de treino de Banister, baseado em FC
+e duração.</p>
+<p><strong>TSB (Training Stress Balance):</strong> “forma”; CTL −
+ATL.</p>
+<p><strong>TSS (Training Stress Score):</strong> carga da sessão; 1 hora
+no FTP vale 100.</p>
+<p><strong>VT1/VT2:</strong> limiares ventilatórios; no Argus são
+anotados manualmente.</p>
+<p><strong>Wails:</strong> framework que cria apps desktop com interface
+web e núcleo em Go.</p>
+<p><strong>ZWO:</strong> formato de treino estruturado da Zwift.</p>
+<h1 id="números-para-decorar">Números para decorar</h1>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Número</th>
+<th>O que é</th>
+<th>Fonte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20/01/2026</td>
+<td>registro no INPI (BR512026003786-7)</td>
+<td>certificado</td>
+</tr>
+<tr>
+<td>305</td>
+<td>commits no <code>main</code> até 31/10 (o TCC diz 301, levantados em
+18/10)</td>
+<td><code>git log</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>ciclos de desenvolvimento</td>
+<td>Cap. 4</td>
+</tr>
+<tr>
+<td>140 / 114</td>
+<td>atividades no histórico / com 10 min ou mais</td>
+<td>banco local</td>
+</tr>
+<tr>
+<td>2.182 km · 92 h</td>
+<td>distância e tempo das 114 sessões</td>
+<td>banco local</td>
+</tr>
+<tr>
+<td>282</td>
+<td>FIT: 98 de treino + 184 de eventos (o TCC diz 274)</td>
+<td><code>workouts/</code></td>
+</tr>
+<tr>
+<td>27</td>
+<td>testes: 7 métricas, 2 física, 3 reamostrador, 2 FIT, 12 recuperação,
+1 ZWO</td>
+<td><code>go test</code></td>
+</tr>
+<tr>
+<td>≈ 3/s</td>
+<td>avisos dos sensores (Girona: 2,96 por segundo)</td>
+<td><code>recalculo-metricas.csv</code></td>
+</tr>
+<tr>
+<td>61 min</td>
+<td>duração da sessão de Girona (27/04/2026, ERG)</td>
+<td>FIT</td>
+</tr>
+<tr>
+<td>96 / 106 W</td>
+<td>potência média / NP na Girona</td>
+<td>FIT reprocessado</td>
+</tr>
+<tr>
+<td>153 W</td>
+<td>FTP na época (hoje 181 W)</td>
+<td>perfil</td>
+</tr>
+<tr>
+<td>0,69 · 49</td>
+<td>IF · TSS na Girona</td>
+<td>fórmula</td>
+</tr>
+<tr>
+<td>139 · 169</td>
+<td>FC média · máxima</td>
+<td>FIT</td>
+</tr>
+<tr>
+<td>8,3%</td>
+<td>desacoplamento (antes do reprocessamento: 8,9%)</td>
+<td>recálculo</td>
+</tr>
+<tr>
+<td>26 · 28</td>
+<td>HRR de 1 e 2 min (bpm)</td>
+<td>FIT</td>
+</tr>
+<tr>
+<td>42 / 7</td>
+<td>constantes da CTL e da ATL (dias)</td>
+<td><code>metrics.go</code></td>
+</tr>
+<tr>
+<td>30 s</td>
+<td>janela do NP</td>
+<td><code>metrics.go</code></td>
+</tr>
+<tr>
+<td>10 min</td>
+<td>descarte inicial do desacoplamento</td>
+<td><code>metrics.go</code></td>
+</tr>
+<tr>
+<td>0,75 / 0,95 / 0,80</td>
+<td>fatores do FTP (rampa / 20 min / 5 min)</td>
+<td>Cap. 3</td>
+</tr>
+<tr>
+<td>478 / 3,2 mil / 3,5 mil / 16,8 mil</td>
+<td>linhas: domínio / casos de uso / adaptadores / interface</td>
+<td>contagem de 01/11</td>
+</tr>
+<tr>
+<td>US$ 19,99 · € 19,99</td>
+<td>mensalidade Zwift · Rouvy (out/2026)</td>
+<td>páginas oficiais</td>
+</tr>
+</tbody>
+</table>
+<h1 id="pontos-delicados-e-respostas-honestas">Pontos delicados e
+respostas honestas</h1>
+<p><strong>1. “Só você testou? n = 1?”</strong> Sim. É um estudo piloto
+com o próprio autor, sem grupo de controle nem instrumento de
+usabilidade. A conclusão é de engenharia (o fluxo funciona), não de
+eficácia. O estudo com ciclistas é o primeiro dos próximos passos.</p>
+<p><strong>2. “As métricas são validadas?”</strong> Não clinicamente. Os
+testes conferem que o código implementa a fórmula documentada. Não
+medimos lactato nem VO₂, e as métricas são as convenções do mercado
+(Coggan, Banister).</p>
+<p><strong>3. “O FTMS funciona?”</strong> Está implementado no desktop,
+mas o rolo dos testes fala FE-C. <strong>Não foi validado com um rolo só
+FTMS.</strong> Há um defeito conhecido (o opcode <code>0x00</code>
+também vai para <code>0x2A66</code>), descrito no Cap. 6. No Android, só
+FE-C.</p>
+<p><strong>4. “O Android é equivalente?”</strong> Não. É a sessão ao
+vivo (GPX, ZWO, BLE/FE-C, HUD). Não exporta FIT, não tem histórico e a
+física foi reescrita em JS.</p>
+<p><strong>5. “O app mostra NP 138 na Girona, e o slide diz
+106.”</strong> A avaliação encontrou um defeito: os sensores mandam ~3
+avisos por segundo, e as métricas tratavam cada aviso como um segundo.
+Foi corrigido com o reamostrador a 1 Hz. O banco guarda os valores
+antigos por decisão do autor; os números do deck foram reprocessados a
+partir dos FIT. <strong>Se for fazer a demo, saiba disso
+antes.</strong></p>
+<p><strong>6. “Na tela do app, VT2 aparece abaixo do VT1, e a curva de
+potência mostra 373 W em 1 min.”</strong> Os VT são anotação manual do
+usuário, e aquela marcação está errada. A curva de potência da tela de
+análise (no <em>frontend</em>) ainda conta amostras como segundos e
+mostra o valor antigo; o valor corrigido de 1 min é cerca de 148 W.
+<strong>Evite abrir essa tela na demo</strong>, ou explique.</p>
+<p><strong>7. “Por que o TCC diz ‘análise fisiológica’ e o slide diz
+‘análise do treino’?”</strong> Por precisão: NP, IF, TSS e PMC são carga
+externa (potência); TRIMP, HRR e Pw:FC são carga interna (FC). No texto
+o conjunto aparece como “análise fisiológica”; no deck, a divisão mais
+exata.</p>
+<p><strong>8. “A Clean Architecture é respeitada?”</strong> Em grande
+parte, com duas concessões declaradas: o <code>app.go</code> concentra a
+orquestração (3 mil linhas), e as entidades do domínio carregam tags do
+GORM sem importar o pacote.</p>
+<p><strong>9. “É 100% offline?”</strong> O dado e o processamento são
+locais. As imagens do mapa vêm da internet, e mapas offline são trabalho
+futuro.</p>
+<p><strong>10. “Os tokens do Strava são seguros?”</strong> Ficam em
+texto simples no SQLite, sem criptografia nem <em>keyring</em>. Está
+declarado no Cap. 5 como limitação.</p>
+<p><strong>11. “Latência e memória foram medidas?”</strong> Não. Houve
+estimativas informais, e o TCC diz “não medido”. Não cite números.</p>
+<h1 id="banco-de-perguntas-extras">Banco de perguntas extras</h1>
+<h2 id="computação">Computação</h2>
+<ul>
+<li><strong>Por que Go?</strong> É compilado, leve, tem boa concorrência
+(as <em>goroutines</em> para o laço e o BLE) e havia biblioteca BLE
+(TinyGo).</li>
+<li><strong>Por que não WebAssembly para unificar o núcleo?</strong>
+Exigiria outra cadeia de compilação e uma ponte com o BLE nativo, fora
+do escopo. É o caminho mais coerente para o futuro.</li>
+<li><strong>Por que SQLite por perfil?</strong> Isola o dado de cada
+ciclista e não precisa de servidor. O custo é não ter
+sincronização.</li>
+<li><strong>Por que não um servidor?</strong> Traria contas, LGPD, custo
+e disponibilidade. Para um TCC com foco local, o monólito modular basta
+e é mais fácil de auditar.</li>
+<li><strong>O registro do INPI diz “HTML; JavaScript” e o núcleo é
+Go?</strong> O registro foi da linha de base de janeiro, com a
+declaração feita naquele momento. O núcleo em Go está documentado no
+TCC. Se perguntarem, explique que é a descrição do formulário da
+época.</li>
+<li><strong>Como o FIT foi validado?</strong> Strava e Intervals
+aceitaram os arquivos. Também foi encontrado e corrigido um defeito em
+que campos não preenchidos eram gravados como zero válido (altitude −500
+m). Há testes de <em>round-trip</em>.</li>
+<li><strong>O que acontece se o app fechar no meio do treino?</strong> O
+snapshot de recuperação guarda os metadados e as amostras. Ao reabrir, o
+app oferece salvar (RNF04, 12 testes).</li>
+<li><strong>Por que o diagrama do slide 8 é do Archify?</strong> Porque
+é gerado do código, então mostra a arquitetura real e não a ideal.</li>
+</ul>
+<h2 id="educação-física">Educação Física</h2>
+<ul>
+<li><strong>O que é FTP e por que os fatores 0,75, 0,95 e 0,80?</strong>
+É a potência sustentável por cerca de uma hora. Os fatores convertem a
+melhor potência de cada teste (rampa, 20 min, 5 min) numa estimativa do
+FTP, seguindo as convenções da literatura de treino com potência (Coggan
+&amp; Allen).</li>
+<li><strong>VT1/VT2 são detectados?</strong> Não. São marcados pelo
+usuário.</li>
+<li><strong>HRR usa o pico?</strong> Não. Usa a FC no fim do esforço, o
+que pode subestimar a recuperação; está declarado.</li>
+<li><strong>Zonas por %FCmáx são adequadas?</strong> São uma aproximação
+simples. Karvonen ou LTHR seriam melhores, e ficam como melhoria
+futura.</li>
+<li><strong>TRIMP masculino em uma mulher?</strong> Os coeficientes são
+genéricos (versão masculina), sem seleção de sexo. É uma limitação
+declarada.</li>
+<li><strong>A velocidade virtual é real?</strong> Não. É estimada pelo
+modelo de Martin a partir da potência medida, do peso e da inclinação. A
+potência é medida; a velocidade, calculada.</li>
+</ul>
+<h1 id="checklist-do-dia">Checklist do dia</h1>
+<p><strong>Na véspera</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Ensaiar duas vezes inteiro com a
+visão do apresentador (<code>S</code>) e conferir o tempo (meta: 17 a 18
+min).</label></li>
+<li><label><input type="checkbox" />Gerar o PDF de contingência
+(<code>npm run pdf</code>) e copiar para o pendrive junto com a pasta
+<code>TCC/apresentacao</code> (sem
+<code>node_modules</code>).</label></li>
+<li><label><input type="checkbox" />Carregar o notebook e o celular.
+Conferir o pareamento do rolo e da cinta para a demo após a
+arguição.</label></li>
+</ul>
+<p><strong>Na sala</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Abrir <code>index.html</code> no
+Chrome/Chromium com o Wi-Fi desligado. O deck é 100% offline (o mapa da
+galeria são imagens).</label></li>
+<li><label><input type="checkbox" />Testar no projetor. Se as cores
+lavarem, usar o tema escuro (<code>T</code>).</label></li>
+<li><label><input type="checkbox" />Apertar <code>F</code> para a tela
+cheia e <code>S</code> para abrir a visão do apresentador no
+notebook.</label></li>
+<li><label><input type="checkbox" />Deixar o slide 18 (Obrigado) na tela
+durante a arguição.</label></li>
+<li><label><input type="checkbox" />Na demo, evitar a tela de análise da
+Girona (pontos delicados 5 e 6), ou explicá-la.</label></li>
+</ul>
+</body>
+</html>

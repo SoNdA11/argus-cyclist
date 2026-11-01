@@ -28,6 +28,10 @@ atrasado em relação a esse plano: é o apoio para os ensaios cronometrados.
 Tema: claro por padrão. Se o projetor da sala lavar as cores, use `T` (ou abra
 `index.html?tema=escuro`).
 
+## Guia de estudo
+
+`guia/GUIA-DE-ESTUDO.md` (e o PDF ao lado) explica cada slide: o que aparece, os conceitos, a origem dos números, o roteiro da fala e as perguntas prováveis da banca. `npm run guia` regenera as miniaturas dos slides e o PDF.
+
 ## Contingência
 
 1. **PDF:** `npm install && npm run pdf` gera `argus-cyclist-defesa.pdf`, com
