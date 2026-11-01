@@ -36,18 +36,18 @@
   <div class="kicker">Roteiro da apresentação</div>
   <h2>Sumário</h2>
   <div class="sumario">
-    <div class="sum-item" style="--c:var(--teal);--i:0"><div class="sum-n">01</div><div><h4>Contexto e problema</h4><p>ciclismo virtual, fluxo fragmentado e estado da arte</p></div><span class="sum-sl">slides 3–5</span></div>
-    <div class="sum-item" style="--c:var(--blue);--i:1"><div class="sum-n">02</div><div><h4>Proposta</h4><p>um fluxo para três usos</p></div><span class="sum-sl">slide 6</span></div>
-    <div class="sum-item" style="--c:var(--anotacao);--i:2"><div class="sum-n">03</div><div><h4>Metodologia</h4><p>Design Science Research, em ciclos</p></div><span class="sum-sl">slide 7</span></div>
-    <div class="sum-item" style="--c:var(--warn);--i:3"><div class="sum-n">04</div><div><h4>Arquitetura e implementação</h4><p>camadas, Bluetooth e tempo real</p></div><span class="sum-sl">slides 8–11</span></div>
-    <div class="sum-item" style="--c:var(--alt);--i:4"><div class="sum-n">05</div><div><h4>Resultados</h4><p>análise do treino, uso real, funcionalidades e requisitos</p></div><span class="sum-sl">slides 12–15</span></div>
-    <div class="sum-item" style="--c:var(--ok);--i:5"><div class="sum-n">06</div><div><h4>Conclusão</h4><p>contribuições, limites e próximos passos</p></div><span class="sum-sl">slide 16</span></div>
+    <div class="sum-item" style="--c:var(--sec1);--i:0"><div class="sum-n">01</div><div><h4>Contexto e problema</h4><p>ciclismo virtual, fluxo fragmentado e estado da arte</p></div><span class="sum-sl">slides 3–5</span></div>
+    <div class="sum-item" style="--c:var(--sec2);--i:1"><div class="sum-n">02</div><div><h4>Proposta</h4><p>um fluxo para três usos</p></div><span class="sum-sl">slide 6</span></div>
+    <div class="sum-item" style="--c:var(--sec3);--i:2"><div class="sum-n">03</div><div><h4>Metodologia</h4><p>Design Science Research, em ciclos</p></div><span class="sum-sl">slide 7</span></div>
+    <div class="sum-item" style="--c:var(--sec4);--i:3"><div class="sum-n">04</div><div><h4>Arquitetura e implementação</h4><p>camadas, Bluetooth e tempo real</p></div><span class="sum-sl">slides 8–11</span></div>
+    <div class="sum-item" style="--c:var(--sec5);--i:4"><div class="sum-n">05</div><div><h4>Resultados</h4><p>análise do treino, uso real, funcionalidades e requisitos</p></div><span class="sum-sl">slides 12–15</span></div>
+    <div class="sum-item" style="--c:var(--sec6);--i:5"><div class="sum-n">06</div><div><h4>Conclusão</h4><p>contribuições, limites e próximos passos</p></div><span class="sum-sl">slide 16</span></div>
   </div>
   <aside class="notes">Vou falar do contexto e do problema, da proposta, do método, de como o Argus foi construído, dos resultados e concluir. ~20 s.</aside>
 </section>
 
 <!-- ============================================================ CICLISMO VIRTUAL -->
-<section data-section="Contexto" data-timing="80">
+<section data-sec="1" data-section="Contexto" data-timing="80">
   <div class="kicker">Contexto</div>
   <h2>O que é ciclismo virtual</h2>
   <div class="grid" style="grid-template-columns: 1.15fr 1fr; gap:50px; margin-top:16px; align-items:center">
@@ -91,7 +91,7 @@
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
-<section data-section="Problema" data-timing="60">
+<section data-sec="1" data-section="Problema" data-timing="60">
   <div class="kicker">Problema</div>
   <h2>O fluxo do ciclista é fragmentado</h2>
   <svg viewBox="0 0 1700 300" width="100%" style="margin-top:30px" font-family="Inter">
@@ -167,7 +167,7 @@
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
-<section data-section="Estado da arte" data-timing="70">
+<section data-sec="1" data-section="Estado da arte" data-timing="70">
   <div class="kicker">Estado da arte</div>
   <h2>As peças existem, mas não juntas</h2>
   <table class="t matrix" style="margin-top:28px">
@@ -188,7 +188,7 @@
 </section>
 
 <!-- ============================================================ 6 PROPOSTA -->
-<section data-section="Proposta" data-timing="50">
+<section data-sec="2" data-section="Proposta" data-timing="50">
   <div class="kicker">Proposta</div>
   <h2>Um fluxo para três usos</h2>
   <div class="grid g3" style="margin-top:30px">
@@ -235,7 +235,7 @@
 </section>
 
 <!-- ============================================================ METODOLOGIA -->
-<section data-section="Metodologia" data-timing="60">
+<section data-sec="3" data-section="Metodologia" data-timing="60">
   <div class="kicker">Metodologia · Design Science Research (Peffers et al., 2007)</div>
   <h2>Construir, usar e corrigir, em ciclos</h2>
   <svg viewBox="0 0 1700 300" width="100%" style="margin-top:14px" font-family="Inter" text-anchor="middle">
@@ -282,7 +282,7 @@
 </section>
 
 <!-- ============================================================ STACK E CAMADAS -->
-<section data-section="Arquitetura" data-timing="70">
+<section data-sec="4" data-section="Arquitetura" data-timing="70">
   <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
   <h2>Como o Argus foi construído</h2>
   <div class="grid" style="grid-template-columns: 0.78fr 1.22fr; gap:50px; margin-top:10px; align-items:center">
@@ -343,7 +343,7 @@
 </section>
 
 <!-- ============================================================ ARQUITETURA -->
-<section data-section="Arquitetura" data-timing="100" class="arch">
+<section data-sec="4" data-section="Arquitetura" data-timing="100" class="arch">
   <div class="kicker">Arquitetura · diagrama gerado com Archify a partir do código</div>
   <h2>Núcleo em Go, interface web compartilhada</h2>
   <div class="archify" style="margin-top:4px">
@@ -354,7 +354,7 @@
 </section>
 
 <!-- ============================================================ BLUETOOTH -->
-<section data-section="Comunicação" data-timing="90">
+<section data-sec="4" data-section="Comunicação" data-timing="90">
   <div class="kicker">Comunicação com o equipamento · Bluetooth SIG (2017; 2023), ANT+ (2024)</div>
   <h2>Como o Argus conversa com o rolo</h2>
   <svg viewBox="0 0 1700 450" width="100%" style="margin-top:8px" font-family="Inter" text-anchor="middle">
@@ -424,7 +424,7 @@
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-section="Arquitetura" data-timing="75">
+<section data-sec="4" data-section="Arquitetura" data-timing="75">
   <div class="kicker">Tempo real</div>
   <h2>Do sensor até o ciclista</h2>
   <svg viewBox="0 0 1700 650" width="100%" style="margin-top:10px" font-family="Inter">
@@ -524,7 +524,7 @@
 </section>
 
 <!-- ============================================================ 11 ANÁLISE DO TREINO -->
-<section data-section="Análise do treino" data-timing="110">
+<section data-sec="5" data-section="Análise do treino" data-timing="110">
   <div class="kicker">Análise do treino · sessão de Girona</div>
   <h2>Cada número tem fórmula e limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
@@ -547,7 +547,7 @@
 </section>
 
 <!-- ============================================================ 12 DADOS REAIS -->
-<section data-section="Resultados" data-timing="60">
+<section data-sec="5" data-section="Resultados" data-timing="60">
   <div class="kicker">Avaliação piloto · jan–out/2026</div>
   <h2>Dez meses de uso real</h2>
   <div class="grid g4" style="margin-top:24px">
@@ -562,7 +562,7 @@
 </section>
 
 <!-- ============================================================ FUNCIONALIDADES -->
-<section data-section="Funcionalidades" data-timing="60">
+<section data-sec="5" data-section="Funcionalidades" data-timing="60">
   <div class="kicker">Funcionalidades · clique em uma imagem para ampliar</div>
   <h2>Do treino à análise</h2>
   <div class="galeria" style="margin-top:60px">
@@ -581,7 +581,7 @@
 </section>
 
 <!-- ============================================================ REQUISITOS -->
-<section data-section="Resultados" data-timing="50">
+<section data-sec="5" data-section="Resultados" data-timing="50">
   <div class="kicker">Resultados</div>
   <h2>Requisitos atendidos</h2>
   <div class="grid g2" style="gap:70px;margin-top:22px">
@@ -625,7 +625,7 @@
 </section>
 
 <!-- ============================================================ CONCLUSÃO -->
-<section data-section="Conclusão" data-timing="75" class="conclusao">
+<section data-sec="6" data-section="Conclusão" data-timing="75" class="conclusao">
   <div class="kicker">Conclusão</div>
   <h2>O fluxo funciona, e cada número pode ser conferido</h2>
   <div class="qa">
