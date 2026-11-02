@@ -529,3 +529,38 @@ section[data-sec="6"] .kicker { color: var(--sec6); }
 .present .rota .parada { animation: entra 0.5s ease forwards; animation-delay: calc(0.5s + var(--i) * 0.25s); }
 html.print-pdf .rota .parada { opacity: 1 !important; animation: none !important; }
 @media print { .rota .parada { opacity: 1 !important; animation: none !important; } .rota .ciclista { display: none; } }
+
+/* ---------- diagrama de arquitetura (slide 9): refeito do Archify, compacto e animado ---------- */
+.ar-svg { width: 100%; max-height: 820px; display: block; margin: 0 auto; }
+.ar-no rect { stroke-width: 2.5; }
+.ar-tit { font-size: 28px; font-weight: 700; fill: var(--text); }
+.ar-det { font-size: 18px; fill: var(--muted); font-family: var(--mono); }
+.ar-ic { stroke: currentColor; }
+.ar-frontend { color: var(--cad); } .ar-frontend rect { fill: rgba(26, 139, 209, 0.09); stroke: var(--cad); }
+.ar-backend  { color: var(--teal); } .ar-backend rect { fill: var(--tint-teal); stroke: var(--teal); }
+.ar-database { color: var(--anotacao); } .ar-database rect { fill: rgba(139, 92, 246, 0.10); stroke: var(--anotacao); }
+.ar-cloud    { color: var(--power); } .ar-cloud rect { fill: var(--tint-power); stroke: var(--power); }
+.ar-external { color: var(--alt); } .ar-external rect { fill: var(--tint-alt); stroke: var(--alt); }
+.ar-base { fill: none; stroke: var(--alt); stroke-width: 2.5; opacity: 0.55; }
+.ar-fluxo { fill: none; stroke: var(--alt); stroke-width: 2.5; stroke-dasharray: 8 14; }
+.ar-ponta { fill: var(--alt); }
+.ar-pulso { fill: var(--teal); opacity: 0; }
+.ar-pill { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+.ar-lbl { font-family: var(--mono); font-size: 16px; fill: var(--muted); }
+.ar-leg-t { font-size: 22px; font-weight: 700; fill: var(--text); }
+.ar-leg-i { font-size: 19px; fill: var(--muted); }
+.ar-leg rect { stroke-width: 2; }
+/* entrada: nós em sequência, depois as ligações passam a fluir (como o modo "Fluxo de sinal" do Archify) */
+.ar-no, .ar-edge, .ar-leg { opacity: 0; }
+.present .ar-no { animation: ar-no 0.5s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--i) * 0.07s); }
+.present .ar-edge { animation: ar-fade 0.5s ease forwards; animation-delay: calc(0.6s + var(--k) * 0.1s); }
+.present .ar-leg { animation: ar-fade 0.5s ease forwards 1.2s; }
+.present .ar-fluxo { animation: ar-fluxo 0.9s linear infinite; }
+.present .ar-pulso { opacity: 0.9; }
+.ar-no { transform-box: fill-box; transform-origin: center; }
+@keyframes ar-no { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes ar-fade { to { opacity: 1; } }
+@keyframes ar-fluxo { to { stroke-dashoffset: -22; } }
+html.print-pdf .ar-no, html.print-pdf .ar-edge, html.print-pdf .ar-leg { opacity: 1 !important; animation: none !important; }
+html.print-pdf .ar-pulso { display: none; }
+@media print { .ar-no, .ar-edge, .ar-leg { opacity: 1 !important; animation: none !important; } .ar-pulso { display: none; } }
