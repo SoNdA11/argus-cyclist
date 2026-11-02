@@ -445,14 +445,14 @@ Cap. 5: "*Stack* tecnológica", "Clean Architecture e Ports & Adapters" e "Decis
 
 ## O que aparece na tela
 
-O diagrama de arquitetura **gerado pelo Archify a partir do código**, com 14 componentes. A legenda de cores é: Frontend (azul-claro), Backend (verde), Banco de dados (roxo), Nuvem (laranja) e Externo (cinza).
+O diagrama de arquitetura com os 14 componentes e as 15 ligações do **modelo que o Archify gerou a partir do código**. O desenho foi redesenhado para o slide: uma grade de 4 colunas, mais compacta e com letras maiores. As ligações ficam animadas como no modo "Fluxo de sinal" do Archify: o tracejado corre no sentido da seta e um ponto verde percorre cada ligação. A legenda de cores, no canto inferior esquerdo, é: Frontend (azul), Backend (verde), Banco de dados (roxo), Nuvem (laranja) e Externo (cinza).
 
-Siga o caminho principal da esquerda para a direita:
+Siga o caminho principal pela linha do meio e depois desça pela coluna da direita:
 
 1. **Interface do ciclista** (HUD, mapa, gráficos) ⇄ **Runtime Wails** (bindings JS ↔ Go): comandos vão, eventos voltam.
 2. **App orquestrador** (sessão, perfis, treino): recebe as chamadas Go.
 3. **Loop de tempo real** (gameLoop, por amostra): a sessão acontece aqui.
-4. **Serviço BLE** (FTMS, FE-C, FC): manda rampa/ERG para o **Trainer e sensores** e devolve a telemetria ao orquestrador.
+4. **Serviço BLE** (FTMS, FE-C, FC), logo abaixo do Loop: manda rampa/ERG para o **Trainer e sensores**, que fica embaixo dele, e devolve a telemetria ao orquestrador.
 
 Ramificações:
 
@@ -473,7 +473,7 @@ Ramificações:
 
 ## Roteiro da fala (1:40)
 
-"Este é o diagrama gerado pelo Archify a partir do código. Da esquerda para a direita: a interface, o runtime Wails ligando o JavaScript ao Go, o app orquestrador, o laço de tempo real e o serviço Bluetooth, que fala com o rolo. O laço usa o motor de física para calcular a velocidade. No fim da sessão, o orquestrador exporta o FIT e grava no banco do usuário. O Android reaproveita a mesma interface, mas a física e o GPX foram reescritos em JavaScript, porque o Capacitor não roda Go."
+"Este é o diagrama gerado pelo Archify a partir do código. Na linha do meio: a interface, o runtime Wails ligando o JavaScript ao Go, o app orquestrador e o laço de tempo real; abaixo do laço, o serviço Bluetooth, que fala com o rolo. O laço usa o motor de física para calcular a velocidade. No fim da sessão, o orquestrador exporta o FIT e grava no banco do usuário. O Android reaproveita a mesma interface, mas a física e o GPX foram reescritos em JavaScript, porque o Capacitor não roda Go."
 
 ## Perguntas prováveis
 
