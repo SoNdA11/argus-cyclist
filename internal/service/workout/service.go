@@ -54,9 +54,12 @@ func (s *Service) LoadZWO(path string) (*domain.ActiveWorkout, error) {
 
 		switch tagName {
 		case "SteadyState", "FreeRide":
+			// FreeRide has no power target: the game loop runs it in SIM
+			// mode instead of ERG, so the flag must be carried over.
 			active.Segments = append(active.Segments, domain.WorkoutSegment{
 				Index: idx, Type: "STEADY", DurationSeconds: step.Duration,
 				StartFactor: step.Power, EndFactor: step.Power,
+				FreeRide: tagName == "FreeRide",
 			})
 			idx++
 			totalTime += step.Duration

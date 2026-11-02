@@ -106,20 +106,21 @@ func CalculatePowerZones(powerData []int, ftp int) TimeInZones {
 		ftp = 200 // Safety fallback for null FTP
 	}
 
-	f := float64(ftp)
-
+	// Compare in integer percent (p*100 vs pct*ftp) so that values exactly on
+	// a boundary land in the upper zone; float factors such as 0.55*200 are
+	// not exact and pushed 110 W into Z1.
 	for _, p := range powerData {
-		power := float64(p)
+		pct := p * 100
 		switch {
-		case power < 0.55*f:
+		case pct < 55*ftp:
 			zones.Z1++
-		case power < 0.75*f:
+		case pct < 75*ftp:
 			zones.Z2++
-		case power < 0.90*f:
+		case pct < 90*ftp:
 			zones.Z3++
-		case power < 1.05*f:
+		case pct < 105*ftp:
 			zones.Z4++
-		case power < 1.21*f:
+		case pct < 121*ftp:
 			zones.Z5++
 		default:
 			zones.Z6++

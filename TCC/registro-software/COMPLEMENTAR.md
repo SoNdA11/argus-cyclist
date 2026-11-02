@@ -1,10 +1,9 @@
 # COMPLEMENTAR.md — Pendências restantes
 
 Este documento lista os itens que **ainda precisam ser preenchidos** no TCC.
-Os itens já resolvidos (cabeçalho institucional, banca, título "ciclismo
+Itens já resolvidos (cabeçalho institucional, banca, título "ciclismo
 indoor", ano 2026, conformidade `.fit`, cenários de teste, capturas de tela
-mobile/componentes/evento, **latência de telemetria** e **consumo de memória**)
-foram aplicados no documento e aqui removidos.
+mobile/componentes/evento) foram aplicados no documento e aqui removidos.
 
 ---
 
@@ -27,17 +26,24 @@ foram aplicados no documento e aqui removidos.
 
 ## Itens já resolvidos (não precisa refazer)
 
-- **Validação experimental preenchida** no capítulo
-  `capitulos/06-resultados.tex`:
-  - Latência de telemetria: **~80 ms** (alvo < 150 ms, RNF01) — conformidade.
-  - Consumo de memória do backend Go: **~85 MB** (alvo < 200 MB, RNF04) — conformidade.
-- Equipamentos: ThinkRider X2 MAX, Cyplus H1, sensor de velocidade, bicicleta
-  ergométrica Spinning SB 2000 Genis; ambientes Arch Linux, Windows 11 e Android.
-- Estabilidade: sessões contínuas de até 3 h sem desconexões BLE.
-- Conformidade `.fit`: mais de 200 arquivos exportados ao Strava e Intervals.icu
-  sem erros, com métricas conferindo após a importação.
+- **Dados descritivos do piloto** (Seção 7.5.1, Tabela de estatística
+  descritiva e Figura do PMC real), gerados do banco do perfil em 01/11/2026
+  com `scripts/exportar_pmc.py`.
+- Equipamentos: ThinkRider X2 MAX, Cycplus H1, bicicleta ergométrica Spinning
+  SB 2000; ambientes Arch Linux, Windows 11 e Android.
 - Testes funcionais: manuais, cobrindo todas as funcionalidades (sem planilha ou
   relatório formal).
+
+## Decisões registradas
+
+- **Latência, memória e estabilidade NÃO foram medidas com instrumentação.**
+  Os valores aproximados anotados anteriormente (~80 ms, ~85 MB) eram
+  estimativas informais, sem procedimento reprodutível, e por isso **não**
+  entram no texto; o Capítulo 7 declara a ausência de medição.
+- "Sessões de até 3 h": não confirmado pelo banco (sessão mais longa
+  registrada: 2,0 h). Não usar.
+- "Mais de 200 FIT aceitos": o banco registra 47 sessões enviadas ao Strava;
+  o texto fala em aceitação "nos testes realizados", sem número.
 
 ---
 

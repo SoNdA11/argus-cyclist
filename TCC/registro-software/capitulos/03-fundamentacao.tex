@@ -57,14 +57,14 @@ Três serviços são diretamente relevantes para o \argus{}:
 
 O BLE não garante uma taxa de amostragem fixa. O intervalo entre notificações
 depende do dispositivo, do firmware, do intervalo de conexão e das condições de
-rádio. Essa característica é importante para o \argus{}: o sistema registra cada
-notificação recebida e usa o intervalo entre chegadas para integrar a distância
-percorrida; entretanto, algumas métricas agregadas contam amostras como se cada
-uma representasse um segundo. A suposição é razoável para os equipamentos
-testados, que enviam dados aproximadamente a \SI{1}{\hertz}, mas não é uma
-garantia do protocolo. O Capítulo~\ref{cap:implementacao} mostra como essa
-diferença aparece no código e o Capítulo~\ref{cap:resultados} a registra como
-limitação.
+rádio. Além disso, cada sensor conectado notifica de forma independente: com
+rolo, medidor de potência e cinta cardíaca, o laço da sessão recebe várias
+notificações por segundo. Nos arquivos do piloto, a taxa mediana foi de 2,95
+notificações por segundo. Como várias métricas
+de treino são definidas sobre séries de um segundo (janela de 30~s da NP, tempo
+em zonas, recordes de potência), o \argus{} converte as notificações em uma
+série de \SI{1}{\hertz} antes de calculá-las. O
+Capítulo~\ref{cap:implementacao} descreve essa reamostragem.
 
 \subsection{FTMS: um caminho padronizado de controle}
 \label{sec:ftms}
@@ -140,8 +140,12 @@ página 55 é enviada com valores fixos, e não com o peso do perfil ativo. O pe
 do ciclista entra no motor físico do \argus{}, mas não é reenviado ao rolo
 quando o perfil muda. Em rolos de treinamento que usam a configuração de
 usuário para ajustar a resistência, essa diferença pode afetar a sensação de
-esforço. O trabalho registra o fato; a correção não faz parte do escopo desta
-versão.
+esforço. O mesmo ocorre com o coeficiente de rolamento: a página 51 envia ao
+rolo o valor 0,004, enquanto o motor físico do \textit{desktop} usa 0,005
+(Tabela~\ref{tab:parametros-sim}). A resistência sentida pelo ciclista e a
+velocidade calculada pelo software partem, portanto, de hipóteses ligeiramente
+diferentes sobre o pneu e o piso. O trabalho registra o fato; a correção não
+faz parte do escopo desta versão.
 
 \begin{table}[htbp]
     \centering
@@ -188,14 +192,12 @@ errado, o que é mais difícil de detectar.
 
 O \argus{} adota três precauções: valida o tamanho mínimo do pacote, verifica
 os bits de presença antes de ler campos opcionais e usa o instante de chegada
-da notificação como \textit{timestamp}. Ainda assim, não há reamostragem
-explícita para uma grade uniforme de \SI{1}{\second}. O intervalo entre
-notificações é usado no cálculo de distância, mas os vetores de potência e de
-frequência cardíaca são formados por amostras consecutivas. Se um dispositivo
-enviar duas notificações por segundo, as métricas que somam amostras como
-segundos superestimarão o tempo; se enviar uma a cada dois segundos,
-subestimarão. A limitação é tratada novamente nos Capítulos~\ref{cap:implementacao}
-e~\ref{cap:resultados}.
+da notificação como \textit{timestamp}. O intervalo entre notificações é usado
+para integrar a distância e para agrupar as amostras em segundos de tempo
+ativo: cada segundo dos vetores de potência e de frequência cardíaca é a média
+das notificações recebidas nele. Sem esse passo, uma taxa de três notificações
+por segundo faria as métricas que somam amostras como segundos triplicarem o
+tempo.
 
 \section{Formatos de percurso, atividade e treino}
 \label{sec:formatos}
@@ -264,7 +266,7 @@ aproximada do relevo, não como réplica da estrada.
 
 O \textit{Flexible and Interoperable Data Transfer} (FIT) é um formato binário
 mantido pela Garmin para registrar atividades e dados de sensores
-\cite{garmin2024}. Um arquivo contém uma cabeçalho, mensagens de definição que
+\cite{garmin2024}. Um arquivo contém um cabeçalho, mensagens de definição que
 descrevem a estrutura dos registros e mensagens de dados; o cabeçalho e o
 arquivo incluem verificações de integridade. O formato é compacto e
 interoperável, mas não é autodescritivo como o XML: para interpretar um campo,
@@ -553,9 +555,9 @@ mas sem a sétima faixa:
 \end{table}
 
 A contagem de tempo nas zonas é feita percorrendo o vetor de potência e
-incrementando a zona correspondente. O código pressupõe que cada amostra vale
-um segundo; se a taxa de notificação for diferente, a contagem fica distorcida
-na mesma proporção. Além disso, a zona é uma classificação arbitrária de uma
+incrementando a zona correspondente; como o vetor é reamostrado a
+\SI{1}{\hertz}, cada posição corresponde a um segundo. Além disso, a zona é uma
+classificação arbitrária de uma
 variável contínua: a fronteira entre Z3 e Z4 não corresponde a uma mudança
 fisiológica abrupta.
 
@@ -616,8 +618,9 @@ NP = \left(\frac{1}{N}\sum_{i=1}^{N}\bar{p}_{30,i}^{4}\right)^{1/4},
 
 \noindent em que $\bar{p}_{30,i}$ é a i-ésima média móvel de 30 amostras e $N$
 é o número de janelas. O expoente 4 faz com que picos de potência pesem mais
-do que na média aritmética. A implementação usa amostras consecutivas; para
-NP de 30 segundos, a amostragem precisa ser de aproximadamente \SI{1}{\hertz}.
+do que na média aritmética. A implementação aplica a fórmula sobre a série
+reamostrada a \SI{1}{\hertz}, de modo que 30 amostras correspondem a 30
+segundos.
 
 O fator de intensidade (IF) e o \textit{Training Stress Score} (TSS) são
 definidos por
@@ -632,7 +635,7 @@ TSS = \frac{d \cdot NP \cdot IF}{FTP \cdot 3600} \times 100,
 
 \noindent em que $d$ é a duração em segundos. Um TSS de 100 corresponde,
 por definição, a uma hora no FTP. O TSS não é uma medida de calorias nem de
-dano muscular; é uma convenção que combina duração e intensidade relative. A
+dano muscular; é uma convenção que combina duração e intensidade relativa. A
 comparação entre atletas exige cautela, porque o FTP e a resposta individual ao
 mesmo estímulo variam. A comparação longitudinal do mesmo atleta, com o mesmo
 método, é o uso mais defensável.
@@ -921,7 +924,7 @@ simulação é uma cópia da estrada.
         \textbf{Conceito} & \textbf{Decisão no Argus} & \textbf{Limite assumido} \\
         \midrule
         BLE/GATT & Assinar HR, potência e FTMS; timestamp na chegada &
-        Taxa não é fixa; não há reamostragem \\
+        Taxa não é fixa; reamostragem a 1~Hz por média \\
         FTMS e FE-C & Dois caminhos de controle no desktop; FE-C no Android &
         FE-C sobre BLE não é ANT+ nativo \\
         GPX & Perfil, inclinação e distância 3D no desktop &

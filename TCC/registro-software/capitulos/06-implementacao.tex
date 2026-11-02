@@ -235,8 +235,10 @@ a.sessionActiveTime += dt
 if a.isRecording {
     a.sessionPowerSum += uint64(currentPower)
     a.sessionTicks++
-    a.sessionPowerData = append(a.sessionPowerData, int(currentPower))
-    a.sessionHRData = append(a.sessionHRData, int(currentHR))
+    // One entry per second of active time, not per notification.
+    powers, hrs := a.sessionSampler.Add(dt, int(currentPower), int(currentHR))
+    a.sessionPowerData = append(a.sessionPowerData, powers...)
+    a.sessionHRData = append(a.sessionHRData, hrs...)
 }
 
 // ...
@@ -268,11 +270,15 @@ segundos e, ao final, chama \code{FinishSession}. Essa separação faz com que o
 resfriamento não entre no tempo ativo nem no FIT como pedalada, mas permite
 calcular a recuperação cardíaca.
 
-Há um \code{ticker} de um segundo no laço, mas ele não é usado para emitir ou
-gravar amostras. A gravação acontece por notificação BLE. O ticker existe para
-outras rotinas e para o encerramento do canal; a taxa de aquisição continua
-sendo a taxa do sensor. Essa observação é importante para não confundir a
-presença de um relógio de um segundo com uma reamostragem de um segundo.
+O laço é guiado pelas notificações BLE, não por um relógio. Cada notificação
+de qualquer sensor produz um evento para a interface e um registro FIT, com os
+valores mais recentes de potência, cadência e frequência cardíaca. Para as
+métricas, porém, o \code{SecondResampler} acumula as notificações e, a cada
+segundo de tempo ativo completado, entrega a média do segundo; se um intervalo
+sem notificações abrange vários segundos, todos são preenchidos. A
+recuperação de sessão usa o mesmo componente, reconstruindo a série a partir
+dos \textit{timestamps} das amostras gravadas e tratando intervalos maiores que
+o \textit{timeout} do sensor como pausa.
 
 O sensor tem \textit{timeout} de cinco segundos. Se a potência ou a frequência
 cardíaca deixam de chegar, o valor correspondente é zerado. Isso evita que um
@@ -280,13 +286,23 @@ sinal congelado seja interpretado como esforço contínuo, mas também pode zera
 uma leitura válida em caso de perda temporária de pacotes. O comportamento é
 uma escolha de robustez, não uma reconstrução estatística do sinal.
 
+Há ainda uma perda possível na entrada do laço. O canal que liga o serviço BLE
+ao laço da sessão não tem \textit{buffer}, e os \textit{callbacks} de
+notificação descartam a amostra quando o laço ainda está ocupado com a anterior.
+A escolha evita que notificações atrasadas se acumulem e cheguem fora de ordem,
+mas significa que o vetor da sessão pode ter menos amostras do que o sensor
+enviou. Nos equipamentos testados o laço é rápido o suficiente para que o
+efeito não tenha sido percebido; ele não foi, contudo, medido.
+
 \section{Integração com o rolo}
 \label{sec:implementacao-ble}
 
 \subsection{Descoberta, assinatura e leitura}
 \label{sec:implementacao-descoberta}
 
-O serviço BLE real escaneia por até 15 segundos, conecta ao endereço escolhido,
+O serviço BLE real faz uma varredura de cinco segundos para listar os
+dispositivos próximos; depois da escolha do usuário, procura o endereço
+selecionado por até 15 segundos, conecta-se a ele,
 descobre serviços e características e habilita notificações. Para o rolo,
 ele procura o serviço FE-C, o serviço FTMS e o Cycling Power Service. Para o
 sensor de frequência cardíaca, procura o Heart Rate Service. A leitura de
@@ -405,17 +421,16 @@ func (s *Service) AddRecord(t domain.Telemetry) {
     scaledDist := uint32(t.TotalDistance * 100)
     scaledAlt := uint32((t.Altitude + 500.0) * 5.0)
 
-    record := &mesgdef.Record{
-        Timestamp:        t.Timestamp,
-        PositionLat:      lat,
-        PositionLong:     lon,
-        Distance:         scaledDist,
-        EnhancedSpeed:    scaledSpeed,
-        Power:            uint16(t.Power),
-        HeartRate:        t.HeartRate,
-        Cadence:          t.Cadence,
-        EnhancedAltitude: scaledAlt,
-    }
+    // unset fields stay FIT-invalid instead of zero
+    record := mesgdef.NewRecord(nil)
+    record.Timestamp = t.Timestamp
+    record.PositionLat, record.PositionLong = lat, lon
+    record.Distance = scaledDist
+    record.EnhancedSpeed = scaledSpeed
+    record.Power = uint16(t.Power)
+    record.HeartRate = t.HeartRate
+    record.Cadence = t.Cadence
+    record.EnhancedAltitude = scaledAlt
     s.records = append(s.records, record)
 }
 \end{lstlisting}
@@ -428,8 +443,7 @@ relate o intervalo inteiro como duração. Há um teste automatizado específico
 para esse comportamento, o
 \code{TestSaveDerivesElapsedTimeFromRecords}; ele verifica o tempo de sessão e
 de volta no arquivo gerado. A validação de conformidade com o validador oficial
-do FIT SDK e a cobertura automatizada de todas as métricas fisiológicas
-permanecem como trabalho futuro.
+do FIT SDK permanece como trabalho futuro.
 
 A exportação não inclui \textit{developer fields}, dados de equilíbrio
 esquerda/direita, análise de pedalada ou voltas intermediárias. A altitude é
@@ -493,13 +507,21 @@ gráfico, inicializadas em 30\% e 70\% do eixo; não há algoritmo de detecção
 
 O PMC é calculado dia a dia, com constantes de 42 e 7 dias, e o TSB é a
 diferença entre CTL e ATL antes da atualização do dia. O desacoplamento exige
-pelo menos 3600 amostras, descarta os primeiros 10 minutos e compara a
+pelo menos 3600 amostras (uma hora, na série de 1~Hz), descarta os primeiros
+10 minutos e compara a
 eficiência potência/frequência cardíaca entre as metades. O HRR usa a última
 frequência cardíaca antes do resfriamento como referência e captura os valores
 em 60 e 120 segundos. O campo \code{MaxHR} da atividade é o máximo real da
 sessão, mas não é usado como referência do HRR. Essas escolhas estão descritas
 conceitualmente no Capítulo~\ref{cap:fundamentacao} e são avaliadas no
 Capítulo~\ref{cap:resultados}.
+
+As fórmulas de NP, IF, TSS, zonas, TRIMP, desacoplamento e PMC, assim como a
+solução da equação de Martin pelo motor físico, são fixadas por testes
+unitários em Go que comparam a saída do código com valores de referência
+calculados de forma independente (por exemplo, uma hora no FTP deve produzir
+TSS igual a 100). Os testes cobrem o cálculo, não a aquisição: a camada BLE, o
+\textit{parser} GPX e o \textit{frontend} foram verificados manualmente.
 
 \section{Interface e fluxo de eventos}
 \label{sec:implementacao-frontend}
@@ -547,6 +569,13 @@ inclinação. Os \textit{tiles} são remotos; sem rede, o relevo e a imagem de
 fundo podem não carregar, embora o perfil altimétrico e a simulação continuem
 funcionando com o GPX local. Essa dependência parcial explica por que o sistema
 é local-first no dado, mas não na visualização cartográfica completa.
+
+O mesmo módulo oferece um editor de rotas, herdado da versão registrada no
+INPI: o usuário marca pontos no mapa, o traçado entre eles é calculado pelo
+serviço público OSRM e as altitudes são obtidas da API Open-Elevation, gerando
+um percurso que pode ser exportado como GPX e pedalado como qualquer outro.
+Como depende desses dois serviços externos, o editor exige conexão; a
+simulação do percurso gerado, não.
 
 \section{Assistente local}
 \label{sec:implementacao-ia}

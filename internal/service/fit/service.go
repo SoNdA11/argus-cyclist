@@ -19,6 +19,7 @@ package fit
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -84,17 +85,21 @@ func (s *Service) AddRecord(t domain.Telemetry) {
 	// The 500m offset allows for negative values (e.g., geographic depression) without breaking uint32
 	scaledAlt := uint32((t.Altitude + 500.0) * 5.0)
 
-	record := &mesgdef.Record{
-		Timestamp:        t.Timestamp,
-		PositionLat:      lat,
-		PositionLong:     lon,
-		Distance:         scaledDist,
-		EnhancedSpeed:    scaledSpeed,
-		Power:            uint16(t.Power),
-		HeartRate:        t.HeartRate,
-		Cadence:          t.Cadence,
-		EnhancedAltitude: scaledAlt,
-	}
+	// NewRecord(nil) initialises every field to its FIT "invalid" value, so
+	// only the fields set below are encoded. A struct literal would leave the
+	// other ~80 fields at Go's zero value, which FIT treats as valid data
+	// (e.g. altitude=0 -> -500 m, speed=0), and readers that expand
+	// components would overwrite the enhanced fields with those zeros.
+	record := mesgdef.NewRecord(nil)
+	record.Timestamp = t.Timestamp
+	record.PositionLat = lat
+	record.PositionLong = lon
+	record.Distance = scaledDist
+	record.EnhancedSpeed = scaledSpeed
+	record.Power = uint16(t.Power)
+	record.HeartRate = t.HeartRate
+	record.Cadence = t.Cadence
+	record.EnhancedAltitude = scaledAlt
 
 	s.records = append(s.records, record)
 }
@@ -114,13 +119,14 @@ func (s *Service) Save(filepath string) error {
 	fit := proto.FIT{}
 
 	// 3. File Header (File ID)
-	fileIdMesg := mesgdef.FileId{
-		Type:         typedef.FileActivity,
-		Manufacturer: typedef.ManufacturerDevelopment,
-		Product:      0,
-		SerialNumber: 12345,
-		TimeCreated:  s.startTime,
-	}
+	// Messages are built from New*(nil) so unset fields stay "invalid" and
+	// are not encoded as zeros (see AddRecord).
+	fileIdMesg := mesgdef.NewFileId(nil)
+	fileIdMesg.Type = typedef.FileActivity
+	fileIdMesg.Manufacturer = typedef.ManufacturerDevelopment
+	fileIdMesg.Product = 0
+	fileIdMesg.SerialNumber = 12345
+	fileIdMesg.TimeCreated = s.startTime
 
 	// Converts to generic message and adds it
 	fit.Messages = append(fit.Messages, fileIdMesg.ToMesg(nil))
@@ -147,40 +153,37 @@ func (s *Service) Save(filepath string) error {
 	lastDist := getLastDistance(s.records)
 
 	// 6. Event Message (Timer StopAll)
-	eventMesg := mesgdef.Event{
-		Timestamp: time.Now(),
-		Event:     typedef.EventTimer,
-		EventType: typedef.EventTypeStopAll,
-	}
+	eventMesg := mesgdef.NewEvent(nil)
+	eventMesg.Timestamp = time.Now()
+	eventMesg.Event = typedef.EventTimer
+	eventMesg.EventType = typedef.EventTypeStopAll
 	fit.Messages = append(fit.Messages, eventMesg.ToMesg(nil))
 
 	// 7. Lap Message
-	lapMesg := mesgdef.Lap{
-		Timestamp:        time.Now(),
-		StartTime:        s.startTime,
-		TotalElapsedTime: uint32(totalTime * 1000), // ms
-		TotalTimerTime:   uint32(totalTime * 1000), // ms
-		TotalDistance:    lastDist,
-		AvgPower:         avgPower,
-		Event:            typedef.EventLap,
-		EventType:        typedef.EventTypeStop,
-	}
+	lapMesg := mesgdef.NewLap(nil)
+	lapMesg.Timestamp = time.Now()
+	lapMesg.StartTime = s.startTime
+	lapMesg.TotalElapsedTime = uint32(totalTime * 1000) // ms
+	lapMesg.TotalTimerTime = uint32(totalTime * 1000)   // ms
+	lapMesg.TotalDistance = lastDist
+	lapMesg.AvgPower = avgPower
+	lapMesg.Event = typedef.EventLap
+	lapMesg.EventType = typedef.EventTypeStop
 	fit.Messages = append(fit.Messages, lapMesg.ToMesg(nil))
 
 	// 8. Session Message (Final Summary)
-	sessionMesg := mesgdef.Session{
-		Timestamp:        time.Now(),
-		StartTime:        s.startTime,
-		TotalElapsedTime: uint32(totalTime * 1000), // ms
-		TotalTimerTime:   uint32(totalTime * 1000), // ms
-		TotalDistance:    lastDist,
-		AvgPower:         avgPower,
-		Sport:            typedef.SportCycling,
-		SubSport:         typedef.SubSportVirtualActivity,
-		Event:            typedef.EventSession,
-		EventType:        typedef.EventTypeStop,
-		Trigger:          typedef.SessionTriggerActivityEnd,
-	}
+	sessionMesg := mesgdef.NewSession(nil)
+	sessionMesg.Timestamp = time.Now()
+	sessionMesg.StartTime = s.startTime
+	sessionMesg.TotalElapsedTime = uint32(totalTime * 1000) // ms
+	sessionMesg.TotalTimerTime = uint32(totalTime * 1000)   // ms
+	sessionMesg.TotalDistance = lastDist
+	sessionMesg.AvgPower = avgPower
+	sessionMesg.Sport = typedef.SportCycling
+	sessionMesg.SubSport = typedef.SubSportVirtualActivity
+	sessionMesg.Event = typedef.EventSession
+	sessionMesg.EventType = typedef.EventTypeStop
+	sessionMesg.Trigger = typedef.SessionTriggerActivityEnd
 	fit.Messages = append(fit.Messages, sessionMesg.ToMesg(nil))
 
 	// 9. Writes everything to disk
@@ -207,7 +210,7 @@ func (s *Service) MergeFiles(inputPaths []string, outputPath string) error {
 			continue
 		}
 		
-		dec := decoder.New(file)
+		dec := newDecoder(file)
 		fitFile, err := dec.Decode()
 		file.Close()
 		if err != nil {
@@ -223,7 +226,19 @@ func (s *Service) MergeFiles(inputPaths []string, outputPath string) error {
 				fileStartTime = fid.TimeCreated
 			}
 			if msg.Num == mesgnum.Record {
-				rec := mesgdef.NewRecord(&msg)
+				// Copy only the fields Argus writes, dropping the spurious
+				// zero fields that older exports carried.
+				src := mesgdef.NewRecord(&msg)
+				rec := mesgdef.NewRecord(nil)
+				rec.Timestamp = src.Timestamp
+				rec.PositionLat = src.PositionLat
+				rec.PositionLong = src.PositionLong
+				rec.Distance = src.Distance
+				rec.EnhancedSpeed = src.EnhancedSpeed
+				rec.Power = src.Power
+				rec.HeartRate = src.HeartRate
+				rec.Cadence = src.Cadence
+				rec.EnhancedAltitude = src.EnhancedAltitude
 				fileRecords = append(fileRecords, rec)
 			}
 		}
@@ -265,6 +280,14 @@ func (s *Service) MergeFiles(inputPaths []string, outputPath string) error {
 
 // Helpers
 
+// newDecoder disables FIT component expansion. Files exported before
+// AddRecord used NewRecord(nil) carry spurious zero altitude/speed and
+// compressed_speed_distance fields; expanding them would overwrite the real
+// enhanced_altitude/enhanced_speed values and corrupt the distance.
+func newDecoder(r io.Reader) *decoder.Decoder {
+	return decoder.New(r, decoder.WithNoComponentExpansion())
+}
+
 func calculateAvgPower(records []*mesgdef.Record) uint16 {
 	if len(records) == 0 {
 		return 0
@@ -295,7 +318,7 @@ func (s *Service) ParseActivity(filePath string) (ActivityDetails, error) {
 	}
 	defer file.Close()
 
-	dec := decoder.New(file)
+	dec := newDecoder(file)
 	fitFile, err := dec.Decode()
 	if err != nil {
 		return ActivityDetails{}, err

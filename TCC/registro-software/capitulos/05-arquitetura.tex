@@ -37,8 +37,8 @@ um produziu uma decisão concreta e um custo correspondente.
         integrações opcionais & Sem sincronização entre dispositivos; backup
         por conta do usuário \\
         Telemetria em tempo real & \textit{Game loop} em Go, canais e
-        eventos assíncronos; frontend por barramento & Taxa depende do sensor;
-        não há reamostragem uniforme \\
+        eventos assíncronos; frontend por barramento & Taxa depende dos
+        sensores; métricas exigem reamostragem a 1~Hz \\
         Controle de hardware & Porta \code{TrainerService} com adaptadores
         FTMS, FE-C sobre BLE e rolo virtual & Compatibilidade varia por
         fabricante; ANT+ nativo não é suportado \\
@@ -352,14 +352,12 @@ para suavizar o movimento. A fluidez visual não é a taxa de aquisição. Essa
 distinção evita uma afirmação comum e incorreta: a de que a telemetria chega a
 60 Hz porque a tela é atualizada a 60 Hz.
 
-Também não há reamostragem para uma grade uniforme. O laço acumula
-\code{sessionPowerData} e \code{sessionHRData} a cada notificação, e o FIT
-registra uma amostra por notificação. As métricas que contam amostras como
-segundos pressupõem que a taxa seja de aproximadamente 1 Hz. Em equipamentos
-que enviam dados em outra taxa, o tempo em zonas, a janela de 30 segundos da NP
-e o requisito de 3600 amostras do desacoplamento podem ficar distorcidos. A
-arquitetura poderia inserir uma camada de reamostragem; ela não foi implementada
-nesta versão e é registrada como trabalho futuro.
+O FIT registra uma amostra por notificação, preservando o sinal como chegou.
+As métricas, por outro lado, são calculadas sobre \code{sessionPowerData} e
+\code{sessionHRData}, que recebem uma entrada por segundo de tempo ativo: um
+componente de reamostragem agrupa as notificações de cada segundo e entrega a
+média. Nos arquivos do piloto, a taxa de chegada foi de cerca de três
+notificações por segundo, o que torna essa camada necessária.
 
 \section{Arquitetura móvel}
 \label{sec:arquitetura-mobile}
@@ -553,7 +551,7 @@ uma fila de sincronização.
         ADR-03 & Porta \code{TrainerService} & Trocar BLE, virtual e mock &
         Comportamento do hardware não é abstraído \\
         ADR-04 & Telemetria por eventos & Não bloquear a interface &
-        Taxa variável; sem reamostragem \\
+        Taxa variável; reamostragem a 1~Hz para as métricas \\
         ADR-05 & FE-C sobre BLE & Compatibilidade com rolos que o
         expõem & Não é ANT+ nativo; configuração fixa \\
         ADR-06 & Android via Capacitor & Reuso da interface & Física e GPX
