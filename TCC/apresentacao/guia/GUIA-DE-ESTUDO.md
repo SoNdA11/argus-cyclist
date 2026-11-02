@@ -937,7 +937,7 @@ Não se fala nada; o slide passa em 5 s. Serve para a banca consultar durante a 
 
 ## O que aparece na tela
 
-O slide repete a assinatura da capa: o símbolo do Argus e a faixa arco-íris, agora interrompida por "Obrigado.". Abaixo, a frase "Fico à disposição para as perguntas da banca." e os nomes (Paulo Sérgio Silva de Medeiros, orientando; Prof. Dr. Isaac de Lima Oliveira Filho, orientador). No rodapé: o repositório (github.com/SoNdA11/argus-cyclist) à esquerda, o logo da UERN no centro e o registro no INPI (BR512026003786-7) à direita.
+O slide repete a assinatura da capa: o símbolo do Argus e a faixa arco-íris, agora interrompida por "Obrigado.". Abaixo, a frase "Perguntas e sugestões são bem-vindas." e os nomes (Paulo Sérgio Silva de Medeiros, orientando; Prof. Dr. Isaac de Lima Oliveira Filho, orientador). No rodapé: o repositório (github.com/SoNdA11/argus-cyclist) à esquerda, o logo da UERN no centro e o registro no INPI (BR512026003786-7) à direita.
 
 ## Roteiro (15 s)
 
