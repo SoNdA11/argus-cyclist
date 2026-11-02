@@ -88,7 +88,7 @@ Sobram cerca de 2 min 05 s dos 20 minutos. **Se atrasar**, corte nesta ordem:
 - **Cabeçalho:** o logo da UERN com "Universidade do Estado do Rio Grande do Norte · Departamento de Informática · Campus Central · Bacharelado em Ciência da Computação".
 - **Centro:** o símbolo do Argus (sem o nome, que já está no título), o rótulo "Trabalho de Conclusão de Curso" em índigo e o título "Argus Cyclist", com o subtítulo "Um ecossistema multiplataforma e de código aberto para o ciclismo virtual".
 - **Faixa arco-íris:** cinco listras finas (azul, vermelho, preto, amarelo e verde) atravessam o slide e são interrompidas pelo nome, como a faixa no peito da camisa do campeão mundial da UCI. Elas se desenham da esquerda para a direita quando o slide abre.
-- **Rodapé:** autor, orientador (Prof. Dr. Isaac de Lima Oliveira Filho) e a defesa (Mossoró/RN · 19 de novembro de 2026).
+- **Rodapé:** orientando, orientador (Prof. Dr. Isaac de Lima Oliveira Filho) e a defesa (Mossoró/RN · 19 de novembro de 2026).
 
 ## Conceitos
 
