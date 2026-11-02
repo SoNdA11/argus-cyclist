@@ -320,15 +320,20 @@ Argus. Economiza cerca de 30 s.</li>
 <p><img src="img/slide-01.jpg" /></p>
 <h2 id="o-que-aparece-na-tela">O que aparece na tela</h2>
 <ul>
-<li><strong>Rótulo no alto:</strong> “Trabalho de Conclusão de Curso ·
-Ciência da Computação”.</li>
-<li><strong>Título:</strong> “Argus Cyclist”, com o subtítulo “Um
-ecossistema multiplataforma e de código aberto para o ciclismo
-virtual”.</li>
-<li><strong>Identificação:</strong> seu nome, o orientador
-(Prof. Dr. Isaac de Lima Oliveira Filho), Mossoró/RN e a data.</li>
-<li><strong>Logos:</strong> o da UERN e, à direita, o do Argus Cyclist
-em cor sólida (no tema escuro, ele fica claro).</li>
+<li><strong>Cabeçalho:</strong> o logo da UERN com “Universidade do
+Estado do Rio Grande do Norte · Departamento de Informática · Campus
+Central · Bacharelado em Ciência da Computação”.</li>
+<li><strong>Centro:</strong> o símbolo do Argus (sem o nome, que já está
+no título), o rótulo “Trabalho de Conclusão de Curso” em índigo e o
+título “Argus Cyclist”, com o subtítulo “Um ecossistema multiplataforma
+e de código aberto para o ciclismo virtual”.</li>
+<li><strong>Faixa arco-íris:</strong> cinco listras finas (azul,
+vermelho, preto, amarelo e verde) atravessam o slide e são interrompidas
+pelo nome, como a faixa no peito da camisa do campeão mundial da UCI.
+Elas se desenham da esquerda para a direita quando o slide abre.</li>
+<li><strong>Rodapé:</strong> orientando, orientador (Prof. Dr. Isaac de
+Lima Oliveira Filho) e a defesa (Mossoró/RN · 19 de novembro de
+2026).</li>
 </ul>
 <h2 id="conceitos">Conceitos</h2>
 <ul>
@@ -794,7 +799,7 @@ projeto.</li>
 <ul>
 <li><strong>Clique 1:</strong> uma seta tracejada volta da Avaliação
 para o Projeto, com a frase “o que o uso revelava virava o próximo
-ciclo”.</li>
+ciclo” logo abaixo da curva.</li>
 <li><strong>Clique 2:</strong> um gráfico em dois painéis com o mesmo
 eixo de tempo (jan a out/2026):
 <ul>
@@ -998,11 +1003,16 @@ celular estão nela. O CSS sozinho tem 6,5 mil linhas.</li>
 Núcleo em Go, interface web compartilhada</h1>
 <p><img src="img/slide-09.jpg" /></p>
 <h2 id="o-que-aparece-na-tela-8">O que aparece na tela</h2>
-<p>O diagrama de arquitetura <strong>gerado pelo Archify a partir do
-código</strong>, com 14 componentes. A legenda de cores é: Frontend
-(azul-claro), Backend (verde), Banco de dados (roxo), Nuvem (laranja) e
-Externo (cinza).</p>
-<p>Siga o caminho principal da esquerda para a direita:</p>
+<p>O diagrama de arquitetura com os 14 componentes e as 15 ligações do
+<strong>modelo que o Archify gerou a partir do código</strong>. O
+desenho foi redesenhado para o slide: uma grade de 4 colunas, mais
+compacta e com letras maiores. As ligações ficam animadas como no modo
+“Fluxo de sinal” do Archify: o tracejado corre no sentido da seta e um
+ponto verde percorre cada ligação. A legenda de cores, no canto inferior
+esquerdo, é: Frontend (azul), Backend (verde), Banco de dados (roxo),
+Nuvem (laranja) e Externo (cinza).</p>
+<p>Siga o caminho principal pela linha do meio e depois desça pela
+coluna da direita:</p>
 <ol type="1">
 <li><strong>Interface do ciclista</strong> (HUD, mapa, gráficos) ⇄
 <strong>Runtime Wails</strong> (bindings JS ↔︎ Go): comandos vão, eventos
@@ -1011,9 +1021,9 @@ voltam.</li>
 as chamadas Go.</li>
 <li><strong>Loop de tempo real</strong> (gameLoop, por amostra): a
 sessão acontece aqui.</li>
-<li><strong>Serviço BLE</strong> (FTMS, FE-C, FC): manda rampa/ERG para
-o <strong>Trainer e sensores</strong> e devolve a telemetria ao
-orquestrador.</li>
+<li><strong>Serviço BLE</strong> (FTMS, FE-C, FC), logo abaixo do Loop:
+manda rampa/ERG para o <strong>Trainer e sensores</strong>, que fica
+embaixo dele, e devolve a telemetria ao orquestrador.</li>
 </ol>
 <p>Ramificações:</p>
 <ul>
@@ -1046,9 +1056,9 @@ terreno para o mapa 3D.</li>
 que o Android reaproveita.</li>
 </ul>
 <h2 id="roteiro-da-fala-140">Roteiro da fala (1:40)</h2>
-<p>“Este é o diagrama gerado pelo Archify a partir do código. Da
-esquerda para a direita: a interface, o runtime Wails ligando o
-JavaScript ao Go, o app orquestrador, o laço de tempo real e o serviço
+<p>“Este é o diagrama gerado pelo Archify a partir do código. Na linha
+do meio: a interface, o runtime Wails ligando o JavaScript ao Go, o app
+orquestrador e o laço de tempo real; abaixo do laço, o serviço
 Bluetooth, que fala com o rolo. O laço usa o motor de física para
 calcular a velocidade. No fim da sessão, o orquestrador exporta o FIT e
 grava no banco do usuário. O Android reaproveita a mesma interface, mas
@@ -1806,14 +1816,19 @@ durante a arguição.</p>
 <h1 id="slide-19-obrigado">Slide 19 · Obrigado</h1>
 <p><img src="img/slide-19.jpg" /></p>
 <h2 id="o-que-aparece-na-tela-17">O que aparece na tela</h2>
-<p>O símbolo do Argus, “Obrigado.”, os nomes (Paulo Sérgio Silva de
-Medeiros, orientando; Prof. Dr. Isaac de Lima Oliveira Filho,
-orientador) e o logo da UERN.</p>
+<p>O slide repete a assinatura da capa: o símbolo do Argus e a faixa
+arco-íris, agora interrompida por “Obrigado.”. Abaixo, a frase
+“Perguntas e sugestões são bem-vindas.” e os nomes (Paulo Sérgio Silva
+de Medeiros, orientando; Prof. Dr. Isaac de Lima Oliveira Filho,
+orientador). No rodapé: o repositório (github.com/SoNdA11/argus-cyclist)
+à esquerda, o logo da UERN no centro e o registro no INPI
+(BR512026003786-7) à direita.</p>
 <h2 id="roteiro-15-s">Roteiro (15 s)</h2>
 <p>“Agradeço à banca, ao meu orientador e a todos. Fico à disposição
 para as perguntas. Depois da arguição, posso mostrar o equipamento
 funcionando.”</p>
-<p>Deixe este slide na tela durante toda a arguição.</p>
+<p>Deixe este slide na tela durante toda a arguição: o repositório e o
+número do registro ficam à vista se a banca perguntar.</p>
 <h1 id="glossário">Glossário</h1>
 <p><strong>ATL (Acute Training Load):</strong> “fadiga”; média
 exponencial de 7 dias do TSS.</p>
