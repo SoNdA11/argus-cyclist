@@ -325,7 +325,7 @@ Cap. 1 (objetivos) e Cap. 4 ("Demonstração", os três cenários).
 | 5 | **Avaliação** (verde) | piloto de 10 meses, 114 sessões reais |
 | 6 | Comunicação | este TCC e o registro no INPI |
 
-- **Clique 1:** uma seta tracejada volta da Avaliação para o Projeto, com a frase "o que o uso revelava virava o próximo ciclo".
+- **Clique 1:** uma seta tracejada volta da Avaliação para o Projeto, com a frase "o que o uso revelava virava o próximo ciclo" logo abaixo da curva.
 - **Clique 2:** um gráfico em dois painéis com o mesmo eixo de tempo (jan a out/2026):
   - **em cima, Construção:** commits por semana (azul), total 305, com marcos verticais em **INPI** (20/01), **Android** (08/03) e **IA local** (27/05);
   - **embaixo, Avaliação:** sessões de treino por semana (verde), total 114.
