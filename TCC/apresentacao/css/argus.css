@@ -597,3 +597,53 @@ html.print-pdf .rota .parada { opacity: 1 !important; animation: none !important
 html.print-pdf .ar-no, html.print-pdf .ar-edge, html.print-pdf .ar-leg { opacity: 1 !important; animation: none !important; }
 html.print-pdf .ar-pulso { display: none; }
 @media print { .ar-no, .ar-edge, .ar-leg { opacity: 1 !important; animation: none !important; } .ar-pulso { display: none; } }
+
+/* ---------- slide 12: cartões de métricas no lugar da tabela ---------- */
+.metricas { display: flex; flex-direction: column; gap: 12px; }
+.m-grupo { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 17px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.m-grupo::before { content: ""; width: 26px; height: 4px; border-radius: 2px; background: var(--c); }
+.m-grupo::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.m-par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.m-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px 14px;
+  box-shadow: 0 2px 10px rgba(14, 31, 61, 0.05); }
+html[data-tema="escuro"] .m-card { box-shadow: none; }
+.m-card.hl { border-color: var(--calculado); background: linear-gradient(var(--tint-blue), var(--tint-blue)), var(--bg-2);
+  box-shadow: inset 4px 0 0 var(--calculado); }
+.m-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.m-nome { font-size: 21px; color: var(--muted); line-height: 1.2; }
+.m-nome strong { color: var(--text); }
+.m-sub { font-size: 16px; color: var(--faint); white-space: nowrap; }
+.m-top .pill { font-size: 14px; padding: 2px 9px; flex-shrink: 0; }
+.m-val { font-family: var(--mono); font-weight: 600; font-size: 44px; line-height: 1.05; margin-top: 6px;
+  letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
+.m-card.hl .m-val { color: var(--calculado); }
+.m-val small { font-size: 20px; font-weight: 400; color: var(--muted); margin-left: 6px; letter-spacing: 0; }
+.m-sep { color: var(--faint); margin: 0 0.18em; font-weight: 400; }
+.m-delta { font-size: 17px; font-weight: 600; color: var(--calculado); margin-left: 12px; vertical-align: middle;
+  padding: 2px 8px; border-radius: 6px; background: var(--tint-blue); letter-spacing: 0; }
+/* medidor: preenchimento até --v, marcador de referência em --p */
+.m-linha { display: flex; align-items: center; gap: 22px; }
+.m-linha .m-val { flex-shrink: 0; }
+.m-barra { position: relative; flex: 1; height: 12px; border-radius: 6px; background: var(--bg-3); margin-top: 8px; }
+.m-barra i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 6px; background: var(--calculado);
+  transition: width 0.7s cubic-bezier(.2,.7,.2,1) 0.15s; }
+.m-barra.alerta i { background: linear-gradient(90deg, var(--calculado) 0 60%, var(--warn) 60%); }
+.visible .m-barra i { width: var(--v); }
+.m-barra b { position: absolute; left: var(--p); top: -6px; bottom: -6px; width: 3px; margin-left: -1.5px;
+  border-radius: 2px; background: var(--text); }
+.m-barra b::after { content: attr(data-r); position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  margin-top: 4px; font: 600 14px var(--mono); color: var(--muted); white-space: nowrap; }
+.m-nota { display: flex; gap: 14px; align-items: flex-start; font-size: 19px; color: var(--muted); line-height: 1.4;
+  border: 1px dashed var(--anotacao); border-radius: 14px; padding: 12px 16px; margin-top: 4px; }
+.m-nota .pill { font-size: 14px; padding: 2px 9px; flex-shrink: 0; margin-top: 2px; }
+.m-nota strong { color: var(--text); }
+.m-barra b.fim::after { left: auto; right: 0; transform: none; }
+.m-cap { font-size: 16px; color: var(--faint); margin-top: 2px; }
+
+/* slide 12: itens entram sozinhos, um por um (deck.js), sem cliques */
+.reveal .auto-reveal .auto { opacity: 0; transform: translateY(18px) scale(0.98);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(.2,.7,.2,1); }
+.reveal .auto-reveal .auto.visible { opacity: 1; transform: none; }
+html.print-pdf .reveal .auto-reveal .auto { opacity: 1; transform: none; transition: none; }
+html.print-pdf .m-barra i { width: var(--v); transition: none; }

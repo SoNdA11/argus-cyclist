@@ -31,7 +31,7 @@
   function fechar() {
     lb.classList.remove("aberto");
     lb.setAttribute("aria-hidden", "true");
-    Reveal.configure({ keyboard: true });
+    Reveal.configure({ keyboard: window.ArgusTeclado || true }); // devolve o mapa de teclas do deck.js
   }
 
   document.querySelectorAll(".galeria figure[data-full]").forEach((fig) =>

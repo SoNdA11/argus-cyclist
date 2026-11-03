@@ -128,7 +128,7 @@
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
-<section data-sec="1" data-section="Problema" data-timing="60">
+<section data-sec="1" data-section="Problema" data-timing="60" data-auto-fragmentos="900">
   <div class="kicker">Problema</div>
   <h2>O fluxo do ciclista é fragmentado</h2>
   <svg viewBox="0 0 1700 300" width="100%" style="margin-top:30px" font-family="Inter">
@@ -204,7 +204,7 @@
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
-<section data-sec="1" data-section="Estado da arte" data-timing="70">
+<section data-sec="1" data-section="Estado da arte" data-timing="70" data-auto-fragmentos="1400">
   <div class="kicker">Estado da arte</div>
   <h2>As peças existem, mas não juntas</h2>
   <table class="t matrix" style="margin-top:28px">
@@ -225,7 +225,7 @@
 </section>
 
 <!-- ============================================================ 6 PROPOSTA -->
-<section data-sec="2" data-section="Proposta" data-timing="50">
+<section data-sec="2" data-section="Proposta" data-timing="50" data-auto-fragmentos="900">
   <div class="kicker">Proposta</div>
   <h2>Um fluxo para três usos</h2>
   <div class="grid g3" style="margin-top:30px">
@@ -272,7 +272,7 @@
 </section>
 
 <!-- ============================================================ METODOLOGIA -->
-<section data-sec="3" data-section="Metodologia" data-timing="60">
+<section data-sec="3" data-section="Metodologia" data-timing="60" data-auto-fragmentos="1400">
   <div class="kicker">Metodologia · Design Science Research (Peffers et al., 2007)</div>
   <h2>Construir, usar e corrigir, em ciclos</h2>
   <svg viewBox="0 0 1700 326" width="100%" style="margin-top:14px" font-family="Inter" text-anchor="middle">
@@ -318,7 +318,7 @@
 </section>
 
 <!-- ============================================================ STACK E CAMADAS -->
-<section data-sec="4" data-section="Arquitetura" data-timing="70">
+<section data-sec="4" data-section="Arquitetura" data-timing="70" data-auto-fragmentos="1400">
   <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
   <h2>Como o Argus foi construído</h2>
   <div class="grid" style="grid-template-columns: 0.78fr 1.22fr; gap:50px; margin-top:10px; align-items:center">
@@ -497,7 +497,7 @@
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-sec="4" data-section="Arquitetura" data-timing="75">
+<section data-sec="4" data-section="Arquitetura" data-timing="75" data-auto-fragmentos="900">
   <div class="kicker">Tempo real</div>
   <h2>Do sensor até o ciclista</h2>
   <svg viewBox="0 0 1700 650" width="100%" style="margin-top:10px" font-family="Inter">
@@ -597,22 +597,55 @@
 </section>
 
 <!-- ============================================================ 11 ANÁLISE DO TREINO -->
-<section data-sec="5" data-section="Análise do treino" data-timing="110">
+<section data-sec="5" data-section="Análise do treino" data-timing="110" class="auto-reveal" data-intervalo="700">
   <div class="kicker">Análise do treino · sessão de Girona</div>
   <h2>Cada número tem fórmula e limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div id="ch-physio" class="chart" style="height:700px" data-stepped="1"></div>
-    <div>
-      <table class="t" style="font-size:24px">
-        <tr><td>Potência média</td><td class="num">96 W</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl" data-chart-step="1"><td><strong>NP</strong> <span class="faint tiny">(média⁴ de 30 s)</span></td><td class="num">106 W</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>IF · TSS <span class="faint tiny">(FTP 153 W)</span></td><td class="num">0,69 · 49</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>FC média · máx</td><td class="num">139 · 169</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl" data-chart-step="2"><td><strong>Desacoplamento</strong> <span class="faint tiny">(Pw:FC)</span></td><td class="num">8,3%</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>Recuperação da FC (1 · 2 min)</td><td class="num">26 · 28</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>VT1 / VT2</td><td class="num">—</td><td><span class="pill anotacao">anotação</span></td></tr>
-      </table>
-      <p class="fragment rise tiny muted" style="margin-top:18px">Limiares são marcados pelo usuário; o teste de 5 min é proxy de potência aeróbia, <strong>não</strong> mede VO₂máx; zonas de FC por % da máxima.</p>
+    <div class="metricas">
+      <div class="m-grupo auto" data-ordem="0" style="--c:var(--power)">Carga externa · potência</div>
+      <div class="m-par">
+        <div class="m-card auto" data-ordem="1">
+          <div class="m-top"><span class="m-nome">Potência média</span><span class="pill medido">medido</span></div>
+          <div class="m-val">96<small>W</small></div>
+        </div>
+        <div class="m-card hl auto" data-ordem="2" data-chart-step="1">
+          <div class="m-top"><span class="m-nome"><strong>NP</strong> <span class="m-sub">média⁴ · 30 s</span></span><span class="pill calculado">calculado</span></div>
+          <div class="m-val">106<small>W</small><span class="m-delta">+10%</span></div>
+        </div>
+      </div>
+      <div class="m-card auto" data-ordem="3">
+        <div class="m-top"><span class="m-nome">IF · TSS <span class="m-sub">FTP 153 W</span></span><span class="pill calculado">calculado</span></div>
+        <div class="m-linha">
+          <div class="m-val">0,69<span class="m-sep">·</span>49</div>
+          <div class="m-barra" style="--v:69%"><i></i><b class="fim" style="--p:100%" data-r="IF 1,0 = FTP"></b></div>
+        </div>
+      </div>
+
+      <div class="m-grupo auto" data-ordem="4" style="--c:var(--hr)">Carga interna · frequência cardíaca</div>
+      <div class="m-par">
+        <div class="m-card auto" data-ordem="5">
+          <div class="m-top"><span class="m-nome">FC média · máx</span><span class="pill medido">medido</span></div>
+          <div class="m-val">139<span class="m-sep">·</span>169<small>bpm</small></div>
+        </div>
+        <div class="m-card auto" data-ordem="7">
+          <div class="m-top"><span class="m-nome">Recuperação</span><span class="pill calculado">calculado</span></div>
+          <div class="m-val">26<span class="m-sep">·</span>28<small>bpm</small></div>
+          <div class="m-cap">queda da FC em 1 · 2 min</div>
+        </div>
+      </div>
+      <div class="m-card hl auto" data-ordem="6" data-chart-step="2">
+        <div class="m-top"><span class="m-nome"><strong>Desacoplamento</strong> <span class="m-sub">Pw:FC, 1ª → 2ª metade</span></span><span class="pill calculado">calculado</span></div>
+        <div class="m-linha">
+          <div class="m-val">8,3<small>%</small></div>
+          <div class="m-barra alerta" style="--v:83%"><i></i><b style="--p:50%" data-r="limiar 5%"></b></div>
+        </div>
+      </div>
+
+      <div class="m-nota auto" data-ordem="8">
+        <span class="pill anotacao">anotação</span>
+        <span><strong>VT1 / VT2</strong> são marcados pelo usuário. O teste de 5 min é proxy de potência aeróbia e <strong>não</strong> mede VO₂máx; zonas de FC por % da máxima.</span>
+      </div>
     </div>
   </div>
   <div class="source">Coggan &amp; Allen (2010); Banister (1991). Sessão em modo ERG (potência-alvo fixa); valores reprocessados a 1 Hz.</div>
