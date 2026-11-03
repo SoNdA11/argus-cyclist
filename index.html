@@ -128,7 +128,7 @@
 </section>
 
 <!-- ============================================================ 4 PROBLEMA -->
-<section data-sec="1" data-section="Problema" data-timing="60">
+<section data-sec="1" data-section="Problema" data-timing="60" data-auto-fragmentos="900">
   <div class="kicker">Problema</div>
   <h2>O fluxo do ciclista é fragmentado</h2>
   <svg viewBox="0 0 1700 300" width="100%" style="margin-top:30px" font-family="Inter">
@@ -204,7 +204,7 @@
 </section>
 
 <!-- ============================================================ 5 ESTADO DA ARTE -->
-<section data-sec="1" data-section="Estado da arte" data-timing="70">
+<section data-sec="1" data-section="Estado da arte" data-timing="70" data-auto-fragmentos="1400">
   <div class="kicker">Estado da arte</div>
   <h2>As peças existem, mas não juntas</h2>
   <table class="t matrix" style="margin-top:28px">
@@ -225,7 +225,7 @@
 </section>
 
 <!-- ============================================================ 6 PROPOSTA -->
-<section data-sec="2" data-section="Proposta" data-timing="50">
+<section data-sec="2" data-section="Proposta" data-timing="50" data-auto-fragmentos="900">
   <div class="kicker">Proposta</div>
   <h2>Um fluxo para três usos</h2>
   <div class="grid g3" style="margin-top:30px">
@@ -272,7 +272,7 @@
 </section>
 
 <!-- ============================================================ METODOLOGIA -->
-<section data-sec="3" data-section="Metodologia" data-timing="60">
+<section data-sec="3" data-section="Metodologia" data-timing="60" data-auto-fragmentos="1400">
   <div class="kicker">Metodologia · Design Science Research (Peffers et al., 2007)</div>
   <h2>Construir, usar e corrigir, em ciclos</h2>
   <svg viewBox="0 0 1700 326" width="100%" style="margin-top:14px" font-family="Inter" text-anchor="middle">
@@ -318,7 +318,7 @@
 </section>
 
 <!-- ============================================================ STACK E CAMADAS -->
-<section data-sec="4" data-section="Arquitetura" data-timing="70">
+<section data-sec="4" data-section="Arquitetura" data-timing="70" data-auto-fragmentos="1400">
   <div class="kicker">Arquitetura · Clean Architecture (Martin, 2017)</div>
   <h2>Como o Argus foi construído</h2>
   <div class="grid" style="grid-template-columns: 0.78fr 1.22fr; gap:50px; margin-top:10px; align-items:center">
@@ -497,7 +497,7 @@
 </section>
 
 <!-- ============================================================ 9 TELEMETRIA -->
-<section data-sec="4" data-section="Arquitetura" data-timing="75">
+<section data-sec="4" data-section="Arquitetura" data-timing="75" data-auto-fragmentos="900">
   <div class="kicker">Tempo real</div>
   <h2>Do sensor até o ciclista</h2>
   <svg viewBox="0 0 1700 650" width="100%" style="margin-top:10px" font-family="Inter">
@@ -597,24 +597,24 @@
 </section>
 
 <!-- ============================================================ 11 ANÁLISE DO TREINO -->
-<section data-sec="5" data-section="Análise do treino" data-timing="110">
+<section data-sec="5" data-section="Análise do treino" data-timing="110" class="auto-reveal" data-intervalo="700">
   <div class="kicker">Análise do treino · sessão de Girona</div>
   <h2>Cada número tem fórmula e limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div id="ch-physio" class="chart" style="height:700px" data-stepped="1"></div>
     <div class="metricas">
-      <div class="m-grupo" style="--c:var(--power)">Carga externa · potência</div>
+      <div class="m-grupo auto" data-ordem="0" style="--c:var(--power)">Carga externa · potência</div>
       <div class="m-par">
-        <div class="m-card">
+        <div class="m-card auto" data-ordem="1">
           <div class="m-top"><span class="m-nome">Potência média</span><span class="pill medido">medido</span></div>
           <div class="m-val">96<small>W</small></div>
         </div>
-        <div class="m-card hl fragment" data-fragment-index="1" data-chart-step="1">
+        <div class="m-card hl auto" data-ordem="2" data-chart-step="1">
           <div class="m-top"><span class="m-nome"><strong>NP</strong> <span class="m-sub">média⁴ · 30 s</span></span><span class="pill calculado">calculado</span></div>
           <div class="m-val">106<small>W</small><span class="m-delta">+10%</span></div>
         </div>
       </div>
-      <div class="m-card fragment" data-fragment-index="2">
+      <div class="m-card auto" data-ordem="3">
         <div class="m-top"><span class="m-nome">IF · TSS <span class="m-sub">FTP 153 W</span></span><span class="pill calculado">calculado</span></div>
         <div class="m-linha">
           <div class="m-val">0,69<span class="m-sep">·</span>49</div>
@@ -622,19 +622,19 @@
         </div>
       </div>
 
-      <div class="m-grupo" style="--c:var(--hr)">Carga interna · frequência cardíaca</div>
+      <div class="m-grupo auto" data-ordem="4" style="--c:var(--hr)">Carga interna · frequência cardíaca</div>
       <div class="m-par">
-        <div class="m-card fragment" data-fragment-index="3">
+        <div class="m-card auto" data-ordem="5">
           <div class="m-top"><span class="m-nome">FC média · máx</span><span class="pill medido">medido</span></div>
           <div class="m-val">139<span class="m-sep">·</span>169<small>bpm</small></div>
         </div>
-        <div class="m-card fragment" data-fragment-index="5">
+        <div class="m-card auto" data-ordem="7">
           <div class="m-top"><span class="m-nome">Recuperação</span><span class="pill calculado">calculado</span></div>
           <div class="m-val">26<span class="m-sep">·</span>28<small>bpm</small></div>
           <div class="m-cap">queda da FC em 1 · 2 min</div>
         </div>
       </div>
-      <div class="m-card hl fragment" data-fragment-index="4" data-chart-step="2">
+      <div class="m-card hl auto" data-ordem="6" data-chart-step="2">
         <div class="m-top"><span class="m-nome"><strong>Desacoplamento</strong> <span class="m-sub">Pw:FC, 1ª → 2ª metade</span></span><span class="pill calculado">calculado</span></div>
         <div class="m-linha">
           <div class="m-val">8,3<small>%</small></div>
@@ -642,7 +642,7 @@
         </div>
       </div>
 
-      <div class="m-nota fragment rise" data-fragment-index="6">
+      <div class="m-nota auto" data-ordem="8">
         <span class="pill anotacao">anotação</span>
         <span><strong>VT1 / VT2</strong> são marcados pelo usuário. O teste de 5 min é proxy de potência aeróbia e <strong>não</strong> mede VO₂máx; zonas de FC por % da máxima.</span>
       </div>

@@ -627,9 +627,9 @@ html[data-tema="escuro"] .m-card { box-shadow: none; }
 .m-linha .m-val { flex-shrink: 0; }
 .m-barra { position: relative; flex: 1; height: 12px; border-radius: 6px; background: var(--bg-3); margin-top: 8px; }
 .m-barra i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 6px; background: var(--calculado);
-  transition: width 1s cubic-bezier(.2,.7,.2,1) 0.25s; }
+  transition: width 0.7s cubic-bezier(.2,.7,.2,1) 0.15s; }
 .m-barra.alerta i { background: linear-gradient(90deg, var(--calculado) 0 60%, var(--warn) 60%); }
-.fragment.visible .m-barra i { width: var(--v); }
+.visible .m-barra i { width: var(--v); }
 .m-barra b { position: absolute; left: var(--p); top: -6px; bottom: -6px; width: 3px; margin-left: -1.5px;
   border-radius: 2px; background: var(--text); }
 .m-barra b::after { content: attr(data-r); position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
@@ -641,3 +641,9 @@ html[data-tema="escuro"] .m-card { box-shadow: none; }
 .m-barra b.fim::after { left: auto; right: 0; transform: none; }
 .m-cap { font-size: 16px; color: var(--faint); margin-top: 2px; }
 
+/* slide 12: itens entram sozinhos, um por um (deck.js), sem cliques */
+.reveal .auto-reveal .auto { opacity: 0; transform: translateY(18px) scale(0.98);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(.2,.7,.2,1); }
+.reveal .auto-reveal .auto.visible { opacity: 1; transform: none; }
+html.print-pdf .reveal .auto-reveal .auto { opacity: 1; transform: none; transition: none; }
+html.print-pdf .m-barra i { width: var(--v); transition: none; }
