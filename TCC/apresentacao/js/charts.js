@@ -233,9 +233,9 @@
     });
   }
   function stepOf(slide) {
-    // o passo é o maior data-chart-step entre os fragmentos já visíveis
+    // o passo é o maior data-chart-step entre os itens já visíveis (fragmentos ou entrada automática)
     let step = 0;
-    slide.querySelectorAll(".fragment.visible[data-chart-step]").forEach((el) => {
+    slide.querySelectorAll(".visible[data-chart-step]").forEach((el) => {
       step = Math.max(step, Number(el.dataset.chartStep) || 0);
     });
     return step;
