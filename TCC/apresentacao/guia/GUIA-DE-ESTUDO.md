@@ -9,7 +9,7 @@ lang: pt-BR
 
 Este guia explica, slide por slide, tudo o que aparece na apresentação. Em cada capítulo você encontra:
 
-- **O que aparece na tela:** a descrição de cada elemento e do que entra a cada clique.
+- **O que aparece na tela:** a descrição de cada elemento e do que entra a cada clique (ou sozinho, nos slides com entrada automática).
 - **Conceitos:** os termos do slide, explicados do zero.
 - **De onde vêm os números:** a fonte e, quando for o caso, a conta.
 - **Roteiro da fala:** o que dizer, no tempo previsto.
@@ -24,7 +24,7 @@ No fim há um glossário, a lista de números para decorar, os pontos delicados 
 
 | Tecla | O que faz |
 |---|---|
-| → ou espaço | próximo clique ou próximo slide |
+| → ou espaço | próximo clique ou próximo slide; nos slides 4 a 8, 11 e 12 os itens entram sozinhos e a tecla vai direto ao próximo slide |
 | ← | volta |
 | `S` | visão do apresentador: notas, cronômetro e próximo slide |
 | `F` | tela cheia |
@@ -194,7 +194,7 @@ Cap. 1 (Introdução) e Cap. 2 (Estado da arte, "De simuladores a ecossistemas")
   4. **Juntar os números** (planilha).
 - **Entre as janelas,** elos vermelhos quebrados com um "X". Arquivos "caem" no caminho: **GPX** (exportar e importar), **FIT** (exportar e enviar) e **CSV** (copiar os números).
 - **Frase:** "Quatro aplicativos, três exportações manuais e uma conta em cada um."
-- **Três cartões, um por clique:**
+- **Três cartões, que entram sozinhos, um por um:**
   - **Contexto perdido:** a cada troca de aplicativo, o dado se separa do percurso que o gerou.
   - **Custo e conta:** assinaturas em dólar ou euro, como US$ 19,99/mês (Zwift) e € 19,99/mês (Rouvy).
   - **Caixa-preta:** métricas como TSS e PMC aparecem sem fórmula ou parâmetro explícitos.
@@ -241,11 +241,11 @@ Uma matriz de capacidades. As linhas são as plataformas e as colunas, cinco cap
 | TrainingPeaks Virtual | ● | ● | ● | ○ | ○ |
 | GoldenCheetah | ◐ | ● | ● | ● | ● |
 | Incyclist | ● | ● | ◐ | ◐ | ● |
-| **Argus Cyclist** (clique) | ● | ● | ● | ● | ● |
+| **Argus Cyclist** (entra sozinha) | ● | ● | ● | ● | ● |
 
 ● atende · ◐ parcial · ○ não é o foco. A leitura é do autor, a partir de páginas oficiais e repositórios (out/2026).
 
-No clique seguinte aparece a frase: "Contribuição: **integração** e **transparência**, não pioneirismo em cada função."
+Em seguida aparece a frase: "Contribuição: **integração** e **transparência**, não pioneirismo em cada função."
 
 ## Conceitos
 
@@ -281,12 +281,12 @@ Cap. 2: "Síntese comparativa", "Iniciativas de código aberto" e "Quatro eixos 
   - **Reconhecimento:** ensaiar a subida de uma prova antes do dia.
   - **Exploração:** pedalar em Chamonix ou Tromsø sem sair de casa.
   - **Treino:** carga de treino medida, com fórmula aberta.
-- **Um perfil de subida** que se desenha, com um ponto amarelo (o ciclista) andando sobre ele. A cada clique entra uma estação:
+- **Um perfil de subida** que se desenha, com um ponto amarelo (o ciclista) andando sobre ele. As estações entram sozinhas, uma por uma:
   1. **Entrada:** o GPX vira relevo;
   2. **Simulação:** o rolo sente a subida;
   3. **Análise:** métricas com fórmula explícita;
   4. **Histórico:** SQLite local e FIT.
-- **Último clique:** "Tudo no mesmo aplicativo: código aberto (GPLv3), dados no dispositivo; Strava e Intervals.icu são opcionais."
+- **Por último:** "Tudo no mesmo aplicativo: código aberto (GPLv3), dados no dispositivo; Strava e Intervals.icu são opcionais."
 
 ## Conceitos
 
@@ -325,8 +325,8 @@ Cap. 1 (objetivos) e Cap. 4 ("Demonstração", os três cenários).
 | 5 | **Avaliação** (verde) | piloto de 10 meses, 114 sessões reais |
 | 6 | Comunicação | este TCC e o registro no INPI |
 
-- **Clique 1:** uma seta tracejada volta da Avaliação para o Projeto, com a frase "o que o uso revelava virava o próximo ciclo" logo abaixo da curva.
-- **Clique 2:** um gráfico em dois painéis com o mesmo eixo de tempo (jan a out/2026):
+- **Primeiro:** uma seta tracejada volta da Avaliação para o Projeto, com a frase "o que o uso revelava virava o próximo ciclo" logo abaixo da curva.
+- **Depois:** um gráfico em dois painéis com o mesmo eixo de tempo (jan a out/2026):
   - **em cima, Construção:** commits por semana (azul), total 305, com marcos verticais em **INPI** (20/01), **Android** (08/03) e **IA local** (27/05);
   - **embaixo, Avaliação:** sessões de treino por semana (verde), total 114.
 
@@ -380,7 +380,7 @@ Cap. 4: "Design Science Research", "Processo de desenvolvimento" (os três ciclo
     - **Casos de uso:** 3,2 mil linhas de Go;
       - **Domínio:** 478 linhas. Dentro dele estão as entidades **Atividade, Telemetria e Perfil** e uma caixa tracejada **"Portas (interfaces)"** com `TrainerService`, `FitService`, `GPXService`, `ActivityRepository`, `UserRepository` e mais 4 repositórios.
 
-**No clique, três setas verticais coloridas**, cada uma com um verbo:
+**Em seguida, sozinhas, três setas verticais coloridas**, cada uma com um verbo:
 
 - Casos de uso **usam** as entidades e as portas;
 - Adaptadores **implementam** as portas: SQLite, Bluetooth, FIT, GPX (a seta termina dentro da caixa de portas);
@@ -549,7 +549,7 @@ Cap. 3 ("Bluetooth Low Energy e o modelo GATT", "FTMS", "FE-C sobre BLE") e Cap.
 
 - **Cores:** cada cor indica de onde vem o dado. O **Rolo** é âmbar (manda potência) e a **Cinta** é vermelha (FC). O **Laço da sessão** é verde-azulado, a cor do Argus, e por isso as três setas que saem dele também são. A Tela, o Arquivo FIT e o Reamostrador têm o mesmo estilo neutro.
 - **À esquerda,** o **Rolo** (potência, cadência) e a **Cinta cardíaca** (FC) mandam pacotes animados (bolinhas) para o **Laço da sessão**. O laço junta os avisos e calcula a velocidade, a distância e a posição na rota (≈ 3 avisos/s).
-- Três saídas, uma por clique:
+- Três saídas, que entram sozinhas, uma por uma:
   1. **Tela** (atualiza a cada aviso): um mini HUD com 210 W, 142 bpm, 88 rpm, 24,8 km/h e 6,5%, e um mini mapa com o ciclista andando. Legenda: "HUD: potência, FC, cadência, velocidade e inclinação; mapa: posição".
   2. **Arquivo FIT** (guarda todos os avisos, com horário): três linhas de registro com horários de frações de segundo, que seguem para o histórico, o Strava e o Intervals.icu.
   3. **Reamostrador** (tira a média de cada segundo): pontos caem em três caixas, "1º, 2º e 3º segundo":
@@ -601,23 +601,22 @@ Cap. 5 ("Fluxo de telemetria", ADR-04) e Cap. 3 ("Leitura, escalas e taxas de am
 
 - **Potência (W), em amarelo:**
   - a linha tracejada cinza é a "média 96";
-  - no clique, entra a linha azul "**NP 106**";
-  - no clique seguinte, entram as faixas: **descarte** (0 a 10 min, cinza), **1ª metade** e **2ª metade · Pw:FC −8,3%** (azul-claro).
+  - junto com o cartão NP, entra a linha azul "**NP 106**";
+  - junto com o cartão Desacoplamento, entram as faixas: **descarte** (0 a 10 min, cinza), **1ª metade** e **2ª metade · Pw:FC −8,3%** (azul-claro).
 - **Frequência cardíaca (bpm), em vermelho:** a linha tracejada é a "média 139".
 
-**À direita, uma tabela** cujas linhas entram por clique, cada uma com um selo (medido, calculado ou anotação):
+**À direita, cartões de métricas** que entram sozinhos, um por um (sem cliques), cada um com um selo (medido, calculado ou anotação). Estão em dois grupos, com a cor das curvas do gráfico:
 
-| Métrica | Valor | Natureza |
-|---|---|---|
-| Potência média | 96 W | medido |
-| NP (média⁴ de 30 s) | 106 W | calculado |
-| IF · TSS (FTP 153 W) | 0,69 · 49 | calculado |
-| FC média · máx | 139 · 169 | medido |
-| Desacoplamento (Pw:FC) | 8,3% | calculado |
-| Recuperação da FC (1 · 2 min) | 26 · 28 | calculado |
-| VT1 / VT2 | n/a | anotação |
+- **Carga externa · potência** (traço amarelo):
+  - **Potência média:** 96 W (medido).
+  - **NP** (média⁴ · 30 s): 106 W, com o selo **+10%** em relação à média (calculado; cartão em destaque azul).
+  - **IF · TSS** (FTP 153 W): 0,69 · 49 (calculado), com uma barra que mostra o IF 0,69 contra o marcador "IF 1,0 = FTP".
+- **Carga interna · frequência cardíaca** (traço vermelho):
+  - **FC média · máx:** 139 · 169 bpm (medido).
+  - **Desacoplamento** (Pw:FC, 1ª → 2ª metade): 8,3% (calculado; cartão em destaque azul), com uma barra de 0 a 10% e o marcador "limiar 5%"; o trecho acima do limiar fica laranja.
+  - **Recuperação:** 26 · 28 bpm, "queda da FC em 1 · 2 min" (calculado).
 
-Nota abaixo: "Limiares são marcados pelo usuário; o teste de 5 min é proxy de potência aeróbia, **não** mede VO₂máx; zonas de FC por % da máxima."
+Por último, uma caixa tracejada roxa (anotação): "**VT1 / VT2** são marcados pelo usuário. O teste de 5 min é proxy de potência aeróbia e **não** mede VO₂máx; zonas de FC por % da máxima."
 
 Rodapé: "Coggan & Allen (2010); Banister (1991). Sessão em modo ERG (potência-alvo fixa); valores reprocessados a 1 Hz."
 

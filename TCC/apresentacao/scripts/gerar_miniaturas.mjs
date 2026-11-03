@@ -20,6 +20,9 @@ for (let h = 0; h < total; h++) {
     await page.screenshot({ path: path.join(out, `slide-${String(h + 1).padStart(2, "0")}-antes.jpg`), type: "jpeg", quality: 82 });
   }
   await page.evaluate((h) => { Reveal.slide(h, 0); while (Reveal.nextFragment()); }, h);
+  // slides com entrada automática (sem cliques): espera todos os itens aparecerem
+  await page.waitForFunction((h) => { const s = Reveal.getSlide(h);
+    return [...s.querySelectorAll(".auto-reveal .auto, .auto-reveal.auto")].every((el) => el.classList.contains("visible")); }, h, { timeout: 20000 });
   await page.waitForTimeout(2800); // animações de entrada e gráficos
   const nome = `slide-${String(h + 1).padStart(2, "0")}.jpg`;
   await page.screenshot({ path: path.join(out, nome), type: "jpeg", quality: 82 });
