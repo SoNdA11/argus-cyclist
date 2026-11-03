@@ -602,17 +602,50 @@
   <h2>Cada número tem fórmula e limite</h2>
   <div class="grid g-60-40" style="margin-top:10px">
     <div id="ch-physio" class="chart" style="height:700px" data-stepped="1"></div>
-    <div>
-      <table class="t" style="font-size:24px">
-        <tr><td>Potência média</td><td class="num">96 W</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl" data-chart-step="1"><td><strong>NP</strong> <span class="faint tiny">(média⁴ de 30 s)</span></td><td class="num">106 W</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>IF · TSS <span class="faint tiny">(FTP 153 W)</span></td><td class="num">0,69 · 49</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>FC média · máx</td><td class="num">139 · 169</td><td><span class="pill medido">medido</span></td></tr>
-        <tr class="fragment hl" data-chart-step="2"><td><strong>Desacoplamento</strong> <span class="faint tiny">(Pw:FC)</span></td><td class="num">8,3%</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>Recuperação da FC (1 · 2 min)</td><td class="num">26 · 28</td><td><span class="pill calculado">calculado</span></td></tr>
-        <tr class="fragment"><td>VT1 / VT2</td><td class="num">—</td><td><span class="pill anotacao">anotação</span></td></tr>
-      </table>
-      <p class="fragment rise tiny muted" style="margin-top:18px">Limiares são marcados pelo usuário; o teste de 5 min é proxy de potência aeróbia, <strong>não</strong> mede VO₂máx; zonas de FC por % da máxima.</p>
+    <div class="metricas">
+      <div class="m-grupo" style="--c:var(--power)">Carga externa · potência</div>
+      <div class="m-par">
+        <div class="m-card">
+          <div class="m-top"><span class="m-nome">Potência média</span><span class="pill medido">medido</span></div>
+          <div class="m-val">96<small>W</small></div>
+        </div>
+        <div class="m-card hl fragment" data-fragment-index="1" data-chart-step="1">
+          <div class="m-top"><span class="m-nome"><strong>NP</strong> <span class="m-sub">média⁴ · 30 s</span></span><span class="pill calculado">calculado</span></div>
+          <div class="m-val">106<small>W</small><span class="m-delta">+10%</span></div>
+        </div>
+      </div>
+      <div class="m-card fragment" data-fragment-index="2">
+        <div class="m-top"><span class="m-nome">IF · TSS <span class="m-sub">FTP 153 W</span></span><span class="pill calculado">calculado</span></div>
+        <div class="m-linha">
+          <div class="m-val">0,69<span class="m-sep">·</span>49</div>
+          <div class="m-barra" style="--v:69%"><i></i><b class="fim" style="--p:100%" data-r="IF 1,0 = FTP"></b></div>
+        </div>
+      </div>
+
+      <div class="m-grupo" style="--c:var(--hr)">Carga interna · frequência cardíaca</div>
+      <div class="m-par">
+        <div class="m-card fragment" data-fragment-index="3">
+          <div class="m-top"><span class="m-nome">FC média · máx</span><span class="pill medido">medido</span></div>
+          <div class="m-val">139<span class="m-sep">·</span>169<small>bpm</small></div>
+        </div>
+        <div class="m-card fragment" data-fragment-index="5">
+          <div class="m-top"><span class="m-nome">Recuperação</span><span class="pill calculado">calculado</span></div>
+          <div class="m-val">26<span class="m-sep">·</span>28<small>bpm</small></div>
+          <div class="m-cap">queda da FC em 1 · 2 min</div>
+        </div>
+      </div>
+      <div class="m-card hl fragment" data-fragment-index="4" data-chart-step="2">
+        <div class="m-top"><span class="m-nome"><strong>Desacoplamento</strong> <span class="m-sub">Pw:FC, 1ª → 2ª metade</span></span><span class="pill calculado">calculado</span></div>
+        <div class="m-linha">
+          <div class="m-val">8,3<small>%</small></div>
+          <div class="m-barra alerta" style="--v:83%"><i></i><b style="--p:50%" data-r="limiar 5%"></b></div>
+        </div>
+      </div>
+
+      <div class="m-nota fragment rise" data-fragment-index="6">
+        <span class="pill anotacao">anotação</span>
+        <span><strong>VT1 / VT2</strong> são marcados pelo usuário. O teste de 5 min é proxy de potência aeróbia e <strong>não</strong> mede VO₂máx; zonas de FC por % da máxima.</span>
+      </div>
     </div>
   </div>
   <div class="source">Coggan &amp; Allen (2010); Banister (1991). Sessão em modo ERG (potência-alvo fixa); valores reprocessados a 1 Hz.</div>
