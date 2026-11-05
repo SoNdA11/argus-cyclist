@@ -74,6 +74,7 @@ if (typeof window.go === 'undefined') {
             App: new Proxy({}, {
                 get: function (target, prop) {
                     if (prop === 'GetUserProfile') return async () => ({ name: "Mobile", weight: 75, bike_weight: 9, ftp: 200, units: "metric" });
+                    if (prop === 'GetLevelProgress') return async () => ({ level: 1, xp: 0, level_xp: 0, next_level_xp: 500 });
                     if (prop === 'GetTotalStats') return async () => ({ total_km: 0, total_time: 0 });
                     if (prop === 'GetActivities') return async () => [];
                     if (prop === 'GetMonthlyActivities') return async () => [];

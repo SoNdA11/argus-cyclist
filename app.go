@@ -115,6 +115,9 @@ type GamificationResult struct {
 	StreakBonusXP  int64               `json:"streak_bonus_xp"`
 	TotalXPEarned  int64               `json:"total_xp_earned"`
 	NewLevel       int                 `json:"new_level"`
+	NewXP          int64               `json:"new_xp"`        // cumulative XP after the session
+	LevelXP        int64               `json:"level_xp"`      // XP at which the new level starts
+	NextLevelXP    int64               `json:"next_level_xp"` // XP needed for the next level
 	LevelUp        bool                `json:"level_up"`
 	BadgesUnlocked []domain.UserBadge  `json:"badges_unlocked"`
 	GoalsCompleted []domain.CustomGoal `json:"goals_completed"`
@@ -329,6 +332,12 @@ func (a *App) SelectLocalAccount(id string) (string, error) {
 	}
 
 	profile, _ := a.storageService.GetProfile()
+	if repairLevelProgress(&profile) {
+		fmt.Printf("[XP] Repaired level progress: level %d, %d XP\n", profile.Level, profile.CurrentXP)
+		if err := a.storageService.UpdateProfile(profile); err != nil {
+			fmt.Println("[XP] Error saving repaired profile:", err)
+		}
+	}
 	a.physicsEngine.UserWeight = profile.Weight
 	a.physicsEngine.BikeWeight = profile.BikeWeight
 
@@ -405,7 +414,14 @@ func (a *App) GetUserProfile() domain.UserProfile {
 
 // UpdateUserProfile updates the user profile and applies changes
 // immediately to the physics engine.
+//
+// Level and XP are owned by the backend (ProcessGamification): the values sent
+// by the frontend are ignored, so a stale or partial copy cannot overwrite them.
 func (a *App) UpdateUserProfile(u domain.UserProfile) string {
+	if stored, err := a.storageService.GetProfile(); err == nil {
+		u.Level = stored.Level
+		u.CurrentXP = stored.CurrentXP
+	}
 	if err := a.storageService.UpdateProfile(u); err != nil {
 		return "Error updating profile"
 	}

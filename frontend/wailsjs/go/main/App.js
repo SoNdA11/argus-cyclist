@@ -194,6 +194,10 @@ export function GetFitnessTests() {
   return window['go']['main']['App']['GetFitnessTests']();
 }
 
+export function GetLevelProgress() {
+  return window['go']['main']['App']['GetLevelProgress']();
+}
+
 export function GetLocalAccounts() {
   return window['go']['main']['App']['GetLocalAccounts']();
 }

@@ -895,6 +895,9 @@ export namespace main {
 	    streak_bonus_xp: number;
 	    total_xp_earned: number;
 	    new_level: number;
+	    new_xp: number;
+	    level_xp: number;
+	    next_level_xp: number;
 	    level_up: boolean;
 	    badges_unlocked: domain.UserBadge[];
 	    goals_completed: domain.CustomGoal[];
@@ -911,6 +914,9 @@ export namespace main {
 	        this.streak_bonus_xp = source["streak_bonus_xp"];
 	        this.total_xp_earned = source["total_xp_earned"];
 	        this.new_level = source["new_level"];
+	        this.new_xp = source["new_xp"];
+	        this.level_xp = source["level_xp"];
+	        this.next_level_xp = source["next_level_xp"];
 	        this.level_up = source["level_up"];
 	        this.badges_unlocked = this.convertValues(source["badges_unlocked"], domain.UserBadge);
 	        this.goals_completed = this.convertValues(source["goals_completed"], domain.CustomGoal);
@@ -933,6 +939,24 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class LevelProgress {
+	    level: number;
+	    xp: number;
+	    level_xp: number;
+	    next_level_xp: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new LevelProgress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.level = source["level"];
+	        this.xp = source["xp"];
+	        this.level_xp = source["level_xp"];
+	        this.next_level_xp = source["next_level_xp"];
+	    }
 	}
 	export class PendingRecovery {
 	    // Go type: time

@@ -148,8 +148,11 @@ export class UIManager {
         // --- PHOTO ---
         this.currentPhotoData = "";
 
+        // Level and XP come from the backend (cumulative XP). The bar fills
+        // from levelXp (start of the level) to nextLevelXp.
         this.level = 1;
         this.xp = 0;
+        this.levelXp = 0;
         this.nextLevelXp = 500;
 
         // --- Live Chart Data Arrays ---
@@ -1055,12 +1058,8 @@ export class UIManager {
             this.ftp = profile.ftp || 200;
             this.maxHr = profile.max_hr || 190;
 
-            this.level = profile.level || 1;
-            this.xp = profile.current_xp || 0;
-
-            const lvlLabel = document.getElementById('level-val');
-            if (lvlLabel) lvlLabel.innerText = this.level;
-            this.updateXPBarUI();
+            this.setLevelProgress({ level: profile.level, xp: profile.current_xp });
+            await this.loadLevelProgress();
 
             // Set Photo Details Update if on main view
             if (document.getElementById('profileNameDisplay')) {
@@ -1377,9 +1376,8 @@ export class UIManager {
             lthr: parseInt(this.els.inputLTHR.value) || 170,
             resting_hr: parseInt(this.els.inputRestingHR.value) || 60,
 
-            units: this.els.selectUnits.value,
-            level: this.level,
-            current_xp: parseInt(this.xp)
+            units: this.els.selectUnits.value
+            // level / current_xp are owned by the backend and never sent from here
         };
 
         try {
@@ -1646,31 +1644,32 @@ export class UIManager {
         }
     }
 
-    addXP(amount) {
-        this.xp += amount;
-
-        if (this.xp >= this.nextLevelXp) {
-            this.levelUp();
+    /** Fetches the level and XP bar bounds from the backend. */
+    async loadLevelProgress() {
+        try {
+            if (!window.go || !window.go.main || !window.go.main.App.GetLevelProgress) return;
+            const p = await window.go.main.App.GetLevelProgress();
+            if (p) this.setLevelProgress(p);
+        } catch (e) {
+            console.error('Error loading level progress:', e);
         }
-
-        this.updateXPBarUI();
     }
 
-    levelUp() {
-        this.level++;
-        this.xp = Math.max(0, this.xp - this.nextLevelXp);
-        this.nextLevelXp = Math.floor(this.nextLevelXp * 1.2);
-
-        console.log(`LEVEL UP! Nível ${this.level}`);
+    /** @param {{level?: number, xp?: number, level_xp?: number, next_level_xp?: number}} p */
+    setLevelProgress(p) {
+        if (Number.isFinite(p.level) && p.level > 0) this.level = p.level;
+        if (Number.isFinite(p.xp)) this.xp = p.xp;
+        if (Number.isFinite(p.level_xp)) this.levelXp = p.level_xp;
+        if (Number.isFinite(p.next_level_xp) && p.next_level_xp > this.levelXp) this.nextLevelXp = p.next_level_xp;
 
         const lvlLabel = document.getElementById('level-val');
         if (lvlLabel) lvlLabel.innerText = this.level;
-
-        this.saveUserProfile();
+        this.updateXPBarUI();
     }
 
     updateXPBarUI() {
-        const pct = Math.min((this.xp / this.nextLevelXp) * 100, 100);
+        const span = Math.max(1, this.nextLevelXp - this.levelXp);
+        const pct = Math.max(0, Math.min(((this.xp - this.levelXp) / span) * 100, 100));
 
         const bar = document.getElementById('xp-fill');
         if (bar) {
@@ -1751,9 +1750,8 @@ export class UIManager {
                     }, 2500);
                 }
                 
-                // Update local model
-                this.level = summary.gamification.new_level;
-                this.xp = summary.gamification.new_xp;
+                // Update local model (cumulative XP from the backend)
+                this.setLevelProgress({ level: g.new_level, xp: g.new_xp, level_xp: g.level_xp, next_level_xp: g.next_level_xp });
                 this.loadTrophyRoom();
             } else {
                 // Hide or reset if gamification is missing

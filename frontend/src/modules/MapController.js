@@ -38,7 +38,6 @@ export class MapController {
         this.editorPoints = [];
         this.generatedRouteData = null;
 
-        this.lastXPDist = 0;
 
         this._throttleTimer = null;
         this._throttleInterval = 150;
@@ -228,9 +227,6 @@ export class MapController {
 
         this.updatePosition(lat, lon, heading);
 
-        if (telemetry && telemetry.total_dist > 0) {
-            this.calculatePassiveXP(telemetry);
-        }
     }
 
     calculateBearing(lat1, lon1, lat2, lon2) {
@@ -353,7 +349,6 @@ export class MapController {
 
     resetState() {
         this.prevLngLat = null;
-        this.lastXPDist = 0;
         this.followCyclist = true;
     }
 
@@ -408,25 +403,6 @@ export class MapController {
             setTimeout(() => {
                 this.isFlying = false;
             }, 1550);
-        }
-    }
-
-    calculatePassiveXP(telemetry) {
-        if (telemetry.total_dist <= 0) return;
-        if (this.lastXPDist === 0) {
-            this.lastXPDist = telemetry.total_dist;
-            return;
-        }
-        const deltaMeters = telemetry.total_dist - this.lastXPDist;
-        if (deltaMeters > 1.0) {
-            let xpGain = deltaMeters * 0.1;
-            const grade = telemetry.grade || 0;
-            if (grade > 2.0) xpGain *= 1.5;
-            if (grade > 5.0) xpGain *= 2.0;
-            if (window.ui && window.ui.addXP) {
-                window.ui.addXP(xpGain);
-            }
-            this.lastXPDist = telemetry.total_dist;
         }
     }
 

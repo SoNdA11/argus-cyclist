@@ -20,6 +20,62 @@ func CalculateLevel(totalXP int64) int {
 	return int(math.Floor(lvl)) + 1
 }
 
+// XPForLevel is the cumulative XP at which a level starts (inverse of
+// CalculateLevel): 500 × (level − 1)^(1/0.6).
+func XPForLevel(level int) int64 {
+	if level <= 1 {
+		return 0
+	}
+	xp := int64(math.Ceil(500.0 * math.Pow(float64(level-1), 1/0.6)))
+	// guard against floating point landing one XP short of the level
+	for CalculateLevel(xp) < level {
+		xp++
+	}
+	return xp
+}
+
+// LevelProgress is the XP bar of the profile: CurrentXP is cumulative, the bar
+// fills from LevelXP (start of the level) to NextLevelXP.
+type LevelProgress struct {
+	Level       int   `json:"level"`
+	XP          int64 `json:"xp"`
+	LevelXP     int64 `json:"level_xp"`
+	NextLevelXP int64 `json:"next_level_xp"`
+}
+
+func levelProgress(level int, xp int64) LevelProgress {
+	return LevelProgress{Level: level, XP: xp, LevelXP: XPForLevel(level), NextLevelXP: XPForLevel(level + 1)}
+}
+
+// GetLevelProgress returns the level and XP bar of the current profile.
+func (a *App) GetLevelProgress() LevelProgress {
+	p := a.GetUserProfile()
+	if p.Level < 1 {
+		p.Level = 1
+	}
+	return levelProgress(p.Level, p.CurrentXP)
+}
+
+// repairLevelProgress fixes profiles whose cumulative XP was drained below the
+// start of the level they had reached (see fix/xp-level-reset): the XP is
+// raised to the first XP of that level, so the level and the bar agree again.
+// It never lowers anything. Returns true when the profile changed.
+func repairLevelProgress(p *domain.UserProfile) bool {
+	if p.Level < 1 {
+		p.Level = 1
+	}
+	changed := false
+	if calc := CalculateLevel(p.CurrentXP); calc > p.Level {
+		p.Level = calc
+		changed = true
+	}
+	if floor := XPForLevel(p.Level); p.CurrentXP < floor {
+		p.CurrentXP = floor
+		changed = true
+	}
+	return changed
+}
+
 // ProcessGamification calculates XP, checks streaks, goals, and badges.
 func (a *App) ProcessGamification(activity domain.Activity) GamificationResult {
 	profile := a.GetUserProfile()
@@ -91,8 +147,12 @@ func (a *App) ProcessGamification(activity domain.Activity) GamificationResult {
 		profile.Level = newLevel
 	}
 	
-	// Save profile
-	a.UpdateUserProfile(profile)
+	// Save profile. Straight to storage: UpdateUserProfile is the frontend
+	// binding and keeps the stored level and XP.
+	if err := a.storageService.UpdateProfile(profile); err != nil {
+		fmt.Println("Error saving gamification progress:", err)
+	}
+	progress := levelProgress(profile.Level, profile.CurrentXP)
 	
 	return GamificationResult{
 		TimeXP:         timeXP,
@@ -100,7 +160,10 @@ func (a *App) ProcessGamification(activity domain.Activity) GamificationResult {
 		ElevationXP:    elevationXP,
 		StreakBonusXP:  streakBonusXP,
 		TotalXPEarned:  totalEarned,
-		NewLevel:       newLevel,
+		NewLevel:       profile.Level,
+		NewXP:          profile.CurrentXP,
+		LevelXP:        progress.LevelXP,
+		NextLevelXP:    progress.NextLevelXP,
 		LevelUp:        levelUp,
 		BadgesUnlocked: badgesUnlocked,
 		GoalsCompleted: goalsCompleted,
