@@ -100,6 +100,8 @@ export function GetEventLeaderboard(arg1:string):Promise<Array<domain.EventRecor
 
 export function GetFitnessTests():Promise<Array<domain.ActiveWorkout>>;
 
+export function GetLevelProgress():Promise<main.LevelProgress>;
+
 export function GetLocalAccounts():Promise<Array<domain.ProfileSummary>>;
 
 export function GetMonthlyActivities(arg1:number,arg2:number):Promise<Array<domain.Activity>>;
