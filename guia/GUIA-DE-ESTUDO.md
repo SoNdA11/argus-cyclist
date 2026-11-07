@@ -245,7 +245,7 @@ Uma matriz de capacidades. As linhas são as plataformas e as colunas, cinco cap
 
 ● atende · ◐ parcial · ○ não é o foco. A leitura é do autor, a partir de páginas oficiais e repositórios (out/2026).
 
-Em seguida aparece a frase: "Contribuição: **integração** e **transparência**, não pioneirismo em cada função."
+Em seguida aparece a frase: "A linha completa não vem de cinco invenções: vem de **um fluxo só**, aberto e auditável."
 
 ## Conceitos
 
@@ -874,11 +874,11 @@ Cap. 4 ("Problema, requisitos e escopo") e Cap. 7 ("Avaliação funcional", "Ava
 - **Título:** "O fluxo funciona, e cada número pode ser conferido".
 - **Pergunta:** "Dá para reunir percurso, simulação, análise do treino e histórico em um único software aberto?"
 - **Resposta:** "**Sim, no desktop**, nas condições testadas. No Android, a sessão ao vivo."
-- **Quatro provas:**
-  - **1 fluxo:** GPX → rolo → métricas → histórico, sem trocar de aplicativo;
-  - **7 métricas:** carga externa (NP, IF, TSS, PMC) e resposta cardíaca (TRIMP, HRR, Pw:FC), com fórmula aberta e 27 testes;
-  - **10 meses:** 114 sessões e 2.182 km de uso real no piloto;
-  - **GPLv3 · INPI:** código aberto e registrado, com o processo documentado no Git.
+- **Quatro provas**, cada card com um rótulo que diz o que ele prova, um número grande, a evidência e uma legenda:
+  - **Integra · 1 fluxo:** trilho GPX → rolo → métricas → histórico; "sem trocar de aplicativo";
+  - **Mede · 7 métricas:** NP, IF, TSS e PMC em amarelo e TRIMP, HRR e Pw:FC em vermelho (legendas "potência" e "FC"); "fórmulas abertas e 27 testes, 7 deles de métricas";
+  - **Foi usado · 10 meses:** 114 sessões e 2.182 km; "de uso real no piloto, com rolo e sensores de verdade";
+  - **É aberto · GPLv3:** registro no INPI e 376 commits; "código público: qualquer pessoa pode auditar e reproduzir".
 - **O que este trabalho não mostra:**
   - eficácia de treino (o piloto teve um participante);
   - validação clínica das métricas (sem lactato nem VO₂máx);
@@ -898,7 +898,7 @@ Cap. 4 ("Problema, requisitos e escopo") e Cap. 7 ("Avaliação funcional", "Ava
 
 "Voltando à pergunta do início: dá para reunir percurso, simulação, análise do treino e histórico num só software aberto? No desktop, sim, nas condições testadas; no Android, a sessão ao vivo.
 
-As provas são quatro: um fluxo sem trocar de aplicativo; sete métricas com fórmula aberta e 27 testes; dez meses de uso real; e o código aberto e registrado.
+As provas são quatro: um fluxo sem trocar de aplicativo; sete métricas com fórmula aberta, cobertas por 7 dos 27 testes; dez meses de uso real; e o código aberto, registrado no INPI e versionado no GitHub.
 
 E o que este trabalho não mostra: eficácia de treino, porque foi um participante; validação clínica; e o Android completo. Os próximos passos são um estudo com ciclistas, o reconhecimento automático com *pacing* e os mapas offline.
 
