@@ -510,12 +510,39 @@ html.print-pdf .elo .arquivo { animation: none !important; }
 .qa-q span { color: var(--faint); }
 .qa-a { background: var(--tint-teal); color: var(--text); border-left: 1px solid var(--line); }
 .qa-a span { color: var(--teal); }
-.provas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 40px; }
-.prova { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; opacity: 0; }
+.provas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 32px; }
+.prova { display: flex; flex-direction: column; background: var(--bg-2); border: 1px solid var(--line); border-top: 4px solid var(--teal);
+  border-radius: 16px; padding: 22px 26px 24px; opacity: 0; }
 .present .prova { animation: entra 0.5s ease forwards; animation-delay: calc(0.2s + var(--i) * 0.15s); }
-.prova-n { font-family: var(--mono); font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
-.prova p { font-size: 21px; color: var(--muted); margin: 8px 0 0; line-height: 1.3; }
-.fecho { margin-top: 40px; }
+/* rótulo: o que a evidência prova (integra · mede · foi usado · é aberto) */
+.prova-k { font-family: var(--mono); font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); }
+.prova-n { margin-top: 6px; font-family: var(--mono); font-size: 26px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.prova-n b { font-size: 50px; font-weight: 700; margin-right: 4px; }
+/* faixa de evidência com altura fixa: as quatro legendas alinham embaixo */
+.cadeia, .chips, .pares { height: 84px; margin: 18px 0 0; }
+.prova p { margin: auto 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 20px; color: var(--muted); line-height: 1.3;
+  box-sizing: content-box; min-height: 2.6em; } /* duas linhas: os divisórios alinham mesmo com legenda curta */
+.prova p strong { color: var(--text); }
+/* card 1: as quatro etapas do fluxo, como trilho */
+.cadeia { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); align-content: center; }
+.cadeia li { position: relative; padding-top: 30px; font-size: 18px; color: var(--text); text-align: center; white-space: nowrap; }
+.cadeia li::before { content: ""; position: absolute; top: 4px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: var(--teal); z-index: 1; }
+.cadeia li:not(:last-child)::after { content: ""; position: absolute; top: 10px; left: 50%; width: 100%; height: 2px; background: var(--teal); opacity: 0.45; }
+/* card 2: 4 métricas de potência + 3 de FC, nas cores fixas da apresentação */
+.chips { display: grid; align-content: center; gap: 10px; }
+.chips > div { display: flex; align-items: center; gap: 6px; }
+.chip { font-family: var(--mono); font-size: 17px; font-weight: 600; padding: 3px 9px; border-radius: 7px; white-space: nowrap; }
+.chip.pw { color: var(--power); background: var(--tint-power); }
+.chip.fc { color: var(--hr); background: var(--tint-hr); }
+/* legenda da linha: mesmo estilo de "sessões", "km", "registro" e "commits" */
+.chips em { margin-left: 6px; font-style: normal; font-size: 17px; color: var(--muted); }
+/* cards 3 e 4: dois números de apoio */
+.pares { display: grid; grid-template-columns: 1fr 1fr; align-content: center; }
+.pares > div { display: flex; flex-direction: column; font-size: 17px; color: var(--muted); }
+.pares > div + div { padding-left: 18px; border-left: 1px solid var(--line); }
+.pares b { font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; line-height: 1.15; }
+.fecho { margin-top: 32px; }
 .fecho .card { padding: 26px 30px; }
 .fecho h4 { font-size: 26px; margin-bottom: 8px; }
 .fecho li { font-size: 22px; margin-bottom: 4px; }
@@ -526,7 +553,7 @@ html.print-pdf .elo .arquivo { animation: none !important; }
 .roadmap b { position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--blue); color: #fff;
   display: flex; align-items: center; justify-content: center; font-size: 18px; }
 .roadmap div:not(:last-child)::after { content: ""; position: absolute; top: 17px; left: 44px; right: -6px; height: 2px; background: var(--line); }
-.reveal .frase-final { margin: 56px auto 0; padding-top: 28px; border-top: 1px solid var(--line); max-width: 1300px; font-size: 27px; color: var(--muted); text-align: center; }
+.reveal .frase-final { margin: 40px auto 0; padding-top: 24px; border-top: 1px solid var(--line); max-width: 1300px; font-size: 27px; color: var(--muted); text-align: center; }
 html.print-pdf .prova { opacity: 1 !important; animation: none !important; }
 @media print { .prova { opacity: 1 !important; animation: none !important; } }
 .roadmap em { color: inherit; font-style: italic; }
