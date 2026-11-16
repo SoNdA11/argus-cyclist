@@ -115,14 +115,14 @@ Rótulo "Roteiro da apresentação" e título "Sumário". O roteiro é desenhado
 
 | # | Seção | Descrição | Slides |
 |---|---|---|---|
-| 01 | Contexto e problema | ciclismo virtual, fluxo fragmentado e estado da arte | 3–5 |
-| 02 | Proposta | um fluxo para três usos | 6 |
-| 03 | Metodologia | Design Science Research, em ciclos | 7 |
-| 04 | Arquitetura e implementação | camadas, Bluetooth e tempo real | 8–11 |
-| 05 | Resultados | análise do treino, uso real, funcionalidades e requisitos | 12–15 |
-| 06 | Conclusão | contribuições, limites e próximos passos | 16 |
+| 01 | Contexto e problema | ciclismo virtual, problema, justificativa e estado da arte | 3–6 |
+| 02 | Proposta | um fluxo para três usos | 7 |
+| 03 | Metodologia | Design Science Research, em ciclos | 8 |
+| 04 | Arquitetura e implementação | camadas, Bluetooth e tempo real | 9–11 |
+| 05 | Resultados | análise do treino, funcionalidades e requisitos | 12–14 |
+| 06 | Conclusão | contribuições, limites e próximos passos | 15 |
 
-As referências (17 e 18) e o agradecimento (19) ficam fora do sumário, como é usual.
+As referências (16 e 17) e o agradecimento (18) ficam fora do sumário, como é usual.
 
 ## Para que serve
 
@@ -195,9 +195,9 @@ Cap. 1 (Introdução) e Cap. 2 (Estado da arte, "De simuladores a ecossistemas")
 - **Entre as janelas,** elos vermelhos quebrados com um "X". Arquivos "caem" no caminho: **GPX** (exportar e importar), **FIT** (exportar e enviar) e **CSV** (copiar os números).
 - **Frase:** "Quatro aplicativos, três exportações manuais e uma conta em cada um."
 - **Três cartões, que entram sozinhos, um por um:**
-  - **Contexto perdido:** a cada troca de aplicativo, o dado se separa do percurso que o gerou.
-  - **Custo e conta:** assinaturas em dólar ou euro, como US$ 19,99/mês (Zwift) e € 19,99/mês (Rouvy).
-  - **Caixa-preta:** métricas como TSS e PMC aparecem sem fórmula ou parâmetro explícitos.
+  - **Contexto perdido:** percurso e dado separados; GPX perde centralidade.
+  - **Custo e portabilidade:** assinaturas em moeda estrangeira; GPU dedicada; histórico no fornecedor.
+  - **Caixa-preta e oferta aberta:** NP, IF, TSS, TRIMP, PMC sem fórmula; open source em pedaços.
 - **Rodapé:** os preços foram consultados em out/2026 nas páginas oficiais (Cap. 2).
 
 ## Conceitos
@@ -225,9 +225,27 @@ O Argus ataca a fragmentação e a caixa-preta, mantendo o dado no seu computado
 Cap. 1 (problema e justificativa) e Cap. 2 ("A lacuna do fluxo integrado").
 
 
-# Slide 5 · As peças existem, mas não juntas
+# Slide 5 · Quatro dimensões de relevância
 
 ![](img/slide-05.jpg)
+
+## O que aparece na tela
+
+- **Quatro cartões**, que entram um por um, um por dimensão da justificativa (Cap. 1, sec. justificativa), cada um com 3 tópicos:
+  - **Tecnológica:** interface responsiva com BLE, física, persistência e renderização concorrentes; backend em Go (conc. e integração com hardware); frontend web reutilizado (Wails no desktop, Capacitor no Android); motor físico duplicado em JS para o modo móvel (sem o processo Go).
+  - **Científica:** modelos consolidados (Martin et al. para resistência ao avanço); métricas derivadas de potência e FC com parâmetros explícitos; diferencia o que é medido, estimado e convenção de treino.
+  - **Social e educacional:** GPLv3, sem assinatura; artefato de aprendizagem para o curso (sistemas distribuídos, concorrência, protocolos, persistência, visualização, física, fisiologia); documentação em português; código estudável e reutilizável.
+  - **Projeto e reprodutibilidade:** DSR (problema, requisitos, decisões, testes, limitações e avaliação); reprodutibilidade em três níveis (código aberto, fórmulas documentadas, histórico Git); ciclo entre construção e avaliação.
+- **Rodapé:** "O Argus não resolve tudo de uma vez: ataca a fragmentação, mantém o dado no dispositivo e torna a análise explícita."
+
+## No TCC
+
+Cap. 1 ("Justificativa": relevância tecnológica, científica, social/educacional e de projeto/reprodutibilidade).
+
+
+# Slide 6 · As peças existem, mas não juntas
+
+![](img/slide-06.jpg)
 
 ## O que aparece na tela
 
@@ -271,9 +289,9 @@ O Argus não é pioneiro em nenhuma função isolada. A contribuição é juntar
 Cap. 2: "Síntese comparativa", "Iniciativas de código aberto" e "Quatro eixos de diferenciação".
 
 
-# Slide 6 · Um fluxo para três usos
+# Slide 7 · Um fluxo para três usos
 
-![](img/slide-06.jpg)
+![](img/slide-07.jpg)
 
 ## O que aparece na tela
 
@@ -308,9 +326,9 @@ Chamonix e Tromsø estão no seu histórico real (`chamonix-32km.gpx`, 4 sessõe
 Cap. 1 (objetivos) e Cap. 4 ("Demonstração", os três cenários).
 
 
-# Slide 7 · Construir, usar e corrigir, em ciclos
+# Slide 8 · Construir, usar e corrigir, em ciclos
 
-![](img/slide-07.jpg)
+![](img/slide-08.jpg)
 
 ## O que aparece na tela
 
@@ -367,9 +385,9 @@ O gráfico mostra isso com dados reais. Em azul, a construção, em commits por 
 Cap. 4: "Design Science Research", "Processo de desenvolvimento" (os três ciclos) e "Avaliação".
 
 
-# Slide 8 · Como o Argus foi construído
+# Slide 9 · Como o Argus foi construído
 
-![](img/slide-08.jpg)
+![](img/slide-09.jpg)
 
 ## O que aparece na tela
 
@@ -439,9 +457,9 @@ Na prática, posso trocar o rolo real por um rolo virtual de teste sem mexer nas
 Cap. 5: "*Stack* tecnológica", "Clean Architecture e Ports & Adapters" e "Decisões e compensações" (tabela de ADRs).
 
 
-# Slide 9 · Núcleo em Go, interface web compartilhada
+# Slide 10 · Núcleo em Go, interface web compartilhada
 
-![](img/slide-09.jpg)
+![](img/slide-10.jpg)
 
 ## O que aparece na tela
 
@@ -485,11 +503,11 @@ Ramificações:
 Cap. 5: "Topologia de componentes" e "Arquitetura móvel".
 
 
-# Slide 10 · Como o Argus conversa com o rolo
+# Slide 11 · Como o Argus conversa com o rolo
 
 ![](img/slide-10-antes.jpg)
 
-![](img/slide-10.jpg)
+![](img/slide-11.jpg)
 
 ## O que aparece na tela
 
@@ -541,9 +559,9 @@ Existe um detalhe importante: nada no protocolo prova que esses 210 watts vieram
 Cap. 3 ("Bluetooth Low Energy e o modelo GATT", "FTMS", "FE-C sobre BLE") e Cap. 6 ("Integração com o rolo").
 
 
-# Slide 11 · Do sensor até o ciclista
+# Slide 12 · Do sensor até o ciclista
 
-![](img/slide-11.jpg)
+![](img/slide-12.jpg)
 
 ## O que aparece na tela
 
@@ -591,9 +609,9 @@ E o reamostrador agrupa os avisos de cada segundo e tira a média, porque as fó
 Cap. 5 ("Fluxo de telemetria", ADR-04) e Cap. 3 ("Leitura, escalas e taxas de amostragem").
 
 
-# Slide 12 · Cada número tem fórmula e limite
+# Slide 13 · Cada número tem fórmula e limite
 
-![](img/slide-12.jpg)
+![](img/slide-13.jpg)
 
 ## O que aparece na tela
 
@@ -696,53 +714,6 @@ O mais importante é o que está à direita: cada número tem um selo, medido, c
 
 Cap. 3 ("Análise do treino e carga": FTP e zonas, NP/IF/TSS, TRIMP, PMC, desacoplamento e HRR) e Cap. 6 ("Métricas e análise").
 
-
-# Slide 13 · Dez meses de uso real
-
-![](img/slide-13.jpg)
-
-## O que aparece na tela
-
-- **Quatro números grandes:**
-  - **114** sessões de 10 min ou mais (de 140);
-  - **2.182 km** de distância virtual;
-  - **92 h** de tempo ativo;
-  - **282 FIT**: 98 de treino + 184 de eventos.
-- **O gráfico PMC** (mar a out/2026):
-  - barras cinza: TSS diário;
-  - linha azul: CTL (42 dias);
-  - linha vermelha: ATL (7 dias);
-  - tracejado amarelo: TSB.
-- Rodapé: "PMC reconstruído com as constantes do sistema (42 e 7 dias) a partir do banco local do autor."
-
-## Conceitos
-
-- **PMC (Performance Management Chart):**
-  - **CTL ("fitness"):** média exponencial do TSS diário com constante de 42 dias. É o condicionamento acumulado.
-  - **ATL ("fadiga"):** a mesma conta com 7 dias. É a carga recente.
-  - **TSB ("forma"):** CTL − ATL. Negativo indica carga recente alta; positivo indica descanso.
-  - Como o Argus calcula, a cada dia: CTL ← CTL + (TSS − CTL)/42 e ATL ← ATL + (TSS − ATL)/7.
-- **Leitura do gráfico:** há blocos de treino (mar a mai e out), com a ATL subindo e a TSB negativa, e pausas (jun a set), com a CTL caindo devagar.
-
-## De onde vêm os números
-
-- **140 atividades** no banco, das quais **114** têm 10 min ou mais. As 26 curtas são testes e sessões interrompidas.
-- **282 FIT** = 98 em `workouts/` + 184 em `workouts/events/`. Cada tentativa de evento (sprint, KOM, contrarrelógio) gera um FIT, mas não entra no histórico de treinos. Os FIT de jan a mar não ficaram no disco.
-- **2.182 km e 92 h:** soma das 114 sessões.
-- **Atenção:** o TCC diz **274 FIT** (levantamento de 18/10). O deck usa 282, a contagem atualizada.
-
-## Roteiro da fala (1:00)
-
-"Os números documentam uso continuado, não desempenho: 114 sessões, 2.182 quilômetros e 92 horas em dez meses. O PMC mostra blocos de treino, de março a maio e em outubro, e pausas no meio do ano. A CTL é o condicionamento de 42 dias, a ATL a fadiga de 7 dias, e a TSB a diferença entre as duas."
-
-## Perguntas prováveis
-
-- **Por que 114 e 282 são diferentes?** Contam coisas diferentes: 114 são treinos de 10 min ou mais; 282 são arquivos FIT, incluindo 184 tentativas do modo eventos.
-- **(EF) A CTL ficou baixa (~20). Isso diz algo do atleta?** Diz só que o volume foi moderado e irregular. O objetivo era avaliar o software, não o atleta.
-
-## No TCC
-
-Cap. 3 ("PMC: CTL, ATL e TSB") e Cap. 7 ("Estudo piloto").
 
 
 # Slide 14 · Do treino à análise
@@ -911,9 +882,9 @@ Cap. 8 inteiro: síntese, contribuições, limitações, trabalhos futuros e con
 
 # Slides 17 e 18 · Referências
 
-![](img/slide-17.jpg)
+![](img/slide-15.jpg)
 
-![](img/slide-18.jpg)
+![](img/slide-16.jpg)
 
 ## O que aparece na tela
 
@@ -932,7 +903,7 @@ Não se fala nada; o slide passa em 5 s. Serve para a banca consultar durante a 
 
 # Slide 19 · Obrigado
 
-![](img/slide-19.jpg)
+![](img/slide-17.jpg)
 
 ## O que aparece na tela
 
