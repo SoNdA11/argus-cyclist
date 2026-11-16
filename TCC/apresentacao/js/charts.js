@@ -199,23 +199,6 @@
       }), { notMerge: fresh });
     },
 
-    // Slide 12 — PMC real
-    "ch-pmc": (chart, step = 0, fresh = true) => {
-      const P = D.pmc;
-      chart.setOption(merge({
-        legend: { data: ["TSS diário", "CTL (42 d)", "ATL (7 d)", "TSB"] },
-        xAxis: { type: "category", data: P.data, ...axisBase, axisLabel: { ...axisBase.axisLabel,
-          formatter: (v) => ({ "03": "mar", "04": "abr", "05": "mai", "06": "jun", "07": "jul", "08": "ago", "09": "set", "10": "out" })[v.slice(5, 7)],
-          interval: (i, v) => v.endsWith("-01") } },
-        yAxis: { type: "value", min: -40, max: 120, ...axisBase },
-        series: [
-          { name: "TSS diário", type: "bar", data: P.tss, itemStyle: { color: C.tintAlt }, barWidth: 2 },
-          { name: "CTL (42 d)", type: "line", symbol: "none", data: P.ctl, lineStyle: { color: C.blue, width: 3.5 }, itemStyle: { color: C.blue } },
-          { name: "ATL (7 d)", type: "line", symbol: "none", data: P.atl, lineStyle: { color: C.hr, width: 2.5 }, itemStyle: { color: C.hr } },
-          { name: "TSB", type: "line", symbol: "none", data: P.tsb, lineStyle: { color: C.power, width: 2, type: "dashed" }, itemStyle: { color: C.power } },
-        ],
-      }), { notMerge: fresh });
-    },
   };
 
   /* ---------- ciclo de vida ligado ao Reveal ---------- */
