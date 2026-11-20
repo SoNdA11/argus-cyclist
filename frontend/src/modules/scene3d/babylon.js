@@ -21,6 +21,8 @@ export { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder.js';
 export { CreateTube } from '@babylonjs/core/Meshes/Builders/tubeBuilder.js';
 export { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder.js';
 export { CreateCapsule } from '@babylonjs/core/Meshes/Builders/capsuleBuilder.js';
+export { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder.js';
+export { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture.js';
 export { Vector3, Matrix, Quaternion } from '@babylonjs/core/Maths/math.vector.js';
 export { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
 export { GlowLayer } from '@babylonjs/core/Layers/glowLayer.js';

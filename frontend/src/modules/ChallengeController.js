@@ -17,7 +17,11 @@
 import { telemetryBus } from './TelemetryEventBus.js';
 
 // Rider names are free text typed at the event hub; never inject them as raw HTML.
+import { GhostTrack, formatGap } from './scene3d/GhostTrack.js';
+
 const FAIR_MODE_KEY = 'argus.fairMode';
+const OVERTAKE_HYSTERESIS = 0.15; // s of gap before announcing a change of lead
+const FINISH_BANNER_MS = 2200;     // finish banner over the 3D before the result screen
 const GHOST_STEP = 5;            // m between ghost samples (domain.GhostStep)
 const RACE_IDLE_LIMIT = 15;      // s nearly stopped before a race counts as not finished
 const RACE_IDLE_SPEED = 1;       // km/h
@@ -648,6 +652,7 @@ export class ChallengeController {
             alert(`Unable to prepare the race: ${e}`);
             return;
         }
+        const record = await this.loadRecordGhost(mode, simulated);
 
         await this.startChallenge({
             type: mode,
@@ -661,8 +666,61 @@ export class ChallengeController {
             samples: [{ t: 0, d: 0 }],
             progress: 0,
             idleTime: 0,
-            started: false
+            started: false,
+            ghost: record?.track || null,
+            record: record ? { name: record.name, score: record.score } : null,
+            gap: null,
+            ahead: null
         });
+    }
+
+    /**
+     * Ghost of the current record for a mode: the best official attempt (simulated
+     * attempts race the best including simulated ones, so testing without a trainer
+     * still shows a ghost). Null when nobody has a replayable attempt yet.
+     */
+    async loadRecordGhost(mode, includeSimulated) {
+        try {
+            const ranking = await window.go.main.App.GetEventRanking(mode, includeSimulated);
+            const best = (ranking || []).find((r) => r.ghost);
+            if (!best) return null;
+            const track = new GhostTrack(JSON.parse(best.ghost), GHOST_STEP);
+            if (!track.valid) return null;
+            return { track, name: best.rider_name.replace(/ \[[MFG]\]$/, ''), score: best.score };
+        } catch (e) {
+            console.warn('No record ghost:', e);
+            return null;
+        }
+    }
+
+    /** Race time (s) since GO, on the display clock; 0 before GO. */
+    raceClock(c) {
+        return c.goTime ? (performance.now() - c.goTime) / 1000 : 0;
+    }
+
+    /** Scene configuration for a distance race (gates + record ghost). */
+    raceSceneConfig(c) {
+        return {
+            start: 0,
+            finish: c.distance,
+            ghost: c.ghost,
+            ghostLabel: c.record ? `RECORD · ${c.record.name} · ${formatRaceTime(c.record.score)}` : null,
+            clock: () => this.raceClock(c)
+        };
+    }
+
+    /** Short message over the 3D: 'toast' (top) or 'big' (center). */
+    flashMessage(text, { color = '#ffffff', size = 'toast', ms = 1800, sub = '' } = {}) {
+        const el = document.createElement('div');
+        const big = size === 'big';
+        el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);z-index:10040;pointer-events:none;' +
+            `top:${big ? '34vh' : '15vh'};text-align:center;font-family:sans-serif;color:${color};` +
+            'text-shadow:0 2px 18px rgba(0,0,0,.65);transition:opacity .35s ease;opacity:1;white-space:nowrap';
+        el.innerHTML = `<div style="font-weight:900;font-size:${big ? '12vh' : '4.2vh'};line-height:1">${escapeHtml(text)}</div>` +
+            (sub ? `<div style="font-weight:700;font-size:${big ? '4.2vh' : '2.4vh'};margin-top:1.2vh;color:#fff">${escapeHtml(sub)}</div>` : '');
+        document.body.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; }, ms);
+        setTimeout(() => el.remove(), ms + 400);
     }
 
     async launchTimeTrial() {
@@ -781,7 +839,8 @@ export class ChallengeController {
             this.ui.els.hudSidebar.style.display = 'none';
             if (this.ui.els.footer) this.ui.els.footer.style.display = 'none';
         }
-        window.setEventScene?.(true);
+        const c = this.activeChallenge;
+        window.setEventScene?.(true, c && c.kind === 'race' ? this.raceSceneConfig(c) : null);
     }
 
     closeChallengeOverlay() {
@@ -818,7 +877,11 @@ export class ChallengeController {
                 this.hud.setTimer(formatRaceTime(0), 'TIME');
                 this.hud.setPrimaryMetric(`${this.activeChallenge.distance}`, 'M TO GO');
                 this.hud.setSecondaryMetric('SPEED', '0.0 km/h');
-                this.hud.setTertiaryMetric('POWER', '0 W');
+                if (this.activeChallenge.ghost) {
+                    this.hud.setTertiaryMetric('VS RECORD', '—');
+                } else {
+                    this.hud.setTertiaryMetric('POWER', '0 W');
+                }
             } else if (this.activeChallenge.type === 'timeTrial') {
                 this.hud.setPrimaryMetric('0', 'PTS');
                 this.hud.setSecondaryMetric('LIVE POWER', '0 W');
@@ -923,8 +986,16 @@ export class ChallengeController {
             this.hud.setTimer(formatRaceTime(elapsed), 'TIME');
             this.hud.setPrimaryMetric(remaining.toFixed(0), 'M TO GO');
             this.hud.setSecondaryMetric('SPEED', `${speed.toFixed(1)} km/h`);
-            this.hud.setTertiaryMetric('POWER', `${Math.round(this.lastTelemetry.power || 0)} W`);
-            this.hud.setStatus(`${Math.round((c.progress / c.distance) * 100)}%`);
+            const power = Math.round(this.lastTelemetry.power || 0);
+            const pct = Math.round((c.progress / c.distance) * 100);
+            if (c.ghost) {
+                this.hud.setTertiaryMetric('VS RECORD', c.gap === null ? '—' : formatGap(c.gap));
+                this.hud.el.tertiaryValue.style.color = c.gap === null ? '' : (c.gap < 0 ? '#22c55e' : '#ef4444');
+                this.hud.setStatus(`${pct}% · ${power} W`);
+            } else {
+                this.hud.setTertiaryMetric('POWER', `${power} W`);
+                this.hud.setStatus(`${pct}%`);
+            }
         }
 
         // Not finishing: too slow for too long, or over the time limit.
@@ -945,9 +1016,23 @@ export class ChallengeController {
         if (d < last.d || t <= last.t) return; // stale sample from before GO
         c.samples.push({ t, d });
         c.progress = Math.min(c.distance, d);
+        if (c.ghost && d > 5 && d < c.distance) this.updateGhostGap(c, d, t);
         if (d >= c.distance) {
             const seconds = interpolateFinish(c.samples, c.distance);
             if (seconds) this.finishRace(seconds);
+        }
+    }
+
+    /** Gap to the record ghost at the rider's latest sample, announcing lead changes. */
+    updateGhostGap(c, d, t) {
+        c.gap = c.ghost.gapAt(d, t);
+        const ahead = c.gap < 0;
+        if (c.ahead === null) {
+            c.ahead = ahead; // initial state: no announcement
+        } else if (ahead !== c.ahead && Math.abs(c.gap) > OVERTAKE_HYSTERESIS) {
+            c.ahead = ahead;
+            if (ahead) this.flashMessage('You passed the record!', { color: '#22c55e' });
+            else this.flashMessage('The record is ahead', { color: '#f97316' });
         }
     }
 
@@ -957,7 +1042,6 @@ export class ChallengeController {
         c.finalized = true;
         c.finishTime = seconds;
         this.stopAnimationLoop();
-        this.closeChallengeOverlay();
 
         const ghost = JSON.stringify(buildGhost(c.samples, c.distance));
         let saveError = null;
@@ -971,11 +1055,26 @@ export class ChallengeController {
 
         await this.fetchLeaderboardsFromDB();
         const placing = await this.describePlacing(c, seconds);
+
+        // Finish banner over the 3D while the rider rolls through the line.
+        const vsRecord = c.record ? seconds - c.record.score : null;
+        const sub = placing.record ? 'NEW RECORD!'
+            : (vsRecord !== null ? `${formatGap(vsRecord)} vs record` : '');
+        this.flashMessage(formatRaceTime(seconds), {
+            size: 'big', ms: FINISH_BANNER_MS - 300, sub,
+            color: placing.record ? '#facc15' : '#ffffff'
+        });
+        if (this.hud) this.hud.setStatus('FINISH');
+        await new Promise((r) => setTimeout(r, FINISH_BANNER_MS));
+        this.closeChallengeOverlay();
+
         this.showResult(c, {
             title: placing.record ? 'New record!' : 'Finish!',
             value: formatRaceTime(seconds),
             rank: placing.rank,
-            description: saveError ? `Could not save the result: ${saveError}` : placing.description
+            description: saveError ? `Could not save the result: ${saveError}` : placing.description,
+            podium: placing.podium,
+            vsRecord
         });
 
         await this.stopBackendSession();
@@ -1019,11 +1118,17 @@ export class ChallengeController {
         return {
             rank: pos ? (c.simulated ? `Simulated ${pos}` : pos) : null,
             record: idx === 0 && isBest && !c.simulated,
-            description: description + simulatedNote
+            description: description + simulatedNote,
+            podium: ranking.slice(0, 3).map((r, i) => ({
+                place: i + 1,
+                name: r.rider_name.replace(/ \[[MFG]\]$/, ''),
+                time: r.score,
+                isYou: r.rider_name.trim().toLowerCase() === key
+            }))
         };
     }
 
-    showResult(c, { title, value, rank, description }) {
+    showResult(c, { title, value, rank, description, podium = null, vsRecord = null }) {
         this.openEventHub();
         const modal = this.els.resultModal;
         modal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
@@ -1038,6 +1143,19 @@ export class ChallengeController {
             this.els.resultRank.style.display = rank ? '' : 'none';
         }
         this.els.resultDescription.textContent = description;
+        const podiumEl = document.getElementById('challengeResultPodium');
+        if (podiumEl) {
+            const medals = ['🥇', '🥈', '🥉'];
+            podiumEl.innerHTML = podium && podium.length ? `
+                ${vsRecord !== null ? `<div class="result-vs-record" style="color:${vsRecord < 0 ? '#22c55e' : '#f97316'}">${formatGap(vsRecord)} vs previous record</div>` : ''}
+                ${podium.map((p) => `
+                    <div class="result-podium-row${p.isYou ? ' is-you' : ''}">
+                        <span>${medals[p.place - 1]}</span>
+                        <strong>${escapeHtml(p.name)}</strong>
+                        <span>${formatRaceTime(p.time)}</span>
+                    </div>`).join('')}` : '';
+            podiumEl.style.display = podium && podium.length ? '' : 'none';
+        }
         this.openModal(modal);
     }
 
@@ -1422,6 +1540,7 @@ export class ChallengeController {
     }
 
     cleanupChallengeState() {
+        if (this.hud?.el?.tertiaryValue) this.hud.el.tertiaryValue.style.color = '';
         this.activeChallenge = null;
         this._aborting = false;
         this.stopAnimationLoop();

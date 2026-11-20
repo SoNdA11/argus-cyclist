@@ -119,14 +119,22 @@ export class MiniMap {
         this._route = off;
     }
 
-    /** Draws the rider at pose {x, z, heading}. */
-    update(pose) {
+    /** Draws the rider at pose {x, z, heading} (and a ghost dot when given). */
+    update(pose, ghostPose = null) {
         if (!this.visible || !this.model) return;
         const dpr = Math.min(2, window.devicePixelRatio || 1);
         if (!this._route || dpr !== this._dpr) this._buildRoute();
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.drawImage(this._route, 0, 0);
+
+        if (ghostPose) {
+            const [gx, gy] = this._toScreen(ghostPose.x, ghostPose.z);
+            ctx.fillStyle = 'rgba(0,229,255,.9)';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.2 * this._dpr;
+            ctx.beginPath(); ctx.arc(gx, gy, 5 * this._dpr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
 
         const [x, y] = this._toScreen(pose.x, pose.z);
         // Heading: 0 = north (up), clockwise positive, as in the route model.

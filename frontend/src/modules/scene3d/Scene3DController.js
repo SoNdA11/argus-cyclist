@@ -24,8 +24,10 @@ import { CyclistRig } from './CyclistRig.js';
 import { ChaseCamera } from './ChaseCamera.js';
 import { THEMES, THEME_ORDER } from './themes.js';
 import { MiniMap } from './MiniMap.js';
+import { buildRaceMarkers, buildFloatingLabel } from './RaceMarkers.js';
 
 const RIDER_LATERAL = 1.2;     // m right of the road center (right lane)
+const GHOST_LATERAL = -1.0;    // ghosts ride in the left lane
 const THEME_KEY = 'argus.scene3d.theme';
 const ADAPT_INTERVAL = 2000;   // ms between quality checks
 const ADAPT_MIN_FPS = 45;
@@ -80,6 +82,7 @@ export class Scene3DController {
         this.active = true;          // false while another main view (Map) is selected
         this.covered = false;        // true while a full-screen page (home, event hub) is on top
         this.hintEnabled = true;     // "Start a ride" hint (off during event races)
+        this.race = null;            // {start, finish, ghost: GhostTrack|null, ghostLabel, clock}
         this.showDebug = false;      // stats + demo controls (key F)
         this.quality = { scaling: 1, glow: true, adjustments: 0 };
         this._routePoints = null;
@@ -137,6 +140,48 @@ export class Scene3DController {
         if (this.chase) this.chase.reset(0, RIDER_LATERAL);
         if (this.rider && this.model) this._placeRider(0);
         this._updateWaiting();
+    }
+
+    /**
+     * Shows the race furniture (start/finish gates) and, when given, a ghost replaying
+     * a recorded attempt. `clock()` returns the race time in seconds (0 before GO).
+     * @param {{start?: number, finish: number, ghost?: import('./GhostTrack.js').GhostTrack, ghostLabel?: string, clock: () => number}} race
+     */
+    setRace(race) {
+        this.race = race;
+        if (this.scene) this._applyRace();
+    }
+
+    clearRace() {
+        this.race = null;
+        this._disposeRace();
+    }
+
+    _disposeRace() {
+        if (this._raceRoot) { this._raceRoot.dispose(false, true); this._raceRoot = null; }
+        if (this.ghostRig) { this.ghostRig.dispose(); this.ghostRig = null; }
+    }
+
+    _applyRace() {
+        this._disposeRace();
+        const race = this.race;
+        if (!race || !this.scene) return;
+        this._raceRoot = buildRaceMarkers(this.scene, this.model, race);
+        if (race.ghost && race.ghost.valid) {
+            this.ghostRig = new CyclistRig(this.scene, { name: 'ghost', jersey: '#00e5ff', frame: '#a5f3fc', alpha: 0.42 });
+            if (race.ghostLabel) buildFloatingLabel(this.scene, this.ghostRig.root, race.ghostLabel, { accent: '#00e5ff' });
+            this._ghostPose = {};
+            this._placeGhost(0);
+        }
+    }
+
+    _placeGhost(dt) {
+        const ghost = this.race.ghost;
+        const t = Math.max(0, this.race.clock ? this.race.clock() : 0);
+        this.ghostDistance = ghost.distanceAt(t);
+        const pose = this.model.sample(this.ghostDistance, this._ghostPose);
+        const speed = ghost.speedAt(t);
+        this.ghostRig.update(dt, pose, GHOST_LATERAL, speed, speed > 0.3 ? 88 : 0);
     }
 
     /** Event layout: minimap in the bottom-left corner, free of the race HUD. */
@@ -409,6 +454,8 @@ export class Scene3DController {
         this.chase = null;
         this.skyline = null;
         this.groundPlane = null;
+        this._raceRoot = null;   // disposed with the scene
+        this.ghostRig = null;
     }
 
     _buildScene() {
@@ -458,6 +505,7 @@ export class Scene3DController {
 
         this._pose = {};
         this.scene = scene;
+        this._applyRace(); // after the static-mesh pass: the ghost moves every frame
         this.chase.reset(this.interp.distance, RIDER_LATERAL);
         this._placeRider(0);
         // A rebuilt scene needs the loop restarted even if it was already running.
@@ -475,6 +523,7 @@ export class Scene3DController {
         const now = performance.now();
         this.interp.update(dt, now);
         this._placeRider(dt);
+        if (this.ghostRig) this._placeGhost(dt);
         this.chase.update(dt, this.interp.distance, RIDER_LATERAL);
         const cam = this.chase.camera.position;
         this.skyline.position.set(cam.x, Math.max(this.model.bounds.minY, cam.y - 60), cam.z);
@@ -485,7 +534,7 @@ export class Scene3DController {
 
         if (now - this._lastMinimap > MINIMAP_INTERVAL) {
             this._lastMinimap = now;
-            this.minimap.update(this._pose);
+            this.minimap.update(this._pose, this.ghostRig ? this._ghostPose : null);
         }
         if (now - this._lastAdapt > ADAPT_INTERVAL) this._adapt(now);
         if (this.showDebug && now - this._lastStats > 500) {

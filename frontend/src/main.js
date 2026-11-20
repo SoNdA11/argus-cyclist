@@ -1565,7 +1565,8 @@ document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(
 // Event races and challenges show the 3D rider behind their HUD, whatever main view
 // is selected; the previous view comes back when the challenge ends.
 let eventSceneActive = false;
-async function setEventScene(on) {
+// race (optional): {start, finish, ghost, ghostLabel, clock} for distance races.
+async function setEventScene(on, race = null) {
     eventSceneActive = !!on;
     if (eventSceneActive) {
         try {
@@ -1573,11 +1574,13 @@ async function setEventScene(on) {
             if (!eventSceneActive) return; // ended while loading
             await scene3d.refreshRoute();  // the race course was just loaded
             scene3d.resetRide();
+            if (race) scene3d.setRace(race); else scene3d.clearRace();
             scene3d.setHintVisible(false);
             scene3d.setEventLayout(true);
             scene3d.setActive(true);
         } catch { /* the HUD still works without the 3D scene */ }
     } else if (window.scene3d) {
+        window.scene3d.clearRace();
         window.scene3d.setHintVisible(true);
         window.scene3d.setEventLayout(false);
         window.scene3d.setActive(mainView === '3d');
@@ -1635,31 +1638,60 @@ async function runRaceAutoCheck() {
     await cc.refreshTrainerStatus();
     log(`[race] sim power: ${await App.ChangePowerSimulation(300)}`);
 
-    const race = async (mode, probe3d = false) => {
+    // Every on-screen message is logged; the finish banner also triggers a 3D capture.
+    const flash = cc.flashMessage.bind(cc);
+    let finishShot = null;
+    cc.flashMessage = (text, opts = {}) => {
+        log(`[race] message: "${text}"${opts.sub ? ` / "${opts.sub}"` : ''}`);
+        if (opts.size === 'big' && finishShot) window.scene3d?.captureFrame(0.75).then((img) => img && log(`[scene3d-shot] ${finishShot} ${img}`));
+        return flash(text, opts);
+    };
+    const shot = async (tag) => {
+        const img = await window.scene3d?.captureFrame(0.75);
+        if (img) log(`[scene3d-shot] ${tag} ${img}`);
+    };
+    const probe = (mode) => {
+        const sc = window.scene3d, c = cc.activeChallenge;
+        log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} rider=${sc?.interp.distance.toFixed(1)} ` +
+            `ghost=${sc?.ghostRig ? sc.ghostDistance.toFixed(1) : 'none'} gap=${c?.gap === null || c?.gap === undefined ? '-' : c.gap.toFixed(2)} ` +
+            `markers=${!!sc?._raceRoot} hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')} ` +
+            `hudGap="${document.getElementById('hud-tertiary-label')?.textContent} ${document.getElementById('hud-tertiary-value')?.textContent}"`);
+    };
+
+    // opts: {gateShot, probeAt (ms after GO, with capture), powerSteps: [[ms after GO, delta]], finishShot}
+    const race = async (mode, opts = {}) => {
         const t0 = performance.now();
         const simBefore = await App.ChangePowerSimulation(0); // delta 0 only reads the override
-        await cc.launchRace(mode);
-        if (probe3d) {
-            await wait(8000);
-            const sc = window.scene3d;
-            log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} sceneDist=${sc?.interp.distance.toFixed(1)} ` +
-                `raceProgress=${cc.activeChallenge?.progress.toFixed(1)} route=${sc?.model.length.toFixed(0)}m ` +
-                `hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')}`);
-            const shot = await sc?.captureFrame(0.75);
-            if (shot) log(`[scene3d-shot] race_${mode} ${shot}`);
+        finishShot = opts.finishShot || null;
+        const launched = cc.launchRace(mode);
+        if (opts.gateShot) { await wait(1800); await shot(opts.gateShot); }
+        await launched; // resolves at GO
+        const go = performance.now();
+        for (const [at, delta] of opts.powerSteps || []) {
+            setTimeout(() => App.ChangePowerSimulation(delta).then((v) => log(`[race] power step at ${at} ms: override ${v} W`)), at);
         }
+        if (opts.probeAt) { await wait(opts.probeAt); probe(mode); await shot(`ghost_${mode}`); }
         const limit = (cc.modeMeta[mode].maxDuration + 20) * 1000;
-        while (cc.activeChallenge && performance.now() - t0 < limit) await wait(250);
+        while (cc.activeChallenge && performance.now() - go < limit) await wait(250);
+        const podium = document.getElementById('challengeResultPodium');
         log(`[race] ${mode}: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s incl. countdown; ` +
             `sim override ${simBefore} -> ${await App.ChangePowerSimulation(0)} W)`);
+        if (podium && podium.style.display !== 'none') log(`[race] podium: ${podium.textContent.replace(/\s+/g, ' ').trim()}`);
         cc.returnToEventHub();
         await wait(1500);
     };
 
-    for (const mode of ['sprint200', 'climb400', 'tt1k']) await race(mode, mode === 'sprint200');
+    await race('sprint200', { gateShot: 'gate_start', finishShot: 'finish_sprint200' });
+    for (const mode of ['climb400', 'tt1k']) await race(mode);
     log(`[race] after races: 3d rendering=${window.scene3d?.isRendering} (main view ${mainView}, hub open)`);
+
     log(`[race] slower sprint: sim power ${await App.ChangePowerSimulation(-150)}`);
-    await race('sprint200');
+    await race('sprint200', { probeAt: 8000 });
+
+    // Start far behind the record, then accelerate past it: one lead change, new record.
+    log(`[race] overtake sprint: sim power ${await App.ChangePowerSimulation(250 - (await App.ChangePowerSimulation(0)))}`);
+    await race('sprint200', { powerSteps: [[6000, 650]], probeAt: 14000, finishShot: 'finish_overtake' });
+    log(`[race] override reset to ${await App.ChangePowerSimulation(300 - (await App.ChangePowerSimulation(0)))}`);
 
     const ranking = await App.GetEventRanking('sprint200', true);
     const mine = ranking.filter((r) => r.rider_name === RAW);
@@ -1669,11 +1701,11 @@ async function runRaceAutoCheck() {
     log(`[race] sprint200 official ranking has ${RAW}: ${official.some((r) => r.rider_name === RAW)}`);
 
     // No power at all: the rider never moves and the race ends as not finished.
-    log(`[race] zero power: sim power ${await App.ChangePowerSimulation(-300)}`);
+    log(`[race] zero power: sim power ${await App.ChangePowerSimulation(-150 - (await App.ChangePowerSimulation(0)))}`);
     await race('sprint200');
 
     // The Zone Challenge (points) still runs its own one-minute flow.
-    log(`[race] zone challenge: sim power ${await App.ChangePowerSimulation(400)}`);
+    log(`[race] zone challenge: sim power ${await App.ChangePowerSimulation(250 - (await App.ChangePowerSimulation(0)))}`);
     {
         const t0 = performance.now();
         await cc.launchTimeTrial();

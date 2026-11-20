@@ -1353,3 +1353,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     bottom: 0;
     transform: none;
 }
+
+/* Result screen: top 3 of the mode and the gap to the previous record. */
+.challenge-result-podium {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(360px, 100%);
+    margin: 4px auto 10px;
+}
+
+.result-vs-record {
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.result-podium-row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-variant-numeric: tabular-nums;
+}
+
+.result-podium-row strong {
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.result-podium-row.is-you {
+    border-color: rgba(56, 189, 248, 0.6);
+    background: rgba(56, 189, 248, 0.12);
+}
