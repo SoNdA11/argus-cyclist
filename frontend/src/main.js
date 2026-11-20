@@ -962,6 +962,7 @@ document.getElementById('btnImport').addEventListener('click', async () => {
 
                 const elevations = await window.go.main.App.GetElevationProfile();
                 chart.setData(elevations);
+                notifyScene3DRoute(routePoints);
             }
         }
     } catch (e) { alert("Error importing GPX: " + e); }
@@ -1034,6 +1035,7 @@ function parseGPXForMobile(gpxText, filename) {
     window.mapController.renderRoute({ type: 'FeatureCollection', features: features });
     window.mapController.setInitialPosition(smoothedPoints[0].lat, smoothedPoints[0].lon);
     window.chart.setData(smoothedPoints.map(p => p.ele));
+    notifyScene3DRoute(smoothedPoints);
 }
 
 
@@ -1456,28 +1458,112 @@ document.addEventListener('keydown', async (e) => {
 
 
 // ==============================================
-// 3D SPIKE (F0 benchmark) — Ctrl+Shift+3; VITE_SPIKE3D_AUTO=1 runs the benchmark on startup
+// 3D SCENE (F1) — Ctrl+Shift+3 opens the scene following the active ride.
+// The view tab comes in F2. Babylon.js is only loaded on first open.
 // ==============================================
 
-let spike3d = null;
-async function openSpike3D(runBenchmark = false) {
-    if (!spike3d) {
-        const { Spike3D } = await import('./modules/scene3d/Spike3D.js');
-        spike3d = new Spike3D();
+function getActiveRoutePoints() {
+    if (Capacitor.isNativePlatform()) return window.mobileRoutePoints || null;
+    if (window.go && window.go.main && window.go.main.App) return window.go.main.App.GetRoutePath();
+    return null;
+}
+
+let scene3dLoading = null;
+function loadScene3D() {
+    if (!scene3dLoading) {
+        scene3dLoading = import('./modules/scene3d/Scene3DController.js').then(({ Scene3DController }) => {
+            window.scene3d = new Scene3DController({ bus: telemetryBus, getRoutePoints: getActiveRoutePoints });
+            return window.scene3d;
+        });
     }
-    if (runBenchmark) await spike3d.benchmark();
-    else spike3d.open();
+    return scene3dLoading;
+}
+
+async function toggleScene3D() {
+    try {
+        const scene3d = await loadScene3D();
+        if (scene3d.isOpen) scene3d.close();
+        else await scene3d.open();
+    } catch (e) {
+        console.error('[scene3d] failed to open', e);
+    }
+}
+
+// Keeps an already-loaded scene in sync with a newly imported GPX.
+function notifyScene3DRoute(points) {
+    if (window.scene3d) window.scene3d.setRoute(points);
 }
 
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
         e.preventDefault();
-        openSpike3D();
+        toggleScene3D();
     }
 });
 
-if (import.meta.env.VITE_SPIKE3D_AUTO === '1') {
-    window.addEventListener('load', () => setTimeout(() => openSpike3D(true), 3000));
+// Dev-only end-to-end check (VITE_SCENE3D_AUTO=1 ./run-dev.sh): virtual trainer at
+// 250 W on the loaded route (built-in KOM climb if none), both themes, FPS and
+// interpolation stats logged to the Wails terminal. The session is discarded at the end.
+// VITE_SCENE3D_AUTO=demo uses the scene's demo ride instead (no trainer, no session).
+if (import.meta.env.VITE_SCENE3D_AUTO === '1' || import.meta.env.VITE_SCENE3D_AUTO === 'demo') {
+    window.addEventListener('load', () => setTimeout(() => runScene3DAutoCheck().catch(e => console.error(e)), 3000));
+}
+
+async function runScene3DAutoCheck() {
+    const App = window.go.main.App;
+    const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const secs = Number(import.meta.env.VITE_SCENE3D_AUTO_SECS || 20);
+
+    const demo = import.meta.env.VITE_SCENE3D_AUTO === 'demo';
+
+    const route = await App.GetRoutePath();
+    if (!route || route.length < 2) await App.LoadPredefinedKOMSegment();
+    if (!demo) {
+        log(`[scene3d] trainer: ${await App.ConnectVirtualTrainer()}`);
+        log(`[scene3d] session: ${await App.ToggleSession()}`);
+        log(`[scene3d] sim power: ${await App.ChangePowerSimulation(250)}`);
+    }
+    let samples = 0;
+    const countSample = () => { samples++; };
+    telemetryBus.subscribe(countSample);
+    const scene3d = await loadScene3D();
+    const previousTheme = scene3d.theme; // the theme choice is persisted; restore it at the end
+    await scene3d.open();
+    if (demo) {
+        await wait(1500);
+        const startShot = await scene3d.captureFrame(0.75);
+        if (startShot) log(`[scene3d-shot] start ${startShot}`);
+        scene3d.startDemo();
+    }
+    await wait(3000);
+    log(`[scene3d] telemetry samples in 3 s: ${samples}`);
+    telemetryBus.unsubscribe(countSample);
+    log(`[scene3d] start ua="${navigator.userAgent}" dpr=${window.devicePixelRatio}`);
+
+    for (const theme of ['night', 'day']) {
+        scene3d.setTheme(theme);
+        await wait(4000); // warm-up
+        const t0 = performance.now(), f0 = scene3d.engine.frameId;
+        await wait(secs * 1000);
+        const fps = (scene3d.engine.frameId - f0) / ((performance.now() - t0) / 1000);
+        const s = scene3d.getStats();
+        const meanErr = s.interp.samples ? s.interp.errSum / s.interp.samples : 0;
+        log(`[scene3d] theme=${theme} fps=${fps.toFixed(1)} cpuFrameMs=${s.cpuFrameMs.toFixed(2)} drawCalls=${s.drawCalls} ` +
+            `canvas=${s.canvas} scaling=${s.scaling} glow=${s.glow} route=${s.routeLength.toFixed(0)}m/${s.routeSamples} synthetic=${s.synthetic} ` +
+            `dist=${s.distance.toFixed(1)} speed=${s.speedKmh.toFixed(1)} cadence=${s.cadence.toFixed(0)} ` +
+            `samples=${s.interp.samples} snaps=${s.interp.snaps} errMean=${meanErr.toFixed(2)}m errMax=${s.interp.errMax.toFixed(2)}m`);
+        const shot = await scene3d.captureFrame(0.75);
+        if (shot) log(`[scene3d-shot] ${theme} ${shot}`);
+    }
+
+    scene3d.setTheme(previousTheme);
+    scene3d.close();
+    if (!demo) {
+        await App.DiscardSession();
+        await App.DisconnectTrainer();
+    }
+    log('[scene3d] done');
 }
 
 // =======================
