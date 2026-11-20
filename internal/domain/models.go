@@ -45,6 +45,9 @@ type Telemetry struct {
 	Altitude      float64   `json:"alt"`            //Current altitude in meters
 	ElevationGain float64   `json:"elevation_gain"` //Cumulative elevation gain
 	RiderWeight   float64   `json:"rider_weight"`   // Rider weight in kg
+	// Elapsed is the session's active time (s) at this sample: the same clock that
+	// integrates TotalDistance, so race finishes can be interpolated precisely.
+	Elapsed float64 `json:"elapsed"`
 }
 
 // AppState represents the global state of the application.

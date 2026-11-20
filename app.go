@@ -76,20 +76,21 @@ type App struct {
 	isHRConnected      bool
 	isVirtualTrainer   bool
 	currentDist        float64
+	currentSpeed       float64 // m/s, integrated with inertia by physicsEngine.Step
 	telemetryChan      chan domain.Telemetry
 	cancelSim          context.CancelFunc
 
 	// Session metadata
-	currentRouteName     string    // Selected GPX route name
-	sessionStart         time.Time // Session start time (for duration calculation)
-	sessionActiveTime    float64
-	sessionPowerSum      uint64 // Sum of power samples (for average power)
-	sessionTicks         int    // Number of power samples
-	sessionPowerData     []int
-	sessionHRData        []int // Array to store HR history second-by-second
+	currentRouteName  string    // Selected GPX route name
+	sessionStart      time.Time // Session start time (for duration calculation)
+	sessionActiveTime float64
+	sessionPowerSum   uint64 // Sum of power samples (for average power)
+	sessionTicks      int    // Number of power samples
+	sessionPowerData  []int
+	sessionHRData     []int // Array to store HR history second-by-second
 	// sessionSampler turns ~3 Hz BLE notifications into the 1 Hz series that
 	// sessionPowerData/sessionHRData must hold for the metrics.
-	sessionSampler fit.SecondResampler
+	sessionSampler       fit.SecondResampler
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
@@ -770,6 +771,7 @@ func (a *App) startSession() string {
 	a.sessionHRData = []int{}
 	a.sessionSampler = fit.SecondResampler{}
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionStart = time.Now()
 	a.sessionActiveTime = 0
 	a.workoutStartTimeOffset = 0
@@ -1010,6 +1012,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.isRecording = false
 	a.isPaused = false
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
 	a.sessionSampler = fit.SecondResampler{}
@@ -1048,6 +1051,7 @@ func (a *App) DiscardSession() string {
 	}
 
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionPowerData = nil
 	a.sessionHRData = nil
 	a.sessionSampler = fit.SecondResampler{}
@@ -1156,6 +1160,7 @@ func (a *App) RecoverPendingSession() (SessionSummary, error) {
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionElevationGain = 0.0
 	a.lastAltitude = -9999.0
 
@@ -1306,6 +1311,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 
 			if a.isPaused {
 				lastUpdate = now
+				a.currentSpeed = 0
 				runtime.EventsEmit(a.ctx, "telemetry_update", domain.Telemetry{
 					Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 					Speed: 0, TotalDistance: a.currentDist, CurrentGrade: 0,
@@ -1471,8 +1477,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				activeGrade = a.currentDirectGrade
 			}
 
-			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), activeGrade)
-			a.currentDist += speedMs * dt
+			// Inertia: speed evolves from the previous value instead of jumping to the
+			// steady state, so standing starts, coasting and grade changes feel real.
+			prevSpeed := a.currentSpeed
+			a.currentSpeed = a.physicsEngine.Step(prevSpeed, float64(currentPower), activeGrade, dt)
+			speedMs := a.currentSpeed
+			a.currentDist += (prevSpeed + speedMs) / 2 * dt
 
 			if a.lastAltitude != -9999.0 {
 				if lastRoutePos == -1.0 || routePos >= lastRoutePos {
@@ -1494,7 +1504,8 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
 				ElevationGain: a.sessionElevationGain,
-				RiderWeight: a.physicsEngine.UserWeight,
+				RiderWeight:   a.physicsEngine.UserWeight,
+				Elapsed:       a.sessionActiveTime,
 			}
 			a.fitService.AddRecord(fullTelemetry)
 			if a.isRecording {
