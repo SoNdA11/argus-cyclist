@@ -10,7 +10,8 @@
 // workouts) therefore hides the scene too; rendering pauses whenever the layer has no
 // size, the window is hidden, or the "Map" view is selected, and resumes instantly.
 //
-// Keys while visible: N theme, F debug panel (stats + demo ride), P demo ride, +/- demo speed.
+// Keys while visible: N theme, M minimap, F debug panel (stats + demo ride), P demo ride,
+// +/- demo speed.
 //
 // Demo ride: buttons that make the rider pedal without a trainer or session (shown with
 // the debug panel). It feeds synthetic 1 Hz samples through the same interpolator as
@@ -22,6 +23,7 @@ import { StateInterpolator } from './StateInterpolator.js';
 import { CyclistRig } from './CyclistRig.js';
 import { ChaseCamera } from './ChaseCamera.js';
 import { THEMES, THEME_ORDER } from './themes.js';
+import { MiniMap } from './MiniMap.js';
 
 const RIDER_LATERAL = 1.2;     // m right of the road center (right lane)
 const THEME_KEY = 'argus.scene3d.theme';
@@ -30,6 +32,8 @@ const ADAPT_MIN_FPS = 45;
 const MAX_SCALING = 1.5;
 const DEMO_SPEEDS = [0, 10, 15, 20, 25, 30, 35, 40, 50, 60]; // km/h
 const DEMO_DEFAULT = 4;                                       // index → 25 km/h
+const MINIMAP_INTERVAL = 66;  // ms between minimap redraws (~15 Hz)
+const MINIMAP_KEY = 'argus.scene3d.minimap';
 
 const DEMO_BTN = 'height:34px;width:34px;border:0;border-radius:8px;background:rgba(255,255,255,.15);' +
     'color:#fff;font:15px sans-serif;cursor:pointer;';
@@ -44,6 +48,18 @@ function loadTheme() {
 
 function saveTheme(t) {
     try { localStorage.setItem(THEME_KEY, t); } catch { /* storage unavailable */ }
+}
+
+function loadFlag(key, fallback) {
+    try {
+        const v = localStorage.getItem(key);
+        if (v === '1' || v === '0') return v === '1';
+    } catch { /* storage unavailable */ }
+    return fallback;
+}
+
+function saveFlag(key, on) {
+    try { localStorage.setItem(key, on ? '1' : '0'); } catch { /* storage unavailable */ }
 }
 
 export class Scene3DController {
@@ -133,6 +149,8 @@ export class Scene3DController {
         this.engine.stopRenderLoop();
         this.engine.dispose();
         this.engine = null;
+        this.minimap.dispose();
+        this.minimap = null;
         this._container.classList.remove('scene3d-active');
         this._container = null;
         this.layer.remove();
@@ -156,6 +174,7 @@ export class Scene3DController {
         if (this.model && this._sameRoute(list)) return;
         this._routePoints = list;
         this.model = new RouteModel(list);
+        if (this.minimap) this.minimap.setRoute(this.model);
         if (this.isMounted) this._buildScene();
     }
 
@@ -291,6 +310,9 @@ export class Scene3DController {
         el.querySelector('[data-act="faster"]').addEventListener('click', () => this.changeDemoSpeed(1));
         this.layer = el;
         this.canvas = el.querySelector('canvas');
+        this.minimap = new MiniMap(el);
+        this.minimap.setVisible(loadFlag(MINIMAP_KEY, true));
+        if (this.model) this.minimap.setRoute(this.model);
         this._statsEl = el.querySelector('[data-role="stats"]');
         this._waitingEl = el.querySelector('[data-role="waiting"]');
         this._demoEl = el.querySelector('[data-role="demo"]');
@@ -329,6 +351,7 @@ export class Scene3DController {
         if (!shouldRender) return;
         this._lastAdapt = performance.now() + 3000; // let it warm up before judging FPS
         this._lastStats = 0;
+        this._lastMinimap = 0;
         this.engine.resize();
         this.engine.runRenderLoop(() => this._frame());
     }
@@ -339,6 +362,7 @@ export class Scene3DController {
         if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target?.isContentEditable) return;
         const k = e.key.toLowerCase();
         if (k === 'n') this.cycleTheme();
+        else if (k === 'm') { this.minimap.setVisible(!this.minimap.visible); saveFlag(MINIMAP_KEY, this.minimap.visible); }
         else if (k === 'f') { this.showDebug = !this.showDebug; this._applyDebug(); }
         else if (k === 'p') this.toggleDemo();
         else if (k === '+' || k === '=') this.changeDemoSpeed(1);
@@ -433,6 +457,10 @@ export class Scene3DController {
         this.groundPlane.position.set(cam.x, Math.max(this.model.bounds.minY - 4, this._pose.y - 45), cam.z);
         this.scene.render();
 
+        if (now - this._lastMinimap > MINIMAP_INTERVAL) {
+            this._lastMinimap = now;
+            this.minimap.update(this._pose);
+        }
         if (now - this._lastAdapt > ADAPT_INTERVAL) this._adapt(now);
         if (this.showDebug && now - this._lastStats > 500) {
             this._lastStats = now;
@@ -468,6 +496,6 @@ export class Scene3DController {
             `canvas ${s.canvas}  scale ${s.scaling}  glow ${s.glow ? 'on' : 'off'}\n` +
             `route ${route}  theme ${THEMES[s.theme].label}\n` +
             `dist ${s.distance.toFixed(1)} m  ${s.speedKmh.toFixed(1)} km/h  ${s.cadence.toFixed(0)} rpm${source}\n` +
-            `[N] theme  [F] panel  [P] demo  [+/-] speed`;
+            `[N] theme  [M] minimap  [F] panel  [P] demo  [+/-] speed`;
     }
 }

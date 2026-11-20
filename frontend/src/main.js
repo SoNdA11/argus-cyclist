@@ -1635,6 +1635,7 @@ async function runScene3DAutoCheck() {
             `samples=${s.interp.samples} snaps=${s.interp.snaps} errMean=${meanErr.toFixed(2)}m errMax=${s.interp.errMax.toFixed(2)}m`);
         const shot = await scene3d.captureFrame(0.75);
         if (shot) log(`[scene3d-shot] ${theme} ${shot}`);
+        if (scene3d.minimap) log(`[scene3d-shot] minimap_${theme} ${scene3d.minimap.canvas.toDataURL('image/jpeg', 0.9)}`);
     }
 
     scene3d.setTheme(previousTheme);
