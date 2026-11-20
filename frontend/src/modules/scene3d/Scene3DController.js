@@ -5,11 +5,16 @@
 // 3D scene that follows the active ride. It consumes the same TelemetryEventBus as the
 // HUD, so desktop (Wails) and Android (Capacitor) share it unchanged.
 //
-// F1: opened as a full-screen overlay with Ctrl+Shift+3 (the "3D" view tab comes in F2).
-// Keys while open: N theme, F stats overlay, P demo ride, +/- demo speed, Esc close.
+// The scene is mounted once inside the main view container (#map-container), as a layer
+// over the map. Every existing piece of UI that hides that container (dashboard, Studio,
+// workouts) therefore hides the scene too; rendering pauses whenever the layer has no
+// size, the window is hidden, or the "Map" view is selected, and resumes instantly.
 //
-// Demo ride: on-screen buttons that make the rider pedal without a trainer or session.
-// It feeds synthetic 1 Hz samples through the same interpolator as real telemetry.
+// Keys while visible: N theme, F debug panel (stats + demo ride), P demo ride, +/- demo speed.
+//
+// Demo ride: buttons that make the rider pedal without a trainer or session (shown with
+// the debug panel). It feeds synthetic 1 Hz samples through the same interpolator as
+// real telemetry.
 
 import { Engine, Scene, Color3, Color4, Vector3, HemisphericLight, DirectionalLight, GlowLayer, SceneInstrumentation } from './babylon.js';
 import { RouteModel, buildRouteWorld, buildSkyline } from './RouteMeshBuilder.js';
@@ -55,54 +60,83 @@ export class Scene3DController {
         this.engine = null;
         this.scene = null;
         this.model = null;
-        this.overlay = null;
-        this.showStats = true;
+        this.layer = null;
+        this.active = true;          // false while another main view (Map) is selected
+        this.covered = false;        // true while a full-screen page (home, event hub) is on top
+        this.showDebug = false;      // stats + demo controls (key F)
         this.quality = { scaling: 1, glow: true, adjustments: 0 };
         this._routePoints = null;
+        this._rendering = false;
         this.demo = { active: false, speedIdx: DEMO_DEFAULT, distance: 0, timer: null, last: 0 };
         this._onTelemetry = (d) => {
             if (this.demo.active) return; // the demo drives the rider while it runs
             this.interp.push(d);
-            if (this._waitingEl) this._waitingEl.style.display = 'none';
+            this._updateWaiting();
         };
         this._onKey = (e) => this._key(e);
-        this._onResize = () => this.engine?.resize();
         this._onVisibility = () => this._syncRenderLoop();
     }
 
-    get isOpen() {
-        return !!this.overlay;
+    get isMounted() {
+        return !!this.layer;
     }
 
-    async open() {
-        if (this.isOpen) return;
-        this._createOverlay();
+    /** True while frames are being rendered (mounted, active and on screen). */
+    get isRendering() {
+        return this._rendering;
+    }
+
+    /** Mounts the scene as a full-size layer inside `container` (kept until dispose()). */
+    async mount(container) {
+        if (this.isMounted) return;
+        this._createLayer(container);
         this._createEngine();
         this.bus.subscribe(this._onTelemetry);
         window.addEventListener('keydown', this._onKey, true);
-        window.addEventListener('resize', this._onResize);
         document.addEventListener('visibilitychange', this._onVisibility);
+        // Size changes (window resize, sidebar toggles) and display:none (size 0) both land here.
+        this._resizeObserver = new ResizeObserver(() => {
+            if (this.engine) this.engine.resize();
+            this._syncRenderLoop();
+        });
+        this._resizeObserver.observe(this.layer);
         await this.refreshRoute();
         this._syncRenderLoop();
     }
 
-    close() {
-        if (!this.isOpen) return;
+    /** Shows (true) or hides (false) the scene layer; hidden means no rendering. */
+    setActive(active) {
+        this.active = !!active;
+        if (this.layer) this.layer.style.display = this.active ? '' : 'none';
+        // Map markers (the blue cyclist arrow) belong to the Map view only.
+        if (this._container) this._container.classList.toggle('scene3d-active', this.active);
+        this._syncRenderLoop();
+    }
+
+    /** Pauses rendering while a full-screen page covers the scene (it stays mounted). */
+    setCovered(covered) {
+        this.covered = !!covered;
+        this._syncRenderLoop();
+    }
+
+    /** Full teardown: releases the WebGL context. */
+    dispose() {
+        if (!this.isMounted) return;
         this.stopDemo();
         this.bus.unsubscribe(this._onTelemetry);
         window.removeEventListener('keydown', this._onKey, true);
-        window.removeEventListener('resize', this._onResize);
         document.removeEventListener('visibilitychange', this._onVisibility);
+        this._resizeObserver.disconnect();
+        this._resizeObserver = null;
         this._disposeScene();
-        // Releasing the engine frees the WebGL context (MapLibre keeps its own).
+        this._rendering = false;
         this.engine.stopRenderLoop();
         this.engine.dispose();
         this.engine = null;
-        this.overlay.remove();
-        this.overlay = null;
-        this._waitingEl = null;
-        this._demoBtn = null;
-        this._demoSpeedEl = null;
+        this._container.classList.remove('scene3d-active');
+        this._container = null;
+        this.layer.remove();
+        this.layer = null;
     }
 
     /** Re-reads the active route from the app and rebuilds the world if it changed. */
@@ -122,7 +156,7 @@ export class Scene3DController {
         if (this.model && this._sameRoute(list)) return;
         this._routePoints = list;
         this.model = new RouteModel(list);
-        if (this.isOpen) this._buildScene();
+        if (this.isMounted) this._buildScene();
     }
 
     _sameRoute(list) {
@@ -137,7 +171,7 @@ export class Scene3DController {
         if (!THEMES[name] || name === this.theme) return;
         this.theme = name;
         saveTheme(name);
-        if (this.isOpen) this._buildScene();
+        if (this.isMounted) this._buildScene();
     }
 
     cycleTheme() {
@@ -158,7 +192,7 @@ export class Scene3DController {
         d.active = true;
         d.distance = this.interp.hasData ? this.interp.distance : 0;
         d.last = performance.now();
-        if (this._waitingEl) this._waitingEl.style.display = 'none';
+        this._updateWaiting();
         this._pushDemoSample();
         d.timer = setInterval(() => this._pushDemoSample(), 1000);
         this._renderDemo();
@@ -198,7 +232,7 @@ export class Scene3DController {
     _renderDemo() {
         if (!this._demoBtn) return;
         const kmh = DEMO_SPEEDS[this.demo.speedIdx];
-        this._demoBtn.textContent = this.demo.active ? '⏸ Parar demo' : '▶ Pedalar (demo)';
+        this._demoBtn.textContent = this.demo.active ? '⏸ Stop demo' : '▶ Demo ride';
         this._demoSpeedEl.textContent = `${kmh} km/h · ${this._demoCadence(kmh)} rpm`;
     }
 
@@ -232,38 +266,50 @@ export class Scene3DController {
 
     // ------------------------------------------------------------------
 
-    _createOverlay() {
+    _createLayer(container) {
         const el = document.createElement('div');
-        el.className = 'scene3d-overlay';
-        el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#000';
+        el.className = 'scene3d-layer';
+        // Above anything MapLibre puts in the container (the cyclist marker uses z-index 500).
+        el.style.cssText = 'position:absolute;inset:0;z-index:1000;background:#000;overflow:hidden';
         el.innerHTML =
             '<canvas style="width:100%;height:100%;display:block;outline:none;touch-action:none"></canvas>' +
             '<pre data-role="stats" style="position:absolute;top:10px;left:10px;margin:0;padding:8px 10px;' +
             'background:rgba(0,0,0,.55);color:#9effa0;font:12px/1.35 monospace;border-radius:6px;pointer-events:none"></pre>' +
-            '<div data-role="waiting" style="position:absolute;left:50%;bottom:48px;transform:translateX(-50%);' +
-            'padding:10px 18px;border-radius:8px;background:rgba(0,0,0,.6);color:#fff;font:15px sans-serif;pointer-events:none">' +
-            'Aguardando telemetria: inicie uma sessão para pedalar</div>' +
+            '<div data-role="waiting" style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);' +
+            'padding:10px 18px;border-radius:8px;background:rgba(0,0,0,.6);color:#fff;font:15px sans-serif;' +
+            'white-space:nowrap;pointer-events:none">Start a ride to pedal</div>' +
             '<div data-role="demo" style="position:absolute;right:16px;bottom:16px;display:flex;align-items:center;gap:6px;' +
             'padding:8px;border-radius:10px;background:rgba(0,0,0,.55);color:#fff;font:14px sans-serif">' +
-            '<button data-act="toggle" title="Pedalar sem rolo (P)" style="' + DEMO_BTN + 'width:auto;padding:0 14px">▶ Pedalar (demo)</button>' +
-            '<button data-act="slower" title="Mais devagar (-)" style="' + DEMO_BTN + '">−</button>' +
+            '<button data-act="toggle" title="Pedal without a trainer (P)" style="' + DEMO_BTN + 'width:auto;padding:0 14px"></button>' +
+            '<button data-act="slower" title="Slower (-)" style="' + DEMO_BTN + '">−</button>' +
             '<span data-role="demo-speed" style="min-width:110px;text-align:center"></span>' +
-            '<button data-act="faster" title="Mais rápido (+)" style="' + DEMO_BTN + '">+</button></div>' +
-            '<button data-role="close" title="Fechar (Esc)" style="position:absolute;top:10px;right:10px;width:36px;height:36px;' +
-            'border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:20px sans-serif;cursor:pointer">×</button>';
-        document.body.appendChild(el);
-        el.querySelector('[data-role="close"]').addEventListener('click', () => this.close());
+            '<button data-act="faster" title="Faster (+)" style="' + DEMO_BTN + '">+</button></div>';
+        container.appendChild(el);
+        this._container = container;
         el.querySelector('[data-act="toggle"]').addEventListener('click', () => this.toggleDemo());
         el.querySelector('[data-act="slower"]').addEventListener('click', () => this.changeDemoSpeed(-1));
         el.querySelector('[data-act="faster"]').addEventListener('click', () => this.changeDemoSpeed(1));
-        this._demoBtn = el.querySelector('[data-act="toggle"]');
-        this._demoSpeedEl = el.querySelector('[data-role="demo-speed"]');
-        this._renderDemo();
-        this.overlay = el;
+        this.layer = el;
         this.canvas = el.querySelector('canvas');
         this._statsEl = el.querySelector('[data-role="stats"]');
-        this._waitingEl = this.interp.hasData ? null : el.querySelector('[data-role="waiting"]');
-        if (!this._waitingEl) el.querySelector('[data-role="waiting"]').style.display = 'none';
+        this._waitingEl = el.querySelector('[data-role="waiting"]');
+        this._demoEl = el.querySelector('[data-role="demo"]');
+        this._demoBtn = el.querySelector('[data-act="toggle"]');
+        this._demoSpeedEl = el.querySelector('[data-role="demo-speed"]');
+        if (!this.active) el.style.display = 'none';
+        container.classList.toggle('scene3d-active', this.active);
+        this._renderDemo();
+        this._applyDebug();
+        this._updateWaiting();
+    }
+
+    _applyDebug() {
+        this._statsEl.style.display = this.showDebug ? '' : 'none';
+        this._demoEl.style.display = this.showDebug ? 'flex' : 'none';
+    }
+
+    _updateWaiting() {
+        if (this._waitingEl) this._waitingEl.style.display = this.interp.hasData || this.demo.active ? 'none' : '';
     }
 
     _createEngine() {
@@ -275,25 +321,29 @@ export class Scene3DController {
 
     _syncRenderLoop() {
         if (!this.engine) return;
+        const shouldRender = !!this.scene && this.active && !this.covered && document.visibilityState !== 'hidden' &&
+            this.layer.clientWidth > 0 && this.layer.clientHeight > 0;
+        if (shouldRender === this._rendering) return;
+        this._rendering = shouldRender;
         this.engine.stopRenderLoop();
-        if (document.visibilityState === 'hidden' || !this.scene) return;
-        this._lastAdapt = performance.now() + 3000; // let it warm up first
+        if (!shouldRender) return;
+        this._lastAdapt = performance.now() + 3000; // let it warm up before judging FPS
         this._lastStats = 0;
+        this.engine.resize();
         this.engine.runRenderLoop(() => this._frame());
     }
 
     _key(e) {
-        if (!this.isOpen) return;
+        if (!this._rendering || e.ctrlKey || e.metaKey || e.altKey) return;
+        const tag = e.target?.tagName?.toLowerCase();
+        if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target?.isContentEditable) return;
         const k = e.key.toLowerCase();
-        if (k === 'escape') this.close();
-        else if (k === 'n' && !e.ctrlKey && !e.metaKey) this.cycleTheme();
-        else if (k === 'p' && !e.ctrlKey && !e.metaKey) this.toggleDemo();
-        else if ((k === '+' || k === '=') && !e.ctrlKey) this.changeDemoSpeed(1);
-        else if (k === '-' && !e.ctrlKey) this.changeDemoSpeed(-1);
-        else if (k === 'f' && !e.ctrlKey && !e.metaKey) {
-            this.showStats = !this.showStats;
-            this._statsEl.style.display = this.showStats ? '' : 'none';
-        } else return;
+        if (k === 'n') this.cycleTheme();
+        else if (k === 'f') { this.showDebug = !this.showDebug; this._applyDebug(); }
+        else if (k === 'p') this.toggleDemo();
+        else if (k === '+' || k === '=') this.changeDemoSpeed(1);
+        else if (k === '-') this.changeDemoSpeed(-1);
+        else return;
         e.stopPropagation();
         e.preventDefault();
     }
@@ -360,6 +410,8 @@ export class Scene3DController {
         this.scene = scene;
         this.chase.reset(this.interp.distance, RIDER_LATERAL);
         this._placeRider(0);
+        // A rebuilt scene needs the loop restarted even if it was already running.
+        this._rendering = false;
         this._syncRenderLoop();
     }
 
@@ -382,7 +434,7 @@ export class Scene3DController {
         this.scene.render();
 
         if (now - this._lastAdapt > ADAPT_INTERVAL) this._adapt(now);
-        if (this.showStats && now - this._lastStats > 500) {
+        if (this.showDebug && now - this._lastStats > 500) {
             this._lastStats = now;
             this._renderStats();
         }
@@ -409,13 +461,13 @@ export class Scene3DController {
 
     _renderStats() {
         const s = this.getStats();
-        const route = s.synthetic ? 'demo (sem GPX)' : `${(s.routeLength / 1000).toFixed(2)} km`;
+        const route = s.synthetic ? 'demo loop (no GPX)' : `${(s.routeLength / 1000).toFixed(2)} km`;
         const source = this.demo.active ? '  [demo]' : '';
         this._statsEl.textContent =
             `FPS ${s.fps.toFixed(0)}  CPU ${s.cpuFrameMs.toFixed(1)} ms  draw calls ${s.drawCalls}\n` +
-            `canvas ${s.canvas}  escala ${s.scaling}  glow ${s.glow ? 'on' : 'off'}\n` +
-            `percurso ${route}  tema ${THEMES[s.theme].label}\n` +
+            `canvas ${s.canvas}  scale ${s.scaling}  glow ${s.glow ? 'on' : 'off'}\n` +
+            `route ${route}  theme ${THEMES[s.theme].label}\n` +
             `dist ${s.distance.toFixed(1)} m  ${s.speedKmh.toFixed(1)} km/h  ${s.cadence.toFixed(0)} rpm${source}\n` +
-            `[N] tema  [F] painel  [P] demo  [+/-] vel.  [Esc] fechar`;
+            `[N] theme  [F] panel  [P] demo  [+/-] speed`;
     }
 }

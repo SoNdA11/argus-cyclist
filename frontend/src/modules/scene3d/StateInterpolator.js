@@ -12,6 +12,7 @@ const CORRECTION_RATE = 1.2;   // 1/s: fraction of the position error removed pe
 const SNAP_ERROR = 40;         // m: larger gaps (new session, route change) snap instantly
 const MAX_EXTRAPOLATION = 2.5; // s without data before the rider coasts to a stop
 const COAST_DECAY = 1.5;       // 1/s speed decay while coasting
+const STOPPED_SPEED = 0.3;     // m/s: below this the rider is stopped and stops pedaling
 
 export class StateInterpolator {
     constructor() {
@@ -80,7 +81,13 @@ export class StateInterpolator {
 
         const kv = 1 - Math.exp(-4 * dt);
         this.speed += (step / dt - this.speed) * kv;
+        // Legs follow the cadence only while the bike moves and data is fresh: a paused
+        // session still reports the trainer's cadence with speed 0, and a finished one
+        // stops sending samples altogether.
+        const moving = targetSpeed > STOPPED_SPEED && age <= MAX_EXTRAPOLATION;
+        const targetCadence = moving ? this._sampleCadence : 0;
         const kc = 1 - Math.exp(-3 * dt);
-        this.cadence += (this._sampleCadence - this.cadence) * kc;
+        this.cadence += (targetCadence - this.cadence) * kc;
+        if (this.cadence < 0.5 && targetCadence === 0) this.cadence = 0;
     }
 }

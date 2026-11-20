@@ -52,7 +52,7 @@ export const THEMES = {
         rider: { jersey: '#ff3b30', frame: '#d0d4dc' }
     },
     day: {
-        label: 'Diurno',
+        label: 'Day',
         sky: '#8ec9f0',
         fog: '#cfe6f5',
         fogDensity: 0.0032,

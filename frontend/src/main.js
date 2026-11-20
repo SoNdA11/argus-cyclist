@@ -325,10 +325,6 @@ document.getElementById('btnProceedAssessmentFTP').addEventListener('click', asy
     window.ui.els.btnAction.classList.remove('hidden');
 });
 
-document.getElementById('btnToggleView').addEventListener('click', () => {
-    window.ui.toggleDashboardMode();
-});
-
 document.getElementById('btnJustRide').addEventListener('click', () => {
     window.totalRouteDistance = 0;
     if (window.mapController) window.mapController.renderRoute({ type: 'FeatureCollection', features: [] });
@@ -752,7 +748,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
             },
             (data) => {
                 telemetryBus.publish(data);
-                if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+                updateMapPosition(data);
             }
         );
         btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
@@ -1458,9 +1454,22 @@ document.addEventListener('keydown', async (e) => {
 
 
 // ==============================================
-// 3D SCENE (F1) — Ctrl+Shift+3 opens the scene following the active ride.
-// The view tab comes in F2. Babylon.js is only loaded on first open.
+// MAIN VIEW — 3D scene (default) / real map / dashboard
+// The 3D scene is a layer inside #map-container, so the existing code that hides the
+// map (dashboard, Studio, workouts) hides it too. Babylon.js loads on first use.
 // ==============================================
+
+const MAIN_VIEW_KEY = 'argus.mainView';
+let mainView = loadMainView();      // '3d' | 'map' (dashboard is a separate UI mode)
+let lastMapTelemetry = null;
+
+function loadMainView() {
+    try {
+        const v = localStorage.getItem(MAIN_VIEW_KEY);
+        if (v === '3d' || v === 'map') return v;
+    } catch { /* storage unavailable */ }
+    return '3d';
+}
 
 function getActiveRoutePoints() {
     if (Capacitor.isNativePlatform()) return window.mobileRoutePoints || null;
@@ -1469,27 +1478,91 @@ function getActiveRoutePoints() {
 }
 
 let scene3dLoading = null;
-function loadScene3D() {
+function ensureScene3D() {
     if (!scene3dLoading) {
-        scene3dLoading = import('./modules/scene3d/Scene3DController.js').then(({ Scene3DController }) => {
-            window.scene3d = new Scene3DController({ bus: telemetryBus, getRoutePoints: getActiveRoutePoints });
-            return window.scene3d;
+        scene3dLoading = import('./modules/scene3d/Scene3DController.js').then(async ({ Scene3DController }) => {
+            const scene3d = new Scene3DController({ bus: telemetryBus, getRoutePoints: getActiveRoutePoints });
+            window.scene3d = scene3d;
+            scene3d.setActive(mainView === '3d');
+            scene3d.setCovered(isFullScreenPageOpen());
+            await scene3d.mount(document.getElementById('map-container'));
+            return scene3d;
+        }).catch((e) => {
+            console.error('[scene3d] failed to load, falling back to the map', e);
+            scene3dLoading = null;
+            setMainView('map');
+            throw e;
         });
     }
     return scene3dLoading;
 }
 
-async function toggleScene3D() {
-    try {
-        const scene3d = await loadScene3D();
-        if (scene3d.isOpen) scene3d.close();
-        else await scene3d.open();
-    } catch (e) {
-        console.error('[scene3d] failed to open', e);
+// The map only follows the rider while it is visible; the latest sample is applied
+// when the user switches back to it (MapLibre animations would compete with the 3D).
+function updateMapPosition(data) {
+    if (!window.mapController) return;
+    if (mainView === 'map' || !window.scene3d) {
+        window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+    } else {
+        lastMapTelemetry = data;
     }
 }
 
-// Keeps an already-loaded scene in sync with a newly imported GPX.
+function setMainView(view) {
+    const ui = window.ui;
+    if (view === 'dashboard') {
+        if (ui && !ui.isDashboardMode) ui.toggleDashboardMode();
+        updateViewSwitch();
+        return;
+    }
+    if (ui && ui.isDashboardMode) ui.toggleDashboardMode();
+    mainView = view;
+    try { localStorage.setItem(MAIN_VIEW_KEY, view); } catch { /* storage unavailable */ }
+
+    if (view === '3d') {
+        ensureScene3D().then((scene3d) => scene3d.setActive(true)).catch(() => { });
+    } else {
+        if (window.scene3d) window.scene3d.setActive(false);
+        if (window.mapController) {
+            if (lastMapTelemetry) {
+                const d = lastMapTelemetry;
+                lastMapTelemetry = null;
+                window.mapController.updateCyclistPosition(d.lat, d.lon, d.speed, d);
+            }
+            setTimeout(() => window.mapController.forceResize(), 50);
+        }
+    }
+    updateViewSwitch();
+}
+window.setMainView = setMainView;
+
+function updateViewSwitch() {
+    const current = window.ui && window.ui.isDashboardMode ? 'dashboard' : mainView;
+    document.querySelectorAll('#viewSwitch button').forEach((btn) => {
+        const on = btn.dataset.view === current;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+}
+
+document.querySelectorAll('#viewSwitch button').forEach((btn) => {
+    btn.addEventListener('click', () => setMainView(btn.dataset.view));
+});
+
+// Workouts toggle the dashboard on their own: keep the switch in sync.
+const dashboardViewEl = document.getElementById('dashboard-view');
+if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardViewEl, { attributes: true, attributeFilter: ['class'] });
+
+// Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
+function isFullScreenPageOpen() {
+    return !!document.querySelector('.home-overlay.active');
+}
+const pageObserver = new MutationObserver(() => {
+    if (window.scene3d) window.scene3d.setCovered(isFullScreenPageOpen());
+});
+document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
+
+// Keeps the scene in sync with a newly imported GPX.
 function notifyScene3DRoute(points) {
     if (window.scene3d) window.scene3d.setRoute(points);
 }
@@ -1497,9 +1570,12 @@ function notifyScene3DRoute(points) {
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
         e.preventDefault();
-        toggleScene3D();
+        setMainView('3d');
     }
 });
+
+updateViewSwitch();
+if (mainView === '3d') ensureScene3D().catch(() => { });
 
 // Dev-only end-to-end check (VITE_SCENE3D_AUTO=1 ./run-dev.sh): virtual trainer at
 // 250 W on the loaded route (built-in KOM climb if none), both themes, FPS and
@@ -1527,9 +1603,13 @@ async function runScene3DAutoCheck() {
     let samples = 0;
     const countSample = () => { samples++; };
     telemetryBus.subscribe(countSample);
-    const scene3d = await loadScene3D();
+    window.ui?.toggleStudioMode?.(false);
+    document.querySelectorAll('.home-overlay.active').forEach((el) => el.classList.remove('active'));
+    const previousView = mainView;
+    setMainView('3d');
+    const scene3d = await ensureScene3D();
     const previousTheme = scene3d.theme; // the theme choice is persisted; restore it at the end
-    await scene3d.open();
+    await scene3d.refreshRoute(); // the route was loaded after the scene mounted at startup
     if (demo) {
         await wait(1500);
         const startShot = await scene3d.captureFrame(0.75);
@@ -1558,7 +1638,38 @@ async function runScene3DAutoCheck() {
     }
 
     scene3d.setTheme(previousTheme);
-    scene3d.close();
+
+    // Stopping (demo stop, or pausing the session) must stop the legs too.
+    if (demo) scene3d.stopDemo();
+    else log(`[scene3d] pause: ${await App.ToggleSession()}`);
+    await wait(4000);
+    log(`[scene3d] after stop: cadence=${scene3d.interp.cadence.toFixed(2)} speed=${(scene3d.interp.speed * 3.6).toFixed(2)}`);
+
+    // View switching: the scene must render only in the 3D view and never add contexts.
+    const canvases = () => document.querySelectorAll('canvas').length;
+    const before = canvases();
+    let wrong = 0;
+    log(`[scene3d] switch-test start canvases=${before}`);
+    for (let i = 0; i < 50; i++) {
+        for (const [view, expect] of [['map', false], ['dashboard', false], ['3d', true]]) {
+            setMainView(view);
+            await wait(120);
+            if (scene3d.isRendering !== expect) wrong++;
+        }
+    }
+    await wait(2000);
+    const fpsAfter = scene3d.engine.getFps();
+    log(`[scene3d] switch-test done cycles=50 wrongStates=${wrong} canvases=${canvases()} (before ${before}) ` +
+        `fpsAfter=${fpsAfter.toFixed(0)} rendering3d=${scene3d.isRendering}`);
+    const markerShown = () => {
+        const m = document.querySelector('#map-container .maplibregl-marker');
+        return m ? getComputedStyle(m).display !== 'none' : 'no-marker';
+    };
+    log(`[scene3d] 3d view marker shown=${markerShown()}`);
+    setMainView('map');
+    await wait(500);
+    log(`[scene3d] map view rendering=${scene3d.isRendering} marker shown=${markerShown()}`);
+    setMainView(previousView);
     if (!demo) {
         await App.DiscardSession();
         await App.DisconnectTrainer();
@@ -1608,6 +1719,8 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
         if (status === "RECORDING") {
             ui.setRecordingState('RECORDING');
             window.isRecording = true;
+            // Event modes load their own route (e.g. the KOM segment) right before starting.
+            if (window.scene3d) window.scene3d.refreshRoute();
         }
         else if (status === "PAUSED") {
             ui.setRecordingState('PAUSED');
@@ -1634,7 +1747,7 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
 
     window.runtime.EventsOn("telemetry_update", (data) => {
         telemetryBus.publish(data);
-        if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+        updateMapPosition(data);
     });
 
     window.runtime.EventsOn("cooldown_update", (data) => {
