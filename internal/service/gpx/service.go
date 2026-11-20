@@ -168,7 +168,7 @@ func (s *Service) GetPointAtDistance(distanceMeter float64) domain.RoutePoint {
 		Latitude:  lerp(pPrev.Latitude, pNext.Latitude, ratio),
 		Longitude: lerp(pPrev.Longitude, pNext.Longitude, ratio),
 		Elevation: lerp(pPrev.Elevation, pNext.Elevation, ratio),
-		Grade:     pPrev.Grade,
+		Grade:     lerp(pPrev.Grade, pNext.Grade, ratio),
 		Distance:  distanceMeter,
 	}
 }
