@@ -716,7 +716,7 @@ document.getElementById('btnEventConnectVirtual')?.addEventListener('click', asy
     try {
         await window.go.main.App.ConnectVirtualTrainer();
     } catch (err) {
-        status.innerText = "Error connecting";
+        status.innerText = String(err).includes('Fair Mode') ? "Simulator disabled (Fair Mode)" : "Error connecting";
         status.style.color = "var(--argus-alert)";
         document.getElementById('btnEventConnectVirtual').disabled = false;
     }
@@ -1440,8 +1440,8 @@ document.addEventListener('keydown', async (e) => {
     const tag = e.target?.tagName?.toLowerCase();
     if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
 
-    // Só ajusta potência no simulador virtual
-    if (lastTrainerKind !== 'virtual') return;
+    // Só ajusta potência no simulador virtual (e nunca com o Modo Feira ligado)
+    if (lastTrainerKind !== 'virtual' || window.fairMode) return;
 
     let delta = 0;
     if (e.key === "ArrowUp") delta = 10;
@@ -1562,6 +1562,29 @@ const pageObserver = new MutationObserver(() => {
 });
 document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
 
+// Event races and challenges show the 3D rider behind their HUD, whatever main view
+// is selected; the previous view comes back when the challenge ends.
+let eventSceneActive = false;
+async function setEventScene(on) {
+    eventSceneActive = !!on;
+    if (eventSceneActive) {
+        try {
+            const scene3d = await ensureScene3D();
+            if (!eventSceneActive) return; // ended while loading
+            await scene3d.refreshRoute();  // the race course was just loaded
+            scene3d.resetRide();
+            scene3d.setHintVisible(false);
+            scene3d.setEventLayout(true);
+            scene3d.setActive(true);
+        } catch { /* the HUD still works without the 3D scene */ }
+    } else if (window.scene3d) {
+        window.scene3d.setHintVisible(true);
+        window.scene3d.setEventLayout(false);
+        window.scene3d.setActive(mainView === '3d');
+    }
+}
+window.setEventScene = setEventScene;
+
 // Keeps the scene in sync with a newly imported GPX.
 function notifyScene3DRoute(points) {
     if (window.scene3d) window.scene3d.setRoute(points);
@@ -1583,6 +1606,95 @@ if (mainView === '3d') ensureScene3D().catch(() => { });
 // VITE_SCENE3D_AUTO=demo uses the scene's demo ride instead (no trainer, no session).
 if (import.meta.env.VITE_SCENE3D_AUTO === '1' || import.meta.env.VITE_SCENE3D_AUTO === 'demo') {
     window.addEventListener('load', () => setTimeout(() => runScene3DAutoCheck().catch(e => console.error(e)), 3000));
+}
+
+// Dev-only race check (VITE_RACE_AUTO=1 ./run-dev.sh): runs the three distance races on
+// the simulator, a slower repeat of the sprint (ranking keeps the best per rider),
+// checks the Fair Mode lock, logs everything to the Wails terminal and deletes the
+// test records at the end.
+if (import.meta.env.VITE_RACE_AUTO === '1') {
+    window.addEventListener('load', () => setTimeout(() => runRaceAutoCheck().catch(e => window.runtime?.LogInfo?.(`[race] ERROR ${e}`)), 3000));
+}
+
+async function runRaceAutoCheck() {
+    const App = window.go.main.App;
+    const cc = window.challengeController;
+    const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const NAME = 'AutoTest';
+    const RAW = `${NAME} [G]`;
+    const result = () => ['challengeResultTitle', 'challengeResultValue', 'challengeResultRank', 'challengeResultDescription']
+        .map((id) => document.getElementById(id)?.textContent?.trim()).join(' | ');
+
+    await cc.setFairMode(false);
+    await cc.enterEventMode();
+    document.getElementById('eventRiderName').value = NAME;
+    document.getElementById('eventRiderGender').value = 'G';
+    document.getElementById('eventRiderWeight').value = '70';
+    log(`[race] trainer: ${await App.ConnectVirtualTrainer()}`);
+    await cc.refreshTrainerStatus();
+    log(`[race] sim power: ${await App.ChangePowerSimulation(300)}`);
+
+    const race = async (mode, probe3d = false) => {
+        const t0 = performance.now();
+        const simBefore = await App.ChangePowerSimulation(0); // delta 0 only reads the override
+        await cc.launchRace(mode);
+        if (probe3d) {
+            await wait(8000);
+            const sc = window.scene3d;
+            log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} sceneDist=${sc?.interp.distance.toFixed(1)} ` +
+                `raceProgress=${cc.activeChallenge?.progress.toFixed(1)} route=${sc?.model.length.toFixed(0)}m ` +
+                `hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')}`);
+            const shot = await sc?.captureFrame(0.75);
+            if (shot) log(`[scene3d-shot] race_${mode} ${shot}`);
+        }
+        const limit = (cc.modeMeta[mode].maxDuration + 20) * 1000;
+        while (cc.activeChallenge && performance.now() - t0 < limit) await wait(250);
+        log(`[race] ${mode}: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s incl. countdown; ` +
+            `sim override ${simBefore} -> ${await App.ChangePowerSimulation(0)} W)`);
+        cc.returnToEventHub();
+        await wait(1500);
+    };
+
+    for (const mode of ['sprint200', 'climb400', 'tt1k']) await race(mode, mode === 'sprint200');
+    log(`[race] after races: 3d rendering=${window.scene3d?.isRendering} (main view ${mainView}, hub open)`);
+    log(`[race] slower sprint: sim power ${await App.ChangePowerSimulation(-150)}`);
+    await race('sprint200');
+
+    const ranking = await App.GetEventRanking('sprint200', true);
+    const mine = ranking.filter((r) => r.rider_name === RAW);
+    log(`[race] sprint200 ranking (incl. simulated): ${mine.length} entry for ${RAW}: ` +
+        mine.map((r) => `${r.score.toFixed(2)} s sim=${r.is_simulated} w=${r.weight} ghost=${JSON.parse(r.ghost || '[]').length}`).join(', '));
+    const official = await App.GetEventRanking('sprint200', false);
+    log(`[race] sprint200 official ranking has ${RAW}: ${official.some((r) => r.rider_name === RAW)}`);
+
+    // No power at all: the rider never moves and the race ends as not finished.
+    log(`[race] zero power: sim power ${await App.ChangePowerSimulation(-300)}`);
+    await race('sprint200');
+
+    // The Zone Challenge (points) still runs its own one-minute flow.
+    log(`[race] zone challenge: sim power ${await App.ChangePowerSimulation(400)}`);
+    {
+        const t0 = performance.now();
+        await cc.launchTimeTrial();
+        while (cc.activeChallenge && performance.now() - t0 < 120000) await wait(250);
+        log(`[race] timeTrial: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s)`);
+        cc.returnToEventHub();
+        const zr = await App.GetEventRanking('timeTrial', true);
+        log(`[race] timeTrial ranking entry: ${JSON.stringify(zr.filter((r) => r.rider_name === RAW).map((r) => [r.score, r.is_simulated, r.weight]))}`);
+        await wait(1500);
+    }
+
+    await cc.setFairMode(true);
+    let connectErr = 'none';
+    try { await App.ConnectVirtualTrainer(); } catch (e) { connectErr = String(e); }
+    log(`[race] fair mode on: connect simulator -> ${connectErr}; power override -> ${await App.ChangePowerSimulation(50)}; state ${JSON.stringify(await App.GetDeviceConnectionState())}`);
+    await cc.setFairMode(false);
+
+    const history = await App.GetRaceHistory(RAW);
+    for (const r of history) await App.DeleteEventRecord(r.id);
+    log(`[race] cleanup: deleted ${history.length} test records; remaining ${(await App.GetRaceHistory(RAW)).length}`);
+    log('[race] done');
 }
 
 async function runScene3DAutoCheck() {

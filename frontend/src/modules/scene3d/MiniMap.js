@@ -29,6 +29,16 @@ export class MiniMap {
         this.visible = true;
     }
 
+    /** 'top-right' (default) or 'bottom-left' (event races: the HUD bar owns the top). */
+    setCorner(corner) {
+        const st = this.canvas.style;
+        if (corner === 'bottom-left') {
+            st.top = 'auto'; st.right = 'auto'; st.bottom = '12px'; st.left = '12px';
+        } else {
+            st.top = '12px'; st.right = '12px'; st.bottom = 'auto'; st.left = 'auto';
+        }
+    }
+
     setVisible(visible) {
         this.visible = !!visible;
         this.canvas.style.display = this.visible ? '' : 'none';

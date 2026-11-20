@@ -48,3 +48,35 @@ func TestGetPointAtDistanceInterpolatesGrade(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildCourse(t *testing.T) {
+	pts := BuildCourse(400, 300, []float64{2, 6})
+	last := pts[len(pts)-1]
+	if math.Abs(last.Distance-700) > 1e-9 {
+		t.Fatalf("course length %.1f m, want 700 (race + runout)", last.Distance)
+	}
+	for i := 1; i < len(pts); i++ {
+		if pts[i].Distance <= pts[i-1].Distance {
+			t.Fatalf("distances not increasing at %d", i)
+		}
+	}
+	s := NewService()
+	s.SetPoints(pts)
+	if g := s.GetPointAtDistance(0).Grade; math.Abs(g-2) > 1e-9 {
+		t.Errorf("grade at start %.2f, want 2", g)
+	}
+	if g := s.GetPointAtDistance(200).Grade; math.Abs(g-4) > 0.01 {
+		t.Errorf("grade at mid race %.2f, want 4", g)
+	}
+	if g := s.GetPointAtDistance(650).Grade; math.Abs(g-6) > 1e-9 {
+		t.Errorf("grade in the runout %.2f, want 6 (last grade)", g)
+	}
+	// Elevation gain over the race ≈ mean grade (4%) × 400 m.
+	gain := s.GetPointAtDistance(400).Elevation - pts[0].Elevation
+	if math.Abs(gain-16) > 0.5 {
+		t.Errorf("elevation gain over the race %.2f m, want ~16", gain)
+	}
+	if flat := BuildCourse(200, 0, nil); flat[len(flat)-1].Elevation != flat[0].Elevation {
+		t.Error("course without grades should be flat")
+	}
+}

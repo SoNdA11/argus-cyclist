@@ -19,6 +19,7 @@ package sqlite
 import (
 	"argus-cyclist/internal/domain"
 	"fmt"
+	"strings"
 )
 
 type EventRepo struct {
@@ -36,18 +37,43 @@ func (r *EventRepo) SaveEventRecord(record domain.EventRecord) error {
 	return r.state.EventDB.Create(&record).Error
 }
 
-func (r *EventRepo) GetTopEventRecords(mode string, limit int) ([]domain.EventRecord, error) {
+func (r *EventRepo) GetTopEventRecords(mode string, limit int, ascending, includeSimulated bool) ([]domain.EventRecord, error) {
 	var records []domain.EventRecord
 	if r.state.EventDB == nil {
 		return records, fmt.Errorf("Event database not initialized")
 	}
 
-	err := r.state.EventDB.Where("event_mode = ? AND status = ?", mode, "success").
-		Order("score desc").
-		Limit(limit).
-		Find(&records).Error
+	order := "score desc, created_at asc"
+	if ascending {
+		order = "score asc, created_at asc"
+	}
+	q := r.state.EventDB.Where("event_mode = ? AND status = ?", mode, "success")
+	if !includeSimulated {
+		q = q.Where("is_simulated = ?", false)
+	}
+	if err := q.Order(order).Find(&records).Error; err != nil {
+		return records, err
+	}
+	return BestPerRider(records, limit), nil
+}
 
-	return records, err
+// BestPerRider keeps the first (best) record of each rider from an already ranked
+// list, up to limit entries (limit <= 0 keeps all).
+func BestPerRider(ranked []domain.EventRecord, limit int) []domain.EventRecord {
+	seen := make(map[string]bool, len(ranked))
+	best := make([]domain.EventRecord, 0, len(ranked))
+	for _, rec := range ranked {
+		key := strings.ToLower(strings.TrimSpace(rec.RiderName))
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		best = append(best, rec)
+		if limit > 0 && len(best) == limit {
+			break
+		}
+	}
+	return best
 }
 
 func (r *EventRepo) ResetEventLeaderboard(mode string) error {

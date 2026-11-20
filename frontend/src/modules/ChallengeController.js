@@ -17,6 +17,47 @@
 import { telemetryBus } from './TelemetryEventBus.js';
 
 // Rider names are free text typed at the event hub; never inject them as raw HTML.
+const FAIR_MODE_KEY = 'argus.fairMode';
+const GHOST_STEP = 5;            // m between ghost samples (domain.GhostStep)
+const RACE_IDLE_LIMIT = 15;      // s nearly stopped before a race counts as not finished
+const RACE_IDLE_SPEED = 1;       // km/h
+
+/** Formats seconds as "23.45 s" or "1:02.37". */
+export function formatRaceTime(seconds) {
+    const t = Math.max(0, seconds || 0);
+    if (t < 60) return `${t.toFixed(2)} s`;
+    const m = Math.floor(t / 60);
+    return `${m}:${(t - m * 60).toFixed(2).padStart(5, '0')}`;
+}
+
+/**
+ * Finish time by linear interpolation between the samples around the line:
+ * t = t0 + (L - d0) / (d1 - d0) * (t1 - t0). samples: [{t, d}] ascending in d.
+ */
+export function interpolateFinish(samples, distance) {
+    for (let i = 1; i < samples.length; i++) {
+        const a = samples[i - 1], b = samples[i];
+        if (b.d >= distance) {
+            if (b.d <= a.d) return b.t;
+            return a.t + ((distance - a.d) / (b.d - a.d)) * (b.t - a.t);
+        }
+    }
+    return null;
+}
+
+/** Elapsed time at every `step` meters from 0 to `distance` (2 decimals), for ghosts. */
+export function buildGhost(samples, distance, step = GHOST_STEP) {
+    const out = [];
+    let i = 1;
+    for (let d = 0; d <= distance + 1e-9; d += step) {
+        while (i < samples.length - 1 && samples[i].d < d) i++;
+        const a = samples[i - 1], b = samples[i];
+        const t = b.d > a.d ? a.t + ((Math.min(d, b.d) - a.d) / (b.d - a.d)) * (b.t - a.t) : b.t;
+        out.push(Math.round(Math.max(0, t) * 100) / 100);
+    }
+    return out;
+}
+
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (c) => (
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -46,32 +87,54 @@ export class ChallengeController {
             trainerStatus: document.getElementById('statusTrainer')
         };
 
-        this.leaderboards = {
-            sprint: [],
-            kom: [],
-            timeTrial: []
-        };
-
+        // Active modes. Distance races rank by the lowest time (ascending).
         this.modeMeta = {
-            sprint: {
-                title: 'Sprint',
-                fullTitle: 'Sprint (Maximum Power Test)',
-                metric: 'Peak Power',
-                unit: 'W'
+            sprint200: {
+                title: 'Sprint 200 m',
+                fullTitle: 'Sprint · 200 m',
+                metric: 'Time',
+                kind: 'race',
+                distance: 200,
+                maxDuration: 90,
+                ascending: true
             },
-            kom: {
-                title: 'KOM',
-                fullTitle: 'King of the Mountain',
-                metric: 'Distance',
-                unit: 'm'
+            climb400: {
+                title: 'Climb 400 m',
+                fullTitle: 'Climb · 400 m',
+                metric: 'Time',
+                kind: 'race',
+                distance: 400,
+                maxDuration: 240,
+                ascending: true
+            },
+            tt1k: {
+                title: 'Time Trial 1 km',
+                fullTitle: 'Time Trial · 1 km',
+                metric: 'Time',
+                kind: 'race',
+                distance: 1000,
+                maxDuration: 300,
+                ascending: true
             },
             timeTrial: {
-                title: 'Time Trial',
-                fullTitle: 'Time Trial (Power Accumulation)',
+                title: 'Zone Challenge',
+                fullTitle: 'Zone Challenge (Power Accumulation)',
                 metric: 'Score',
-                unit: 'pts'
+                unit: 'pts',
+                kind: 'points',
+                ascending: false
             }
         };
+
+        // Retired modes: still shown in the race history, never ranked.
+        this.legacyMeta = {
+            sprint: { title: 'Sprint (legacy)', fullTitle: 'Sprint · Max Power (legacy)', unit: 'W' },
+            kom: { title: 'KOM (legacy)', fullTitle: 'King of the Mountain (legacy)', unit: 'm' }
+        };
+
+        this.leaderboards = Object.fromEntries(Object.keys(this.modeMeta).map((k) => [k, []]));
+        this.includeSimulated = false;
+        this.fairMode = false;
 
         this.lastTelemetry = {
             power: 0,
@@ -96,6 +159,7 @@ export class ChallengeController {
 
         this.bindEvents();
         this.resizeCanvases();
+        this.restoreFairMode();
 
         window.addEventListener('resize', () => this.resizeCanvases());
     }
@@ -137,9 +201,17 @@ export class ChallengeController {
             this.openLeaderboard();
         });
 
-        document.getElementById('btnLaunchSprint')?.addEventListener('click', () => this.launchSprint());
-        document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchKOM());
+        document.getElementById('btnLaunchSprint')?.addEventListener('click', () => this.launchRace('sprint200'));
+        document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchRace('climb400'));
+        document.getElementById('btnLaunchTT1k')?.addEventListener('click', () => this.launchRace('tt1k'));
         document.getElementById('btnLaunchTimeTrial')?.addEventListener('click', () => this.launchTimeTrial());
+
+        document.getElementById('btnFairMode')?.addEventListener('click', () => this.setFairMode(!this.fairMode));
+        document.getElementById('lbIncludeSimulated')?.addEventListener('change', async (e) => {
+            this.includeSimulated = e.target.checked;
+            await this.fetchLeaderboardsFromDB();
+            this.renderLeaderboardModal();
+        });
 
         document.getElementById('hud-abort-btn')?.addEventListener('click', async () => {
             await this.abortActiveChallenge();
@@ -314,6 +386,57 @@ export class ChallengeController {
         el.classList.add('hidden');
     }
 
+    metaFor(mode) {
+        return this.modeMeta[mode] || this.legacyMeta[mode] || { title: mode, fullTitle: mode };
+    }
+
+    isRace(mode) {
+        return this.modeMeta[mode]?.kind === 'race';
+    }
+
+    // ----- Fair Mode (operator lock) -----
+
+    restoreFairMode() {
+        let on = false;
+        try { on = localStorage.getItem(FAIR_MODE_KEY) === '1'; } catch { /* storage unavailable */ }
+        this.setFairMode(on, { persist: false });
+    }
+
+    async setFairMode(on, { persist = true } = {}) {
+        this.fairMode = !!on;
+        window.fairMode = this.fairMode;
+        if (persist) {
+            try { localStorage.setItem(FAIR_MODE_KEY, this.fairMode ? '1' : '0'); } catch { /* storage unavailable */ }
+        }
+        try {
+            if (window.go?.main?.App?.SetFairMode) await window.go.main.App.SetFairMode(this.fairMode);
+        } catch (e) {
+            console.error('Failed to set Fair Mode:', e);
+        }
+        const btn = document.getElementById('btnFairMode');
+        if (btn) {
+            btn.querySelector('[data-role="label"]').textContent = `Fair Mode: ${this.fairMode ? 'ON' : 'OFF'}`;
+            btn.style.color = this.fairMode ? '#22c55e' : '#94a3b8';
+            btn.style.borderColor = this.fairMode ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.15)';
+            btn.style.background = this.fairMode ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)';
+        }
+        const virtualBtn = document.getElementById('btnEventConnectVirtual');
+        if (virtualBtn) virtualBtn.disabled = this.fairMode;
+        await this.refreshTrainerStatus();
+    }
+
+    /** Weight in kg; 0 when optional and left empty; null (after an alert) when invalid. */
+    getRiderWeight({ required = true } = {}) {
+        const raw = document.getElementById('eventRiderWeight')?.value;
+        const kg = Number(raw);
+        if (!raw && !required) return 0;
+        if (!Number.isFinite(kg) || kg < 35 || kg > 150) {
+            alert('Please enter the cyclist weight (35-150 kg) before starting a race.');
+            return null;
+        }
+        return kg;
+    }
+
     getRiderName() {
         const nameInput = this.els.riderInput;
         const genderInput = document.getElementById('eventRiderGender');
@@ -329,11 +452,11 @@ export class ChallengeController {
     }
 
     async fetchLeaderboardsFromDB() {
-        if (!window.go?.main?.App?.GetEventLeaderboard) return;
+        if (!window.go?.main?.App?.GetEventRanking) return;
 
         for (const type of Object.keys(this.modeMeta)) {
             try {
-                const records = await window.go.main.App.GetEventLeaderboard(type);
+                const records = await window.go.main.App.GetEventRanking(type, this.includeSimulated);
                 this.leaderboards[type] = (records || []).map(r => {
                     let rawName = r.rider_name;
                     let cleanName = rawName;
@@ -353,6 +476,7 @@ export class ChallengeController {
                         gender: gender,
                         value: r.score,
                         status: r.status,
+                        isSimulated: !!r.is_simulated,
                         createdAt: new Date(r.created_at).getTime()
                     };
                 });
@@ -426,170 +550,12 @@ export class ChallengeController {
             return false;
         }
 
-        if (mode === 'kom') {
-            if (window.go?.main?.App?.SetDirectGrade) {
-                await window.go.main.App.SetDirectGrade(0);
-            }
-        } else {
-            if (window.go?.main?.App?.SetDirectGrade) {
-                await window.go.main.App.SetDirectGrade(0);
-            }
-            this.clearRoutePreview();
+        if (window.go?.main?.App?.SetDirectGrade) {
+            await window.go.main.App.SetDirectGrade(0);
         }
+        if (!this.isRace(mode)) this.clearRoutePreview();
 
         return true;
-    }
-
-    updateKOMGrade(distanceMeters) {
-        if (!window.go?.main?.App?.SetDirectGrade) return;
-
-        const gradeSchedule = [
-            { pct: 0, grade: 0 },
-            { pct: 0.05, grade: 0 },
-            { pct: 0.10, grade: 1 },
-            { pct: 0.20, grade: 2 },
-            { pct: 0.30, grade: 3 },
-            { pct: 0.40, grade: 4 },
-            { pct: 0.50, grade: 5 },
-            { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 6 },
-            { pct: 0.80, grade: 6 },
-            { pct: 0.90, grade: 6 },
-            { pct: 1.00, grade: 6 }
-        ];
-
-        const routeDistance = 3000;
-        const pct = Math.min(1, distanceMeters / routeDistance);
-
-        for (let i = 0; i < gradeSchedule.length - 1; i++) {
-            if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
-                const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
-                const grade = gradeSchedule[i].grade + t * (gradeSchedule[i + 1].grade - gradeSchedule[i].grade);
-                window.go.main.App.SetDirectGrade(grade);
-                return;
-            }
-        }
-        window.go.main.App.SetDirectGrade(gradeSchedule[gradeSchedule.length - 1].grade);
-    }
-
-    updateKOMGradeByTime(elapsedSeconds) {
-        if (!window.go?.main?.App?.SetDirectGrade) return;
-
-        const duration = 60;
-        const maxGrade = 6;
-        const pct = Math.min(1, elapsedSeconds / duration);
-
-        let grade = 0;
-        if (pct <= 0.15) {
-            grade = 0;
-        } else if (pct <= 0.35) {
-            grade = (pct - 0.15) / 0.2 * 2;
-        } else if (pct <= 0.6) {
-            grade = 2 + (pct - 0.35) / 0.25 * 3;
-        } else {
-            grade = 5 + (pct - 0.6) / 0.4 * (maxGrade - 5);
-        }
-
-        grade = Math.min(maxGrade, grade);
-
-        window.go.main.App.SetDirectGrade(grade);
-
-        if (this.lastTelemetry) {
-            this.lastTelemetry.grade = grade;
-        }
-    }
-
-    async loadKOMRoute() {
-        const routePoints = this.createVirtualKOMRoute();
-
-        if (!routePoints || routePoints.length === 0) return;
-
-        window.totalRouteDistance = routePoints[routePoints.length - 1].distance;
-
-        if (window.ui?.setFilename) {
-            window.ui.setFilename('KOM Challenge Route');
-        }
-
-        this.ui.showRoutePreview(window.totalRouteDistance);
-
-        const features = [];
-        for (let i = 0; i < routePoints.length - 1; i++) {
-            features.push({
-                type: 'Feature',
-                properties: { grade: routePoints[i].grade },
-                geometry: {
-                    type: 'LineString',
-                    coordinates: [
-                        [routePoints[i].lon, routePoints[i].lat],
-                        [routePoints[i + 1].lon, routePoints[i + 1].lat]
-                    ]
-                }
-            });
-        }
-
-        this.mapCtrl.renderRoute({ type: 'FeatureCollection', features });
-        this.mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
-
-        const elevations = routePoints.map(p => p.ele);
-        this.chart.setData(elevations);
-    }
-
-    createVirtualKOMRoute() {
-        const points = [];
-        const numPoints = 30;
-        const startLat = -23.560000;
-        const startLon = -46.650000;
-        const startEle = 760.0;
-
-        const latStep = 0.0012;
-        const lonStep = 0.0012;
-
-        const gradeSchedule = [
-            { pct: 0, grade: 0 },
-            { pct: 0.05, grade: 0 },
-            { pct: 0.10, grade: 1 },
-            { pct: 0.20, grade: 2 },
-            { pct: 0.30, grade: 3 },
-            { pct: 0.40, grade: 4 },
-            { pct: 0.50, grade: 5 },
-            { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 6 },
-            { pct: 0.80, grade: 6 },
-            { pct: 0.90, grade: 6 },
-            { pct: 1.00, grade: 6 }
-        ];
-
-        let currentEle = startEle;
-
-        for (let i = 0; i < numPoints; i++) {
-            const pct = i / (numPoints - 1);
-            const grade = this.interpolateGrade(pct, gradeSchedule);
-
-            if (i > 0) {
-                const distSinceLast = 100;
-                currentEle += distSinceLast * (grade / 100);
-            }
-
-            points.push({
-                lat: startLat - (i * latStep),
-                lon: startLon - (i * lonStep),
-                ele: currentEle,
-                grade: grade,
-                distance: i * 100
-            });
-        }
-
-        return points;
-    }
-
-    interpolateGrade(pct, schedule) {
-        for (let i = 0; i < schedule.length - 1; i++) {
-            if (pct >= schedule[i].pct && pct <= schedule[i + 1].pct) {
-                const t = (pct - schedule[i].pct) / (schedule[i + 1].pct - schedule[i].pct);
-                return schedule[i].grade + t * (schedule[i + 1].grade - schedule[i].grade);
-            }
-        }
-        return schedule[schedule.length - 1].grade;
     }
 
     clearRoutePreview() {
@@ -664,39 +630,55 @@ export class ChallengeController {
         }, 1500);
     }
 
-    async launchSprint() {
+    async launchRace(mode) {
+        const meta = this.modeMeta[mode];
         const riderName = this.getRiderName();
         if (!riderName) return;
-        if (!await this.prepareChallengeEnvironment('sprint')) return;
+        const weight = this.getRiderWeight();
+        if (!weight) return;
+        if (!await this.prepareChallengeEnvironment(mode)) return;
+
+        let simulated = false;
+        try {
+            await window.go.main.App.SetEventRiderWeight(weight);
+            await window.go.main.App.SetEventCourse(mode);
+            const state = await window.go.main.App.GetDeviceConnectionState();
+            simulated = state?.trainer_kind === 'virtual';
+        } catch (e) {
+            alert(`Unable to prepare the race: ${e}`);
+            return;
+        }
 
         await this.startChallenge({
-            type: 'sprint',
+            type: mode,
+            kind: 'race',
             riderName,
-            duration: 15,
-            started: false,
-            peakPower: 0,
-            threshold: 5
-        });
-    }
-
-    async launchKOM() {
-        const riderName = this.getRiderName();
-        if (!riderName) return;
-        if (!await this.prepareChallengeEnvironment('kom')) return;
-
-        await this.startChallenge({
-            type: 'kom',
-            riderName,
-            duration: 60,
-            started: false,
-            bestDistance: 0,
-            threshold: 5
+            weight,
+            simulated,
+            distance: meta.distance,
+            duration: meta.maxDuration,
+            phase: 'countdown',
+            samples: [{ t: 0, d: 0 }],
+            progress: 0,
+            idleTime: 0,
+            started: false
         });
     }
 
     async launchTimeTrial() {
         const riderName = this.getRiderName();
         if (!riderName) return;
+        // Optional here (power-based score), but recorded with the result when given.
+        const weight = this.getRiderWeight({ required: false });
+        if (weight === null) return;
+        if (weight) {
+            try {
+                await window.go.main.App.SetEventRiderWeight(weight);
+            } catch (e) {
+                alert(`Unable to set the weight: ${e}`);
+                return;
+            }
+        }
 
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
@@ -739,8 +721,22 @@ export class ChallengeController {
 
             this.updateChallengeChrome();
             this.openChallengeOverlay(config.type);
-            await this.startBackendSession();
-            this.startAnimationLoop();
+            if (config.kind === 'race') {
+                // Distance only accumulates once the session starts, at GO: a standing start
+                // for everyone, whatever they pedal during the countdown.
+                const challenge = this.activeChallenge;
+                this.startAnimationLoop();
+                if (!await this.runCountdown(challenge)) return;
+                await this.startBackendSession();
+                challenge.phase = 'racing';
+                challenge.started = true;
+                challenge.goTime = performance.now();
+                challenge._waitingForTelemetry = false;
+                if (this.hud) this.hud.setStatus('GO!');
+            } else {
+                await this.startBackendSession();
+                this.startAnimationLoop();
+            }
         } catch (error) {
             console.error(error);
             alert(`Unable to start challenge: ${error}`);
@@ -748,22 +744,52 @@ export class ChallengeController {
         }
     }
 
+    /** 3-2-1-GO overlay. Resolves false if the challenge was aborted meanwhile. */
+    async runCountdown(challenge) {
+        const el = document.createElement('div');
+        el.className = 'race-countdown';
+        el.style.cssText = 'position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;' +
+            'pointer-events:none;font:900 22vh/1 sans-serif;color:#fff;text-shadow:0 0 40px rgba(56,189,248,.8)';
+        document.body.appendChild(el);
+        const alive = () => this.activeChallenge === challenge && !challenge.finalized;
+        try {
+            for (const label of ['3', '2', '1']) {
+                if (!alive()) return false;
+                el.textContent = label;
+                if (this.hud) this.hud.setStatus(`Get ready: ${label}`);
+                await new Promise((r) => setTimeout(r, 1000));
+            }
+            if (!alive()) return false;
+            el.textContent = 'GO!';
+            el.style.color = '#22c55e';
+            setTimeout(() => el.remove(), 700);
+            return true;
+        } finally {
+            if (!alive()) el.remove();
+        }
+    }
+
     openChallengeOverlay(mode) {
         if (this.hud) {
             this.hud.open(mode);
+            // Transparent HUD laid out around the 3D rider (see .hud-over-3d).
+            this.hud.el.hud.classList.add('hud-over-3d');
         }
         if (this.ui) {
             this.ui.els.header.style.display = 'none';
-            this.ui.els.mapContainer.style.display = 'none';
+            this.ui.els.mapContainer.style.display = ''; // hosts the 3D scene behind the HUD
             this.ui.els.hudSidebar.style.display = 'none';
             if (this.ui.els.footer) this.ui.els.footer.style.display = 'none';
         }
+        window.setEventScene?.(true);
     }
 
     closeChallengeOverlay() {
         if (this.hud) {
+            this.hud.el.hud.classList.remove('hud-over-3d');
             this.hud.close();
         }
+        window.setEventScene?.(false);
     }
 
     restoreMainLayout() {
@@ -787,10 +813,12 @@ export class ChallengeController {
             this.hud.setStatus('Waiting for first pedal stroke');
             this.hud.setTimer(`${this.activeChallenge.duration.toFixed(1)}s`, 'TIME REMAINING');
 
-            if (this.activeChallenge.type === 'kom') {
-                this.hud.setPrimaryMetric('0', 'M');
-                this.hud.setSecondaryMetric('LIVE POWER', '0 W');
-                this.hud.setTertiaryMetric('CURRENT GRADE', '0.0 %');
+            if (this.activeChallenge.kind === 'race') {
+                this.hud.setStatus('Get ready');
+                this.hud.setTimer(formatRaceTime(0), 'TIME');
+                this.hud.setPrimaryMetric(`${this.activeChallenge.distance}`, 'M TO GO');
+                this.hud.setSecondaryMetric('SPEED', '0.0 km/h');
+                this.hud.setTertiaryMetric('POWER', '0 W');
             } else if (this.activeChallenge.type === 'timeTrial') {
                 this.hud.setPrimaryMetric('0', 'PTS');
                 this.hud.setSecondaryMetric('LIVE POWER', '0 W');
@@ -827,6 +855,18 @@ export class ChallengeController {
         const dt = Math.min(0.05, Math.max(0.001, rawDt));
         this.lastFrameTime = now;
 
+        if (this.activeChallenge.kind === 'race') {
+            this.tickRace(now, rawDt);
+            if (!this.activeChallenge) return;
+            this.leaderboardUpdateAccumulator += rawDt;
+            if (this.leaderboardUpdateAccumulator >= 0.4) {
+                this.updateInlineLeaderboard();
+                this.leaderboardUpdateAccumulator = 0;
+            }
+            this.animationFrame = requestAnimationFrame((frameTime) => this.tick(frameTime));
+            return;
+        }
+
         if (!this.activeChallenge.started && !this.activeChallenge._waitingForTelemetry && this.lastTelemetry.power > this.activeChallenge.threshold) {
             this.activeChallenge.started = true;
             this.activeChallenge.startTime = now;
@@ -847,9 +887,7 @@ export class ChallengeController {
                 activeDt = Math.max(0, activeDt - overshoot);
             }
 
-            if (this.activeChallenge.type === 'kom') {
-                this.updateKOMGradeByTime(elapsed);
-            } else if (this.activeChallenge.type === 'timeTrial') {
+            if (this.activeChallenge.type === 'timeTrial') {
                 this.updateTimeTrial(activeDt);
             }
 
@@ -871,6 +909,136 @@ export class ChallengeController {
         }
 
         this.animationFrame = requestAnimationFrame((frameTime) => this.tick(frameTime));
+    }
+
+    tickRace(now, rawDt) {
+        const c = this.activeChallenge;
+        if (c.phase !== 'racing' || c.finalized) return;
+
+        // Display clock: wall time since GO (the result uses the backend clock).
+        const elapsed = (now - c.goTime) / 1000;
+        const speed = this.lastTelemetry.speed || 0;
+        const remaining = Math.max(0, c.distance - c.progress);
+        if (this.hud) {
+            this.hud.setTimer(formatRaceTime(elapsed), 'TIME');
+            this.hud.setPrimaryMetric(remaining.toFixed(0), 'M TO GO');
+            this.hud.setSecondaryMetric('SPEED', `${speed.toFixed(1)} km/h`);
+            this.hud.setTertiaryMetric('POWER', `${Math.round(this.lastTelemetry.power || 0)} W`);
+            this.hud.setStatus(`${Math.round((c.progress / c.distance) * 100)}%`);
+        }
+
+        // Not finishing: too slow for too long, or over the time limit.
+        c.idleTime = elapsed > 5 && speed < RACE_IDLE_SPEED ? c.idleTime + rawDt : 0;
+        if (c.idleTime > RACE_IDLE_LIMIT) {
+            this.finishRaceDNF('Stopped before the finish line');
+        } else if (elapsed > c.duration) {
+            this.finishRaceDNF(`Time limit (${c.duration} s) reached`);
+        }
+    }
+
+    handleRaceTelemetry(data) {
+        const c = this.activeChallenge;
+        if (c.phase !== 'racing' || c.finalized) return;
+        const d = Number(data.total_dist), t = Number(data.elapsed);
+        if (!Number.isFinite(d) || !Number.isFinite(t) || t <= 0) return;
+        const last = c.samples[c.samples.length - 1];
+        if (d < last.d || t <= last.t) return; // stale sample from before GO
+        c.samples.push({ t, d });
+        c.progress = Math.min(c.distance, d);
+        if (d >= c.distance) {
+            const seconds = interpolateFinish(c.samples, c.distance);
+            if (seconds) this.finishRace(seconds);
+        }
+    }
+
+    async finishRace(seconds) {
+        const c = this.activeChallenge;
+        if (!c || c.finalized) return;
+        c.finalized = true;
+        c.finishTime = seconds;
+        this.stopAnimationLoop();
+        this.closeChallengeOverlay();
+
+        const ghost = JSON.stringify(buildGhost(c.samples, c.distance));
+        let saveError = null;
+        try {
+            // Saved before the session is discarded: the FIT data lives in the session.
+            await window.go.main.App.SaveRaceResult(c.riderName, c.type, seconds, ghost);
+        } catch (e) {
+            saveError = e;
+            console.error('Failed to save race result:', e);
+        }
+
+        await this.fetchLeaderboardsFromDB();
+        const placing = await this.describePlacing(c, seconds);
+        this.showResult(c, {
+            title: placing.record ? 'New record!' : 'Finish!',
+            value: formatRaceTime(seconds),
+            rank: placing.rank,
+            description: saveError ? `Could not save the result: ${saveError}` : placing.description
+        });
+
+        await this.stopBackendSession();
+        this.cleanupChallengeState();
+    }
+
+    async finishRaceDNF(reason) {
+        const c = this.activeChallenge;
+        if (!c || c.finalized) return;
+        c.finalized = true;
+        this.stopAnimationLoop();
+        this.closeChallengeOverlay();
+        this.showResult(c, {
+            title: 'Did not finish',
+            value: `${c.progress.toFixed(0)} / ${c.distance} m`,
+            rank: null,
+            description: `${reason}. Results only count when you cross the line.`
+        });
+        await this.stopBackendSession();
+        this.cleanupChallengeState();
+    }
+
+    /** Position text for a finished race, from the freshly fetched ranking. */
+    async describePlacing(c, seconds) {
+        let ranking = [];
+        try {
+            ranking = await window.go.main.App.GetEventRanking(c.type, c.simulated);
+        } catch (e) {
+            console.error(e);
+        }
+        const key = c.riderName.trim().toLowerCase();
+        const idx = ranking.findIndex((r) => r.rider_name.trim().toLowerCase() === key);
+        const best = idx >= 0 ? ranking[idx].score : seconds;
+        const isBest = Math.abs(best - seconds) < 0.005;
+        const pos = idx >= 0 ? `#${idx + 1} of ${ranking.length}` : null;
+        const simulatedNote = c.simulated ? ' Ridden on the simulator: not part of the official ranking.' : '';
+        let description;
+        if (!pos) description = 'Result saved.';
+        else if (isBest) description = `You are ${pos} in the ranking.`;
+        else description = `Your best is still ${formatRaceTime(best)} (${pos}).`;
+        return {
+            rank: pos ? (c.simulated ? `Simulated ${pos}` : pos) : null,
+            record: idx === 0 && isBest && !c.simulated,
+            description: description + simulatedNote
+        };
+    }
+
+    showResult(c, { title, value, rank, description }) {
+        this.openEventHub();
+        const modal = this.els.resultModal;
+        modal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
+        const modeClassMap = { sprint200: 'mode-sprint', climb400: 'mode-kom', tt1k: 'mode-tt', timeTrial: 'mode-tt' };
+        modal.classList.add(modeClassMap[c.type] || 'mode-sprint');
+        this.els.resultMode.textContent = this.metaFor(c.type).fullTitle;
+        this.els.resultTitle.textContent = title;
+        this.els.resultValue.textContent = value;
+        this.els.resultValue.style.color = '';
+        if (this.els.resultRank) {
+            this.els.resultRank.textContent = rank || '';
+            this.els.resultRank.style.display = rank ? '' : 'none';
+        }
+        this.els.resultDescription.textContent = description;
+        this.openModal(modal);
     }
 
     updateTimeTrial(dt) {
@@ -980,13 +1148,8 @@ export class ChallengeController {
         if (!this.activeChallenge || !this.hud) return;
 
         const power = Math.round(this.lastTelemetry.power || 0);
-        const cadence = Math.round(this.lastTelemetry.cadence || 0);
 
-        if (this.activeChallenge.type === 'kom') {
-            this.hud.setPrimaryMetric(this.formatDistance(this.activeChallenge.bestDistance || 0, false));
-            this.hud.setSecondaryMetric('LIVE POWER', `${power} W`);
-            this.hud.setTertiaryMetric('CURRENT GRADE', `${(this.lastTelemetry.grade || 0).toFixed(1)} %`);
-        } else if (this.activeChallenge.type === 'timeTrial') {
+        if (this.activeChallenge.type === 'timeTrial') {
             this.hud.setPrimaryMetric(`${Math.round(this.activeChallenge.score)}`);
             this.hud.setSecondaryMetric('LIVE POWER', `${power} W`);
             this.hud.setTertiaryMetric('MULTIPLIER', `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`);
@@ -999,10 +1162,6 @@ export class ChallengeController {
             if (!this.activeChallenge.started) {
                 this.hud.setStatus('Power Accumulation Mode');
             }
-        } else {
-            this.hud.setPrimaryMetric(`${power}`);
-            this.hud.setSecondaryMetric('PEAK POWER', `${Math.round(this.activeChallenge.peakPower || 0)} W`);
-            this.hud.setTertiaryMetric('CADENCE', `${cadence} rpm`);
         }
     }
 
@@ -1011,56 +1170,13 @@ export class ChallengeController {
             this.activeChallenge._waitingForTelemetry = false;
         }
 
-        let relativeDist = 0;
-        if (this.activeChallenge?.type === 'kom' && data.total_dist !== undefined) {
-            if (!this.activeChallenge.started && !this.activeChallenge._initialDistanceCaptured) {
-                this.activeChallenge.initialDistance = data.total_dist || 0;
-                this.activeChallenge._initialDistanceCaptured = true;
-            }
-            
-            const currentDist = data.total_dist || 0;
-            relativeDist = Math.max(0, currentDist - (this.activeChallenge.initialDistance || 0));
-        }
-
         this.lastTelemetry = data;
 
         if (!this.activeChallenge || this.activeChallenge.finalized) return;
 
-        if (this.activeChallenge.type === 'sprint') {
-            this.activeChallenge.peakPower = Math.max(this.activeChallenge.peakPower, data.power || 0);
+        if (this.activeChallenge.kind === 'race') {
+            this.handleRaceTelemetry(data);
         }
-
-        if (this.activeChallenge.type === 'kom') {
-            this.activeChallenge.bestDistance = Math.max(this.activeChallenge.bestDistance, relativeDist);
-        }
-    }
-
-    getGradeForDistance(distanceMeters) {
-        const gradeSchedule = [
-            { pct: 0, grade: 0 },
-            { pct: 0.05, grade: 0 },
-            { pct: 0.10, grade: 1 },
-            { pct: 0.20, grade: 2 },
-            { pct: 0.30, grade: 3 },
-            { pct: 0.40, grade: 4 },
-            { pct: 0.50, grade: 5 },
-            { pct: 0.60, grade: 6 },
-            { pct: 0.70, grade: 6 },
-            { pct: 0.80, grade: 6 },
-            { pct: 0.90, grade: 6 },
-            { pct: 1.00, grade: 6 }
-        ];
-
-        const routeDistance = 3000;
-        const pct = Math.min(1, distanceMeters / routeDistance);
-
-        for (let i = 0; i < gradeSchedule.length - 1; i++) {
-            if (pct >= gradeSchedule[i].pct && pct <= gradeSchedule[i + 1].pct) {
-                const t = (pct - gradeSchedule[i].pct) / (gradeSchedule[i + 1].pct - gradeSchedule[i].pct);
-                return gradeSchedule[i].grade + t * (gradeSchedule[i + 1].grade - gradeSchedule[i].grade);
-            }
-        }
-        return gradeSchedule[gradeSchedule.length - 1].grade;
     }
 
     drawCurrentChallenge() {
@@ -1080,9 +1196,15 @@ export class ChallengeController {
     }
 
     formatResultValue(type, value) {
+        if (this.isRace(type)) return formatRaceTime(value);
         if (type === 'sprint') return `${Math.round(value || 0)} W`;
         if (type === 'kom') return this.formatDistance(value || 0);
         return `${Math.round(value || 0)} pts`;
+    }
+
+    /** Sort comparator for a mode: ascending for races (time), descending for points. */
+    rankCompare(type) {
+        return this.modeMeta[type]?.ascending ? (a, b) => a.value - b.value : (a, b) => b.value - a.value;
     }
 
     updateInlineLeaderboard() {
@@ -1092,35 +1214,34 @@ export class ChallengeController {
         const currentCleanName = challenge.riderName.replace(/ \[[MFG]\]$/, '');
         const genderMatch = challenge.riderName.match(/\[([MFG])\]$/);
         const currentGender = genderMatch ? genderMatch[1] : 'G';
+        const compare = this.rankCompare(challenge.type);
 
         const entries = [...this.leaderboards[challenge.type]]
             .filter(e => currentGender === 'G' || e.gender === currentGender)
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5);
+            .sort(compare);
 
-        const liveValue = this.getLiveLeaderboardValue();
-        const currentRow = {
-            rider: currentCleanName,
-            isCurrentPlayer: true,
-            value: liveValue
-        };
-
-        const filteredEntries = entries.filter(e => e.rider !== currentCleanName);
-
-        const allEntries = [...filteredEntries, currentRow]
-            .sort((a, b) => b.value - a.value);
-
-        const currentRank = allEntries.findIndex(e => e.isCurrentPlayer) + 1;
-        const rankImproved = this.lastKnownRank > 0 && currentRank < this.lastKnownRank;
+        let preview;
+        let currentRank = -1;
+        if (challenge.kind === 'race') {
+            // A running clock cannot be ranked against finished times: show the top 5
+            // and the rider's live time below them.
+            preview = entries.slice(0, 5);
+            const elapsed = challenge.goTime ? (performance.now() - challenge.goTime) / 1000 : 0;
+            preview.push({ rider: currentCleanName, isCurrentPlayer: true, value: elapsed, live: true });
+        } else {
+            const currentRow = { rider: currentCleanName, isCurrentPlayer: true, value: this.getLiveLeaderboardValue() };
+            const all = [...entries.slice(0, 5).filter(e => e.rider !== currentCleanName), currentRow].sort(compare);
+            currentRank = all.findIndex(e => e.isCurrentPlayer) + 1;
+            preview = all.slice(0, 5);
+        }
+        const rankImproved = this.lastKnownRank > 0 && currentRank > 0 && currentRank < this.lastKnownRank;
         this.lastKnownRank = currentRank;
-
-        const preview = allEntries.slice(0, 5);
 
         const html = `
             <div class="challenge-chip-label">Event Ranking</div>
             ${preview.map((entry, index) => `
                 <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}" data-index="${index}">
-                    <span>${index + 1}.</span>
+                    <span>${entry.live ? '▶' : `${index + 1}.`}</span>
                     <strong>${escapeHtml(entry.rider)}</strong>
                     <span>${this.formatResultValue(challenge.type, entry.value)}</span>
                 </div>
@@ -1140,8 +1261,6 @@ export class ChallengeController {
 
     getLiveLeaderboardValue() {
         if (!this.activeChallenge) return 0;
-        if (this.activeChallenge.type === 'sprint') return this.activeChallenge.peakPower || 0;
-        if (this.activeChallenge.type === 'kom') return this.activeChallenge.bestDistance || 0;
         return this.activeChallenge.score || 0;
     }
 
@@ -1160,7 +1279,7 @@ export class ChallengeController {
             status,
             createdAt: Date.now()
         });
-        this.leaderboards[type].sort((a, b) => b.value - a.value);
+        this.leaderboards[type].sort(this.rankCompare(type));
 
         if (window.go?.main?.App?.SaveEventResult) {
             try {
@@ -1188,7 +1307,7 @@ export class ChallengeController {
                 return e.gender === this.leaderboardFilter;
             });
 
-            filteredEntries = filteredEntries.sort((a, b) => b.value - a.value).slice(0, 150);
+            filteredEntries = filteredEntries.sort(this.rankCompare(type)).slice(0, 150);
 
             const p1 = filteredEntries[0] || null;
             const p2 = filteredEntries[1] || null;
@@ -1207,7 +1326,7 @@ export class ChallengeController {
                         <div style="margin-bottom: 8px;">
                             ${this.getAvatarHTML(entry.rider, avatarSize)}
                         </div>
-                        <strong class="lb-podium-name" title="${escapeHtml(entry.rider)}">${escapeHtml(entry.rider)}</strong>
+                        <strong class="lb-podium-name" title="${escapeHtml(entry.rider)}">${escapeHtml(entry.rider)}${entry.isSimulated ? ' <small style="color:#00ADD8">(sim)</small>' : ''}</strong>
                         <div class="lb-podium-score">${this.formatResultValue(type, entry.value)}</div>
                         <div class="lb-podium-block">
                             <span class="lb-podium-rank">${label}</span>
@@ -1236,7 +1355,7 @@ export class ChallengeController {
                                 <div>
                                     ${this.getAvatarHTML(entry.rider, 36)}
                                 </div>
-                                <strong class="lb-row-name">${escapeHtml(entry.rider)}</strong>
+                                <strong class="lb-row-name">${escapeHtml(entry.rider)}${entry.isSimulated ? ' <small style="color:#00ADD8">(sim)</small>' : ''}</strong>
                                 <span class="leaderboard-score" style="font-weight: 800;">${this.formatResultValue(type, entry.value)}</span>
                             </div>
                         `).join('') : '<div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 10px;">No more attempts</div>'}
@@ -1268,23 +1387,8 @@ export class ChallengeController {
         // Show the result UI FIRST, before stopping the backend session.
         // This prevents the brief flash of the reset main UI (settings screen)
         // that happens when DiscardSession emits status_change → IDLE.
-        this.openEventHub();
 
-        this.els.resultModal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
-        const modeClassMap = { sprint: 'mode-sprint', kom: 'mode-kom', timeTrial: 'mode-tt' };
-        this.els.resultModal.classList.add(modeClassMap[challenge.type] || 'mode-sprint');
-
-        this.els.resultMode.textContent = this.modeMeta[challenge.type].fullTitle;
-        this.els.resultTitle.textContent = title;
-        this.els.resultValue.textContent = displayValue;
-        if (this.els.resultRank) {
-            this.els.resultRank.style.display = 'none';
-        }
-        this.els.resultDescription.textContent = description;
-
-        this.els.resultValue.style.color = '';
-
-        this.openModal(this.els.resultModal);
+        this.showResult(challenge, { title, value: displayValue, rank: null, description });
 
         await savePromise;
 
@@ -1367,7 +1471,7 @@ export class ChallengeController {
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <input type="checkbox" class="export-checkbox" value="${r.id}" ${!isExportable ? 'disabled' : ''} style="width: 18px; height: 18px;">
                                 <div>
-                                    <div style="font-weight: 700; color: #fff;">${this.modeMeta[r.event_mode]?.fullTitle || r.event_mode} - ${this.formatResultValue(r.event_mode, r.score)}</div>
+                                    <div style="font-weight: 700; color: #fff;">${escapeHtml(this.metaFor(r.event_mode).fullTitle)} - ${this.formatResultValue(r.event_mode, r.score)}${r.is_simulated ? ' (simulated)' : ''}</div>
                                     <div style="font-size: 0.8rem; color: #aaa;">${date} &bull; ${r.duration}s</div>
                                 </div>
                             </div>

@@ -77,8 +77,15 @@ type App struct {
 	isVirtualTrainer   bool
 	currentDist        float64
 	currentSpeed       float64 // m/s, integrated with inertia by physicsEngine.Step
-	telemetryChan      chan domain.Telemetry
-	cancelSim          context.CancelFunc
+	// fairMode is the operator lock for public events: the simulator and its
+	// power override are disabled, so every result comes from a real trainer.
+	fairMode bool
+	// eventRiderWeight is the visitor's weight for the next event race (0 = use the
+	// profile). Applied when the session starts, so a profile reload in between
+	// cannot change it; cleared when the session ends.
+	eventRiderWeight float64
+	telemetryChan    chan domain.Telemetry
+	cancelSim        context.CancelFunc
 
 	// Session metadata
 	currentRouteName  string    // Selected GPX route name
@@ -671,6 +678,9 @@ func (a *App) ConnectTrainer(macAddress string) (string, error) {
 // ConnectVirtualTrainer overrides the real BLE service with a mock generator
 // to allow software testing and presentation without physical hardware.
 func (a *App) ConnectVirtualTrainer() (string, error) {
+	if a.fairMode {
+		return "Simulator disabled", fmt.Errorf("Fair Mode is on: the simulator is disabled")
+	}
 	if a.isTrainerConnected {
 		// If something is already connected (real or another mock), disconnect it first.
 		a.trainerService.Disconnect()
@@ -767,6 +777,7 @@ func (a *App) startSession() string {
 		a.isInWorkout = false
 	}
 
+	a.applyEventRiderWeight()
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
 	a.sessionSampler = fit.SecondResampler{}
@@ -1044,6 +1055,8 @@ func (a *App) DiscardSession() string {
 		a.isPaused = false
 	}
 	a.cancelSim = nil
+
+	a.clearEventRiderWeight()
 
 	// Para o fluxo de telemetria (BLE mock) sem desconectar hardware
 	if a.trainerService != nil {
@@ -1559,6 +1572,11 @@ func (a *App) SetTrainerMode(mode string) {
 
 // ChangePowerSimulation is a placeholder for manual power simulation.
 func (a *App) ChangePowerSimulation(delta int) int {
+	if a.fairMode {
+		a.simPower = 0
+		a.emitFairModeRefusal()
+		return 0
+	}
 	if !a.isVirtualTrainer {
 		a.simPower = 0
 		return 0
@@ -2398,53 +2416,36 @@ func (a *App) SetBuiltInWorkout(testType string) string {
 // EVENT LEADERBOARD BINDINGS
 // ==========================
 
-// SaveEventResult is called by the frontend to persist a challenge result.
+// SaveEventResult is called by the frontend to persist a challenge result
+// (points-based modes such as the Zone Challenge; distance races use SaveRaceResult).
 func (a *App) SaveEventResult(riderName string, mode string, score float64, status string) error {
-	duration := 0
-	if a.fitService != nil {
-		duration = a.fitService.GetRecordCount()
-	}
-
-	filename := ""
-	if duration >= 5 {
-		os.MkdirAll("workouts/events", os.ModePerm)
-		filename = fmt.Sprintf("workouts/events/event_%d.fit", time.Now().UnixNano())
-		if err := a.fitService.Save(filename); err != nil {
-			fmt.Printf("Failed to generate FIT file for event: %v\n", err)
-			filename = ""
-		}
-	}
-
-	record := domain.EventRecord{
-		RiderName:        riderName,
-		EventMode:        mode,
-		Score:            score,
-		Status:           status,
-		CreatedAt:        time.Now(),
-		Filename:         filename,
-		Duration:         duration,
-		UploadedToStrava: false,
-	}
-
-	err := a.storageService.SaveEventRecord(record)
-	if err != nil {
-		return err
-	}
-
 	// Note: We intentionally do NOT save an Activity to the user's personal DB here.
 	// Event results are stored exclusively in events_ranking.db via EventRecord
 	// to keep event mode completely separate from regular user statistics and history.
+	return a.saveEventAttempt(domain.EventRecord{
+		RiderName: riderName,
+		EventMode: mode,
+		Score:     score,
+		Status:    status,
+	})
+}
 
-	return nil
+// saveEventFIT writes the live session to workouts/events and returns its path
+// ("" if it could not be written).
+func (a *App) saveEventFIT() string {
+	os.MkdirAll("workouts/events", os.ModePerm)
+	filename := fmt.Sprintf("workouts/events/event_%d.fit", time.Now().UnixNano())
+	if err := a.fitService.Save(filename); err != nil {
+		fmt.Printf("Failed to generate FIT file for event: %v\n", err)
+		return ""
+	}
+	return filename
 }
 
 // GetEventLeaderboard fetches the top N records for a specific mode.
+// Simulated attempts are excluded (see GetEventRanking).
 func (a *App) GetEventLeaderboard(mode string) []domain.EventRecord {
-	records, err := a.storageService.GetTopEventRecords(mode, 150)
-	if err != nil {
-		return []domain.EventRecord{}
-	}
-	return records
+	return a.GetEventRanking(mode, false)
 }
 
 // ResetEventLeaderboard clears the rankings for a mode (or "all").

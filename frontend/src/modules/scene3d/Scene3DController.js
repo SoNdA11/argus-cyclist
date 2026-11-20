@@ -79,6 +79,7 @@ export class Scene3DController {
         this.layer = null;
         this.active = true;          // false while another main view (Map) is selected
         this.covered = false;        // true while a full-screen page (home, event hub) is on top
+        this.hintEnabled = true;     // "Start a ride" hint (off during event races)
         this.showDebug = false;      // stats + demo controls (key F)
         this.quality = { scaling: 1, glow: true, adjustments: 0 };
         this._routePoints = null;
@@ -127,6 +128,27 @@ export class Scene3DController {
         // Map markers (the blue cyclist arrow) belong to the Map view only.
         if (this._container) this._container.classList.toggle('scene3d-active', this.active);
         this._syncRenderLoop();
+    }
+
+    /** Puts the rider back at the start, standing still (e.g. before an event race). */
+    resetRide() {
+        this.stopDemo();
+        this.interp.reset();
+        if (this.chase) this.chase.reset(0, RIDER_LATERAL);
+        if (this.rider && this.model) this._placeRider(0);
+        this._updateWaiting();
+    }
+
+    /** Event layout: minimap in the bottom-left corner, free of the race HUD. */
+    setEventLayout(on) {
+        this.eventLayout = !!on;
+        if (this.minimap) this.minimap.setCorner(this.eventLayout ? 'bottom-left' : 'top-right');
+    }
+
+    /** Shows or hides the "Start a ride" hint. */
+    setHintVisible(visible) {
+        this.hintEnabled = !!visible;
+        this._updateWaiting();
     }
 
     /** Pauses rendering while a full-screen page covers the scene (it stays mounted). */
@@ -312,6 +334,7 @@ export class Scene3DController {
         this.canvas = el.querySelector('canvas');
         this.minimap = new MiniMap(el);
         this.minimap.setVisible(loadFlag(MINIMAP_KEY, true));
+        if (this.eventLayout) this.minimap.setCorner('bottom-left');
         if (this.model) this.minimap.setRoute(this.model);
         this._statsEl = el.querySelector('[data-role="stats"]');
         this._waitingEl = el.querySelector('[data-role="waiting"]');
@@ -331,7 +354,10 @@ export class Scene3DController {
     }
 
     _updateWaiting() {
-        if (this._waitingEl) this._waitingEl.style.display = this.interp.hasData || this.demo.active ? 'none' : '';
+        if (this._waitingEl) {
+            const show = this.hintEnabled && !this.interp.hasData && !this.demo.active;
+            this._waitingEl.style.display = show ? '' : 'none';
+        }
     }
 
     _createEngine() {

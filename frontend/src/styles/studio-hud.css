@@ -1268,3 +1268,88 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color: rgba(255, 255, 255, 0.25);
     color: #ffffff;
 }
+
+/* =============================
+   EVENT RACES OVER THE 3D SCENE
+   Transparent HUD laid out around the rider: compact time panel top-left, live
+   ranking bottom-right, the center left free. No backdrop blur over the canvas
+   (it would be recomputed every frame).
+   ============================= */
+
+.studio-hud.hud-over-3d {
+    background: transparent;
+    pointer-events: none;
+}
+
+.studio-hud.hud-over-3d .hud-bar,
+.studio-hud.hud-over-3d .hud-hub,
+.studio-hud.hud-over-3d .hud-cards,
+.studio-hud.hud-over-3d .hud-lb,
+.studio-hud.hud-over-3d .hud-tray,
+.studio-hud.hud-over-3d button {
+    pointer-events: auto;
+}
+
+.hud-over-3d .hud-glow,
+.hud-over-3d .hud-grid {
+    display: none;
+}
+
+.hud-over-3d .hud-hub,
+.hud-over-3d .hud-card,
+.hud-over-3d .hud-lb {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(2, 6, 23, 0.62);
+}
+
+.hud-over-3d .hud-stage {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 1.5vh;
+}
+
+.hud-over-3d .hud-stage-center {
+    align-items: flex-start;
+    gap: 1.2vh;
+}
+
+.hud-over-3d .hud-hub {
+    padding: 1.6vh 1.8vw;
+    border-radius: 22px;
+    gap: 1vh;
+}
+
+.hud-over-3d .hud-hub-val {
+    font-size: clamp(3rem, 10vh, 6.5rem);
+}
+
+.hud-over-3d .hud-hub-unit {
+    font-size: clamp(1rem, 2.4vh, 1.8rem);
+}
+
+.hud-over-3d .hud-hub-tic {
+    font-size: clamp(2.2rem, 7vh, 4.5rem);
+}
+
+.hud-over-3d .hud-cards {
+    flex-direction: column;
+    gap: 1vh;
+    justify-content: flex-start;
+}
+
+.hud-over-3d .hud-card {
+    padding: 1vh 1.4vw;
+    min-width: 0;
+    border-radius: 16px;
+}
+
+.hud-over-3d .hud-card-val {
+    font-size: clamp(1.4rem, 3.4vh, 2.4rem);
+}
+
+.hud-over-3d .hud-lb {
+    top: auto;
+    bottom: 0;
+    transform: none;
+}
