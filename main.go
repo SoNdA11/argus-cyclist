@@ -18,17 +18,20 @@ package main
 
 import (
 	"embed"
+	"os"
+	"strings"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	
+
 	app := NewApp()
 
 	err := wails.Run(&options.App{
@@ -39,7 +42,10 @@ func main() {
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.Startup,
+		Linux: &linux.Options{
+			WebviewGpuPolicy: linuxGpuPolicy(),
+		},
+		OnStartup:  app.Startup,
 		OnShutdown: app.Shutdown,
 		Bind: []interface{}{
 			app,
@@ -48,5 +54,21 @@ func main() {
 
 	if err != nil {
 		println("Error:", err.Error())
+	}
+}
+
+// linuxGpuPolicy selects the WebKitGTK hardware-acceleration policy.
+// Without explicit Linux options Wails v2 falls back to WebviewGpuPolicyNever
+// (software rendering), which makes WebGL (MapLibre and the 3D scene) unusable.
+// ARGUS_GPU_POLICY=never|ondemand restores the old behaviour on machines whose
+// GPU driver misbehaves under WebKitGTK.
+func linuxGpuPolicy() linux.WebviewGpuPolicy {
+	switch strings.ToLower(os.Getenv("ARGUS_GPU_POLICY")) {
+	case "never":
+		return linux.WebviewGpuPolicyNever
+	case "ondemand":
+		return linux.WebviewGpuPolicyOnDemand
+	default:
+		return linux.WebviewGpuPolicyAlways
 	}
 }
