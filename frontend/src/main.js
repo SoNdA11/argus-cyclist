@@ -1455,6 +1455,31 @@ document.addEventListener('keydown', async (e) => {
 });
 
 
+// ==============================================
+// 3D SPIKE (F0 benchmark) — Ctrl+Shift+3; VITE_SPIKE3D_AUTO=1 runs the benchmark on startup
+// ==============================================
+
+let spike3d = null;
+async function openSpike3D(runBenchmark = false) {
+    if (!spike3d) {
+        const { Spike3D } = await import('./modules/scene3d/Spike3D.js');
+        spike3d = new Spike3D();
+    }
+    if (runBenchmark) await spike3d.benchmark();
+    else spike3d.open();
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
+        e.preventDefault();
+        openSpike3D();
+    }
+});
+
+if (import.meta.env.VITE_SPIKE3D_AUTO === '1') {
+    window.addEventListener('load', () => setTimeout(() => openSpike3D(true), 3000));
+}
+
 // =======================
 // TAB NAVIGATION (GLOBAL)
 // =======================
