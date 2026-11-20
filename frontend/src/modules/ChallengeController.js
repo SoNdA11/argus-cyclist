@@ -16,6 +16,13 @@
 
 import { telemetryBus } from './TelemetryEventBus.js';
 
+// Rider names are free text typed at the event hub; never inject them as raw HTML.
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
 export class ChallengeController {
     constructor(ui, hud, mapCtrl, chart) {
         this.ui = ui;
@@ -1114,7 +1121,7 @@ export class ChallengeController {
             ${preview.map((entry, index) => `
                 <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}" data-index="${index}">
                     <span>${index + 1}.</span>
-                    <strong>${entry.rider}</strong>
+                    <strong>${escapeHtml(entry.rider)}</strong>
                     <span>${this.formatResultValue(challenge.type, entry.value)}</span>
                 </div>
             `).join('')}
@@ -1200,7 +1207,7 @@ export class ChallengeController {
                         <div style="margin-bottom: 8px;">
                             ${this.getAvatarHTML(entry.rider, avatarSize)}
                         </div>
-                        <strong class="lb-podium-name" title="${entry.rider}">${entry.rider}</strong>
+                        <strong class="lb-podium-name" title="${escapeHtml(entry.rider)}">${escapeHtml(entry.rider)}</strong>
                         <div class="lb-podium-score">${this.formatResultValue(type, entry.value)}</div>
                         <div class="lb-podium-block">
                             <span class="lb-podium-rank">${label}</span>
@@ -1229,7 +1236,7 @@ export class ChallengeController {
                                 <div>
                                     ${this.getAvatarHTML(entry.rider, 36)}
                                 </div>
-                                <strong class="lb-row-name">${entry.rider}</strong>
+                                <strong class="lb-row-name">${escapeHtml(entry.rider)}</strong>
                                 <span class="leaderboard-score" style="font-weight: 800;">${this.formatResultValue(type, entry.value)}</span>
                             </div>
                         `).join('') : '<div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 10px;">No more attempts</div>'}
@@ -1250,7 +1257,9 @@ export class ChallengeController {
 
         let description = 'Result saved to the offline leaderboard.';
 
-        this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
+        // Started now, awaited before stopBackendSession(): SaveEventResult reads the FIT
+        // data from the live session, which DiscardSession wipes.
+        const savePromise = this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
         this.updateInlineLeaderboard();
 
         this.closeChallengeOverlay();
@@ -1276,6 +1285,8 @@ export class ChallengeController {
         this.els.resultValue.style.color = '';
 
         this.openModal(this.els.resultModal);
+
+        await savePromise;
 
         // Now stop the backend session safely behind the result overlay
         await this.stopBackendSession();
