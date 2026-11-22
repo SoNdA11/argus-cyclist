@@ -53,11 +53,24 @@ export const THEMES = {
     },
     day: {
         label: 'Day',
+        // Realistic pipeline: PBR textures, HDR sky, sun shadows, procedural vegetation
+        // (Environment.js, RealisticWorld.js, Vegetation.js). Fields below the stylized
+        // ones only apply to it.
+        realistic: true,
+        fogStart: 160,
+        fogEnd: 2500,
+        envIntensity: 0.85,
+        exposure: 1.12,
+        contrast: 1.08,
+        grassTint: '#f2f7ea',
+        slopeTint: '#e6eadf',
+        mountainLow: '#6f8a58',
+        mountainRock: '#8d8c84',
         sky: '#8ec9f0',
-        fog: '#cfe6f5',
+        fog: '#c8d6e3',
         fogDensity: 0.0032,
         ground: '#6aa84f',
-        hills: 7,
+        hills: 9,
         asphalt: '#3a3d45',
         laneLine: '#f5f5f5',
         edgeEmissive: false,
@@ -68,12 +81,12 @@ export const THEMES = {
         skyline: 'mountains',
         skylineColor: '#7d9db5',
         skylineAccent: '#eef4f8',    // snow caps
-        hemi: 0.75,
+        hemi: 0.25,
         hemiGround: '#5a6b4a',
-        sun: 0.9,
+        sun: 3.2,
         glow: false,
         glowIntensity: 0,
-        rider: { jersey: '#ff3b30', frame: '#2b2f38' }
+        rider: { jersey: '#d4141c', frame: '#1f2a44' }
     }
 };
 

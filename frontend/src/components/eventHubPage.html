@@ -39,7 +39,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="input-group" style="margin: 0; width: 100%;">
                         <label
                             style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Cyclist
-                            Name, Category & Weight</label>
+                            Name, Category, Weight & Bike</label>
                         <div style="display: flex; gap: 10px;">
                             <input type="text" id="eventRiderName" class="home-input" placeholder="Type your name"
                                 autocomplete="off"
@@ -53,6 +53,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             <input type="number" id="eventRiderWeight" class="home-input" placeholder="kg"
                                 min="35" max="150" step="1" inputmode="numeric" title="Rider weight (35-150 kg)"
                                 style="margin: 0; width: 84px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; padding: 12px 10px; border-radius: 12px; font-weight: 500;">
+                            <select id="eventRiderBike" class="home-input home-select" title="Bike shown in 3D (visual only)"
+                                style="margin: 0; width: 120px; cursor: pointer;">
+                                <option value="road">Road bike</option>
+                                <option value="tt">Triathlon</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -153,6 +158,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     <span data-role="label">Fair Mode: OFF</span>
+                </button>
+                <button id="btnGraphicsQuality" title="3D graphics quality (Low suits modest computers)"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; padding: 14px 24px; border-radius: 99px; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <span data-role="label">Graphics: Medium</span>
                 </button>
             </div>
 

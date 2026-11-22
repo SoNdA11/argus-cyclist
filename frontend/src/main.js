@@ -1588,6 +1588,42 @@ async function setEventScene(on, race = null) {
 }
 window.setEventScene = setEventScene;
 
+// Bike model and graphics quality: stored by the scene (and here when it is not
+// loaded yet), selectable from the event hub.
+const BIKE_KEY = 'argus.scene3d.bike';
+const QUALITY_KEY = 'argus.scene3d.quality';
+const QUALITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' };
+const readPref = (key, fallback) => { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } };
+
+function setBikeType(type) {
+    try { localStorage.setItem(BIKE_KEY, type); } catch { /* storage unavailable */ }
+    if (window.scene3d) window.scene3d.setBikeType(type);
+}
+window.setBikeType = setBikeType;
+
+function setGraphicsQuality(name) {
+    try { localStorage.setItem(QUALITY_KEY, name); } catch { /* storage unavailable */ }
+    if (window.scene3d) window.scene3d.setQuality(name);
+    const label = document.querySelector('#btnGraphicsQuality [data-role="label"]');
+    if (label) label.textContent = `Graphics: ${QUALITY_LABELS[name] || name}`;
+}
+window.setGraphicsQuality = setGraphicsQuality;
+
+const bikeSelect = document.getElementById('eventRiderBike');
+if (bikeSelect) {
+    bikeSelect.value = readPref(BIKE_KEY, 'road');
+    bikeSelect.addEventListener('change', () => setBikeType(bikeSelect.value));
+}
+const qualityButton = document.getElementById('btnGraphicsQuality');
+if (qualityButton) {
+    setGraphicsQuality(readPref(QUALITY_KEY, 'medium'));
+    qualityButton.addEventListener('click', () => {
+        const order = ['low', 'medium', 'high'];
+        const current = readPref(QUALITY_KEY, 'medium');
+        setGraphicsQuality(order[(order.indexOf(current) + 1) % order.length]);
+    });
+}
+
 // Keeps the scene in sync with a newly imported GPX.
 function notifyScene3DRoute(points) {
     if (window.scene3d) window.scene3d.setRoute(points);
@@ -1630,6 +1666,7 @@ async function runRaceAutoCheck() {
         .map((id) => document.getElementById(id)?.textContent?.trim()).join(' | ');
 
     await cc.setFairMode(false);
+    (await ensureScene3D()).setTheme('day'); // the realistic theme is the fair default
     await cc.enterEventMode();
     document.getElementById('eventRiderName').value = NAME;
     document.getElementById('eventRiderGender').value = 'G';
@@ -1732,6 +1769,11 @@ async function runRaceAutoCheck() {
 async function runScene3DAutoCheck() {
     const App = window.go.main.App;
     const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
+    // Surface page errors and Babylon warnings in the Wails terminal during the check.
+    window.addEventListener('error', (e) => log(`[scene3d] PAGE ERROR ${e.message} @ ${e.filename}:${e.lineno}`));
+    const consoleError = console.error.bind(console), consoleWarn = console.warn.bind(console);
+    console.error = (...a) => { consoleError(...a); window.runtime?.LogInfo?.(`[scene3d] console.error ${a.map(String).join(' ').slice(0, 300)}`); };
+    console.warn = (...a) => { consoleWarn(...a); window.runtime?.LogInfo?.(`[scene3d] console.warn ${a.map(String).join(' ').slice(0, 300)}`); };
     const wait = (ms) => new Promise(r => setTimeout(r, ms));
     const secs = Number(import.meta.env.VITE_SCENE3D_AUTO_SECS || 20);
 
@@ -1776,13 +1818,58 @@ async function runScene3DAutoCheck() {
         log(`[scene3d] theme=${theme} fps=${fps.toFixed(1)} cpuFrameMs=${s.cpuFrameMs.toFixed(2)} drawCalls=${s.drawCalls} ` +
             `canvas=${s.canvas} scaling=${s.scaling} glow=${s.glow} route=${s.routeLength.toFixed(0)}m/${s.routeSamples} synthetic=${s.synthetic} ` +
             `dist=${s.distance.toFixed(1)} speed=${s.speedKmh.toFixed(1)} cadence=${s.cadence.toFixed(0)} ` +
-            `samples=${s.interp.samples} snaps=${s.interp.snaps} errMean=${meanErr.toFixed(2)}m errMax=${s.interp.errMax.toFixed(2)}m`);
+            `samples=${s.interp.samples} snaps=${s.interp.snaps} errMean=${meanErr.toFixed(2)}m errMax=${s.interp.errMax.toFixed(2)}m ` +
+            `build=${s.buildMs.toFixed(0)}ms quality=${s.quality} shadows=${s.shadows} veg=${JSON.stringify(s.vegetation)}`);
         const shot = await scene3d.captureFrame(0.75);
         if (shot) log(`[scene3d-shot] ${theme} ${shot}`);
         if (scene3d.minimap) log(`[scene3d-shot] minimap_${theme} ${scene3d.minimap.canvas.toDataURL('image/jpeg', 0.9)}`);
     }
 
     scene3d.setTheme(previousTheme);
+
+    // Graphics presets of the realistic theme (VITE_SCENE3D_QUALITY=1): FPS per preset.
+    if (import.meta.env.VITE_SCENE3D_QUALITY === '1') {
+        const previousQuality = scene3d.qualityName;
+        scene3d.setTheme('day');
+        for (const q of ['low', 'medium', 'high']) {
+            scene3d.setQuality(q);
+            await wait(4000);
+            const t0 = performance.now(), f0 = scene3d.engine.frameId;
+            await wait(8000);
+            const fps = (scene3d.engine.frameId - f0) / ((performance.now() - t0) / 1000);
+            const st = scene3d.getStats();
+            log(`[scene3d] quality=${q} fps=${fps.toFixed(1)} cpuFrameMs=${st.cpuFrameMs.toFixed(2)} drawCalls=${st.drawCalls} ` +
+                `canvas=${st.canvas} shadows=${st.shadows} build=${st.buildMs.toFixed(0)}ms veg=${JSON.stringify(st.vegetation)}`);
+            const img = await scene3d.captureFrame(0.8);
+            if (img) log(`[scene3d-shot] quality_${q} ${img}`);
+        }
+        scene3d.setQuality(previousQuality);
+    }
+
+    // Detail shots of both bikes (VITE_SCENE3D_SHOTS=1): chase, side and front 3/4 views.
+    if (import.meta.env.VITE_SCENE3D_SHOTS === '1') {
+        const previousBike = scene3d.bikeType;
+        scene3d.setTheme('day');
+        await wait(2500);
+        const views = {
+            chase: null,
+            side: { back: 0, height: 1.0, ahead: 0, lookHeight: 0.85, side: 3.0 },
+            front: { back: -3.2, height: 1.5, ahead: 0, lookHeight: 0.9, side: 2.0 }
+        };
+        for (const bike of ['road', 'tt']) {
+            scene3d.setBikeType(bike);
+            await wait(800);
+            for (const [view, opts] of Object.entries(views)) {
+                const saved = { ...scene3d.chase.opts };
+                if (opts) Object.assign(scene3d.chase.opts, opts, { stiffness: 1000 });
+                await wait(400);
+                const img = await scene3d.captureFrame(0.8);
+                if (img) log(`[scene3d-shot] ${bike}_${view} ${img}`);
+                scene3d.chase.opts = saved;
+            }
+        }
+        scene3d.setBikeType(previousBike);
+    }
 
     // Stopping (demo stop, or pausing the session) must stop the legs too.
     if (demo) scene3d.stopDemo();

@@ -9,14 +9,17 @@
 import { FreeCamera, Vector3 } from './babylon.js';
 
 export class ChaseCamera {
-    constructor(scene, model, { back = 6.5, height = 2.3, ahead = 6, lookHeight = 1.0, side = 0, stiffness = 5 } = {}) {
+    constructor(scene, model, { back = 4.3, height = 1.8, ahead = 9, lookHeight = 1.05, side = 0, stiffness = 5 } = {}) {
         this.model = model;
         // side: extra lateral offset of the camera only (side views, replays).
         this.opts = { back, height, ahead, lookHeight, side, stiffness };
         this.camera = new FreeCamera('chase-cam', new Vector3(0, height, -back), scene);
-        this.camera.minZ = 0.1;
-        this.camera.maxZ = 2600;
-        this.camera.fov = 0.9;
+        // Far plane beyond the sky box corners (4000 m box → 3.46 km): otherwise its
+        // vertical edges get clipped and show the clear color.
+        this.camera.minZ = 0.25;
+        this.camera.maxZ = 4200;
+        this.camera.fov = 0.86;
+        this._speedK = 0; // smoothed 0..1 speed factor (FOV / distance)
         this.camera.inputs.clear();
         this._pos = new Vector3();
         this._look = new Vector3();
@@ -27,7 +30,9 @@ export class ChaseCamera {
     }
 
     _targets(distance, lateral) {
-        const { back, height, ahead, lookHeight, side } = this.opts;
+        const { height, ahead, lookHeight, side } = this.opts;
+        // A little further back when fast: more road ahead in view, stronger sense of speed.
+        const back = this.opts.back + (this.opts.back > 0 ? 1.1 * this._speedK : 0);
         // Work on the wrapped rider position so "behind" at 0 m does not jump to the route end.
         distance = this.model.wrap(distance);
         const behind = this.model.sampleOpen(distance - back, this._s);
@@ -48,7 +53,11 @@ export class ChaseCamera {
         this._apply();
     }
 
-    update(dt, distance, lateral) {
+    update(dt, distance, lateral, speed = 0) {
+        // Speed factor (0 at rest, 1 at ~55 km/h), smoothed so FOV changes stay gentle.
+        const kTarget = Math.min(1, Math.max(0, speed / 15));
+        this._speedK += (kTarget - this._speedK) * (1 - Math.exp(-1.2 * dt));
+        this.camera.fov = 0.86 + 0.12 * this._speedK;
         if (!this._initialized) { this.reset(distance, lateral); return; }
         this._targets(distance, lateral);
         // Route wrap (end → start) or a jump: snap instead of flying across the map.

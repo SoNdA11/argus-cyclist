@@ -207,7 +207,7 @@ export class RouteModel {
 // ---------------------------------------------------------------------------
 
 const CELL = 20;
-function buildGrid(model) {
+export function buildGrid(model) {
     const grid = new Map();
     for (let i = 0; i < model.n; i++) {
         const key = Math.floor(model.x[i] / CELL) * 100003 + Math.floor(model.z[i] / CELL);
@@ -218,7 +218,7 @@ function buildGrid(model) {
     return grid;
 }
 
-function forNear(grid, x, z, radius, fn) {
+export function forNear(grid, x, z, radius, fn) {
     const c0x = Math.floor((x - radius) / CELL), c1x = Math.floor((x + radius) / CELL);
     const c0z = Math.floor((z - radius) / CELL), c1z = Math.floor((z + radius) / CELL);
     for (let cx = c0x; cx <= c1x; cx++) {
@@ -229,7 +229,7 @@ function forNear(grid, x, z, radius, fn) {
     }
 }
 
-function nearRoad(model, grid, x, z, clearance) {
+export function nearRoad(model, grid, x, z, clearance) {
     const c2 = clearance * clearance;
     let hit = false;
     forNear(grid, x, z, clearance, (i) => {
@@ -243,12 +243,12 @@ function nearRoad(model, grid, x, z, clearance) {
 
 // Terrain width per side, limited so the strips never fold over the road on tight
 // curves (inner side) or cover another stretch of the same road (switchbacks, loops).
-function terrainWidths(model, grid) {
+export function terrainWidths(model, grid, maxWidth = TERRAIN_WIDTH) {
     const n = model.n;
-    const wl = new Float64Array(n).fill(TERRAIN_WIDTH), wr = new Float64Array(n).fill(TERRAIN_WIDTH);
+    const wl = new Float64Array(n).fill(maxWidth), wr = new Float64Array(n).fill(maxWidth);
     const half = ROAD_WIDTH / 2;
     const localSamples = Math.ceil(80 / model.step);
-    const probe = TERRAIN_WIDTH * 2 + ROAD_WIDTH;
+    const probe = maxWidth * 2 + ROAD_WIDTH;
     for (let i = 0; i < n; i++) {
         const k = model.curvature[i];
         if (Math.abs(k) > 1e-4) {
@@ -284,7 +284,7 @@ function terrainWidths(model, grid) {
 }
 
 // Smooth world-space noise in [0, 1] for low-poly hills (same value wherever strips overlap).
-function hillNoise(x, z) {
+export function hillNoise(x, z) {
     const v = Math.sin(x * 0.013 + 1.3) + Math.sin(z * 0.011 + 0.7) + Math.sin((x + z) * 0.0071) + Math.sin((x - z) * 0.019) * 0.5;
     return Math.max(0, v / 3.5 + 0.35);
 }
@@ -305,7 +305,7 @@ function terrainY(yRoad, off, width, yFar) {
 // Mesh helpers
 // ---------------------------------------------------------------------------
 
-function makeMesh(name, scene, positions, indices, colors) {
+export function makeMesh(name, scene, positions, indices, colors) {
     const mesh = new Mesh(name, scene);
     const vd = new VertexData();
     vd.positions = positions;
@@ -328,7 +328,7 @@ function makeMesh(name, scene, positions, indices, colors) {
     return mesh;
 }
 
-function stripIndices(indices, samples, cols, pairs) {
+export function stripIndices(indices, samples, cols, pairs) {
     for (let i = 0; i < samples - 1; i++) {
         for (const [c0, c1] of pairs) {
             const a = i * cols + c0, b = i * cols + c1, c = (i + 1) * cols + c0, d = (i + 1) * cols + c1;
@@ -350,7 +350,7 @@ function material(scene, name, hex, { emissive = false, emissiveScale = 1, verte
     return m;
 }
 
-function thinInstances(mesh, matrices) {
+export function thinInstances(mesh, matrices) {
     if (!matrices.length) { mesh.setEnabled(false); return mesh; }
     const buf = new Float32Array(matrices.length * 16);
     matrices.forEach((m, i) => m.copyToArray(buf, i * 16));
@@ -359,13 +359,13 @@ function thinInstances(mesh, matrices) {
     return mesh;
 }
 
-function seededRandom(seed) {
+export function seededRandom(seed) {
     let s = seed % 2147483647 || 1;
     return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
 const _q = new Quaternion();
-function placement(x, y, z, yaw, sx, sy, sz, pitch = 0) {
+export function placement(x, y, z, yaw, sx, sy, sz, pitch = 0) {
     Quaternion.RotationYawPitchRollToRef(yaw, pitch, 0, _q);
     return Matrix.Compose(new Vector3(sx, sy, sz), _q.clone(), new Vector3(x, y, z));
 }
@@ -467,7 +467,7 @@ export function buildRouteWorld(scene, model, theme) {
     return { groundPlane: plane };
 }
 
-function buildLaneDashes(scene, model, theme) {
+export function buildLaneDashes(scene, model, theme) {
     const dash = CreateBox('lane-dash', { width: 0.14, height: 0.02, depth: 3 }, scene);
     dash.material = material(scene, 'lane', theme.laneLine, { emissive: theme.edgeEmissive, emissiveScale: 1 });
     const mats = [];
@@ -478,7 +478,7 @@ function buildLaneDashes(scene, model, theme) {
     thinInstances(dash, mats);
 }
 
-function buildKmMarkers(scene, model, theme) {
+export function buildKmMarkers(scene, model, theme) {
     if (model.length < 1500) return;
     const bar = CreateBox('km-marker', { size: 1 }, scene);
     bar.material = material(scene, 'km-marker', theme.markerColor, { emissive: true, emissiveScale: theme.edgeEmissive ? 1 : 0.25 });
