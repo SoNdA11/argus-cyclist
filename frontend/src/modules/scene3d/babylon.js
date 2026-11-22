@@ -27,7 +27,22 @@ export { Vector3, Matrix, Quaternion } from '@babylonjs/core/Maths/math.vector.j
 export { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
 export { GlowLayer } from '@babylonjs/core/Layers/glowLayer.js';
 export { SceneInstrumentation } from '@babylonjs/core/Instrumentation/sceneInstrumentation.js';
+export { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
+export { Texture } from '@babylonjs/core/Materials/Textures/texture.js';
+export { HDRCubeTexture } from '@babylonjs/core/Materials/Textures/hdrCubeTexture.js';
+export { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator.js';
+export { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline.js';
+export { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration.js';
+export { CreateIcoSphere } from '@babylonjs/core/Meshes/Builders/icoSphereBuilder.js';
+export { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
 
 // Side-effect registrations required by the features above.
 import '@babylonjs/core/Layers/effectLayerSceneComponent.js';
 import '@babylonjs/core/Meshes/thinInstanceMesh.js';
+import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent.js';
+import '@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipelineManagerSceneComponent.js';
+// glTF 2.0 loader (bike/rider models) with only the extensions the bundled models use;
+// extras become node.metadata.gltf.extras.
+import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
+import '@babylonjs/loaders/glTF/2.0/Extensions/KHR_materials_clearcoat.js';
+import '@babylonjs/loaders/glTF/2.0/Extensions/ExtrasAsMetadata.js';

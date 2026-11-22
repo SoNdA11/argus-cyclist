@@ -28,3 +28,5 @@ docs/
 # Recibos locais do Archify
 .archify/**/review-*/
 .archify/**/argus-cyclist-arquitetura.*.json
+# Python bytecode (tools/blender)
+__pycache__/

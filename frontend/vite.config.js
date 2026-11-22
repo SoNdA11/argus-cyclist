@@ -6,7 +6,7 @@ import { readFileSync } from 'fs'
 // Pre-bundling them at startup avoids that reload. The list is read from the module
 // that centralizes the Babylon imports, so it never goes out of sync.
 const babylonModules = [...readFileSync(new URL('./src/modules/scene3d/babylon.js', import.meta.url), 'utf8')
-  .matchAll(/'(@babylonjs\/core\/[^']+)'/g)].map(m => m[1])
+  .matchAll(/'(@babylonjs\/(?:core|loaders)\/[^']+)'/g)].map(m => m[1])
 
 export default defineConfig({
   build: {
