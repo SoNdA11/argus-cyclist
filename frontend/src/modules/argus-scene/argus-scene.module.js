@@ -25,7 +25,7 @@
  *   autoStart: starts the animation loop on creation   default true
  *
  * Sections marked [Argus app] are the app's extensions to the scene as delivered (course
- * distance sync, record ghost, race gates, frame capture, render scale).
+ * distance sync, record ghost, race gates, stopped pose, frame capture, render scale).
  */
 export function createArgusScene(container,options){
 "use strict";
@@ -424,12 +424,16 @@ const uRim=unitMesh(mb=>{const N=36,ri=0.72;for(let i=0;i<N;i++){const a0=i/N*TA
 const uSea=unitMesh(mb=>{const m=M(COL.sea,null,0,{w:0,kind:1});mb.quad([-3500,SEA,400],[60,SEA,400],[60,SEA,-2200],[-3500,SEA,-2200],m);});
 
 // ================= state and physics
-const st={dist:160,v:8.5,P:190,cad:86,hr:118,crank:0,wheel:0,boost:0,sprint:0,p:0.08,effort:0.2,gBloom:0.15,lastInput:-99,cam:Math.max(0,CAM_IDS.indexOf(OPT.camera)),sprV:0,surge:0,rockPh:0};st.p=OPT.timeOfDay;const startDist=st.dist;
+const st={dist:160,v:8.5,P:190,cad:86,hr:118,crank:0,wheel:0,boost:0,sprint:0,p:0.08,effort:0.2,gBloom:0.15,lastInput:-99,cam:Math.max(0,CAM_IDS.indexOf(OPT.camera)),sprV:0,surge:0,rockPh:0,stand:0,stV:0,standOn:false};st.p=OPT.timeOfDay;const startDist=st.dist;
 const EXT={power:null,cadence:null,speed:null,sprint:null,dist:null,distT:0};
 // [Argus app] course origin: scene s = origin + distance reported by the app (m)
 let origin=st.dist,originLocked=false;
 let T=0,rawDt=0,lastMeter=Math.floor(st.dist);
 let FTP=OPT.ftp;
+// [Argus app] stopped pose: below STAND_ON m/s the rider puts the left foot on the ground
+const STAND_ON=0.45,STAND_OFF=0.9,STAND_LEAN=0.15,CRANK_READY=-0.75;
+const wrapA=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const standEnv=()=>st.stand*st.stand*(3-2*st.stand);
 function zone(P){const r=P/FTP;if(r<.55)return['Z1','Recuperação','#9aa4b2'];if(r<.75)return['Z2','Resistência','#4f9dff'];if(r<.9)return['Z3','Tempo','#3fd08a'];if(r<1.05)return['Z4','Limiar','#ffd23d'];if(r<1.2)return['Z5','VO₂máx','#ff8c3a'];return['Z6','Anaeróbico','#ff4d5e'];}
 // initial trail already in bloom, so the scene does not open all dry
 for(let m=lastMeter-300;m<=lastMeter;m++){const e=0.12+0.55*Math.max(0,Math.sin(m/37));setBloom(m,e,-10);}
@@ -453,9 +457,17 @@ function update(dt){
   }else st.dist+=st.v*dt;
   if(EXT.cadence!=null)st.cad+=(Math.max(0,EXT.cadence)-st.cad)*(1-Math.exp(-dt*5));
   else st.cad+=(clamp(70+(st.P-100)/9-Math.max(0,gr)*140,60,118)-st.cad)*(1-Math.exp(-dt*2));
-  st.crank+=st.cad/60*TAU*dt;st.rockPh+=0.95*TAU*dt;st.wheel+=st.v*dt/0.335;
+  // [Argus app] the crank only picks up speed once the left foot is back on the pedal (both legs together)
+  st.crank+=st.cad/60*TAU*dt*(1-standEnv());st.rockPh+=0.95*TAU*dt;st.wheel+=st.v*dt/0.335;
   const autoP=OPT.autoSprintFromPower?smooth(FTP*1.35,FTP*1.65,st.P):0;
-  const tgt=EXT.sprint!=null?(EXT.sprint?1:0):Math.max(st.boost,st.surge,autoP),w=3.0;
+  // [Argus app] stopped: left foot on the ground (hysteresis avoids flickering near 0 km/h).
+  // Leaves the stopped pose as soon as the rider pedals (trainer speed ramps up slowly; cadence is immediate).
+  const pedaling=(EXT.cadence!=null?EXT.cadence:st.cad)>5;
+  if(st.standOn){if(pedaling||st.v>STAND_OFF)st.standOn=false;}else if(st.v<STAND_ON&&!pedaling)st.standOn=true;
+  // back to the pedal faster than down to the ground
+  {const w2=st.standOn?4.2:7.5;st.stV+=(w2*w2*((st.standOn?1:0)-st.stand)-2*w2*st.stV)*dt;st.stand=clamp(st.stand+st.stV*dt,0,1);}
+  if(st.standOn&&st.cad<5)st.crank+=wrapA(CRANK_READY-st.crank)*(1-Math.exp(-dt*3));
+  const tgt=(EXT.sprint!=null?(EXT.sprint?1:0):Math.max(st.boost,st.surge,autoP))*(1-st.stand),w=3.0;
   st.sprV+=(w*w*(tgt-st.sprint)-2*w*st.sprV)*dt;st.sprint=clamp(st.sprint+st.sprV*dt,0,1);
   st.effort+=(clamp((st.P-140)/280,0,1)-st.effort)*(1-Math.exp(-dt*5));
   if(st.dist<lastMeter)lastMeter=Math.floor(st.dist);else if(Math.floor(st.dist)-lastMeter>300)lastMeter=Math.floor(st.dist)-300;
@@ -492,7 +504,7 @@ const RIDER_D=1.7,GHOST_D=-0.9;
 function bikeFrame(d=RIDER_D){
   const s=st.dist,p=[roadX(s)+d,terr(s)+0.02,-s];
   const fwd=norm([roadXD(s),terrD(s),-1]),right=norm(cross(fwd,[0,1,0])),up=cross(right,fwd);
-  const env=st.sprint*st.sprint*(3-2*st.sprint),roll=env*0.115*Math.sin(st.rockPh)+(1-env)*0.003*Math.sin(st.crank);
+  const env=st.sprint*st.sprint*(3-2*st.sprint),roll=env*0.115*Math.sin(st.rockPh)+(1-env)*0.003*Math.sin(st.crank)+STAND_LEAN*standEnv();
   const c=Math.cos(roll),sn=Math.sin(roll),r2=add(mul(right,c),mul(up,sn)),u2=sub(mul(up,c),mul(right,sn));
   bikeBasis={p,fwd,right:r2,up:u2};camBasis={p,fwd,right,up};bikeM=M4.basis(fwd,u2,r2,p);
 }
@@ -694,20 +706,30 @@ const SHOE_H=[[0,.06],[.08,.088],[.3,.096],[.5,.072],[.75,.05],[.92,.034],[1,.02
 function bodyPose(){
   const sp=st.sprint,cr=st.crank,breath=Math.sin(T*2.4)*0.004*(1+sp);
   const bob=(1-sp)*0.004*Math.sin(2*cr)+sp*0.011*Math.sin(2*st.rockPh-0.4);
-  const hipBase=[-0.205+sp*0.15,1.02+sp*0.035+bob,0];
-  const th=(40-15*sp)*DEG,D=[Math.cos(th),Math.sin(th),0],Bk=[-Math.sin(th),Math.cos(th),0],Fb=[Math.sin(th),-Math.cos(th),0];
-  const sway=-sp*0.055*Math.sin(st.rockPh-0.3);
+  const se=standEnv();
+  const hipBase=lerp3([-0.205+sp*0.15,1.02+sp*0.035+bob,0],[-0.07,0.955,0.015],se);
+  const th=lerp(40-15*sp,54,se)*DEG,D=[Math.cos(th),Math.sin(th),0],Bk=[-Math.sin(th),Math.cos(th),0],Fb=[Math.sin(th),-Math.cos(th),0];
+  const sway=-sp*0.055*Math.sin(st.rockPh-0.3)+se*Math.sin(STAND_LEAN)*0.75;
   const tp=u=>{const k=Math.min(u,0.84)/0.84;return add(add(hipBase,mul(D,0.6*k)),add(mul(Bk,(0.032+breath)*Math.sin(Math.PI*k)),[0,0,sway*k]));};
   const C7=tp(0.84),dn=th+(22-12*sp)*DEG,Dn=[Math.cos(dn),Math.sin(dn),0],neckTop=add(C7,mul(Dn,0.088));
   const ph=-0.1-sp*(0.24+0.07*Math.sin(2*st.rockPh-0.6))+0.02*Math.sin(T*0.7)*(1-sp),hf=[Math.cos(ph),Math.sin(ph),0],hu=[-Math.sin(ph),Math.cos(ph),0],hs=[0,0,1];
   const headC=add(neckTop,add(mul(hu,0.064),mul(hf,0.04)));
-  return{sp,cr,hipBase,D,Bk,Fb,tp,C7,neckTop,hf,hu,hs,headC,sway};
+  return{sp,cr,hipBase,D,Bk,Fb,tp,C7,neckTop,hf,hu,hs,headC,sway,se};
 }
 function fillLeg(P,p,s){
   const hip=add(P.hipBase,add(mul(P.D,0.075),add(mul(P.Bk,-0.015),[0,0,0.082*s+P.sway*0.3])));
-  const a=-P.cr+(s<0?Math.PI:0),spd=[Math.cos(a)*0.17,0.29+Math.sin(a)*0.17,0.128*s],al=-0.25+0.2*Math.cos(a+0.6);
-  const ff=[Math.cos(al),Math.sin(al),0],fu=[-Math.sin(al),Math.cos(al),0];
-  const ankle=add(spd,add(mul(ff,-0.125),mul(fu,0.09)));ankle[2]=0.116*s;
+  const a=-P.cr+(s<0?Math.PI:0),al=-0.25+0.2*Math.cos(a+0.6);let spd=[Math.cos(a)*0.17,0.29+Math.sin(a)*0.17,0.128*s];
+  let ff=[Math.cos(al),Math.sin(al),0],fu=[-Math.sin(al),Math.cos(al),0];
+  let ankle=add(spd,add(mul(ff,-0.125),mul(fu,0.09)));ankle[2]=0.116*s;
+  let g=0;
+  if(s<0&&P.se>0.001){// [Argus app] foot on the ground beside the bike, leg extended
+    g=P.se;const b=bikeBasis,cb=camBasis,toL=v=>[dot(v,b.fwd),dot(v,b.up),dot(v,b.right)];
+    const sole=add(cb.p,add(mul(cb.right,-0.36),mul(cb.fwd,-0.02))),gA=toL(sub(add(sole,mul(cb.up,0.085)),b.p));
+    const gF=norm(toL(cb.fwd)),gU=norm(toL(cb.up)),lift=Math.sin(Math.PI*g)*0.09;
+    ankle=add(lerp3(ankle,gA,g),mul(gU,lift));
+    const nf=norm(lerp3(ff,gF,g)),nu=norm(lerp3(fu,gU,g));
+    spd=add(ankle,add(mul(nf,0.125),mul(nu,-0.09)));ff=nf;fu=nu;
+  }
   const knee=ik3(hip,ankle,0.44,0.425,norm([1,0.05,0.12*s]));
   const top=add(hip,mul(norm(sub(hip,knee)),0.07)),end=add(ankle,mul(norm(sub(ankle,knee)),0.03));
   const pts=[top,knee,end],kd=norm(add(norm(sub(knee,lerp3(top,end,0.5))),[0.3,0,0])),L1=len(sub(knee,top));
@@ -719,9 +741,9 @@ function fillLeg(P,p,s){
     const t=(sA-L1)/(q.L-L1),af=curveP(SH_F,t),as=curveP(SH_S,t);return[q.c,F,S,th=>{const ct=Math.cos(th);let R=sell(af,as,th,2.2);
       R+=gss(t,0.22,0.17)*0.026*Math.pow(Math.max(0,-ct),1.5);R+=gss(t,0.26,0.14)*0.008*Math.pow(Math.max(0,Math.cos(th-mb)),2);
       R-=gss(t,0.5,0.35)*0.006*Math.pow(Math.max(0,ct),4);R+=gss(sA-L1,0,0.025)*0.01*Math.pow(Math.max(0,ct),4);return R;}];});
-  return{spd,ff,fu,knee,ankle};
+  return{spd,ff,fu,knee,ankle,g};
 }
-function fillShoe(p,f,s){fillPart(p,u=>{const x=lerp(-0.19,0.095,u),h=curveP(SHOE_H,u),w=curveP(SHOE_W,u),c=add(f.spd,add(mul(f.ff,x),mul(f.fu,-0.013+h/2)));c[2]=0.128*s;return[c,f.fu,[0,0,1],th=>sell(h/2,w,th,3)];});}
+function fillShoe(p,f,s){fillPart(p,u=>{const x=lerp(-0.19,0.095,u),h=curveP(SHOE_H,u),w=curveP(SHOE_W,u),c=add(f.spd,add(mul(f.ff,x),mul(f.fu,-0.013+h/2)));c[2]=lerp(0.128*s,c[2],f.g||0);return[c,f.fu,f.g?norm(cross(f.ff,f.fu)):[0,0,1],th=>sell(h/2,w,th,3)];});}
 function fillArm(P,p,s){
   const sh=add(P.tp(0.79),add(mul(P.Fb,0.02),[0,0,0.158*s])),wr=lerp3([0.63,0.985,0.2*s],[0.585,0.85,0.2*s],P.sp);
   const el=ik3(sh,wr,0.31,0.25,norm([lerp(-0.35,-0.25,P.sp),-1,lerp(0.6,0.72,P.sp)*s])),top=add(sh,[0,0.004,-0.04*s]),end=add(wr,mul(norm(sub(wr,el)),0.015));
@@ -902,7 +924,7 @@ function overlay(dt){
 // are static meshes in the coastal style: carnauba palm posts, a canvas banner and São João
 // bunting flags.
 const GHOST_COL=cc('#4fe3ff'),GHOST_A=0.5,GHOST_RANGE=260;
-const GH={provider:null,label:null,dist:0,v:0,cad:0,crank:0,wheel:0,visible:false,parts:[],m:ID,head:null};
+const GH={provider:null,label:null,dist:0,v:0,cad:0,crank:0,wheel:0,stand:1,visible:false,parts:[],m:ID,head:null};
 let ghostGL=null,jumped=false;
 function updateGhost(dt){
   GH.visible=false;if(!GH.provider)return;
@@ -910,17 +932,18 @@ function updateGhost(dt){
   if(!g||!Number.isFinite(+g.distanceM))return;
   const v=Math.max(0,(+g.speedKmh||0)/3.6),cad=g.cadence!=null?Math.max(0,+g.cadence||0):(v>0.3?88:0);
   GH.v+=(v-GH.v)*(1-Math.exp(-dt*4));GH.cad+=(cad-GH.cad)*(1-Math.exp(-dt*3));
-  GH.dist=origin+(+g.distanceM);GH.crank+=GH.cad/60*TAU*dt;GH.wheel+=GH.v*dt/0.335;
+  GH.dist=origin+(+g.distanceM);{const e=GH.stand*GH.stand*(3-2*GH.stand);GH.crank+=GH.cad/60*TAU*dt*(1-e);}GH.wheel+=GH.v*dt/0.335;
+  {const down=v<STAND_ON&&cad<5;GH.stand+=((down?1:0)-GH.stand)*(1-Math.exp(-dt*(down?4:7.5)));}if(GH.stand>0.5&&GH.cad<5)GH.crank+=wrapA(CRANK_READY-GH.crank)*(1-Math.exp(-dt*3));
   GH.visible=Math.abs(GH.dist-st.dist)<GHOST_RANGE;
 }
 function buildGhost(){
   if(!GH.visible)return;
   if(!ghostGL)ghostGL=makeGhostGL();
-  const sv=[st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3];
-  st.dist=GH.dist;st.crank=GH.crank;st.wheel=GH.wheel;st.sprint=0;st.rockPh=0;
+  const sv=[st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3,st.stand];
+  st.dist=GH.dist;st.crank=GH.crank;st.wheel=GH.wheel;st.sprint=0;st.rockPh=0;st.stand=GH.stand;
   buildRider(GHOST_D,ghostGL);
   GH.parts=parts.slice();GH.m=bikeM;const h=BP.headC;GH.head=BL(h[0],h[1]+0.32,h[2]);
-  [st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3]=sv;
+  [st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3,st.stand]=sv;
 }
 function drawGhostPass(alpha){
   for(const pt of GH.parts){if(pt.alpha<1)continue;drawPB(pt.mesh,pt.m,pt.col,partMat(pt),pt.emis,alpha);}
@@ -1034,7 +1057,7 @@ const api={
   // [Argus app] stops in place and fixes the course origin (race start = distance 0)
   resetRide(){origin=st.dist;originLocked=true;st.v=0;EXT.power=0;EXT.cadence=0;EXT.speed=0;EXT.dist=0;EXT.distT=performance.now()/1000;},
   // [Argus app] stopped immediately (no braking), e.g. when the app opens without a session
-  halt(){st.v=0;st.P=0;st.cad=0;st.sprint=0;st.sprV=0;EXT.power=0;EXT.cadence=0;EXT.speed=0;},
+  halt(){st.v=0;st.P=0;st.cad=0;st.sprint=0;st.sprV=0;st.standOn=true;st.stand=1;st.stV=0;st.crank=CRANK_READY;EXT.power=0;EXT.cadence=0;EXT.speed=0;},
   setRace(race){setGates(race||null);},
   setGhost(provider,label){GH.provider=typeof provider==='function'?provider:null;GH.label=label||null;if(!GH.provider)GH.visible=false;},
   clearRace(){setGates(null);GH.provider=null;GH.label=null;GH.visible=false;},

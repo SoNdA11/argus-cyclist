@@ -18,7 +18,8 @@
 // gates and the record ghost sit at the right meters.
 //
 // The legs turn only while the rider produces power (see animatedCadence); with no power
-// the bike may still roll (coasting) with the legs still.
+// the bike may still roll (coasting) with the legs still, and below ~1.6 km/h the rider
+// puts the left foot down.
 //
 // Key while visible: C cycles the camera (chase → drone → cinematic).
 
