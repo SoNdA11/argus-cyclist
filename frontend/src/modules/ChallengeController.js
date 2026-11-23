@@ -111,15 +111,6 @@ export class ChallengeController {
                 maxDuration: 240,
                 ascending: true
             },
-            tt1k: {
-                title: 'Time Trial 1 km',
-                fullTitle: 'Time Trial · 1 km',
-                metric: 'Time',
-                kind: 'race',
-                distance: 1000,
-                maxDuration: 300,
-                ascending: true
-            },
             timeTrial: {
                 title: 'Zone Challenge',
                 fullTitle: 'Zone Challenge (Power Accumulation)',
@@ -133,7 +124,8 @@ export class ChallengeController {
         // Retired modes: still shown in the race history, never ranked.
         this.legacyMeta = {
             sprint: { title: 'Sprint (legacy)', fullTitle: 'Sprint · Max Power (legacy)', unit: 'W' },
-            kom: { title: 'KOM (legacy)', fullTitle: 'King of the Mountain (legacy)', unit: 'm' }
+            kom: { title: 'KOM (legacy)', fullTitle: 'King of the Mountain (legacy)', unit: 'm' },
+            tt1k: { title: 'Time Trial 1 km (legacy)', fullTitle: 'Time Trial · 1 km (legacy)', time: true }
         };
 
         this.leaderboards = Object.fromEntries(Object.keys(this.modeMeta).map((k) => [k, []]));
@@ -207,7 +199,6 @@ export class ChallengeController {
 
         document.getElementById('btnLaunchSprint')?.addEventListener('click', () => this.launchRace('sprint200'));
         document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchRace('climb400'));
-        document.getElementById('btnLaunchTT1k')?.addEventListener('click', () => this.launchRace('tt1k'));
         document.getElementById('btnLaunchTimeTrial')?.addEventListener('click', () => this.launchTimeTrial());
 
         document.getElementById('btnFairMode')?.addEventListener('click', () => this.setFairMode(!this.fairMode));
@@ -1132,7 +1123,7 @@ export class ChallengeController {
         this.openEventHub();
         const modal = this.els.resultModal;
         modal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
-        const modeClassMap = { sprint200: 'mode-sprint', climb400: 'mode-kom', tt1k: 'mode-tt', timeTrial: 'mode-tt' };
+        const modeClassMap = { sprint200: 'mode-sprint', climb400: 'mode-kom', tt1k: 'mode-tt', timeTrial: 'mode-tt' }; // tt1k: legacy records
         modal.classList.add(modeClassMap[c.type] || 'mode-sprint');
         this.els.resultMode.textContent = this.metaFor(c.type).fullTitle;
         this.els.resultTitle.textContent = title;
@@ -1314,7 +1305,7 @@ export class ChallengeController {
     }
 
     formatResultValue(type, value) {
-        if (this.isRace(type)) return formatRaceTime(value);
+        if (this.isRace(type) || this.legacyMeta[type]?.time) return formatRaceTime(value);
         if (type === 'sprint') return `${Math.round(value || 0)} W`;
         if (type === 'kom') return this.formatDistance(value || 0);
         return `${Math.round(value || 0)} pts`;

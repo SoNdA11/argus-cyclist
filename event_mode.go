@@ -38,7 +38,8 @@ type eventCourse struct {
 var eventCourses = map[string]eventCourse{
 	"sprint200": {Distance: 200, Grades: []float64{0}},
 	"climb400":  {Distance: 400, Grades: []float64{3, 5, 6, 6, 6}},
-	"tt1k":      {Distance: 1000, Grades: []float64{0, 1, 2, 1, 0, -1, 0, 1, 0}},
+	// "tt1k" (Time Trial 1 km) was retired: too long for a fair demo. Its records stay
+	// in the history but are no longer ranked or accepted.
 }
 
 const (

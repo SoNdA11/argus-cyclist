@@ -39,8 +39,13 @@ func TestSetEventCourseLoadsRaceWithRunout(t *testing.T) {
 			t.Errorf("%s should be ranked by time", mode)
 		}
 	}
-	if _, err := app.SetEventCourse("kom"); err == nil {
-		t.Error("legacy/unknown modes must be rejected")
+	for _, retired := range []string{"kom", "tt1k"} {
+		if _, err := app.SetEventCourse(retired); err == nil {
+			t.Errorf("%s: legacy/unknown modes must be rejected", retired)
+		}
+		if isTimeRanked(retired) {
+			t.Errorf("%s: retired modes must not be ranked", retired)
+		}
 	}
 	if isTimeRanked("timeTrial") {
 		t.Error("the Zone Challenge is ranked by points, not time")

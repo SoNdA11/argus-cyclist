@@ -1701,7 +1701,7 @@ async function runRaceAutoCheck() {
     };
 
     await race('sprint200', { gateShot: 'gate_start', finishShot: 'finish_sprint200' });
-    for (const mode of ['climb400', 'tt1k']) await race(mode);
+    await race('climb400');
     log(`[race] after races: 3d rendering=${window.scene3d?.isRendering} (main view ${mainView}, hub open)`);
 
     log(`[race] slower sprint: sim power ${await App.ChangePowerSimulation(-150)}`);

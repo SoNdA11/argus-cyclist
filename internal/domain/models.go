@@ -151,7 +151,7 @@ type Activity struct {
 type EventRecord struct {
 	ID               uint      `json:"id" gorm:"primaryKey"`
 	RiderName        string    `json:"rider_name"`
-	EventMode        string    `json:"event_mode"` // "sprint200", "climb400", "tt1k", "timeTrial" (legacy: "sprint", "kom")
+	EventMode        string    `json:"event_mode"` // "sprint200", "climb400", "timeTrial" (legacy: "sprint", "kom", "tt1k")
 	Score            float64   `json:"score"`      // Seconds (distance races), points, or legacy watts/meters
 	Status           string    `json:"status"`     // "success", "failed"
 	CreatedAt        time.Time `json:"created_at"`
