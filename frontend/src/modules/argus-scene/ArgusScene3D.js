@@ -17,6 +17,9 @@
 // (the trainer and the records are unchanged); only the distance is shared, so the race
 // gates and the record ghost sit at the right meters.
 //
+// The legs turn only while the rider produces power (see animatedCadence); with no power
+// the bike may still roll (coasting) with the legs still.
+//
 // Key while visible: C cycles the camera (chase → drone → cinematic).
 
 import { createArgusScene } from './argus-scene.module.js';
@@ -26,6 +29,20 @@ const DEFAULT_FTP = 250;         // W, sprint threshold when no profile FTP is k
 const GHOST_CADENCE = 88;        // rpm shown on the ghost while it moves
 // Fixed mid-morning light (~9h, sun ~50° high): best visibility, no day/night cycle.
 const TIME_OF_DAY = 0.2;
+const PEDAL_MIN_POWER = 5;       // W: below this the legs stay still (coasting or stopped)
+
+/**
+ * Cadence shown by the legs: they only turn while the rider produces power. The virtual
+ * trainer reports a fixed cadence even at 0 W, and trainers can lag a few samples on
+ * cadence, so power is the source of truth. With power but no cadence sensor, the legs
+ * use a plausible cadence for that power.
+ */
+export function animatedCadence(power, cadence) {
+    if (!(power >= PEDAL_MIN_POWER)) return 0;
+    if (cadence > 0) return cadence;
+    return Math.min(100, Math.max(70, 70 + power / 10));
+}
+
 // Render scale over the screen's devicePixelRatio (supersampling above 1): sharper rider,
 // bike and scenery at the cost of GPU fill rate.
 export const QUALITY_RENDER_SCALE = { low: 1, medium: 1.5, high: 2 };
@@ -224,9 +241,10 @@ export class ArgusScene3D {
     _telemetry(d) {
         if (!this.scene) return;
         const dist = Number(d.total_dist);
+        const power = Math.max(0, Number(d.power) || 0);
         const data = {
-            power: Math.max(0, Number(d.power) || 0),
-            cadence: Math.max(0, Number(d.cadence) || 0),
+            power,
+            cadence: animatedCadence(power, Math.max(0, Number(d.cadence) || 0)),
             speedKmh: Math.max(0, Number(d.speed) || 0)
         };
         if (Number.isFinite(dist)) data.distanceM = dist;
