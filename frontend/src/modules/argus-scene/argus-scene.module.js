@@ -1,34 +1,38 @@
 /*!
- * Argus Cyclist — Cena 3D (ciclista + ambiente "Litoral Potiguar")
- * WebGL 2 puro, sem dependências. Funciona offline.
+ * Argus Cyclist — 3D scene (rider + "Litoral Potiguar" coastal environment)
+ * Pure WebGL 2, no dependencies. Works offline.
  *
- * Uso:
+ * Usage:
  *   const scene = createArgusScene(containerElement, { camera: 'chase' });
- *   scene.setRideData({ power: 245, cadence: 88, speedKmh: 32.4 }); // dados reais do Argus
- *   scene.setSprint(true|false|null);  // null = automático pela potência
- *   scene.dispose();                   // ao sair da tela
+ *   scene.setRideData({ power: 245, cadence: 88, speedKmh: 32.4 }); // real Argus data
+ *   scene.setSprint(true|false|null);  // null = automatic from power
+ *   scene.dispose();                   // when leaving the screen
  *
- * Opções (todas opcionais):
- *   camera: 'chase' | 'drone' | 'cinematic'   (padrão 'chase')
- *   timeOfDay: 0..1   (0 = 05h, ~0.13 = manhã, 0.6 = pôr do sol, 0.8 = noite)   padrão 0.13
- *   dayCycleSeconds: duração de um dia completo em segundos; 0 congela o horário   padrão 120
- *   ftp: FTP do atleta em W (usado no sprint automático)   padrão 250
- *   autoSprintFromPower: entra em sprint quando potência > ~1.35–1.65 × FTP   padrão true
- *   riderMass: massa ciclista+bike (kg) para a física interna   padrão 78
- *   interactive: segurar o canvas aciona sprint manual   padrão false
- *   keyboard: Espaço = sprint, C = troca câmera   padrão false
- *   demo: sprints automáticos de demonstração quando ocioso   padrão false
- *   petals: pétalas no sprint   padrão true
- *   maxPixelRatio: limite de devicePixelRatio   padrão 1.75
- *   logoUrl: URL/data URI de uma máscara PNG (alfa) para a logo das costas   padrão logo Argus embutida
- *   autoStart: inicia o laço de animação ao criar   padrão true
+ * Options (all optional):
+ *   camera: 'chase' | 'drone' | 'cinematic'   (default 'chase')
+ *   timeOfDay: 0..1   (0 = 5 am, ~0.13 = morning, 0.6 = sunset, 0.8 = night)   default 0.13
+ *   dayCycleSeconds: length of a full day in seconds; 0 freezes the time of day   default 120
+ *   ftp: rider FTP in W (used by the automatic sprint)   default 250
+ *   autoSprintFromPower: sprints when power > ~1.35–1.65 × FTP   default true
+ *   riderMass: rider + bike mass (kg) for the internal physics   default 78
+ *   interactive: holding the canvas triggers a manual sprint   default false
+ *   keyboard: Space = sprint, C = switch camera   default false
+ *   demo: automatic demo sprints while idle   default false
+ *   petals: petals during the sprint   default true
+ *   maxPixelRatio: devicePixelRatio cap   default 1.75
+ *   renderScale: [Argus app] scale over devicePixelRatio (supersampling above 1)   default 1
+ *   logoUrl: URL/data URI of a PNG mask (alpha) for the back logo   default: embedded Argus logo
+ *   autoStart: starts the animation loop on creation   default true
+ *
+ * Sections marked [Argus app] are the app's extensions to the scene as delivered (course
+ * distance sync, record ghost, race gates, frame capture, render scale).
  */
 export function createArgusScene(container,options){
 "use strict";
   const CAM_IDS=['chase','drone','cinematic'];
-  const OPT=Object.assign({camera:'chase',timeOfDay:0.13,dayCycleSeconds:120,ftp:250,autoSprintFromPower:true,riderMass:78,interactive:false,keyboard:false,demo:false,petals:true,maxPixelRatio:1.75,logoUrl:null,autoStart:true},options||{});
+  const OPT=Object.assign({camera:'chase',timeOfDay:0.13,dayCycleSeconds:120,ftp:250,autoSprintFromPower:true,riderMass:78,interactive:false,keyboard:false,demo:false,petals:true,maxPixelRatio:1.75,renderScale:1,logoUrl:null,autoStart:true},options||{});
 
-// ================= utilidades
+// ================= utilities
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t, TAU=Math.PI*2;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 const hash=(i,s)=>{const x=Math.sin(i*127.1+s*311.7+s*s*0.137)*43758.5453;return x-Math.floor(x);};
@@ -43,7 +47,7 @@ function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math
 function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const h=(a,b)=>hash(a*57+b*131,1.7);const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return lerp(lerp(h(xi,yi),h(xi+1,yi),u),lerp(h(xi,yi+1),h(xi+1,yi+1),u),v);}
 const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// ================= mat4 (coluna-maior)
+// ================= mat4 (column-major)
 const M4={
   mul(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;},
   persp(f,as,n,fa){const t=1/Math.tan(f/2),m=new Float32Array(16);m[0]=t/as;m[5]=t;m[10]=(fa+n)/(n-fa);m[11]=-1;m[14]=2*fa*n/(n-fa);return m;},
@@ -139,7 +143,7 @@ void main(){vec4 w=uModel*vec4(aPos,1.);vW=w.xyz;vN=transpose(inverse(mat3(uMode
 const PBFS=`#version 300 es
 precision highp float;
 in vec3 vN;in vec3 vW;in vec3 vCol;in vec3 vMat;in vec2 vUV;
-uniform sampler2D uLogo;uniform float uLogoOn;
+uniform sampler2D uLogo;uniform float uLogoOn;uniform float uGhost;uniform vec3 uGhostCol;
 uniform vec3 uSunDir,uSunCol,uSkyAmb,uGndAmb,uFog,uCam,uLampPos,uLampDir;uniform float uFogDen,uLamp,uEmis,uAlpha;
 uniform highp sampler2DShadow uShadow;uniform mat4 uShadowVP;uniform float uShadowOn;
 float shadowAt(vec3 w){if(uShadowOn<.5)return 1.;vec4 p=uShadowVP*vec4(w,1.);vec3 q=p.xyz/p.w*.5+.5;if(any(lessThan(q,vec3(0.)))||any(greaterThan(q,vec3(1.))))return 1.;float s=0.;for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)s+=texture(uShadow,vec3(q.xy+vec2(float(x),float(y))/1300.,q.z-.0015));return s/9.;}
@@ -166,6 +170,7 @@ void main(){
   c+=env*F*(1.-rough*.85)*(metal>.5?1.:.6);
   if(cloth)c+=alb*pow(1.-NV,3.)*.3*(uSkyAmb+uSunCol*.25*sh);
   if(uLamp>.01){vec3 Lp=uLampPos-vW;float d=length(Lp);Lp/=d;float cone=smoothstep(.86,.97,dot(-Lp,uLampDir));c+=alb*vec3(1.,.93,.78)*cone*uLamp*max(dot(N,Lp),0.)*28./(1.+d*d*.12);}
+  if(uGhost>.5){float lum=dot(c,vec3(.3,.59,.11)),fr=pow(1.-NV,2.5);c=uGhostCol*(.3+lum*1.15)+uGhostCol*fr*.9+vec3(fr*.2);}
   float d=length(uCam-vW);c=mix(c,uFog,clamp(1.-exp(-pow(d*uFogDen,1.6)),0.,1.));
   o=vec4(c,uAlpha);}`;
 const DVS=`#version 300 es
@@ -176,7 +181,7 @@ function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.co
 function prog(v,f){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,v));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
 const P=prog(VS,FS),SP=prog(SVS,SFS),PB=prog(PBVS,PBFS),DP=prog(DVS,DFS);
 const PU={},DU={uLVP:gl.getUniformLocation(DP,'uLVP'),uModel:gl.getUniformLocation(DP,'uModel')};
-['uVP','uModel','uTint','uMatU','uUseV','uSunDir','uSunCol','uSkyAmb','uGndAmb','uFog','uCam','uLampPos','uLampDir','uFogDen','uLamp','uEmis','uAlpha','uShadow','uShadowVP','uShadowOn','uLogo','uLogoOn'].forEach(n=>PU[n]=gl.getUniformLocation(PB,n));
+['uVP','uModel','uTint','uMatU','uUseV','uSunDir','uSunCol','uSkyAmb','uGndAmb','uFog','uCam','uLampPos','uLampDir','uFogDen','uLamp','uEmis','uAlpha','uShadow','uShadowVP','uShadowOn','uLogo','uLogoOn','uGhost','uGhostCol'].forEach(n=>PU[n]=gl.getUniformLocation(PB,n));
 const logoTex=gl.createTexture();let logoOn=0;gl.bindTexture(gl.TEXTURE_2D,logoTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));
 {const li=new Image();li.onload=()=>{gl.bindTexture(gl.TEXTURE_2D,logoTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,li);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);logoOn=1;};li.src=OPT.logoUrl||'data:image/png;base64,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';}
 const SHN=2048,shTex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,shTex);gl.texStorage2D(gl.TEXTURE_2D,1,gl.DEPTH_COMPONENT24,SHN,SHN);
@@ -191,7 +196,7 @@ const U={},SU={};
 const ATT=[['aPos',3],['aNor',3],['aDry',3],['aWet',3],['aMeta',4],['aAnc',3]],STRIDE=19;
 const skyVAO=gl.createVertexArray();
 
-// textura de florescimento: 1 texel por metro (anel de 4096 m) com [efeito, instante]
+// bloom texture: 1 texel per meter (4096 m ring) holding [effect, time]
 const BLOOM_N=4096,bloomTex=gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D,bloomTex);
 {const init=new Float32Array(BLOOM_N*2);for(let i=0;i<BLOOM_N;i++){init[i*2]=-1;init[i*2+1]=0;}
@@ -201,7 +206,7 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParamet
 const texel=new Float32Array(2);
 function setBloom(m,b,t){texel[0]=b;texel[1]=t;gl.bindTexture(gl.TEXTURE_2D,bloomTex);gl.texSubImage2D(gl.TEXTURE_2D,0,((m%BLOOM_N)+BLOOM_N)%BLOOM_N,0,1,1,gl.RG,gl.FLOAT,texel);}
 
-// ================= construtor de malhas
+// ================= mesh builder
 class MB{
   constructor(){this.a=[];}
   tri(p,q,r,m){let n=cross(sub(q,p),sub(r,p));const l=len(n);if(l<1e-9)return;n=[n[0]/l,n[1]/l,n[2]/l];const A=m.anc||p;
@@ -231,7 +236,7 @@ function boxR(mb,c,hx,hy,hz,ry,m){
   [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[3,2,6,7],[4,5,1,0]].forEach(f=>mb.quad(v[f[0]],v[f[1]],v[f[2]],v[f[3]],m));
 }
 
-// ================= mundo
+// ================= world
 const terr=s=>3.5*Math.sin(s/190)+1.6*Math.sin(s/71+1.3)+0.35*Math.sin(s/29+0.4);
 const terrD=s=>(terr(s+0.5)-terr(s-0.5));
 const roadX=s=>18*Math.sin(s/260)+7*Math.sin(s/97+0.5);
@@ -277,7 +282,7 @@ function groundMat(s,d,y,ny,rnd){
   return M(V(COL.shoulderD),V(COL.shoulderW),s,{w:1});
 }
 
-// ---- vegetação e construções (coordenadas de mundo)
+// ---- vegetation and buildings (world coordinates)
 function shrub(mb,b,sz,s,seed){
   const n=5+Math.floor(hash(seed,2)*3),h=sz,tips=[];
   for(let k=0;k<n;k++){const az=hash(seed,k+3)*TAU,el=0.35+hash(seed,k+9)*0.6,L=h*(0.6+0.4*hash(seed,k+11));
@@ -348,7 +353,7 @@ function jangada(mb,b,s,seed){const k={w:0,kind:2},ry=hash(seed,1)*0.6;boxR(mb,a
 const CH=100,chunks=new Map(),turbines=[];
 function genChunk(ci){
   const mb=new MB(),s0=ci*CH,s1=s0+CH,R=rng(ci*9973+17),tur=[];
-  // terreno
+  // terrain
   const ds=4;
   for(let s=s0;s<s1;s+=ds)for(let k=0;k<LAT.length-1;k++){
     const d0=LAT[k],d1=LAT[k+1];if(d0===-5.5&&d1===5.5)continue;
@@ -356,7 +361,7 @@ function genChunk(ci){
     for(const[p,q,r]of[[a,b,c],[a,c,e]]){const n=norm(cross(sub(q,p),sub(r,p)));const cy=(p[1]+q[1]+r[1])/3,cd=(d0+d1)/2,cs=s+ds/2;
       mb.tri(p,q,r,groundMat(cs,cd,cy,Math.abs(n[1]),R()));}
   }
-  // estrada
+  // road
   const ra=M(COL.asphalt,null,0,{w:0});
   for(let s=s0;s<s1;s+=2){
     const y0=terr(s)+0.02,y1=terr(s+2)+0.02,x0=roadX(s),x1=roadX(s+2);
@@ -365,32 +370,32 @@ function genChunk(ci){
     for(const sd of[-1,1])mb.quad(Q(x0,y0-0.01,s,sd*4.2),Q(x0,y0-0.01,s,sd*5.5),Q(x1,y1-0.01,s+2,sd*5.5),Q(x1,y1-0.01,s+2,sd*4.2),M(COL.shoulderD,COL.shoulderW,s,{w:0.8}));
     for(const d of[-3.7,3.7])mb.quad(Q(x0,y0+0.02,s,d-0.08),Q(x0,y0+0.02,s,d+0.08),Q(x1,y1+0.02,s+2,d+0.08),Q(x1,y1+0.02,s+2,d-0.08),M(COL.white,null,s,{w:0}));
     if(Math.floor(s/2)%3===0){const s2=s+3>s1?s1:s+3,x2=roadX(s2),y2=terr(s2)+0.02;mb.quad(Q(x0,y0+0.02,s,-0.08),Q(x0,y0+0.02,s,0.08),Q(x2,y2+0.02,s2,0.08),Q(x2,y2+0.02,s2,-0.08),M(COL.yellow,null,s,{w:0}));}
-    // meio-fio em degrau até o terreno
+    // stepped curb down to the terrain
     for(const sd of[-1,1]){const g0=groundY(s,sd*5.5),g1=groundY(s+2,sd*5.5);mb.quad(Q(x0,y0,s,sd*5.5),Q(x1,y1,s+2,sd*5.5),Q(x1,g1-0.3,s+2,sd*5.6),Q(x0,g0-0.3,s,sd*5.6),M(COL.shoulderD,COL.shoulderW,s));}
   }
-  // vegetação à direita (caatinga/sertão ou litoral)
+  // vegetation on the right (caatinga/backcountry or coast)
   for(let k=0;k<64;k++){
     const s=s0+R()*CH,d=7+Math.pow(R(),1.6)*120,seed=ci*1000+k,b=WP(s,d),bio=biomeAt(s),r=R(),coast=R()>bio;
     if(coast){if(r<0.35)carnauba(mb,b,8+R()*3,s,seed);else if(r<0.55)caju(mb,b,3.5+R()*1.5,s,seed);else if(r<0.88)shrub(mb,b,1.1+R()*0.8,s,seed);else rock(mb,b,0.6+R()*0.8,s,seed);}
     else{if(r<0.25)ipe(mb,b,5+R()*2.5,s,seed);else if(r<0.55)mandacaru(mb,b,2.6+R()*2.2,s,seed);else if(r<0.88)shrub(mb,b,1.1+R()*0.8,s,seed);else xique(mb,b,0.8+R()*0.5,s,seed);}
   }
-  // platô das falésias à esquerda (litoral)
+  // cliff plateau on the left (coast)
   for(let k=0;k<26;k++){
     const s=s0+R()*CH,d=-(8+R()*(cliffEdge(s)-12)),seed=ci*1000+200+k,b=WP(s,d),r=R();
     if(r<0.45)carnauba(mb,b,8+R()*3.5,s,seed);else if(r<0.65)caju(mb,b,3.5+R()*1.5,s,seed);else shrub(mb,b,1+R()*0.7,s,seed);
   }
-  // capim e flores à beira da estrada
+  // grass and flowers along the road
   for(let k=0;k<260;k++){
     const side=R()<0.5?-1:1,s=s0+R()*CH,d=side*(5.7+Math.pow(R(),1.4)*20),b=WP(s,d),h=0.25+R()*0.35,az=R()*TAU;
     for(let j=0;j<3;j++){const a2=az+j*2.1,base1=add(b,[Math.cos(a2)*0.06,0,Math.sin(a2)*0.06]),base2=add(b,[-Math.cos(a2)*0.06,0,-Math.sin(a2)*0.06]),tip=add(b,[Math.cos(a2+1)*0.15,h,Math.sin(a2+1)*0.15]);
       mb.tri(base1,base2,tip,M(COL.grassD,COL.grassW,s,{mode:2,anc:b}));}
     if(k%3===0){const f=add(b,[0,h*0.7,0]);const fc=[COL.ipe,COL.pink,COL.flowerW][k%9===0?2:(k%2)];blob(mb,f,0.09,0.06,0.09,M(fc,null,s,{mode:1,anc:f}),k,0.2);}
   }
-  // eólicas
+  // wind turbines
   const nt=R()<0.8?2:1;for(let k=0;k<nt;k++){const s=s0+R()*CH,d=k===0?75+R()*130:110+R()*130;const b=WP(s,d);if(b[1]<SEA+1)continue;const h=36+R()*10;turbineTower(mb,b,h,s);tur.push({p:add(b,[0,h+0.4,-2.5]),r:R()*TAU,h});}
-  // casinha
+  // small house
   if(R()<0.55){const s=s0+R()*CH,d=11+R()*6;house(mb,WP(s,d),Math.PI/2+(R()-0.5)*0.3,s,ci);}
-  // farol e jangadas
+  // lighthouse and jangada rafts
   if(((ci%6)+6)%6===2){const s=s0+50;lighthouse(mb,WP(s,-cliffEdge(s)-14),s);}
   for(let k=0;k<3;k++){const s=s0+R()*CH,d=-(125+R()*220);jangada(mb,[roadX(s)+d,SEA,-s],s,ci*10+k);}
   const g=mb.upload();return{g,tur};
@@ -401,7 +406,7 @@ function ensureChunks(budget){
   for(let ci=c0;ci<=c1&&budget>0;ci++)if(!chunks.has(ci)){chunks.set(ci,genChunk(ci));budget--;}
 }
 
-// ---- malhas unitárias para partes dinâmicas
+// ---- unit meshes for dynamic parts
 function unitMesh(build){const mb=new MB();build(mb);return mb.upload();}
 const W0=M([1,1,1],null,0,{w:0});
 const uCyl=unitMesh(mb=>tube(mb,[0,0,0],[0,1,0],1,1,10,W0));
@@ -418,13 +423,15 @@ const uTorusS=unitMesh(mb=>{const N=32,n=10,r=0.1,P=(i,j)=>{const a=i/N*TAU,b=j/
 const uRim=unitMesh(mb=>{const N=36,ri=0.72;for(let i=0;i<N;i++){const a0=i/N*TAU,a1=(i+1)/N*TAU,c0=Math.cos(a0),s0=Math.sin(a0),c1=Math.cos(a1),s1=Math.sin(a1);for(const z of[-0.5,0.5]){const nz=[0,0,Math.sign(z)];mb.triN([c0*ri,s0*ri,z],[c0,s0,z],[c1,s1,z],nz,nz,nz,W0);mb.triN([c0*ri,s0*ri,z],[c1,s1,z],[c1*ri,s1*ri,z],nz,nz,nz,W0);}const o0=[c0,s0,0],o1=[c1,s1,0];mb.triN([c0,s0,-0.5],[c1,s1,-0.5],[c1,s1,0.5],o0,o1,o1,W0);mb.triN([c0,s0,-0.5],[c1,s1,0.5],[c0,s0,0.5],o0,o1,o0,W0);}});
 const uSea=unitMesh(mb=>{const m=M(COL.sea,null,0,{w:0,kind:1});mb.quad([-3500,SEA,400],[60,SEA,400],[60,SEA,-2200],[-3500,SEA,-2200],m);});
 
-// ================= estado e física
+// ================= state and physics
 const st={dist:160,v:8.5,P:190,cad:86,hr:118,crank:0,wheel:0,boost:0,sprint:0,p:0.08,effort:0.2,gBloom:0.15,lastInput:-99,cam:Math.max(0,CAM_IDS.indexOf(OPT.camera)),sprV:0,surge:0,rockPh:0};st.p=OPT.timeOfDay;const startDist=st.dist;
-const EXT={power:null,cadence:null,speed:null,sprint:null};
-let T=0,lastMeter=Math.floor(st.dist);
-const FTP=OPT.ftp;
+const EXT={power:null,cadence:null,speed:null,sprint:null,dist:null,distT:0};
+// [Argus app] course origin: scene s = origin + distance reported by the app (m)
+let origin=st.dist,originLocked=false;
+let T=0,rawDt=0,lastMeter=Math.floor(st.dist);
+let FTP=OPT.ftp;
 function zone(P){const r=P/FTP;if(r<.55)return['Z1','Recuperação','#9aa4b2'];if(r<.75)return['Z2','Resistência','#4f9dff'];if(r<.9)return['Z3','Tempo','#3fd08a'];if(r<1.05)return['Z4','Limiar','#ffd23d'];if(r<1.2)return['Z5','VO₂máx','#ff8c3a'];return['Z6','Anaeróbico','#ff4d5e'];}
-// rastro inicial já florido, para a cena não abrir toda seca
+// initial trail already in bloom, so the scene does not open all dry
 for(let m=lastMeter-300;m<=lastMeter;m++){const e=0.12+0.55*Math.max(0,Math.sin(m/37));setBloom(m,e,-10);}
 for(let m=lastMeter+1;m<lastMeter+2100;m++)setBloom(m,-1,0);
 function update(dt){
@@ -435,7 +442,15 @@ function update(dt){
   else{let target=188+clamp(gr,-0.08,0.1)*1500+st.surge*300+st.boost*440+12*Math.sin(T*1.7)+8*Math.sin(T*3.1+1);target=clamp(target,45,1150);st.P+=(target-st.P)*(1-Math.exp(-dt*3.2));}
   if(EXT.speed!=null)st.v+=(Math.max(0,EXT.speed/3.6)-st.v)*(1-Math.exp(-dt*4));
   else{const m=OPT.riderMass,g=9.81,th=Math.atan(gr),F=m*g*(0.004*Math.cos(th)+Math.sin(th))+0.5*1.2*0.3*st.v*st.v;st.v=clamp(st.v+((st.P*0.97/Math.max(st.v,2))-F)/m*dt,0.5,22);}
-  st.dist+=st.v*dt;
+  if(EXT.dist!=null){
+    // [Argus app] follows the app's distance like the StateInterpolator: extrapolates with the
+    // speed and closes the error gradually, never moving backwards; large jumps re-anchor or teleport.
+    // Uses real time (not the dt capped at 50 ms): at low FPS the rider does not fall behind the
+    // telemetry or the ghost, which follows the race clock.
+    const age=performance.now()/1000-EXT.distT,target=origin+EXT.dist+st.v*Math.min(age,2.5),err=target-st.dist;
+    if(Math.abs(err)>40){if(originLocked){st.dist=target;jumped=true;}else origin+=-err;}
+    else st.dist+=Math.max(0,st.v*rawDt+err*(1-Math.exp(-1.2*rawDt)));
+  }else st.dist+=st.v*dt;
   if(EXT.cadence!=null)st.cad+=(Math.max(0,EXT.cadence)-st.cad)*(1-Math.exp(-dt*5));
   else st.cad+=(clamp(70+(st.P-100)/9-Math.max(0,gr)*140,60,118)-st.cad)*(1-Math.exp(-dt*2));
   st.crank+=st.cad/60*TAU*dt;st.rockPh+=0.95*TAU*dt;st.wheel+=st.v*dt/0.335;
@@ -443,11 +458,12 @@ function update(dt){
   const tgt=EXT.sprint!=null?(EXT.sprint?1:0):Math.max(st.boost,st.surge,autoP),w=3.0;
   st.sprV+=(w*w*(tgt-st.sprint)-2*w*st.sprV)*dt;st.sprint=clamp(st.sprint+st.sprV*dt,0,1);
   st.effort+=(clamp((st.P-140)/280,0,1)-st.effort)*(1-Math.exp(-dt*5));
+  if(st.dist<lastMeter)lastMeter=Math.floor(st.dist);else if(Math.floor(st.dist)-lastMeter>300)lastMeter=Math.floor(st.dist)-300;
   while(lastMeter<Math.floor(st.dist)){lastMeter++;const b=Math.max(0.06,st.effort);setBloom(lastMeter,b,T);setBloom(lastMeter+2048,-1,0);
     if(OPT.petals&&b>0.5&&Math.random()<0.5)burst(lastMeter,3+Math.round(b*5));}
 }
 
-// ================= céu e luz
+// ================= sky and light
 const SKY=[[0,'#1c2150','#5b4a8c','#e98a73'],[0.07,'#3a6fbf','#f0a27a','#ffd29a'],[0.16,'#2f7fd8','#79bdf0','#d6efff'],[0.5,'#2b78d2','#7fbdeb','#e8f4ff'],[0.6,'#3b3f8a','#e0677a','#ffb35c'],[0.68,'#161a45','#3f3474','#b65f6e'],[0.78,'#050817','#0b1233','#1b2550'],[0.9,'#050817','#0b1233','#1b2550'],[1,'#1c2150','#5b4a8c','#e98a73']].map(k=>[k[0],cc(k[1]),cc(k[2]),cc(k[3])]);
 function skyAt(p){for(let i=0;i<SKY.length-1;i++){const a=SKY[i],b=SKY[i+1];if(p>=a[0]&&p<=b[0]){const t=smooth(a[0],b[0],p);return[mix3(a[1],b[1],t),mix3(a[2],b[2],t),mix3(a[3],b[3],t)];}}return[SKY[0][1],SKY[0][2],SKY[0][3]];}
 function nightAt(p){if(p<0.1)return lerp(0.65,0,smooth(0,0.1,p));if(p<0.55)return 0;if(p<0.75)return smooth(0.55,0.75,p);if(p<0.88)return 1;return lerp(1,0.65,smooth(0.88,1,p));}
@@ -469,11 +485,12 @@ function lighting(){
      fog:mix3(hor,mid,0.15),sunC};
 }
 
-// ================= ciclista (IK no plano da bike)
+// ================= rider (IK in the bike plane)
 function ik(h,p,a,b,dir){const dx=p[0]-h[0],dy=p[1]-h[1];let d=Math.hypot(dx,dy);d=clamp(d,Math.abs(a-b)+1e-3,a+b-1e-3);const base=Math.atan2(dy,dx),an=Math.acos(clamp((a*a+d*d-b*b)/(2*a*d),-1,1)),k=base+dir*an;return[h[0]+Math.cos(k)*a,h[1]+Math.sin(k)*a];}
 let bikeM=ID,bikeBasis=null,camBasis=null;
-function bikeFrame(){
-  const s=st.dist,d=1.7,p=[roadX(s)+d,terr(s)+0.02,-s];
+const RIDER_D=1.7,GHOST_D=-0.9;
+function bikeFrame(d=RIDER_D){
+  const s=st.dist,p=[roadX(s)+d,terr(s)+0.02,-s];
   const fwd=norm([roadXD(s),terrD(s),-1]),right=norm(cross(fwd,[0,1,0])),up=cross(right,fwd);
   const env=st.sprint*st.sprint*(3-2*st.sprint),roll=env*0.115*Math.sin(st.rockPh)+(1-env)*0.003*Math.sin(st.crank);
   const c=Math.cos(roll),sn=Math.sin(roll),r2=add(mul(right,c),mul(up,sn)),u2=sub(mul(up,c),mul(right,sn));
@@ -487,15 +504,15 @@ const parts=[];
 function part(mesh,m,col,spec=0.3,emis=0,alpha=1){parts.push({mesh,m,col,spec,emis,alpha});}
 function partMat(pt){const metal=(pt.col===RC.metal||pt.col===RC.chain||pt.col===RC.ring)?0.9:0;return[clamp(0.88-0.7*pt.spec,0.12,0.9),metal,0];}
 
-// ---------------- bicicleta
+// ---------------- bicycle
 const uGear=unitMesh(mb=>{const N=52,ri=0.8,P=(a,r,z)=>[Math.cos(a)*r,Math.sin(a)*r,z];
   for(let i=0;i<N;i++){const a0=i/N*TAU,a1=(i+1)/N*TAU,d=(a1-a0)*0.22;
     for(const z of[-0.5,0.5]){const nz=[0,0,Math.sign(z)];mb.triN(P(a0,ri,z),P(a0,1,z),P(a1,1,z),nz,nz,nz,W0);mb.triN(P(a0,ri,z),P(a1,1,z),P(a1,ri,z),nz,nz,nz,W0);
       if(i%2===0){mb.triN(P(a0,1,z),P(a0+d,1.075,z),P(a1-d,1.075,z),nz,nz,nz,W0);mb.triN(P(a0,1,z),P(a1-d,1.075,z),P(a1,1,z),nz,nz,nz,W0);}}
     const o0=[Math.cos(a0),Math.sin(a0),0],o1=[Math.cos(a1),Math.sin(a1),0];const r1=i%2===0?1.075:1;mb.triN(P(a0,r1,-0.5),P(a1,r1,-0.5),P(a1,r1,0.5),o0,o1,o1,W0);mb.triN(P(a0,r1,-0.5),P(a1,r1,0.5),P(a0,r1,0.5),o0,o1,o0,W0);}});
 const BK={BB:[0,0.29],R:[-0.42,0.335],F:[0.61,0.335],S:[-0.149,0.77],SS:[-0.121,0.68],HB:[0.49,0.74],HT:[0.465,0.86],post:[-0.216,0.985]};
-function buildRider(){
-  parts.length=0;bikeFrame();
+function buildRider(lat=RIDER_D,target=bodyGL){
+  parts.length=0;bikeFrame(lat);
   const b=bikeBasis,Bp=(x,y,z=0)=>BL(x,y,z);
   const E=(c,ax,ay,az)=>M4.basis(mul(b.fwd,ax),mul(b.up,ay),mul(b.right,az),c);
   const aeroT=(mesh,a,c,rIn,rSide,col,spec=0.92)=>{const y=sub(c,a),x=norm(cross(norm(y),b.right));part(mesh,M4.basis(mul(x,rIn),y,mul(b.right,rSide),a),col,spec);};
@@ -503,7 +520,7 @@ function buildRider(){
   const ball=(c,r,col,spec=0.92)=>part(uSphS,M4.basis([r,0,0],[0,r,0],[0,0,r],c),col,spec);
   const local=(x,y,z,rot,sx,sy,sz)=>M4.mul(bikeM,M4.mul(M4.T(x,y,z),M4.mul(M4.RZ(rot),M4.S(sx,sy,sz))));
   const{BB,R,F,S,SS,HB,HT,post}=BK,fr=RC.frame,crA=-st.crank;
-  // rodas (aro e raios pretos)
+  // wheels (black rims and spokes)
   for(const[c,off]of[[R,0],[F,0.6]]){
     const base=M4.mul(bikeM,M4.mul(M4.T(c[0],c[1],0),M4.RZ(-st.wheel+off)));
     part(uTorusS,M4.mul(base,M4.S(0.318,0.318,0.3)),RC.tire,0.15);
@@ -511,7 +528,7 @@ function buildRider(){
     for(let k=0;k<12;k++){const a=k*TAU/12;part(uCyl,M4.mul(base,M4.mul(M4.RZ(a),M4.mul(M4.T(0,0,k%2?0.012:-0.012),M4.S(0.0032,0.22,0.0032)))),RC.spoke,0.5);}
     part(uCylS,M4.mul(base,M4.mul(M4.basis([1,0,0],[0,0,1],[0,-1,0],[0,0,-0.06]),M4.S(0.024,0.12,0.024))),RC.rim,0.6);
   }
-  // quadro: tubos afunilados com junções arredondadas
+  // frame: tapered tubes with rounded joints
   aeroT(uTap75,Bp(...BB),Bp(...HB),0.037,0.025,fr);
   aeroT(uTap75,Bp(...HT),Bp(...S),0.025,0.019,fr);
   aeroT(uCylS,Bp(...BB),Bp(...S),0.026,0.02,fr);
@@ -528,10 +545,10 @@ function buildRider(){
     part(uBox,E(Bp(F[0],F[1]+0.006,0.058*s),0.024,0.022,0.006),fr,0.9);
   }
   part(uSphS,E(Bp(HB[0]+0.004,HB[1]-0.026),0.03,0.016,0.054),fr,0.92);
-  // canote, selim
+  // seatpost, saddle
   cap(Bp(...S),Bp(...post),0.0135,RC.dark,0.6);
   part(uSphS,E(Bp(-0.25,0.996),0.12,0.016,0.068),RC.dark,0.5);part(uSphS,E(Bp(-0.145,0.993),0.08,0.013,0.024),RC.dark,0.5);
-  // caixa de direção, mesa, guidão e manetes
+  // headset, stem, handlebar and levers
   cap(Bp(HT[0],HT[1]),Bp(0.46,0.885),0.02,RC.dark,0.6);cap(Bp(0.46,0.885),Bp(0.6,0.935),0.017,RC.dark,0.6);
   cap(Bp(0.6,0.935,-0.21),Bp(0.6,0.935,0.21),0.014,RC.dark,0.5);
   for(const z of[-0.2,0.2]){
@@ -543,11 +560,11 @@ function buildRider(){
   }
   cap(Bp(0.6,0.935),Bp(0.665,0.938),0.008,RC.dark,0.6);
   part(uBox,E(Bp(0.69,0.94),0.085,0.02,0.055),RC.dark,0.6);part(uBox,E(Bp(0.692,0.951),0.068,0.004,0.044),cc(zone(st.P)[2]),0,1);
-  // freios
+  // brakes
   part(uSphS,E(Bp(0.535,0.71),0.016,0.022,0.05),RC.dark,0.6);
-  // garrafinha
+  // water bottle
   cap(Bp(0.12,0.47),Bp(0.27,0.6),0.036,RC.white,0.7);cap(Bp(0.27,0.6),Bp(0.291,0.618),0.018,RC.dark,0.5);
-  // ---- transmissão: coroa dupla, pedivelas, pedais, cassete, corrente e câmbios
+  // ---- drivetrain: double chainring, cranks, pedals, cassette, chain and derailleurs
   part(uGear,local(BB[0],BB[1],0.08,crA,0.107,0.107,0.0045),RC.ring,0.75);
   part(uGear,local(BB[0],BB[1],0.071,crA,0.081,0.081,0.0045),RC.ring,0.75);
   for(let k=0;k<4;k++)part(uBox,M4.mul(bikeM,M4.mul(M4.T(BB[0],BB[1],0.076),M4.mul(M4.RZ(crA+k*Math.PI/2+0.4),M4.mul(M4.T(0.046,0,0),M4.S(0.088,0.018,0.007))))),RC.dark,0.7);
@@ -564,16 +581,16 @@ function buildRider(){
   aeroT(uCylS,Bp(Up[0],Up[1],0.062),Bp(Lp[0],Lp[1],0.062),0.014,0.003,RC.dark,0.7);
   part(uGear,local(Up[0],Up[1],0.055,-st.wheel*3,0.016,0.016,0.006),RC.chain,0.8);part(uGear,local(Lp[0],Lp[1],0.055,-st.wheel*3,0.016,0.016,0.006),RC.chain,0.8);
   part(uSphS,E(Bp(-0.052,0.43,0.07),0.04,0.012,0.011),RC.dark,0.7);part(uCylS,segM(Bp(-0.052,0.43,0.02),Bp(-0.052,0.43,0.064),0.006),RC.dark,0.6);
-  // luzes
+  // lights
   const n=L.night,on=Math.sin(T*11)>0;
   part(uSphS,E(Bp(0.7,0.91),0.03,0.022,0.025),n>0.15?[1,0.97,0.85]:cc('#d0d4da'),0.8,n>0.15?1:0);
   part(uSphS,E(Bp(-0.212,0.9),0.02,0.028,0.022),on&&n>0.1?[1,0.15,0.2]:cc('#7a1a20'),0.6,on&&n>0.1?1:0);
   part(uDisk,M4.mul(M4.T(...Bp(0.08,0.012,0)),M4.basis(mul(b.fwd,0.9),mul(b.up,1),mul(b.right,0.32),[0,0,0])),[0,0,0],0,1,0.16*(0.4+0.6*(1-n)));
-  buildBody();
+  buildBody(target);
 }
 
-// ================= corpo do ciclista: malha contínua gerada por cortes anatômicos
-// Referência: atleta de 1,78 m / 70 kg. Coordenadas da bike: x à frente, y para cima, z à direita (metros).
+// ================= rider body: continuous mesh generated from anatomical cross-sections
+// Reference: 1.78 m / 70 kg athlete. Bike coordinates: x forward, y up, z right (meters).
 const DEG=Math.PI/180;
 const gss=(x,c,w)=>{const d=(x-c)/w;return Math.exp(-d*d);};
 function curveP(p,u){if(u<=p[0][0])return p[0][1];for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];if(u<=b[0]){const t=(u-a[0])/(b[0]-a[0]),s=t*t*(3-2*t);return a[1]+(b[1]-a[1])*s;}}return p[p.length-1][1];}
@@ -639,8 +656,15 @@ const bodyGL=(()=>{
   const cb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,cb);gl.bufferData(gl.ARRAY_BUFFER,cm,gl.STATIC_DRAW);
   gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,32,0);gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,3,gl.FLOAT,false,32,12);gl.enableVertexAttribArray(4);gl.vertexAttribPointer(4,2,gl.FLOAT,false,32,24);
   const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);
-  gl.bindVertexArray(null);return{vao,pb,n:idx.length};
+  gl.bindVertexArray(null);return{vao,pb,cb,ib,n:idx.length};
 })();
+// [Argus app] second body mesh (ghost): same colors/indices, its own positions
+function makeGhostGL(){const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  const pb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pb);gl.bufferData(gl.ARRAY_BUFFER,BODY.pn.byteLength,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+  gl.bindBuffer(gl.ARRAY_BUFFER,bodyGL.cb);
+  gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,32,0);gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,3,gl.FLOAT,false,32,12);gl.enableVertexAttribArray(4);gl.vertexAttribPointer(4,2,gl.FLOAT,false,32,24);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,bodyGL.ib);gl.bindVertexArray(null);return{vao,pb,n:bodyGL.n};}
 function fillPart(p,ring){
   const P=BODY.pos;let first,second,prev,last;
   for(let r=0;r<p.nr;r++){const u=r/(p.nr-1),[c,F,S,rad]=ring(u);
@@ -658,7 +682,7 @@ function bodyNormals(){
   for(const p of BODY.parts){const cs=(p.base+p.nr*p.ns)*3;N.set(p.nS,cs);N.set(p.nE,cs+3);}
   for(let i=0,n=BODY.nv;i<n;i++){const x=N[i*3],y=N[i*3+1],z=N[i*3+2],l=Math.hypot(x,y,z)||1;O[i*6]=P[i*3];O[i*6+1]=P[i*3+1];O[i*6+2]=P[i*3+2];O[i*6+3]=x/l;O[i*6+4]=y/l;O[i*6+5]=z/l;}
 }
-// perfis anatômicos (semi-eixos em metros ao longo de cada segmento)
+// anatomical profiles (semi-axes in meters along each segment)
 const TOR_S=[[0,.125],[.08,.166],[.2,.16],[.36,.132],[.55,.143],[.7,.158],[.79,.162],[.85,.14],[.89,.085],[.93,.064],[1,.06]];
 const TOR_F=[[0,.08],[.08,.108],[.2,.103],[.35,.096],[.55,.103],[.7,.11],[.79,.103],[.84,.084],[.88,.062],[1,.056]];
 const TH_F=[[0,.078],[.15,.089],[.5,.08],[.85,.062],[1,.052]],TH_S=[[0,.075],[.18,.086],[.5,.075],[.85,.057],[1,.05]];
@@ -721,13 +745,13 @@ function fillHeadGear(P){
     return[c,hf,hs,th=>{const ct=Math.cos(th),sa=Math.abs(Math.sin(th));let R=sell(ef,es,th,2);
       R+=0.006*Math.max(0,-ct)*gss(y,0.3,0.4)+gss(y,-0.12,0.13)*0.026*Math.pow(Math.max(0,ct),14)+gss(y,-0.3,0.12)*0.008*gss(sa,0.55,0.2)*Math.max(0,ct)+gss(y,0.18,0.08)*0.006*Math.pow(Math.max(0,ct),6)+gss(y,0,0.15)*0.012*Math.pow(sa,20)+gss(y,-0.85,0.12)*0.01*Math.pow(Math.max(0,ct),4);
       return R*sp;}];});
-  // capacete: recorte mais alto na testa e mais baixo na nuca
+  // helmet: cut higher at the forehead and lower at the nape
   const Hh=add(hc,add(mul(hu,0.024),mul(hf,-0.012))),p=PT.helmet,B=BODY.pos;
   for(let r=0;r<p.nr;r++){const u=r/(p.nr-1);for(let s=0;s<p.ns;s++){const th=s/p.ns*TAU,ct=Math.cos(th),st2=Math.sin(th),ph=helmetPhi(u,th),y=Math.cos(ph),sp=Math.sin(ph);
     let R=sell(lerp(0.146,0.135,smooth(-0.3,0.3,ct)),0.103,th,2.15);R+=helmetFeat(u,th)[0];R*=sp;
     const q=add(Hh,add(mul(hu,y*0.116),add(mul(hf,-0.008*(1-y)+ct*R),mul(hs,st2*R)))),i=(p.base+r*p.ns+s)*3;B[i]=q[0];B[i+1]=q[1];B[i+2]=q[2];}}
   {const cs=(p.base+p.nr*p.ns)*3;B.set(add(Hh,mul(hu,0.116)),cs);B.set(Hh,cs+3);p.nS=hu;p.nE=mul(hu,-1);}
-  // óculos envolventes
+  // wraparound glasses
   const lensAt=ps=>add(hc,add(mul(hu,0.012),add(mul(hf,Math.cos(ps)*0.104),mul(hs,Math.sin(ps)*0.087))));
   fillPart(PT.lens,u=>{const ps=lerp(-1.2,1.2,u),c=lensAt(ps),T=norm(add(mul(hf,-Math.sin(ps)*0.104),mul(hs,Math.cos(ps)*0.087))),S=cross(T,hu),af=0.021*(1-0.35*smooth(0.75,1,Math.abs(2*u-1)));return[c,hu,S,th=>sell(af,0.0035,th,4)];});
   for(const[pp,s]of[[PT.tempR,1],[PT.tempL,-1]]){const pts=[lensAt(1.2*s),add(hc,add(mul(hs,0.084*s),mul(hf,-0.02))),add(hc,add(mul(hs,0.079*s),add(mul(hf,-0.07),mul(hu,-0.02))))];
@@ -738,7 +762,7 @@ function fillHeadGear(P){
     fillPart(p2,u=>{const q=chainAt(pr,u,0.01),F=perp(q.T)[0];return[q.c,F,cross(q.T,F),()=>0.0038];});}
 }
 let BP=null;
-function buildBody(){
+function buildBody(target){
   const P=bodyPose();BP=P;
   const P0=P.tp(0.8),P1=P.C7,P2=P.neckTop;
   fillPart(PT.torso,u=>{let c,T;
@@ -754,11 +778,11 @@ function buildBody(){
   const ar=fillArm(P,PT.armR,1),al=fillArm(P,PT.armL,-1);fillHand(PT.handR,PT.thumbR,1,ar.wr);fillHand(PT.handL,PT.thumbL,-1,al.wr);
   fillHeadGear(P);
   bodyNormals();
-  gl.bindBuffer(gl.ARRAY_BUFFER,bodyGL.pb);gl.bufferSubData(gl.ARRAY_BUFFER,0,BODY.pn);
+  gl.bindBuffer(gl.ARRAY_BUFFER,target.pb);gl.bufferSubData(gl.ARRAY_BUFFER,0,BODY.pn);
   st.scr3={crank:BL(0,0.29,0.1),pedal:BL(...lr.spd),chest:BL(...P.tp(0.6))};
 }
 
-// ================= câmera
+// ================= camera
 let camPos=null,camTgt=null,VP=ID,camNow=[0,0,0];
 function cameraTarget(){
   const b=camBasis,P=b.p;
@@ -779,9 +803,9 @@ function updateCamera(dt){
 }
 function project(p){const r=M4.ap(VP,p);if(r[3]<=0)return null;return[(r[0]*0.5+0.5)*cw,(1-(r[1]*0.5+0.5))*ch];}
 
-// ================= desenho
+// ================= drawing
 let cw=0,ch=0,DPR=1;
-function resize(){DPR=Math.min(OPT.maxPixelRatio,window.devicePixelRatio||1);cw=Math.max(1,container.clientWidth);ch=Math.max(1,container.clientHeight);cv.width=Math.round(cw*DPR);cv.height=Math.round(ch*DPR);ov.width=Math.round(cw*DPR);ov.height=Math.round(ch*DPR);}
+function resize(){DPR=Math.min(OPT.maxPixelRatio,(window.devicePixelRatio||1)*OPT.renderScale);cw=Math.max(1,container.clientWidth);ch=Math.max(1,container.clientHeight);cv.width=Math.round(cw*DPR);cv.height=Math.round(ch*DPR);ov.width=Math.round(cw*DPR);ov.height=Math.round(ch*DPR);}
 const ro=new ResizeObserver(resize);ro.observe(container);
 function setCommon(){
   gl.useProgram(P);
@@ -812,13 +836,13 @@ function setPB(){
   gl.useProgram(PB);gl.uniformMatrix4fv(PU.uVP,false,VP);
   gl.uniform3fv(PU.uSunDir,L.sunDir);gl.uniform3fv(PU.uSunCol,L.lightC);gl.uniform3fv(PU.uSkyAmb,L.skyAmb);gl.uniform3fv(PU.uGndAmb,L.gndAmb);gl.uniform3fv(PU.uFog,L.fog);gl.uniform3fv(PU.uCam,camNow);gl.uniform1f(PU.uFogDen,1/430);
   const b=bikeBasis;gl.uniform3fv(PU.uLampPos,BL(0.72,0.91,0));gl.uniform3fv(PU.uLampDir,norm(add(b.fwd,mul(b.up,-0.12))));gl.uniform1f(PU.uLamp,smooth(0.15,0.6,L.night));
-  gl.uniform1i(PU.uShadow,1);gl.uniformMatrix4fv(PU.uShadowVP,false,SVP||ID);gl.uniform1f(PU.uShadowOn,shadowOn);gl.uniform1f(PU.uAlpha,1);gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,logoTex);gl.activeTexture(gl.TEXTURE0);gl.uniform1i(PU.uLogo,2);gl.uniform1f(PU.uLogoOn,logoOn);
+  gl.uniform1i(PU.uShadow,1);gl.uniformMatrix4fv(PU.uShadowVP,false,SVP||ID);gl.uniform1f(PU.uShadowOn,shadowOn);gl.uniform1f(PU.uAlpha,1);gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,logoTex);gl.activeTexture(gl.TEXTURE0);gl.uniform1i(PU.uLogo,2);gl.uniform1f(PU.uLogoOn,logoOn);gl.uniform1f(PU.uGhost,0);
 }
 function drawPB(mesh,m,tint,mat,emis=0,alpha=1){gl.uniformMatrix4fv(PU.uModel,false,m);gl.uniform1f(PU.uUseV,0);gl.uniform3fv(PU.uTint,tint);gl.uniform3fv(PU.uMatU,mat);gl.uniform1f(PU.uEmis,emis);gl.uniform1f(PU.uAlpha,alpha);gl.bindVertexArray(mesh.vao);gl.drawArrays(gl.TRIANGLES,0,mesh.n);}
 function render(){
   shadowPass();
   gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  // céu
+  // sky
   gl.disable(gl.DEPTH_TEST);gl.useProgram(SP);
   gl.uniformMatrix4fv(SU.uInv,false,M4.inv(VP));gl.uniform3fv(SU.uCam,camNow);gl.uniform3fv(SU.uTop,L.top);gl.uniform3fv(SU.uMid,L.mid);gl.uniform3fv(SU.uHor,L.hor);
   gl.uniform3fv(SU.uSunDir,L.sunRaw);gl.uniform3fv(SU.uSunC,L.sunC);gl.uniform3fv(SU.uMoonDir,L.moonDir);gl.uniform1f(SU.uNight,L.night);gl.uniform1f(SU.uTime,T);gl.uniform1f(SU.uSunVis,L.sunVis>0?smooth(-0.06,0.02,L.sunRaw[1]):0);gl.uniform1f(SU.uMoonVis,L.moonVis);
@@ -827,37 +851,39 @@ function render(){
   setCommon();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shTex);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bloomTex);
   for(const[,c]of chunks)drawMesh(c.g,ID,null);
   drawMesh(uSea,M4.T(0,0,-st.dist),null);
-  // rotores das eólicas
+  if(gates)drawMesh(gates.g,ID,null);
+  // wind turbine rotors
   const wind=1.0+0.35*Math.sin(T*0.13);
   for(const[,c]of chunks)for(const t of c.tur){const m=M4.mul(M4.T(t.p[0],t.p[1],t.p[2]),M4.RZ(T*wind+t.r));drawMesh(uRotor,m,lit(COL.tower));
     if(L.night>0.3&&Math.sin(T*3+t.r*5)>0.3)drawMesh(uSph,M4.mul(M4.T(t.p[0],t.p[1]+1.3,t.p[2]+2),M4.S(0.35,0.35,0.35)),[1,0.2,0.2],1);}
-  // ciclista
+  // rider
   setPB();
   for(const pt of parts){if(pt.alpha<1)continue;drawPB(pt.mesh,pt.m,pt.col,partMat(pt),pt.emis);}
   gl.uniformMatrix4fv(PU.uModel,false,bikeM);gl.uniform1f(PU.uUseV,1);gl.uniform1f(PU.uEmis,0);gl.uniform1f(PU.uAlpha,1);gl.bindVertexArray(bodyGL.vao);gl.drawElements(gl.TRIANGLES,bodyGL.n,gl.UNSIGNED_SHORT,0);
+  drawGhost();
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
   for(const pt of parts){if(pt.alpha>=1)continue;drawPB(pt.mesh,pt.m,pt.col,[1,0,3],1,pt.alpha);}
   gl.depthMask(true);gl.disable(gl.BLEND);
 }
 const lit=c=>c;
 
-// ================= sobreposição 2D
+// ================= 2D overlay
 const petals=[],streaks=[],flies=[];
 function burst(m,n){for(let k=0;k<n;k++){const s=m-1-Math.random()*3,side=Math.random()<0.5?-1:1,d=side*(5.8+Math.random()*7),p=WP(s,d,0.4);petals.push({p,v:[(Math.random()-0.5)*1.5,1.8+Math.random()*2.2,(Math.random()-0.5)*1.5],life:2+Math.random(),c:['#ffcc2e','#ff7eb3','#fff6e8'][k%3],rot:Math.random()*TAU});}}
 function overlay(dt){
   oc.setTransform(DPR,0,0,DPR,0,0);oc.clearRect(0,0,cw,ch);
-  // vento
+  // wind
   if(Math.random()<st.v*1.1*dt){const a=Math.random()*TAU,r=0.15+Math.random()*0.35;streaks.push({a,r,l:0.02+Math.random()*0.05,t:0,al:0.1+Math.random()*0.15});}
   oc.lineCap='round';oc.lineWidth=1.2;
   for(let k=streaks.length-1;k>=0;k--){const s=streaks[k];s.t+=dt*st.v*0.09;if(s.t>1){streaks.splice(k,1);continue;}
     const r0=s.r+s.t*0.6,r1=r0+s.l*(1+st.v*0.08),cx=cw/2,cy=ch*0.48,R=Math.max(cw,ch)*0.7;
     oc.strokeStyle=L.night>0.5?`rgba(170,195,255,${s.al*0.6})`:`rgba(255,255,255,${s.al})`;oc.beginPath();oc.moveTo(cx+Math.cos(s.a)*r0*R,cy+Math.sin(s.a)*r0*R*0.6);oc.lineTo(cx+Math.cos(s.a)*r1*R,cy+Math.sin(s.a)*r1*R*0.6);oc.stroke();}
-  // pétalas
+  // petals
   for(let k=petals.length-1;k>=0;k--){const q=petals[k];q.life-=dt;if(q.life<=0){petals.splice(k,1);continue;}
     q.v[1]-=3.2*dt;q.p=add(q.p,mul(q.v,dt));q.rot+=dt*5;const sp=project(q.p);if(!sp)continue;
     const dd=len(sub(q.p,camNow)),r=clamp(60/dd,1.2,7);oc.globalAlpha=clamp(q.life,0,1);oc.fillStyle=q.c;oc.beginPath();oc.ellipse(sp[0],sp[1],r,r*0.55,q.rot,0,TAU);oc.fill();}
   oc.globalAlpha=1;
-  // vaga-lumes
+  // fireflies
   const want=L.night>0.4?42:0;
   while(flies.length<want){const s=st.dist+5+Math.random()*60,d=(Math.random()<0.5?-1:1)*(6+Math.random()*16);flies.push({p:WP(s,d,0.5+Math.random()*1.8),ph:Math.random()*TAU});}
   if(flies.length>want)flies.length=want;
@@ -870,31 +896,160 @@ function overlay(dt){
   const vg=oc.createRadialGradient(cw/2,ch*0.55,Math.min(cw,ch)*0.38,cw/2,ch*0.55,Math.max(cw,ch)*0.8);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,`rgba(5,8,20,${0.25+L.night*0.25})`);oc.fillStyle=vg;oc.fillRect(0,0,cw,ch);
 }
 
-// ================= entrada opcional (sprint manual e troca de câmera)
+// ================= [Argus app] record ghost and start/finish gates
+// The ghost reuses the same rider: body and bike are built a second time with the ghost's
+// state (distance, pedaling) and drawn as a translucent hologram in the left lane. The gates
+// are static meshes in the coastal style: carnauba palm posts, a canvas banner and São João
+// bunting flags.
+const GHOST_COL=cc('#4fe3ff'),GHOST_A=0.5,GHOST_RANGE=260;
+const GH={provider:null,label:null,dist:0,v:0,cad:0,crank:0,wheel:0,visible:false,parts:[],m:ID,head:null};
+let ghostGL=null,jumped=false;
+function updateGhost(dt){
+  GH.visible=false;if(!GH.provider)return;
+  let g=null;try{g=GH.provider();}catch(e){g=null;}
+  if(!g||!Number.isFinite(+g.distanceM))return;
+  const v=Math.max(0,(+g.speedKmh||0)/3.6),cad=g.cadence!=null?Math.max(0,+g.cadence||0):(v>0.3?88:0);
+  GH.v+=(v-GH.v)*(1-Math.exp(-dt*4));GH.cad+=(cad-GH.cad)*(1-Math.exp(-dt*3));
+  GH.dist=origin+(+g.distanceM);GH.crank+=GH.cad/60*TAU*dt;GH.wheel+=GH.v*dt/0.335;
+  GH.visible=Math.abs(GH.dist-st.dist)<GHOST_RANGE;
+}
+function buildGhost(){
+  if(!GH.visible)return;
+  if(!ghostGL)ghostGL=makeGhostGL();
+  const sv=[st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3];
+  st.dist=GH.dist;st.crank=GH.crank;st.wheel=GH.wheel;st.sprint=0;st.rockPh=0;
+  buildRider(GHOST_D,ghostGL);
+  GH.parts=parts.slice();GH.m=bikeM;const h=BP.headC;GH.head=BL(h[0],h[1]+0.32,h[2]);
+  [st.dist,st.crank,st.wheel,st.sprint,st.rockPh,st.scr3]=sv;
+}
+function drawGhostPass(alpha){
+  for(const pt of GH.parts){if(pt.alpha<1)continue;drawPB(pt.mesh,pt.m,pt.col,partMat(pt),pt.emis,alpha);}
+  gl.uniformMatrix4fv(PU.uModel,false,GH.m);gl.uniform1f(PU.uUseV,1);gl.uniform1f(PU.uEmis,0);gl.uniform1f(PU.uAlpha,alpha);
+  gl.bindVertexArray(ghostGL.vao);gl.drawElements(gl.TRIANGLES,ghostGL.n,gl.UNSIGNED_SHORT,0);
+}
+function drawGhost(){
+  if(!GH.visible||!ghostGL)return;
+  // depth pre-pass: the hologram shows only its front shell, not the inside
+  gl.colorMask(false,false,false,false);drawGhostPass(1);gl.colorMask(true,true,true,true);
+  gl.depthFunc(gl.LEQUAL);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
+  gl.uniform1f(PU.uGhost,1);gl.uniform3fv(PU.uGhostCol,GHOST_COL);drawGhostPass(GHOST_A);gl.uniform1f(PU.uGhost,0);
+  gl.depthMask(true);gl.disable(gl.BLEND);gl.depthFunc(gl.LESS);
+}
+function drawGhostLabel(){
+  if(!GH.visible||!GH.label||!GH.head)return;
+  const sp=project(GH.head);if(!sp)return;
+  const dd=len(sub(GH.head,camNow)),a=clamp(1.15-dd/GHOST_RANGE,0,1);if(a<=0.02)return;
+  oc.setTransform(DPR,0,0,DPR,0,0);oc.globalAlpha=a;
+  oc.font='700 12px system-ui,-apple-system,"Segoe UI",sans-serif';
+  const tw=oc.measureText(GH.label).width,w=tw+30,h=24,x=sp[0]-w/2,y=sp[1]-h-6;
+  oc.fillStyle='rgba(8,20,44,0.72)';oc.beginPath();
+  if(oc.roundRect)oc.roundRect(x,y,w,h,12);else oc.rect(x,y,w,h);oc.fill();
+  oc.strokeStyle='rgba(79,227,255,0.85)';oc.lineWidth=1.2;oc.stroke();
+  oc.fillStyle='#4fe3ff';oc.beginPath();oc.arc(x+12,y+h/2,3.5,0,TAU);oc.fill();
+  oc.fillStyle='#f4f8ff';oc.textBaseline='middle';oc.fillText(GH.label,x+21,y+h/2+0.5);
+  oc.beginPath();oc.moveTo(sp[0]-5,y+h);oc.lineTo(sp[0]+5,y+h);oc.lineTo(sp[0],y+h+5);oc.closePath();oc.fillStyle='rgba(8,20,44,0.72)';oc.fill();
+  oc.globalAlpha=1;
+}
+
+// ---- gates
+let gates=null;
+const GATE={post:cc('#7a6450'),ring:cc('#5a4838'),navy:cc('#14264f'),black:cc('#16171b'),stake:cc('#6e6052')};
+const FLAGS=[cc('#ffcc2e'),cc('#d8362f'),cc('#2f86ff'),cc('#3fb86a'),cc('#ff7eb3'),cc('#f28c28'),cc('#f4efe4')];
+function gateFrame(s){
+  const c=[roadX(s),terr(s)+0.02,-s],f=norm([roadXD(s),0,-1]),r=norm(cross(f,[0,1,0]));
+  return(d,h,fw=0)=>add(c,add(mul(r,d),add([0,h,0],mul(f,fw))));
+}
+function bunting(mb,a,b,sag,s,seed){
+  const n=Math.max(4,Math.round(len(sub(b,a))/0.55)),pt=t=>add(lerp3(a,b,t),[0,-sag*4*t*(1-t),0]);
+  for(let k=0;k<n;k++){const t0=k/n,t1=(k+1)/n,p0=pt(t0),p1=pt(t1);
+    tube(mb,p0,p1,0.012,0.012,3,M(cc('#e9e2d0'),null,s,{w:0}),false);
+    const q0=lerp3(p0,p1,0.12),q1=lerp3(p0,p1,0.88),tip=add(lerp3(p0,p1,0.5),[0,-0.36,0]);
+    mb.tri(q0,q1,tip,M(FLAGS[(k+seed)%FLAGS.length],null,s,{w:0}));}
+}
+function buildGate(mb,s,finish){
+  const Q=gateFrame(s),W=5.6,PH=6.7,BH=5.75;
+  for(const sd of[-1,1]){
+    const d=sd*6.3,g=groundY(s,d)-terr(s)-0.4;
+    // carnauba palm post with rings and a stone base
+    tube(mb,Q(d,g),Q(d,PH),0.24,0.2,8,M(GATE.post,null,s,{w:0}));
+    for(let y=g+0.9;y<PH-0.3;y+=0.55)tube(mb,Q(d,y),Q(d,y+0.06),0.245,0.245,8,M(GATE.ring,null,s,{w:0}),false);
+    for(let k=0;k<4;k++){const a=k/4*TAU+0.5;rock(mb,Q(d+Math.cos(a)*0.45,g+0.25,Math.sin(a)*0.45),0.32,s,s*7+k+(sd>0?11:0));}
+    blob(mb,Q(d,PH+0.18),0.3,0.24,0.3,M(cc('#ffcc2e'),null,s,{w:0}),sd>0?3:5,0.25);
+    // guy lines with bunting down to stakes at the roadside
+    const stake=Q(sd*11.5,groundY(s,sd*11.5)-terr(s)+1.1);
+    tube(mb,Q(sd*11.5,groundY(s,sd*11.5)-terr(s)-0.3),stake,0.05,0.04,5,M(GATE.stake,null,s,{w:0}));
+    bunting(mb,Q(d,PH-0.15),stake,0.5,s,sd>0?2:0);
+  }
+  // log beam
+  tube(mb,Q(-6.7,BH),Q(6.7,BH),0.17,0.17,8,M(GATE.post,null,s,{w:0}));
+  // canvas banner: start in navy with yellow edges; finish checkered with red edges
+  const top=BH-0.22,bot=BH-1.32,border=0.12,cols=finish?18:1,rows=finish?2:1;
+  const panel=(d0,d1,h0,h1,col)=>{for(const fw of[-0.02,0.02])mb.quad(Q(d0,h0,fw),Q(d1,h0,fw),Q(d1,h1,fw),Q(d0,h1,fw),M(col,null,s,{w:0}));};
+  const edge=finish?cc('#d8362f'):cc('#ffcc2e');
+  panel(-W,W,top-border,top,edge);panel(-W,W,bot,bot+border,edge);
+  for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){const d0=-W+2*W*i/cols,d1=-W+2*W*(i+1)/cols,h1=top-border-(top-bot-2*border)*j/rows,h0=top-border-(top-bot-2*border)*(j+1)/rows;
+    panel(d0,d1,h0,h1,finish?((i+j)%2?COL.white:GATE.black):GATE.navy);}
+  if(!finish){// alternating yellow/white diamonds, like northeastern Brazilian lace
+    const mid=(top+bot)/2,hh=0.3,hw=0.3;
+    for(let k=-7;k<=7;k++){const x=k*0.75,m=M(k%2?COL.white:cc('#ffcc2e'),null,s,{w:0});
+      for(const fw of[-0.03,0.03])mb.quad(Q(x-hw,mid,fw),Q(x,mid-hh,fw),Q(x+hw,mid,fw),Q(x,mid+hh,fw),m);}
+  }
+  for(const d of[-W*0.6,0,W*0.6])tube(mb,Q(d,top),Q(d,BH),0.015,0.015,3,M(cc('#e9e2d0'),null,s,{w:0}),false);
+  bunting(mb,Q(-6.3,PH-0.1),Q(6.3,PH-0.1),0.35,s,4);
+  // line painted on the asphalt: white at the start, checkered at the finish
+  const R=(d,s2)=>[roadX(s2)+d,terr(s2)+0.05,-s2],ln=finish?17:1;
+  for(let i=0;i<ln;i++)for(let j=0;j<(finish?2:1);j++){const d0=-4.2+8.4*i/ln,d1=-4.2+8.4*(i+1)/ln,s0=s+j*0.5,s1=s0+(finish?0.5:0.45);
+    mb.quad(R(d0,s0),R(d1,s0),R(d1,s1),R(d0,s1),M(finish&&(i+j)%2?GATE.black:COL.white,null,s,{w:0}));}
+}
+function setGates(race){
+  if(gates){gl.deleteBuffer(gates.g.buf);gl.deleteVertexArray(gates.g.vao);gates=null;}
+  if(!race)return;
+  const mb=new MB();
+  if(Number.isFinite(race.start))buildGate(mb,origin+race.start,false);
+  if(Number.isFinite(race.finish))buildGate(mb,origin+race.finish,true);
+  if(mb.a.length)gates={g:mb.upload()};
+}
+
+// ================= optional input (manual sprint and camera switch)
 const LS=[];const on=(t,e,f,o)=>{t.addEventListener(e,f,o);LS.push([t,e,f,o]);};
 function setBoost(v){st.boost=v?1:0;if(v)st.lastInput=T;}
 if(OPT.interactive){on(cv,'pointerdown',e=>{e.preventDefault();setBoost(true);});on(window,'pointerup',()=>setBoost(false));on(window,'pointercancel',()=>setBoost(false));on(window,'blur',()=>setBoost(false));on(cv,'contextmenu',e=>e.preventDefault());}
 if(OPT.keyboard){on(window,'keydown',e=>{if(e.code==='Space'){e.preventDefault();setBoost(true);}else if(e.code==='KeyC')st.cam=(st.cam+1)%CAM_IDS.length;});on(window,'keyup',e=>{if(e.code==='Space')setBoost(false);});}
 
-// ================= laço e API pública
+// ================= loop and public API
 resize();ensureChunks(99);
 let last=performance.now(),raf=0,disposed=false;
-function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
-  update(dt);ensureChunks(1);lighting();buildRider();updateCamera(dt);render();overlay(dt);
+let fps=60;const capReq=[];
+function frame(now){const raw=Math.max(1e-3,(now-last)/1000),dt=Math.min(0.05,raw);last=now;fps+=(1/raw-fps)*0.05;rawDt=Math.min(raw,0.5);
+  update(dt);ensureChunks(jumped?99:1);jumped=false;lighting();updateGhost(dt);buildGhost();buildRider();updateCamera(dt);render();overlay(dt);drawGhostLabel();
+  if(capReq.length){const c=document.createElement('canvas');c.width=cv.width;c.height=cv.height;const x=c.getContext('2d');x.drawImage(cv,0,0);x.drawImage(ov,0,0);for(const[r,q]of capReq.splice(0))r(c.toDataURL('image/jpeg',q));}
   raf=requestAnimationFrame(frame);}
 const api={
   canvas:cv,
   start(){if(!raf&&!disposed){last=performance.now();raf=requestAnimationFrame(frame);}},
   stop(){if(raf){cancelAnimationFrame(raf);raf=0;}},
-  setRideData(d={}){if('power'in d)EXT.power=d.power;if('cadence'in d)EXT.cadence=d.cadence;if('speedKmh'in d)EXT.speed=d.speedKmh;},
-  clearRideData(){EXT.power=EXT.cadence=EXT.speed=null;},
+  setRideData(d={}){if('power'in d)EXT.power=d.power;if('cadence'in d)EXT.cadence=d.cadence;if('speedKmh'in d)EXT.speed=d.speedKmh;
+    if('distanceM'in d){const v=d.distanceM;if(v==null||!Number.isFinite(+v))EXT.dist=null;else{if(EXT.dist==null&&!originLocked)origin=st.dist-(+v);EXT.dist=+v;EXT.distT=performance.now()/1000;}}},
+  clearRideData(){EXT.power=EXT.cadence=EXT.speed=EXT.dist=null;originLocked=false;},
+  // [Argus app] stops in place and fixes the course origin (race start = distance 0)
+  resetRide(){origin=st.dist;originLocked=true;st.v=0;EXT.power=0;EXT.cadence=0;EXT.speed=0;EXT.dist=0;EXT.distT=performance.now()/1000;},
+  // [Argus app] stopped immediately (no braking), e.g. when the app opens without a session
+  halt(){st.v=0;st.P=0;st.cad=0;st.sprint=0;st.sprV=0;EXT.power=0;EXT.cadence=0;EXT.speed=0;},
+  setRace(race){setGates(race||null);},
+  setGhost(provider,label){GH.provider=typeof provider==='function'?provider:null;GH.label=label||null;if(!GH.provider)GH.visible=false;},
+  clearRace(){setGates(null);GH.provider=null;GH.label=null;GH.visible=false;},
+  setFtp(w){if(Number.isFinite(+w)&&+w>0)FTP=+w;},
+  setPixelRatio(r){if(Number.isFinite(+r)&&+r>0){OPT.maxPixelRatio=+r;resize();}},
+  // [Argus app] supersampling: resolution = devicePixelRatio × scale (capped by maxPixelRatio)
+  setRenderScale(k){if(Number.isFinite(+k)&&+k>0){OPT.renderScale=+k;resize();}},
+  captureFrame(quality=0.8){return raf?new Promise(r=>capReq.push([r,quality])):Promise.resolve(null);},
   setSprint(v){EXT.sprint=(v===null||v===undefined)?null:!!v;},
   setCamera(name){const i=CAM_IDS.indexOf(name);if(i>=0)st.cam=i;},
   getCamera(){return CAM_IDS[st.cam];},
   setTimeOfDay(p,cycleSeconds){st.p=((p%1)+1)%1;if(cycleSeconds!==undefined)OPT.dayCycleSeconds=cycleSeconds;},
-  getState(){return{distanceM:st.dist-startDist,speedKmh:st.v*3.6,power:st.P,cadence:st.cad,gradePct:terrD(st.dist)*100,altitudeM:38+terr(st.dist)*4,sprint:st.sprint,timeOfDay:st.p,camera:CAM_IDS[st.cam]};},
+  getState(){return{distanceM:st.dist-startDist,speedKmh:st.v*3.6,power:st.P,cadence:st.cad,gradePct:terrD(st.dist)*100,altitudeM:38+terr(st.dist)*4,sprint:st.sprint,timeOfDay:st.p,camera:CAM_IDS[st.cam],fps,ghostDistanceM:GH.provider?GH.dist-origin:null,courseDistanceM:st.dist-origin};},
   resize,
-  dispose(){api.stop();disposed=true;ro.disconnect();for(const[t,e,f,o]of LS)t.removeEventListener(e,f,o);const x=gl.getExtension('WEBGL_lose_context');if(x)x.loseContext();cv.remove();ov.remove();}
+  dispose(){api.stop();disposed=true;for(const[r]of capReq.splice(0))r(null);setGates(null);ro.disconnect();for(const[t,e,f,o]of LS)t.removeEventListener(e,f,o);const x=gl.getExtension('WEBGL_lose_context');if(x)x.loseContext();cv.remove();ov.remove();}
 };
 if(OPT.autoStart)api.start();
 return api;

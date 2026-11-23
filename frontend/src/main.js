@@ -958,7 +958,6 @@ document.getElementById('btnImport').addEventListener('click', async () => {
 
                 const elevations = await window.go.main.App.GetElevationProfile();
                 chart.setData(elevations);
-                notifyScene3DRoute(routePoints);
             }
         }
     } catch (e) { alert("Error importing GPX: " + e); }
@@ -1031,7 +1030,6 @@ function parseGPXForMobile(gpxText, filename) {
     window.mapController.renderRoute({ type: 'FeatureCollection', features: features });
     window.mapController.setInitialPosition(smoothedPoints[0].lat, smoothedPoints[0].lon);
     window.chart.setData(smoothedPoints.map(p => p.ele));
-    notifyScene3DRoute(smoothedPoints);
 }
 
 
@@ -1456,7 +1454,7 @@ document.addEventListener('keydown', async (e) => {
 // ==============================================
 // MAIN VIEW — 3D scene (default) / real map / dashboard
 // The 3D scene is a layer inside #map-container, so the existing code that hides the
-// map (dashboard, Studio, workouts) hides it too. Babylon.js loads on first use.
+// map (dashboard, Studio, workouts) hides it too. The scene loads on first use.
 // ==============================================
 
 const MAIN_VIEW_KEY = 'argus.mainView';
@@ -1471,21 +1469,24 @@ function loadMainView() {
     return '3d';
 }
 
-function getActiveRoutePoints() {
-    if (Capacitor.isNativePlatform()) return window.mobileRoutePoints || null;
-    if (window.go && window.go.main && window.go.main.App) return window.go.main.App.GetRoutePath();
-    return null;
+// The scene sprints from the rider's power relative to the active profile's FTP.
+async function refreshScene3DFtp() {
+    try {
+        const profile = await window.go?.main?.App?.GetUserProfile?.();
+        if (window.scene3d) window.scene3d.setFtp(profile?.ftp);
+    } catch { /* keeps the previous FTP */ }
 }
 
 let scene3dLoading = null;
 function ensureScene3D() {
     if (!scene3dLoading) {
-        scene3dLoading = import('./modules/scene3d/Scene3DController.js').then(async ({ Scene3DController }) => {
-            const scene3d = new Scene3DController({ bus: telemetryBus, getRoutePoints: getActiveRoutePoints });
+        scene3dLoading = import('./modules/argus-scene/ArgusScene3D.js').then(({ ArgusScene3D }) => {
+            const scene3d = new ArgusScene3D({ bus: telemetryBus });
+            scene3d.active = mainView === '3d';
+            scene3d.covered = isFullScreenPageOpen();
+            scene3d.mount(document.getElementById('map-container')); // throws without WebGL 2
             window.scene3d = scene3d;
-            scene3d.setActive(mainView === '3d');
-            scene3d.setCovered(isFullScreenPageOpen());
-            await scene3d.mount(document.getElementById('map-container'));
+            refreshScene3DFtp();
             return scene3d;
         }).catch((e) => {
             console.error('[scene3d] failed to load, falling back to the map', e);
@@ -1572,34 +1573,25 @@ async function setEventScene(on, race = null) {
         try {
             const scene3d = await ensureScene3D();
             if (!eventSceneActive) return; // ended while loading
-            await scene3d.refreshRoute();  // the race course was just loaded
-            scene3d.resetRide();
+            refreshScene3DFtp();
+            scene3d.resetRide();           // the rider waits on the start line
             if (race) scene3d.setRace(race); else scene3d.clearRace();
-            scene3d.setHintVisible(false);
-            scene3d.setEventLayout(true);
             scene3d.setActive(true);
         } catch { /* the HUD still works without the 3D scene */ }
     } else if (window.scene3d) {
         window.scene3d.clearRace();
-        window.scene3d.setHintVisible(true);
-        window.scene3d.setEventLayout(false);
+        window.scene3d.releaseRide();
         window.scene3d.setActive(mainView === '3d');
     }
 }
 window.setEventScene = setEventScene;
 
-// Bike model and graphics quality: stored by the scene (and here when it is not
+// Graphics quality (render resolution): stored by the scene (and here when it is not
 // loaded yet), selectable from the event hub.
-const BIKE_KEY = 'argus.scene3d.bike';
-const QUALITY_KEY = 'argus.scene3d.quality';
+const QUALITY_KEY = 'argus.scene.quality';     // same key and default as ArgusScene3D.js
+const DEFAULT_QUALITY = 'high';
 const QUALITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' };
 const readPref = (key, fallback) => { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } };
-
-function setBikeType(type) {
-    try { localStorage.setItem(BIKE_KEY, type); } catch { /* storage unavailable */ }
-    if (window.scene3d) window.scene3d.setBikeType(type);
-}
-window.setBikeType = setBikeType;
 
 function setGraphicsQuality(name) {
     try { localStorage.setItem(QUALITY_KEY, name); } catch { /* storage unavailable */ }
@@ -1609,24 +1601,14 @@ function setGraphicsQuality(name) {
 }
 window.setGraphicsQuality = setGraphicsQuality;
 
-const bikeSelect = document.getElementById('eventRiderBike');
-if (bikeSelect) {
-    bikeSelect.value = readPref(BIKE_KEY, 'road');
-    bikeSelect.addEventListener('change', () => setBikeType(bikeSelect.value));
-}
 const qualityButton = document.getElementById('btnGraphicsQuality');
 if (qualityButton) {
-    setGraphicsQuality(readPref(QUALITY_KEY, 'medium'));
+    setGraphicsQuality(readPref(QUALITY_KEY, DEFAULT_QUALITY));
     qualityButton.addEventListener('click', () => {
         const order = ['low', 'medium', 'high'];
-        const current = readPref(QUALITY_KEY, 'medium');
+        const current = readPref(QUALITY_KEY, DEFAULT_QUALITY);
         setGraphicsQuality(order[(order.indexOf(current) + 1) % order.length]);
     });
-}
-
-// Keeps the scene in sync with a newly imported GPX.
-function notifyScene3DRoute(points) {
-    if (window.scene3d) window.scene3d.setRoute(points);
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1666,7 +1648,7 @@ async function runRaceAutoCheck() {
         .map((id) => document.getElementById(id)?.textContent?.trim()).join(' | ');
 
     await cc.setFairMode(false);
-    (await ensureScene3D()).setTheme('day'); // the realistic theme is the fair default
+    await ensureScene3D();
     await cc.enterEventMode();
     document.getElementById('eventRiderName').value = NAME;
     document.getElementById('eventRiderGender').value = 'G';
@@ -1688,10 +1670,10 @@ async function runRaceAutoCheck() {
         if (img) log(`[scene3d-shot] ${tag} ${img}`);
     };
     const probe = (mode) => {
-        const sc = window.scene3d, c = cc.activeChallenge;
-        log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} rider=${sc?.interp.distance.toFixed(1)} ` +
-            `ghost=${sc?.ghostRig ? sc.ghostDistance.toFixed(1) : 'none'} gap=${c?.gap === null || c?.gap === undefined ? '-' : c.gap.toFixed(2)} ` +
-            `markers=${!!sc?._raceRoot} hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')} ` +
+        const sc = window.scene3d, s = sc?.getState(), c = cc.activeChallenge;
+        log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} rider=${s?.courseDistanceM.toFixed(1)} ` +
+            `ghost=${s?.ghostDistanceM == null ? 'none' : s.ghostDistanceM.toFixed(1)} gap=${c?.gap === null || c?.gap === undefined ? '-' : c.gap.toFixed(2)} ` +
+            `gates=${sc?.hasGates} fps=${s?.fps.toFixed(0)} hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')} ` +
             `hudGap="${document.getElementById('hud-tertiary-label')?.textContent} ${document.getElementById('hud-tertiary-value')?.textContent}"`);
     };
 
@@ -1769,15 +1751,16 @@ async function runRaceAutoCheck() {
 async function runScene3DAutoCheck() {
     const App = window.go.main.App;
     const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
-    // Surface page errors and Babylon warnings in the Wails terminal during the check.
+    // Surface page errors and console warnings in the Wails terminal during the check.
     window.addEventListener('error', (e) => log(`[scene3d] PAGE ERROR ${e.message} @ ${e.filename}:${e.lineno}`));
     const consoleError = console.error.bind(console), consoleWarn = console.warn.bind(console);
     console.error = (...a) => { consoleError(...a); window.runtime?.LogInfo?.(`[scene3d] console.error ${a.map(String).join(' ').slice(0, 300)}`); };
     console.warn = (...a) => { consoleWarn(...a); window.runtime?.LogInfo?.(`[scene3d] console.warn ${a.map(String).join(' ').slice(0, 300)}`); };
     const wait = (ms) => new Promise(r => setTimeout(r, ms));
     const secs = Number(import.meta.env.VITE_SCENE3D_AUTO_SECS || 20);
-
     const demo = import.meta.env.VITE_SCENE3D_AUTO === 'demo';
+    const fmt = (s) => `dist=${s.courseDistanceM.toFixed(1)} speed=${s.speedKmh.toFixed(1)} power=${s.power.toFixed(0)} ` +
+        `cadence=${s.cadence.toFixed(0)} sprint=${s.sprint.toFixed(2)} fps=${s.fps.toFixed(1)} camera=${s.camera}`;
 
     const route = await App.GetRoutePath();
     if (!route || route.length < 2) await App.LoadPredefinedKOMSegment();
@@ -1794,88 +1777,47 @@ async function runScene3DAutoCheck() {
     const previousView = mainView;
     setMainView('3d');
     const scene3d = await ensureScene3D();
-    const previousTheme = scene3d.theme; // the theme choice is persisted; restore it at the end
-    await scene3d.refreshRoute(); // the route was loaded after the scene mounted at startup
-    if (demo) {
-        await wait(1500);
-        const startShot = await scene3d.captureFrame(0.75);
-        if (startShot) log(`[scene3d-shot] start ${startShot}`);
-        scene3d.startDemo();
-    }
+    if (demo) scene3d.scene.clearRideData(); // no trainer: let the scene ride on its own physics
     await wait(3000);
     log(`[scene3d] telemetry samples in 3 s: ${samples}`);
     telemetryBus.unsubscribe(countSample);
-    log(`[scene3d] start ua="${navigator.userAgent}" dpr=${window.devicePixelRatio}`);
+    log(`[scene3d] start ua="${navigator.userAgent}" dpr=${window.devicePixelRatio} quality=${scene3d.qualityName}`);
 
-    for (const theme of ['night', 'day']) {
-        scene3d.setTheme(theme);
-        await wait(4000); // warm-up
-        const t0 = performance.now(), f0 = scene3d.engine.frameId;
-        await wait(secs * 1000);
-        const fps = (scene3d.engine.frameId - f0) / ((performance.now() - t0) / 1000);
-        const s = scene3d.getStats();
-        const meanErr = s.interp.samples ? s.interp.errSum / s.interp.samples : 0;
-        log(`[scene3d] theme=${theme} fps=${fps.toFixed(1)} cpuFrameMs=${s.cpuFrameMs.toFixed(2)} drawCalls=${s.drawCalls} ` +
-            `canvas=${s.canvas} scaling=${s.scaling} glow=${s.glow} route=${s.routeLength.toFixed(0)}m/${s.routeSamples} synthetic=${s.synthetic} ` +
-            `dist=${s.distance.toFixed(1)} speed=${s.speedKmh.toFixed(1)} cadence=${s.cadence.toFixed(0)} ` +
-            `samples=${s.interp.samples} snaps=${s.interp.snaps} errMean=${meanErr.toFixed(2)}m errMax=${s.interp.errMax.toFixed(2)}m ` +
-            `build=${s.buildMs.toFixed(0)}ms quality=${s.quality} shadows=${s.shadows} veg=${JSON.stringify(s.vegetation)}`);
-        const shot = await scene3d.captureFrame(0.75);
-        if (shot) log(`[scene3d-shot] ${theme} ${shot}`);
-        if (scene3d.minimap) log(`[scene3d-shot] minimap_${theme} ${scene3d.minimap.canvas.toDataURL('image/jpeg', 0.9)}`);
-    }
+    await wait(secs * 1000);
+    log(`[scene3d] cruise ${fmt(scene3d.getState())}`);
+    const shot = async (tag) => {
+        const img = await scene3d.captureFrame(0.75);
+        if (img) log(`[scene3d-shot] ${tag} ${img}`);
+    };
+    await shot('chase');
 
-    scene3d.setTheme(previousTheme);
+    // Sprint: well above FTP (simulator only; the demo forces it).
+    if (demo) scene3d.scene.setSprint(true);
+    else log(`[scene3d] sim power: ${await App.ChangePowerSimulation(500)}`);
+    await wait(4000);
+    log(`[scene3d] sprint ${fmt(scene3d.getState())}`);
+    await shot('sprint');
+    if (demo) scene3d.scene.setSprint(null);
+    else await App.ChangePowerSimulation(-500);
 
-    // Graphics presets of the realistic theme (VITE_SCENE3D_QUALITY=1): FPS per preset.
+    // Graphics presets (VITE_SCENE3D_QUALITY=1): FPS per render resolution.
     if (import.meta.env.VITE_SCENE3D_QUALITY === '1') {
         const previousQuality = scene3d.qualityName;
-        scene3d.setTheme('day');
         for (const q of ['low', 'medium', 'high']) {
             scene3d.setQuality(q);
-            await wait(4000);
-            const t0 = performance.now(), f0 = scene3d.engine.frameId;
-            await wait(8000);
-            const fps = (scene3d.engine.frameId - f0) / ((performance.now() - t0) / 1000);
-            const st = scene3d.getStats();
-            log(`[scene3d] quality=${q} fps=${fps.toFixed(1)} cpuFrameMs=${st.cpuFrameMs.toFixed(2)} drawCalls=${st.drawCalls} ` +
-                `canvas=${st.canvas} shadows=${st.shadows} build=${st.buildMs.toFixed(0)}ms veg=${JSON.stringify(st.vegetation)}`);
-            const img = await scene3d.captureFrame(0.8);
-            if (img) log(`[scene3d-shot] quality_${q} ${img}`);
+            await wait(6000);
+            log(`[scene3d] quality=${q} canvas=${scene3d.scene.canvas.width}x${scene3d.scene.canvas.height} ${fmt(scene3d.getState())}`);
+            await shot(`quality_${q}`);
         }
         scene3d.setQuality(previousQuality);
     }
 
-    // Detail shots of both bikes (VITE_SCENE3D_SHOTS=1): chase, side and front 3/4 views.
-    if (import.meta.env.VITE_SCENE3D_SHOTS === '1') {
-        const previousBike = scene3d.bikeType;
-        scene3d.setTheme('day');
-        await wait(2500);
-        const views = {
-            chase: null,
-            side: { back: 0, height: 1.0, ahead: 0, lookHeight: 0.85, side: 3.0 },
-            front: { back: -3.2, height: 1.5, ahead: 0, lookHeight: 0.9, side: 2.0 }
-        };
-        for (const bike of ['road', 'tt']) {
-            scene3d.setBikeType(bike);
-            await wait(800);
-            for (const [view, opts] of Object.entries(views)) {
-                const saved = { ...scene3d.chase.opts };
-                if (opts) Object.assign(scene3d.chase.opts, opts, { stiffness: 1000 });
-                await wait(400);
-                const img = await scene3d.captureFrame(0.8);
-                if (img) log(`[scene3d-shot] ${bike}_${view} ${img}`);
-                scene3d.chase.opts = saved;
-            }
-        }
-        scene3d.setBikeType(previousBike);
+    // Stopping (pausing the session) must stop the legs too.
+    if (!demo) {
+        log(`[scene3d] pause: ${await App.ToggleSession()}`);
+        await wait(6000);
+        log(`[scene3d] after stop: ${fmt(scene3d.getState())}`);
     }
-
-    // Stopping (demo stop, or pausing the session) must stop the legs too.
-    if (demo) scene3d.stopDemo();
-    else log(`[scene3d] pause: ${await App.ToggleSession()}`);
-    await wait(4000);
-    log(`[scene3d] after stop: cadence=${scene3d.interp.cadence.toFixed(2)} speed=${(scene3d.interp.speed * 3.6).toFixed(2)}`);
 
     // View switching: the scene must render only in the 3D view and never add contexts.
     const canvases = () => document.querySelectorAll('canvas').length;
@@ -1890,9 +1832,8 @@ async function runScene3DAutoCheck() {
         }
     }
     await wait(2000);
-    const fpsAfter = scene3d.engine.getFps();
     log(`[scene3d] switch-test done cycles=50 wrongStates=${wrong} canvases=${canvases()} (before ${before}) ` +
-        `fpsAfter=${fpsAfter.toFixed(0)} rendering3d=${scene3d.isRendering}`);
+        `fpsAfter=${scene3d.getState().fps.toFixed(0)} rendering3d=${scene3d.isRendering}`);
     const markerShown = () => {
         const m = document.querySelector('#map-container .maplibregl-marker');
         return m ? getComputedStyle(m).display !== 'none' : 'no-marker';

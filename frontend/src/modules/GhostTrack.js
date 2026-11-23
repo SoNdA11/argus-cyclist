@@ -5,7 +5,7 @@
 // Replay of a recorded race attempt ("ghost"). The record stores the elapsed time at
 // every `step` meters (EventRecord.ghost), so the ghost's position at any race time is
 // a lookup with linear interpolation, and so is the time gap at any distance.
-// Pure functions: no Babylon dependency, testable in Node.
+// Pure functions with no rendering dependency, testable in Node.
 
 export class GhostTrack {
     /**

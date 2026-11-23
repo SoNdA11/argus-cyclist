@@ -17,7 +17,7 @@
 import { telemetryBus } from './TelemetryEventBus.js';
 
 // Rider names are free text typed at the event hub; never inject them as raw HTML.
-import { GhostTrack, formatGap } from './scene3d/GhostTrack.js';
+import { GhostTrack, formatGap } from './GhostTrack.js';
 
 const FAIR_MODE_KEY = 'argus.fairMode';
 const OVERTAKE_HYSTERESIS = 0.15; // s of gap before announcing a change of lead

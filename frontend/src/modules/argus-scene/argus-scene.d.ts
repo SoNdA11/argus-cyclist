@@ -1,43 +1,63 @@
-// Tipos da cena 3D do Argus Cyclist (argus-scene.module.js)
+// Types of the Argus Cyclist 3D scene (argus-scene.module.js)
 
 export type ArgusCamera = 'chase' | 'drone' | 'cinematic';
 
 export interface ArgusSceneOptions {
-  /** Câmera inicial. Padrão: 'chase' (perseguição). */
+  /** Initial camera. Default: 'chase'. */
   camera?: ArgusCamera;
-  /** Horário inicial 0..1 (0 = 05h, ~0.13 = manhã, 0.6 = pôr do sol, 0.8 = noite). Padrão 0.13. */
+  /** Initial time of day 0..1 (0 = 5 am, ~0.13 = morning, 0.6 = sunset, 0.8 = night). Default 0.13. */
   timeOfDay?: number;
-  /** Duração de um dia completo em segundos. 0 congela o horário. Padrão 120. */
+  /** Length of a full day in seconds. 0 freezes the time of day. Default 120. */
   dayCycleSeconds?: number;
-  /** FTP do atleta em watts, usado no sprint automático. Padrão 250. */
+  /** Rider FTP in watts, used by the automatic sprint. Default 250. */
   ftp?: number;
-  /** Entra em sprint automaticamente quando a potência passa de ~1.35–1.65 × FTP. Padrão true. */
+  /** Sprints automatically when power goes above ~1.35–1.65 × FTP. Default true. */
   autoSprintFromPower?: boolean;
-  /** Massa ciclista + bike (kg) usada só na física interna (quando não há velocidade externa). Padrão 78. */
+  /** Rider + bike mass (kg), used only by the internal physics (no external speed). Default 78. */
   riderMass?: number;
-  /** Segurar o canvas aciona sprint manual. Padrão false. */
+  /** Holding the canvas triggers a manual sprint. Default false. */
   interactive?: boolean;
-  /** Espaço = sprint, C = troca de câmera. Padrão false. */
+  /** Space = sprint, C = switch camera. Default false. */
   keyboard?: boolean;
-  /** Sprints automáticos de demonstração quando não há interação. Padrão false. */
+  /** Automatic demo sprints when there is no interaction. Default false. */
   demo?: boolean;
-  /** Pétalas voando durante o sprint. Padrão true. */
+  /** Petals flying during the sprint. Default true. */
   petals?: boolean;
-  /** Limite de devicePixelRatio (desempenho). Padrão 1.75. */
+  /** devicePixelRatio cap (performance). Default 1.75. */
   maxPixelRatio?: number;
-  /** URL ou data URI de uma máscara PNG (canal alfa) para a logo das costas. Padrão: logo Argus embutida. */
+  /** [Argus app] Scale over devicePixelRatio (supersampling above 1). Default 1. */
+  renderScale?: number;
+  /** URL or data URI of a PNG mask (alpha channel) for the back logo. Default: embedded Argus logo. */
   logoUrl?: string | null;
-  /** Inicia o laço de animação ao criar. Padrão true. */
+  /** Starts the animation loop on creation. Default true. */
   autoStart?: boolean;
 }
 
 export interface ArgusRideData {
-  /** Potência instantânea (W). */
+  /** Instantaneous power (W). */
   power?: number | null;
-  /** Cadência (rpm). */
+  /** Cadence (rpm). */
   cadence?: number | null;
-  /** Velocidade (km/h). Quando informada, substitui a física interna. */
+  /** Speed (km/h). When given, it replaces the internal physics. */
   speedKmh?: number | null;
+  /** [Argus app] Distance covered on the app's course (m). The scene follows it smoothly; it is
+   *  the reference for the gates and the ghost. null goes back to the scene's integrated distance. */
+  distanceM?: number | null;
+}
+
+/** [Argus app] Ghost position, queried every frame. */
+export interface ArgusGhostSample {
+  /** Ghost distance on the course (m, same reference as distanceM). */
+  distanceM: number;
+  speedKmh?: number;
+  /** Cadence (rpm). Default: 88 while moving, 0 when stopped. */
+  cadence?: number | null;
+}
+
+/** [Argus app] Race gates, in course meters (same reference as distanceM). */
+export interface ArgusRace {
+  start?: number;
+  finish?: number;
 }
 
 export interface ArgusSceneState {
@@ -45,33 +65,57 @@ export interface ArgusSceneState {
   speedKmh: number;
   power: number;
   cadence: number;
-  /** Inclinação do terreno da cena no ponto atual (%). */
+  /** Grade of the scene terrain at the current point (%). */
   gradePct: number;
   altitudeM: number;
-  /** 0 = pedalando sentado, 1 = sprint completo. */
+  /** 0 = seated pedaling, 1 = full sprint. */
   sprint: number;
   timeOfDay: number;
   camera: ArgusCamera;
+  /** [Argus app] Frames per second (moving average). */
+  fps: number;
+  /** [Argus app] Rider distance from the course origin (m). */
+  courseDistanceM: number;
+  /** [Argus app] Ghost distance (m), or null without a ghost. */
+  ghostDistanceM: number | null;
 }
 
 export interface ArgusScene {
   readonly canvas: HTMLCanvasElement;
   start(): void;
   stop(): void;
-  /** Envia telemetria real. Campos omitidos não mudam; null volta a usar a simulação interna. */
+  /** Sends real telemetry. Omitted fields do not change; null goes back to the internal simulation. */
   setRideData(data: ArgusRideData): void;
   clearRideData(): void;
-  /** true/false força o sprint; null volta ao automático pela potência. */
+  /** true/false forces the sprint; null goes back to automatic from power. */
   setSprint(on: boolean | null): void;
   setCamera(name: ArgusCamera): void;
   getCamera(): ArgusCamera;
   setTimeOfDay(p: number, cycleSeconds?: number): void;
   getState(): ArgusSceneState;
   resize(): void;
-  /** Libera o contexto WebGL, listeners e remove os canvas. Chame ao sair da tela. */
+  /** [Argus app] Stops the rider where it is and makes that spot course distance 0 (start line). */
+  resetRide(): void;
+  /** [Argus app] Stops the rider immediately (speed, power and cadence set to zero). */
+  halt(): void;
+  /** [Argus app] Draws the start/finish gates (replacing the previous ones). */
+  setRace(race: ArgusRace | null): void;
+  /** [Argus app] Translucent ghost in the left lane; the provider is called every frame. */
+  setGhost(provider: (() => ArgusGhostSample | null) | null, label?: string | null): void;
+  /** [Argus app] Removes the gates and the ghost. */
+  clearRace(): void;
+  /** [Argus app] Updates the FTP used by the automatic sprint. */
+  setFtp(watts: number): void;
+  /** [Argus app] devicePixelRatio cap. */
+  setPixelRatio(ratio: number): void;
+  /** [Argus app] Supersampling: resolution = devicePixelRatio × scale (capped by maxPixelRatio). */
+  setRenderScale(scale: number): void;
+  /** [Argus app] JPEG of the next frame (scene + 2D layer); null when the loop is stopped. */
+  captureFrame(quality?: number): Promise<string | null>;
+  /** Releases the WebGL context and listeners and removes the canvases. Call it when leaving the screen. */
   dispose(): void;
 }
 
-/** Cria a cena dentro de `container` (que deve ter tamanho definido). Lança erro se não houver WebGL 2. */
+/** Creates the scene inside `container` (which must have a defined size). Throws without WebGL 2. */
 export function createArgusScene(container: HTMLElement, options?: ArgusSceneOptions): ArgusScene;
 export default createArgusScene;
