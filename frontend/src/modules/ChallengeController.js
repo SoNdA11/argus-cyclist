@@ -18,10 +18,13 @@ import { telemetryBus } from './TelemetryEventBus.js';
 
 // Rider names are free text typed at the event hub; never inject them as raw HTML.
 import { GhostTrack, formatGap } from './GhostTrack.js';
+import { formatClock, zoneForPct } from './EventBroadcastHud.js';
 
 const FAIR_MODE_KEY = 'argus.fairMode';
 const OVERTAKE_HYSTERESIS = 0.15; // s of gap before announcing a change of lead
 const FINISH_BANNER_MS = 2200;     // finish banner over the 3D before the result screen
+const RESULT_AUTO_NEXT_S = 20;     // result screen hands over to the next athlete after this
+const TOWER_ROWS = 7;              // rows of the live classification tower
 const GHOST_STEP = 5;            // m between ghost samples (domain.GhostStep)
 const RACE_IDLE_LIMIT = 15;      // s nearly stopped before a race counts as not finished
 const RACE_IDLE_SPEED = 1;       // km/h
@@ -66,6 +69,34 @@ function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (c) => (
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
+}
+
+// Event hub (pt-BR, fair visitors): label of the LARGAR button and the tip per challenge.
+// `live` is the tag of the live graphics and the result screen, `countdown` the line under 3-2-1.
+const HUB_MODE_TEXT = {
+    sprint200: {
+        name: 'SPRINT 200 M', live: 'SPRINT 200 M',
+        tip: 'O ghost do recorde larga ao seu lado. Bata o tempo dele até a chegada.',
+        countdown: 'PREPARE-SE · O GHOST LARGA JUNTO'
+    },
+    climb400: {
+        name: 'SUBIDA 400 M', live: 'SUBIDA 400 M',
+        tip: 'A resistência do rolo segue a ladeira e o seu peso conta. O ghost do recorde sobe junto.',
+        countdown: 'A LADEIRA COMEÇA EM 3% · SEU PESO CONTA'
+    },
+    timeTrial: {
+        name: 'DESAFIO DE ZONAS', live: 'DESAFIO DE ZONAS · 60 S',
+        tip: 'Quanto mais alta a zona de potência, mais pontos por segundo. Segure a Z5 por 3 s para o bônus máximo.',
+        countdown: 'QUANTO MAIS ALTA A ZONA, MAIS PONTOS POR SEGUNDO'
+    }
+};
+const CATEGORY_TEXT = { F: 'Feminino', M: 'Masculino' };
+const CATEGORY_TITLE = { G: 'GERAL', F: 'FEMININO', M: 'MASCULINO' };
+
+/** Splits "Ana [F]" into the display name and the category letter. */
+function parseRiderName(raw) {
+    const m = String(raw || '').match(/^(.*) \[([MFG])\]$/);
+    return m ? { name: m[1].trim(), gender: m[2] } : { name: String(raw || '').trim(), gender: null };
 }
 
 export class ChallengeController {
@@ -129,6 +160,8 @@ export class ChallengeController {
         };
 
         this.leaderboards = Object.fromEntries(Object.keys(this.modeMeta).map((k) => [k, []]));
+        this.selectedMode = 'sprint200'; // highlighted row of the hub's start list
+        this.inEventMode = false;        // between entering the hub and leaving it with ✕
         this.includeSimulated = false;
         this.fairMode = false;
 
@@ -145,7 +178,6 @@ export class ChallengeController {
         this.leaderboardFilter = 'G';
         this.animationFrame = null;
         this.lastFrameTime = 0;
-        this.lastKnownRank = -1;
         this.leaderboardUpdateAccumulator = 0;
 
         window.challengeController = this;
@@ -172,6 +204,8 @@ export class ChallengeController {
         document.getElementById('btnCloseEventHub')?.addEventListener('click', () => {
             this.closeModal(this.els.eventHubModal);
             this.restoreMainLayout();
+            this.setEventModeActive(false);
+            window.setEventScene?.(false);
 
             if (!this.activeChallenge) {
                 const homeScreen = document.getElementById('homeScreen');
@@ -191,15 +225,36 @@ export class ChallengeController {
             this.openEventHub();
         });
 
-        document.getElementById('btnChallengeResultClose')?.addEventListener('click', () => this.returnToEventHub());
+        // Result screen: same athlete again, next athlete (clean start list) or the ranking.
+        document.getElementById('btnChallengeResultRetry')?.addEventListener('click', () => this.retryLastChallenge());
+        document.getElementById('btnChallengeResultClose')?.addEventListener('click', () => this.nextAthlete());
         document.getElementById('btnChallengeResultLeaderboard')?.addEventListener('click', () => {
             this.closeModal(this.els.resultModal);
             this.openLeaderboard();
         });
 
-        document.getElementById('btnLaunchSprint')?.addEventListener('click', () => this.launchRace('sprint200'));
-        document.getElementById('btnLaunchKOM')?.addEventListener('click', () => this.launchRace('climb400'));
-        document.getElementById('btnLaunchTimeTrial')?.addEventListener('click', () => this.launchTimeTrial());
+        // Ranking: category pills and the operator's per-challenge reset.
+        document.querySelectorAll('#eventLeaderboardModal .lb-filter-btn').forEach((btn) => {
+            btn.addEventListener('click', () => this.setLeaderboardFilter(btn.dataset.filter));
+        });
+        this.els.leaderboardPanels?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-reset]');
+            if (btn) this.resetLeaderboard(btn.dataset.reset);
+        });
+
+        // Start list: a click selects a challenge, a double click (or LARGAR / Enter) starts it.
+        document.querySelectorAll('#eventHubPage .ev-start-row').forEach((row) => {
+            row.addEventListener('click', () => this.selectHubMode(row.dataset.mode));
+            row.addEventListener('dblclick', () => this.launchSelectedMode());
+        });
+        document.getElementById('btnEventStart')?.addEventListener('click', () => this.launchSelectedMode());
+        document.addEventListener('keydown', (e) => this.handleHubKey(e));
+        ['eventRiderName', 'eventRiderWeight'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('input', (e) => {
+                e.target.classList.remove('ev-invalid');
+                this.showHubMessage('');
+            });
+        });
 
         document.getElementById('btnFairMode')?.addEventListener('click', () => this.setFairMode(!this.fairMode));
         document.getElementById('lbIncludeSimulated')?.addEventListener('change', async (e) => {
@@ -208,7 +263,7 @@ export class ChallengeController {
             this.renderLeaderboardModal();
         });
 
-        document.getElementById('hud-abort-btn')?.addEventListener('click', async () => {
+        document.getElementById('btnEventAbort')?.addEventListener('click', async () => {
             await this.abortActiveChallenge();
         });
 
@@ -280,14 +335,8 @@ export class ChallengeController {
         this.leaderboardFilter = filter;
         this.renderLeaderboardModal();
 
-        document.querySelectorAll('.lb-filter-btn').forEach(btn => {
-            if (btn.dataset.filter === filter) {
-                btn.style.background = 'rgba(56,189,248,0.2)';
-                btn.style.color = '#38bdf8';
-            } else {
-                btn.style.background = 'transparent';
-                btn.style.color = '#aaa';
-            }
+        document.querySelectorAll('#eventLeaderboardModal .lb-filter-btn').forEach((btn) => {
+            btn.setAttribute('aria-pressed', btn.dataset.filter === filter ? 'true' : 'false');
         });
     }
 
@@ -357,8 +406,88 @@ export class ChallengeController {
     }
 
     openEventHub() {
+        this.setEventModeActive(true);
         this.openModal(this.els.eventHubModal);
         this.closeModal(this.els.resultModal);
+        this.showHubScene();
+        this.selectHubMode(this.selectedMode);
+        this.renderHubRecords();
+        this.fetchLeaderboardsFromDB().then(() => this.renderHubRecords()).catch(() => { });
+    }
+
+    /** Full-screen 3D behind the start list, the rider waiting on the start line. */
+    showHubScene() {
+        if (this.ui) {
+            this.ui.els.header.style.display = 'none';
+            this.ui.els.mapContainer.style.display = '';
+            this.ui.els.hudSidebar.style.display = 'none';
+            if (this.ui.els.footer) this.ui.els.footer.style.display = 'none';
+        }
+        window.setEventScene?.(true);
+    }
+
+    // ----- Hub: start list -----
+
+    selectHubMode(mode) {
+        if (!this.modeMeta[mode]) return;
+        this.selectedMode = mode;
+        document.querySelectorAll('#eventHubPage .ev-start-row').forEach((row) => {
+            row.setAttribute('aria-checked', row.dataset.mode === mode ? 'true' : 'false');
+        });
+        const label = document.querySelector('#btnEventStart [data-role="label"]');
+        if (label) label.textContent = HUB_MODE_TEXT[mode].name;
+        const tip = document.getElementById('eventHubTip');
+        if (tip) tip.textContent = HUB_MODE_TEXT[mode].tip;
+    }
+
+    launchSelectedMode() {
+        if (this.activeChallenge) return;
+        if (this.selectedMode === 'timeTrial') this.launchTimeTrial();
+        else this.launchRace(this.selectedMode);
+    }
+
+    handleHubKey(e) {
+        if (!this.els.eventHubModal?.classList.contains('active') || this.activeChallenge) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const tag = e.target?.tagName?.toLowerCase();
+        const typing = tag === 'input' || tag === 'select' || tag === 'textarea';
+        const order = Object.keys(this.modeMeta);
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !typing) {
+            const i = order.indexOf(this.selectedMode) + (e.key === 'ArrowDown' ? 1 : -1);
+            this.selectHubMode(order[(i + order.length) % order.length]);
+            document.querySelector(`#eventHubPage .ev-start-row[data-mode="${this.selectedMode}"]`)?.focus();
+            e.preventDefault();
+        } else if (e.key === 'Enter' && tag !== 'button' && tag !== 'select') {
+            // Buttons handle Enter themselves; in the name/weight fields Enter starts the race.
+            e.preventDefault();
+            this.launchSelectedMode();
+        }
+    }
+
+    /** Best official result per mode, shown on its start-list row. */
+    renderHubRecords() {
+        document.querySelectorAll('#eventHubPage .ev-start-row').forEach((row) => {
+            const mode = row.dataset.mode, cell = row.querySelector('[data-role="record"]');
+            if (!cell || !this.modeMeta[mode]) return;
+            const best = (this.leaderboards[mode] || []).filter((e) => !e.isSimulated).sort(this.rankCompare(mode))[0];
+            cell.classList.toggle('is-empty', !best);
+            cell.innerHTML = best
+                ? `<strong>${escapeHtml(this.formatResultValue(mode, best.value))}</strong><span>${escapeHtml(best.rider)}${CATEGORY_TEXT[best.gender] ? ' · ' + CATEGORY_TEXT[best.gender] : ''}</span>`
+                : '<strong>Seja o primeiro</strong><span>Sem recorde ainda</span>';
+        });
+    }
+
+    /** Inline message under the athlete fields (falls back to an alert outside the hub). */
+    showHubMessage(text, fieldId = null) {
+        const el = document.getElementById('eventHubMessage');
+        const hubOpen = this.els.eventHubModal?.classList.contains('active');
+        if (fieldId) {
+            const field = document.getElementById(fieldId);
+            field?.classList.add('ev-invalid');
+            if (hubOpen) field?.focus();
+        }
+        if (el && hubOpen) el.textContent = text;
+        else if (text) alert(text);
     }
 
     async openLeaderboard() {
@@ -373,12 +502,16 @@ export class ChallengeController {
         if (!el) return;
         el.classList.remove('hidden');
         el.classList.add('active');
+        // While the start list is open the 3D frames the rider in the free area on its right.
+        if (el === this.els.eventHubModal) document.body.classList.add('ev-hub-open');
     }
 
     closeModal(el) {
         if (!el) return;
         el.classList.remove('active');
         el.classList.add('hidden');
+        if (el === this.els.eventHubModal) document.body.classList.remove('ev-hub-open');
+        if (el === this.els.resultModal) this.stopResultTimer();
     }
 
     metaFor(mode) {
@@ -410,10 +543,9 @@ export class ChallengeController {
         }
         const btn = document.getElementById('btnFairMode');
         if (btn) {
-            btn.querySelector('[data-role="label"]').textContent = `Fair Mode: ${this.fairMode ? 'ON' : 'OFF'}`;
-            btn.style.color = this.fairMode ? '#22c55e' : '#94a3b8';
-            btn.style.borderColor = this.fairMode ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.15)';
-            btn.style.background = this.fairMode ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)';
+            btn.querySelector('[data-role="label"]').textContent = `Modo Feira: ${this.fairMode ? 'ligado' : 'desligado'}`;
+            btn.classList.toggle('is-on', this.fairMode);
+            btn.setAttribute('aria-pressed', this.fairMode ? 'true' : 'false');
         }
         const virtualBtn = document.getElementById('btnEventConnectVirtual');
         if (virtualBtn) virtualBtn.disabled = this.fairMode;
@@ -426,7 +558,7 @@ export class ChallengeController {
         const kg = Number(raw);
         if (!raw && !required) return 0;
         if (!Number.isFinite(kg) || kg < 35 || kg > 150) {
-            alert('Please enter the cyclist weight (35-150 kg) before starting a race.');
+            this.showHubMessage('Informe o peso do atleta (35 a 150 kg) antes de largar.', 'eventRiderWeight');
             return null;
         }
         return kg;
@@ -438,7 +570,7 @@ export class ChallengeController {
         const name = nameInput?.value?.trim();
 
         if (!name) {
-            alert('Please enter the cyclist name before starting the event.');
+            this.showHubMessage('Digite o nome do atleta antes de largar.', 'eventRiderName');
             return '';
         }
 
@@ -452,34 +584,26 @@ export class ChallengeController {
         for (const type of Object.keys(this.modeMeta)) {
             try {
                 const records = await window.go.main.App.GetEventRanking(type, this.includeSimulated);
-                this.leaderboards[type] = (records || []).map(r => {
-                    let rawName = r.rider_name;
-                    let cleanName = rawName;
-                    let gender = 'G';
-
-                    const match = rawName.match(/(.+) \[([MFG])\]$/);
-                    if (match) {
-                        cleanName = match[1].trim();
-                        gender = match[2];
-                    } else {
-                        gender = this.detectGender(cleanName);
-                    }
-
-                    return {
-                        rider: cleanName,
-                        rawRider: rawName,
-                        gender: gender,
-                        value: r.score,
-                        status: r.status,
-                        isSimulated: !!r.is_simulated,
-                        createdAt: new Date(r.created_at).getTime()
-                    };
-                });
+                this.leaderboards[type] = (records || []).map((r) => this.toLeaderboardEntry(r));
             } catch (e) {
                 console.error(`Failed to fetch leaderboard for ${type}:`, e);
                 this.leaderboards[type] = [];
             }
         }
+    }
+
+    /** EventRecord from the backend → ranking entry (name without the category suffix). */
+    toLeaderboardEntry(r) {
+        const parsed = parseRiderName(r.rider_name);
+        return {
+            rider: parsed.name,
+            rawRider: r.rider_name,
+            gender: parsed.gender || this.detectGender(parsed.name),
+            value: r.score,
+            status: r.status,
+            isSimulated: !!r.is_simulated,
+            createdAt: new Date(r.created_at).getTime()
+        };
     }
 
     async hasTrainerConnection() {
@@ -501,11 +625,9 @@ export class ChallengeController {
             const statusEl = this.els.eventTrainerStatus;
             if (statusEl) {
                 if (state?.trainer_connected) {
-                    statusEl.textContent = state.trainer_kind === 'virtual' ? 'Simulator Active' : 'Trainer Connected';
-                    statusEl.style.color = state.trainer_kind === 'virtual' ? '#00ADD8' : '#22c55e';
+                    statusEl.textContent = state.trainer_kind === 'virtual' ? 'Simulador ativo' : 'Rolo conectado';
                 } else {
-                    statusEl.textContent = 'Disconnected';
-                    statusEl.style.color = '#ef4444';
+                    statusEl.textContent = 'Desconectado';
                 }
             }
 
@@ -522,8 +644,7 @@ export class ChallengeController {
 
         const statusEl = this.els.eventTrainerStatus;
         if (statusEl) {
-            statusEl.textContent = isConnected ? 'Trainer Connected' : 'Disconnected';
-            statusEl.style.color = isConnected ? '#22c55e' : '#ef4444';
+            statusEl.textContent = isConnected ? 'Rolo conectado' : 'Desconectado';
         }
     }
 
@@ -536,12 +657,12 @@ export class ChallengeController {
         await this.refreshTrainerStatus();
 
         if (!await this.hasTrainerConnection()) {
-            alert('Connect a trainer or activate the simulator before starting an event challenge.');
+            this.showHubMessage('Conecte o rolo ou ative o simulador (canto superior direito) antes de largar.');
             return false;
         }
 
         if (window.isRecording) {
-            alert('Finish the current session before starting a new event challenge.');
+            this.showHubMessage('Termine a sessão em andamento antes de largar um desafio.');
             return false;
         }
 
@@ -634,13 +755,18 @@ export class ChallengeController {
         if (!await this.prepareChallengeEnvironment(mode)) return;
 
         let simulated = false;
+        let profile = null;
         try {
             await window.go.main.App.SetEventRiderWeight(weight);
             await window.go.main.App.SetEventCourse(mode);
             const state = await window.go.main.App.GetDeviceConnectionState();
             simulated = state?.trainer_kind === 'virtual';
+            // The loaded course's elevation shapes the 3D road (flat sprint, uphill climb) and
+            // the climb's profile graphic.
+            const route = await window.go.main.App.GetRoutePath();
+            profile = (route || []).map((p) => ({ d: p.distance, h: p.elevation, grade: p.grade }));
         } catch (e) {
-            alert(`Unable to prepare the race: ${e}`);
+            this.showHubMessage(`Não foi possível preparar a corrida: ${e}`);
             return;
         }
         const record = await this.loadRecordGhost(mode, simulated);
@@ -651,11 +777,13 @@ export class ChallengeController {
             riderName,
             weight,
             simulated,
+            profile,
             distance: meta.distance,
             duration: meta.maxDuration,
             phase: 'countdown',
             samples: [{ t: 0, d: 0 }],
             progress: 0,
+            lastSampleAt: 0,
             idleTime: 0,
             started: false,
             ghost: record?.track || null,
@@ -694,8 +822,9 @@ export class ChallengeController {
         return {
             start: 0,
             finish: c.distance,
+            profile: c.profile,
             ghost: c.ghost,
-            ghostLabel: c.record ? `RECORD · ${c.record.name} · ${formatRaceTime(c.record.score)}` : null,
+            ghostLabel: c.record ? `RECORDE · ${c.record.name} · ${formatRaceTime(c.record.score)}` : null,
             clock: () => this.raceClock(c)
         };
     }
@@ -705,9 +834,9 @@ export class ChallengeController {
         const el = document.createElement('div');
         const big = size === 'big';
         el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);z-index:10040;pointer-events:none;' +
-            `top:${big ? '34vh' : '15vh'};text-align:center;font-family:sans-serif;color:${color};` +
+            `top:${big ? '34vh' : '22vh'};text-align:center;font-family:var(--ev-font-display);letter-spacing:2px;color:${color};` +
             'text-shadow:0 2px 18px rgba(0,0,0,.65);transition:opacity .35s ease;opacity:1;white-space:nowrap';
-        el.innerHTML = `<div style="font-weight:900;font-size:${big ? '12vh' : '4.2vh'};line-height:1">${escapeHtml(text)}</div>` +
+        el.innerHTML = `<div style="font-weight:800;font-size:${big ? '12vh' : '5vh'};line-height:1">${escapeHtml(text)}</div>` +
             (sub ? `<div style="font-weight:700;font-size:${big ? '4.2vh' : '2.4vh'};margin-top:1.2vh;color:#fff">${escapeHtml(sub)}</div>` : '');
         document.body.appendChild(el);
         setTimeout(() => { el.style.opacity = '0'; }, ms);
@@ -724,7 +853,7 @@ export class ChallengeController {
             try {
                 await window.go.main.App.SetEventRiderWeight(weight);
             } catch (e) {
-                alert(`Unable to set the weight: ${e}`);
+                this.showHubMessage(`Não foi possível registrar o peso: ${e}`);
                 return;
             }
         }
@@ -732,13 +861,21 @@ export class ChallengeController {
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
         const ftp = this.ui?.ftp || 200;
+        let simulated = false;
+        try {
+            const state = await window.go.main.App.GetDeviceConnectionState();
+            simulated = state?.trainer_kind === 'virtual';
+        } catch { /* placing then uses the official ranking */ }
 
         await this.startChallenge({
             type: 'timeTrial',
+            kind: 'points',
             riderName,
+            weight,
+            simulated,
             duration: 60,
+            phase: 'countdown',
             started: false,
-            threshold: 5,
             ftp,
             score: 0,
             currentZone: 'z1',
@@ -765,81 +902,97 @@ export class ChallengeController {
                 finalized: false,
                 finishedAt: 0,
                 initialDistance: this.lastTelemetry.total_dist || 0,
-                _waitingForTelemetry: true
+                // Attempt stats for the result screen, counted from GO.
+                stats: { powerSum: 0, samples: 0, peakPower: 0, maxSpeed: 0 }
             };
 
-            this.updateChallengeChrome();
             this.openChallengeOverlay(config.type);
-            if (config.kind === 'race') {
-                // Distance only accumulates once the session starts, at GO: a standing start
-                // for everyone, whatever they pedal during the countdown.
-                const challenge = this.activeChallenge;
-                this.startAnimationLoop();
-                if (!await this.runCountdown(challenge)) return;
-                await this.startBackendSession();
-                challenge.phase = 'racing';
-                challenge.started = true;
-                challenge.goTime = performance.now();
-                challenge._waitingForTelemetry = false;
-                if (this.hud) this.hud.setStatus('GO!');
-            } else {
-                await this.startBackendSession();
-                this.startAnimationLoop();
-            }
+            this.updateInlineLeaderboard();
+
+            // Everyone gets the same 3-2-1-GO. Races: distance only accumulates once the
+            // session starts, at GO (a standing start whatever they pedal during the
+            // countdown). Zone Challenge: the minute runs from GO.
+            const challenge = this.activeChallenge;
+            this.startAnimationLoop();
+            if (!await this.runCountdown(challenge)) return;
+            await this.startBackendSession();
+            if (this.activeChallenge !== challenge || challenge.finalized) return;
+            challenge.phase = config.kind === 'race' ? 'racing' : 'live';
+            challenge.started = true;
+            challenge.goTime = performance.now();
+            challenge.startTime = challenge.goTime;
         } catch (error) {
             console.error(error);
-            alert(`Unable to start challenge: ${error}`);
+            this.showHubMessage(`Não foi possível iniciar o desafio: ${error}`);
             this.cleanupChallengeState();
         }
     }
 
-    /** 3-2-1-GO overlay. Resolves false if the challenge was aborted meanwhile. */
+    /** 3-2-1-VAI! over the live graphics. Resolves false if the challenge was aborted meanwhile. */
     async runCountdown(challenge) {
-        const el = document.createElement('div');
-        el.className = 'race-countdown';
-        el.style.cssText = 'position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;' +
-            'pointer-events:none;font:900 22vh/1 sans-serif;color:#fff;text-shadow:0 0 40px rgba(56,189,248,.8)';
-        document.body.appendChild(el);
         const alive = () => this.activeChallenge === challenge && !challenge.finalized;
-        try {
-            for (const label of ['3', '2', '1']) {
-                if (!alive()) return false;
-                el.textContent = label;
-                if (this.hud) this.hud.setStatus(`Get ready: ${label}`);
-                await new Promise((r) => setTimeout(r, 1000));
-            }
+        const text = HUB_MODE_TEXT[challenge.type];
+        const sub = challenge.kind === 'race' && !challenge.ghost
+            ? 'PREPARE-SE · VOCÊ ABRE O RANKING'
+            : text.countdown;
+        for (const label of ['3', '2', '1']) {
             if (!alive()) return false;
-            el.textContent = 'GO!';
-            el.style.color = '#22c55e';
-            setTimeout(() => el.remove(), 700);
-            return true;
-        } finally {
-            if (!alive()) el.remove();
+            this.hud?.showCountdown(label, sub);
+            await new Promise((r) => setTimeout(r, 1000));
         }
+        if (!alive()) {
+            this.hud?.hideCountdown();
+            return false;
+        }
+        this.hud?.showCountdown('VAI!', sub);
+        setTimeout(() => { if (this.activeChallenge === challenge) this.hud?.hideCountdown(); }, 700);
+        return true;
+    }
+
+    /** "Feminino · 62 kg" under the athlete's name. */
+    riderInfo(c) {
+        const { gender } = parseRiderName(c.riderName);
+        return [CATEGORY_TEXT[gender], c.weight ? `${Math.round(c.weight)} kg` : ''].filter(Boolean).join(' · ');
     }
 
     openChallengeOverlay(mode) {
-        if (this.hud) {
-            this.hud.open(mode);
-            // Transparent HUD laid out around the 3D rider (see .hud-over-3d).
-            this.hud.el.hud.classList.add('hud-over-3d');
-        }
+        const c = this.activeChallenge;
+        this.hud?.open(mode, {
+            title: HUB_MODE_TEXT[mode]?.live || '',
+            rider: parseRiderName(c?.riderName).name,
+            riderInfo: c ? this.riderInfo(c) : '',
+            record: c?.record || null,
+            distance: c?.distance || 0,
+            profile: c?.profile || null,
+            ftp: c?.ftp
+        });
         if (this.ui) {
             this.ui.els.header.style.display = 'none';
             this.ui.els.mapContainer.style.display = ''; // hosts the 3D scene behind the HUD
             this.ui.els.hudSidebar.style.display = 'none';
             if (this.ui.els.footer) this.ui.els.footer.style.display = 'none';
         }
-        const c = this.activeChallenge;
         window.setEventScene?.(true, c && c.kind === 'race' ? this.raceSceneConfig(c) : null);
     }
 
     closeChallengeOverlay() {
-        if (this.hud) {
-            this.hud.el.hud.classList.remove('hud-over-3d');
-            this.hud.close();
+        this.hud?.close();
+        // Still in event mode (result, back to the start list): keep the event scene, race
+        // furniture cleared and the rider stopped. Only leaving event mode hands it back.
+        window.setEventScene?.(this.inEventMode);
+    }
+
+    /** Event mode session: from entering the hub until leaving it with ✕. */
+    setEventModeActive(on) {
+        this.inEventMode = !!on;
+        document.body.classList.toggle('ev-event-mode', this.inEventMode);
+        if (!on) return;
+        // The settings panel opens on its own at startup; it has no place under the event UI.
+        const settings = document.getElementById('settingsModal');
+        if (settings?.classList.contains('active')) {
+            settings.classList.remove('active');
+            document.querySelector('header')?.classList.remove('header-dimmed');
         }
-        window.setEventScene?.(false);
     }
 
     restoreMainLayout() {
@@ -849,44 +1002,6 @@ export class ChallengeController {
             this.ui.els.hudSidebar.style.display = '';
             if (this.ui.els.footer) this.ui.els.footer.style.display = '';
         }
-    }
-
-    updateChallengeChrome() {
-        if (!this.activeChallenge) return;
-
-        const meta = this.modeMeta[this.activeChallenge.type];
-        const cleanRiderName = this.activeChallenge.riderName.replace(/ \[[MFG]\]$/, '');
-
-        if (this.hud) {
-            this.hud.setMode(meta.fullTitle);
-            this.hud.setRiderName(cleanRiderName);
-            this.hud.setStatus('Waiting for first pedal stroke');
-            this.hud.setTimer(`${this.activeChallenge.duration.toFixed(1)}s`, 'TIME REMAINING');
-
-            if (this.activeChallenge.kind === 'race') {
-                this.hud.setStatus('Get ready');
-                this.hud.setTimer(formatRaceTime(0), 'TIME');
-                this.hud.setPrimaryMetric(`${this.activeChallenge.distance}`, 'M TO GO');
-                this.hud.setSecondaryMetric('SPEED', '0.0 km/h');
-                if (this.activeChallenge.ghost) {
-                    this.hud.setTertiaryMetric('VS RECORD', '—');
-                } else {
-                    this.hud.setTertiaryMetric('POWER', '0 W');
-                }
-            } else if (this.activeChallenge.type === 'timeTrial') {
-                this.hud.setPrimaryMetric('0', 'PTS');
-                this.hud.setSecondaryMetric('LIVE POWER', '0 W');
-                this.hud.setTertiaryMetric('MULTIPLIER', '1.0x');
-                this.hud.setZone('Z1', 1);
-                this.hud.setStatus('Power Accumulation Mode');
-            } else {
-                this.hud.setPrimaryMetric('0', 'W');
-                this.hud.setSecondaryMetric('PEAK POWER', '0 W');
-                this.hud.setTertiaryMetric('CADENCE', '0 rpm');
-            }
-        }
-
-        this.updateInlineLeaderboard();
     }
 
     startAnimationLoop() {
@@ -921,16 +1036,10 @@ export class ChallengeController {
             return;
         }
 
-        if (!this.activeChallenge.started && !this.activeChallenge._waitingForTelemetry && this.lastTelemetry.power > this.activeChallenge.threshold) {
-            this.activeChallenge.started = true;
-            this.activeChallenge.startTime = now;
-            if (this.hud) this.hud.setStatus('Challenge live');
-        }
-
         if (this.activeChallenge.started && !this.activeChallenge.finalized) {
             const elapsed = (now - this.activeChallenge.startTime) / 1000;
             const remaining = Math.max(0, this.activeChallenge.duration - elapsed);
-            if (this.hud) this.hud.setTimer(`${remaining.toFixed(1)}s`);
+            this.hud?.setClock(remaining >= 59.5 ? '1:00' : `0:${String(Math.ceil(remaining)).padStart(2, '0')}`);
 
             let activeDt = rawDt;
             if (elapsed < activeDt) {
@@ -946,15 +1055,12 @@ export class ChallengeController {
             }
 
             if (remaining <= 0) {
-                this.finishActiveChallenge(true, 'Challenge complete');
+                this.finishActiveChallenge();
                 return;
             }
-        } else if (!this.activeChallenge.started) {
-            if (this.hud) this.hud.setTimer(`${this.activeChallenge.duration.toFixed(1)}s`);
         }
 
         this.syncDisplayedTelemetry();
-        this.drawCurrentChallenge();
 
         this.leaderboardUpdateAccumulator += rawDt;
         if (this.leaderboardUpdateAccumulator >= 0.4) {
@@ -972,30 +1078,44 @@ export class ChallengeController {
         // Display clock: wall time since GO (the result uses the backend clock).
         const elapsed = (now - c.goTime) / 1000;
         const speed = this.lastTelemetry.speed || 0;
-        const remaining = Math.max(0, c.distance - c.progress);
         if (this.hud) {
-            this.hud.setTimer(formatRaceTime(elapsed), 'TIME');
-            this.hud.setPrimaryMetric(remaining.toFixed(0), 'M TO GO');
-            this.hud.setSecondaryMetric('SPEED', `${speed.toFixed(1)} km/h`);
-            const power = Math.round(this.lastTelemetry.power || 0);
-            const pct = Math.round((c.progress / c.distance) * 100);
-            if (c.ghost) {
-                this.hud.setTertiaryMetric('VS RECORD', c.gap === null ? '—' : formatGap(c.gap));
-                this.hud.el.tertiaryValue.style.color = c.gap === null ? '' : (c.gap < 0 ? '#22c55e' : '#ef4444');
-                this.hud.setStatus(`${pct}% · ${power} W`);
-            } else {
-                this.hud.setTertiaryMetric('POWER', `${power} W`);
-                this.hud.setStatus(`${pct}%`);
-            }
+            this.hud.setClock(formatClock(elapsed));
+            const d = this.displayDistance(c, now);
+            const ghostD = c.ghost ? c.ghost.distanceAt(elapsed) : null;
+            if (c.type === 'climb400') this.hud.setClimb(d, ghostD, this.lastTelemetry.grade);
+            else this.hud.setTrack(d, ghostD);
+            this.hud.setGap(c.ghost ? c.gap : null);
+            this.syncRaceMetrics(c);
         }
 
         // Not finishing: too slow for too long, or over the time limit.
         c.idleTime = elapsed > 5 && speed < RACE_IDLE_SPEED ? c.idleTime + rawDt : 0;
         if (c.idleTime > RACE_IDLE_LIMIT) {
-            this.finishRaceDNF('Stopped before the finish line');
+            this.finishRaceDNF('Parou antes da linha de chegada');
         } else if (elapsed > c.duration) {
-            this.finishRaceDNF(`Time limit (${c.duration} s) reached`);
+            this.finishRaceDNF(`Tempo limite de ${c.duration} s esgotado`);
         }
+    }
+
+    /**
+     * Rider distance for the graphics: the last telemetry sample carried forward at the
+     * current speed (up to 1 s), so the marker glides between samples instead of jumping.
+     */
+    displayDistance(c, now) {
+        if (!c.lastSampleAt) return c.progress;
+        const ahead = Math.min(1, (now - c.lastSampleAt) / 1000) * (this.lastTelemetry.speed || 0) / 3.6;
+        return Math.min(c.distance, c.progress + ahead);
+    }
+
+    /** Power, cadence, speed and W/kg strip of a race. */
+    syncRaceMetrics(c) {
+        const power = Math.round(this.lastTelemetry.power || 0);
+        this.hud.setMetrics({
+            power,
+            cadence: Math.round(this.lastTelemetry.cadence || 0),
+            speed: (this.lastTelemetry.speed || 0).toFixed(1),
+            wkg: c.weight ? (power / c.weight).toFixed(1) : '—'
+        });
     }
 
     handleRaceTelemetry(data) {
@@ -1007,6 +1127,7 @@ export class ChallengeController {
         if (d < last.d || t <= last.t) return; // stale sample from before GO
         c.samples.push({ t, d });
         c.progress = Math.min(c.distance, d);
+        c.lastSampleAt = performance.now();
         if (c.ghost && d > 5 && d < c.distance) this.updateGhostGap(c, d, t);
         if (d >= c.distance) {
             const seconds = interpolateFinish(c.samples, c.distance);
@@ -1022,8 +1143,8 @@ export class ChallengeController {
             c.ahead = ahead; // initial state: no announcement
         } else if (ahead !== c.ahead && Math.abs(c.gap) > OVERTAKE_HYSTERESIS) {
             c.ahead = ahead;
-            if (ahead) this.flashMessage('You passed the record!', { color: '#22c55e' });
-            else this.flashMessage('The record is ahead', { color: '#f97316' });
+            if (ahead) this.flashMessage('VOCÊ PASSOU O RECORDE!', { color: '#2bd576' });
+            else this.flashMessage('O RECORDE ESTÁ À FRENTE', { color: '#ff6b6f' });
         }
     }
 
@@ -1049,23 +1170,27 @@ export class ChallengeController {
 
         // Finish banner over the 3D while the rider rolls through the line.
         const vsRecord = c.record ? seconds - c.record.score : null;
-        const sub = placing.record ? 'NEW RECORD!'
-            : (vsRecord !== null ? `${formatGap(vsRecord)} vs record` : '');
-        this.flashMessage(formatRaceTime(seconds), {
-            size: 'big', ms: FINISH_BANNER_MS - 300, sub,
-            color: placing.record ? '#facc15' : '#ffffff'
+        this.hud?.setClock(formatClock(seconds));
+        if (c.type === 'climb400') this.hud?.setClimb(c.distance, null, this.lastTelemetry.grade);
+        else this.hud?.setTrack(c.distance, null);
+        this.updateInlineLeaderboard();
+        this.hud?.showFinish({
+            label: 'CHEGADA',
+            value: formatRaceTime(seconds),
+            note: this.finishNote(placing, vsRecord),
+            tone: placing.record ? 'record' : (vsRecord !== null && vsRecord > 0 ? 'behind' : 'even')
         });
-        if (this.hud) this.hud.setStatus('FINISH');
         await new Promise((r) => setTimeout(r, FINISH_BANNER_MS));
         this.closeChallengeOverlay();
 
         this.showResult(c, {
-            title: placing.record ? 'New record!' : 'Finish!',
-            value: formatRaceTime(seconds),
-            rank: placing.rank,
-            description: saveError ? `Could not save the result: ${saveError}` : placing.description,
-            podium: placing.podium,
-            vsRecord
+            kicker: 'TEMPO FINAL',
+            value: formatClock(seconds),
+            unit: seconds < 60 ? 's' : '',
+            placing,
+            delta: vsRecord,
+            description: saveError ? `Não foi possível salvar o resultado: ${saveError}` : this.recordText(c, placing, vsRecord),
+            stats: this.attemptStats(c)
         });
 
         await this.stopBackendSession();
@@ -1079,75 +1204,217 @@ export class ChallengeController {
         this.stopAnimationLoop();
         this.closeChallengeOverlay();
         this.showResult(c, {
-            title: 'Did not finish',
-            value: `${c.progress.toFixed(0)} / ${c.distance} m`,
-            rank: null,
-            description: `${reason}. Results only count when you cross the line.`
+            kicker: 'NÃO COMPLETOU',
+            value: c.progress.toFixed(0),
+            unit: `/ ${c.distance} m`,
+            placing: null,
+            delta: null,
+            description: `${reason}. O tempo só vale cruzando a linha de chegada.`,
+            stats: this.attemptStats(c)
         });
         await this.stopBackendSession();
         this.cleanupChallengeState();
     }
 
-    /** Position text for a finished race, from the freshly fetched ranking. */
-    async describePlacing(c, seconds) {
+    /** "NOVO RECORDE · 1º LUGAR" / "+0.76 s DO RECORDE · 3º LUGAR" under the finish banner. */
+    finishNote(placing, vsRecord) {
+        if (placing.record) return 'NOVO RECORDE · 1º LUGAR';
+        const pos = !placing.position ? '' : `${placing.isBest ? '' : 'SUA MELHOR: '}${placing.position}º LUGAR`;
+        const gap = vsRecord !== null ? `${formatGap(vsRecord)} DO RECORDE` : '';
+        return [gap, pos].filter(Boolean).join(' · ');
+    }
+
+    /** Line next to the result badge, about the previous record. */
+    recordText(c, placing, delta) {
+        const sim = c.simulated ? ' Feito no simulador: fica fora do ranking oficial.' : '';
+        const unit = (v) => this.formatResultValue(c.type, v);
+        if (!c.record) return `Primeira marca desta prova.${sim}`;
+        if (placing?.record) return `sobre o recorde anterior de ${c.record.name} (${unit(c.record.score)}).${sim}`;
+        if (placing && !placing.isBest) return `Sua melhor marca continua ${unit(placing.best)}.${sim}`;
+        return `do recorde de ${c.record.name} (${unit(c.record.score)}).${sim}`;
+    }
+
+    /**
+     * Where a finished attempt landed, from the freshly fetched ranking of its mode
+     * (simulated attempts rank among simulated ones, so testing still shows a position).
+     */
+    async describePlacing(c, value) {
         let ranking = [];
         try {
             ranking = await window.go.main.App.GetEventRanking(c.type, c.simulated);
         } catch (e) {
             console.error(e);
         }
+        const entries = (ranking || []).map((r) => this.toLeaderboardEntry(r));
         const key = c.riderName.trim().toLowerCase();
-        const idx = ranking.findIndex((r) => r.rider_name.trim().toLowerCase() === key);
-        const best = idx >= 0 ? ranking[idx].score : seconds;
-        const isBest = Math.abs(best - seconds) < 0.005;
-        const pos = idx >= 0 ? `#${idx + 1} of ${ranking.length}` : null;
-        const simulatedNote = c.simulated ? ' Ridden on the simulator: not part of the official ranking.' : '';
-        let description;
-        if (!pos) description = 'Result saved.';
-        else if (isBest) description = `You are ${pos} in the ranking.`;
-        else description = `Your best is still ${formatRaceTime(best)} (${pos}).`;
+        const idx = entries.findIndex((e) => e.rawRider.trim().toLowerCase() === key);
+        const best = idx >= 0 ? entries[idx].value : value;
+        const isBest = Math.abs(best - value) < 0.005;
         return {
-            rank: pos ? (c.simulated ? `Simulated ${pos}` : pos) : null,
+            position: idx >= 0 ? idx + 1 : null,
+            total: entries.length,
+            best,
+            isBest,
             record: idx === 0 && isBest && !c.simulated,
-            description: description + simulatedNote,
-            podium: ranking.slice(0, 3).map((r, i) => ({
-                place: i + 1,
-                name: r.rider_name.replace(/ \[[MFG]\]$/, ''),
-                time: r.score,
-                isYou: r.rider_name.trim().toLowerCase() === key
-            }))
+            entries
         };
     }
 
-    showResult(c, { title, value, rank, description, podium = null, vsRecord = null }) {
+    /** Stats grid of the result screen, from what the rider produced since GO. */
+    attemptStats(c) {
+        const s = c.stats;
+        const avg = s.samples ? s.powerSum / s.samples : 0;
+        const stat = (label, value, unit = '') => ({ label, value, unit });
+        if (c.type === 'timeTrial') {
+            const z4plus = ['z4', 'z5', 'z6'].reduce((sum, z) => sum + (c.zoneCounts?.[z] || 0), 0);
+            const top = ['z6', 'z5', 'z4', 'z3', 'z2', 'z1'].find((z) => (c.zoneCounts?.[z] || 0) >= 1);
+            return [
+                stat('POT. MÉDIA', Math.round(avg), 'W'),
+                stat('PICO', Math.round(s.peakPower), 'W'),
+                stat('TEMPO Z4+', Math.round(z4plus), 's'),
+                stat('ZONA MÁX.', top ? top.toUpperCase() : '—')
+            ];
+        }
+        return [
+            stat('POT. MÉDIA', Math.round(avg), 'W'),
+            stat('PICO', Math.round(s.peakPower), 'W'),
+            stat('W/KG MÉDIO', c.weight ? (avg / c.weight).toFixed(1) : '—'),
+            stat('VEL. MÁX.', s.maxSpeed.toFixed(1), 'km/h')
+        ];
+    }
+
+    /**
+     * Result screen over the blurred live scene.
+     * r: { kicker, value, unit, placing (describePlacing() or null), delta (vs the previous
+     *      record, in the mode's unit; negative = better for times), description, stats }
+     */
+    showResult(c, { kicker, value, unit = '', placing = null, delta = null, description = '', stats = [] }) {
+        this.lastAttempt = { type: c.type };
+        this.closeModal(this.els.eventHubModal);
+        this.showHubScene();
+
+        const { name, gender } = parseRiderName(c.riderName);
+        const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        set('challengeResultMode', HUB_MODE_TEXT[c.type]?.live || this.metaFor(c.type).title);
+        set('challengeResultRider', name.toUpperCase());
+        set('challengeResultRiderInfo', this.riderInfo(c));
+        document.getElementById('challengeResultRiderInfo')?.classList.toggle('hidden', !this.riderInfo(c));
+        set('challengeResultTitle', kicker);
+
+        const valueEl = document.getElementById('challengeResultValue');
+        if (valueEl) valueEl.innerHTML = `${escapeHtml(value)}${unit ? `<small> ${escapeHtml(unit)}</small>` : ''}`;
+
+        // Badge: new record, position, or simulated / not ranked.
+        const badge = document.getElementById('challengeResultRank');
+        if (badge) {
+            let text = '', tone = 'pos';
+            if (placing?.record) { text = 'NOVO RECORDE'; tone = 'record'; }
+            else if (placing?.position && placing.isBest) text = `${placing.position}º LUGAR`;
+            else if (placing?.position) text = `MELHOR: ${placing.position}º LUGAR`;
+            if (c.simulated && text) text += ' · SIMULADOR';
+            badge.textContent = text;
+            badge.dataset.tone = tone;
+            badge.classList.toggle('hidden', !text);
+        }
+        const deltaEl = document.getElementById('challengeResultDelta');
+        if (deltaEl) {
+            const show = delta !== null && placing;
+            const better = this.modeMeta[c.type]?.ascending ? delta < 0 : delta > 0;
+            deltaEl.textContent = !show ? '' : this.isRace(c.type)
+                ? formatGap(delta)
+                : `${delta > 0 ? '+' : '−'}${Math.abs(Math.round(delta))} pts`;
+            deltaEl.dataset.tone = better ? 'ahead' : 'behind';
+            deltaEl.classList.toggle('hidden', !show);
+        }
+        set('challengeResultDescription', description);
+
+        const statsEl = document.getElementById('challengeResultStats');
+        if (statsEl) {
+            statsEl.innerHTML = stats.map((s) => `
+                <div class="ev-result-stat">
+                    <span>${escapeHtml(s.label)}</span>
+                    <strong>${escapeHtml(s.value)}${s.unit ? `<small> ${escapeHtml(s.unit)}</small>` : ''}</strong>
+                </div>`).join('');
+            statsEl.classList.toggle('hidden', !stats.length);
+        }
+
+        this.renderResultPodium(c, gender, placing);
+        this.openModal(this.els.resultModal);
+        this.startResultTimer();
+    }
+
+    /** Podium (top 3) and places 4-6 of the rider's category, the rider highlighted. */
+    renderResultPodium(c, gender, placing) {
+        const cat = gender === 'F' || gender === 'M' ? gender : 'G';
+        const title = document.getElementById('challengeResultPodiumTitle');
+        if (title) title.textContent = `PÓDIO · ${HUB_MODE_TEXT[c.type]?.name || ''} · ${CATEGORY_TITLE[cat]}`;
+        const list = (placing?.entries || this.leaderboards[c.type] || [])
+            .filter((e) => cat === 'G' || e.gender === cat)
+            .sort(this.rankCompare(c.type));
+        const key = c.riderName.trim().toLowerCase();
+        const isYou = (e) => e.rawRider?.trim().toLowerCase() === key;
+        const fmt = (e) => this.formatResultValue(c.type, e.value).replace(/ s$/, '');
+
+        const podium = document.getElementById('challengeResultPodium');
+        if (podium) {
+            const step = (e, place) => `
+                <div class="ev-podium-col is-${place}${e && isYou(e) ? ' is-you' : ''}">
+                    <span class="ev-podium-name">${e ? escapeHtml(e.rider) : '—'}</span>
+                    <span class="ev-podium-val">${e ? escapeHtml(fmt(e)) : ''}</span>
+                    <div class="ev-podium-block">${place}</div>
+                </div>`;
+            podium.innerHTML = step(list[1], 2) + step(list[0], 1) + step(list[2], 3);
+        }
+        const rest = document.getElementById('challengeResultRest');
+        if (rest) {
+            const rows = list.slice(3, 6);
+            rest.innerHTML = rows.map((e, i) => `
+                <div class="ev-result-rest-row${isYou(e) ? ' is-you' : ''}">
+                    <span>${i + 4}</span><strong>${escapeHtml(e.rider)}</strong><em>${escapeHtml(fmt(e))}</em>
+                </div>`).join('');
+            rest.classList.toggle('hidden', !rows.length);
+        }
+    }
+
+    /** "Próximo atleta em 20 s": the result hands over to a clean start list by itself. */
+    startResultTimer() {
+        this.stopResultTimer();
+        const label = document.getElementById('challengeResultAuto');
+        let left = RESULT_AUTO_NEXT_S;
+        const paint = () => { if (label) label.textContent = `Próximo atleta em ${left} s`; };
+        paint();
+        this.resultTimer = setInterval(() => {
+            left -= 1;
+            if (left <= 0) this.nextAthlete();
+            else paint();
+        }, 1000);
+    }
+
+    stopResultTimer() {
+        if (this.resultTimer) clearInterval(this.resultTimer);
+        this.resultTimer = null;
+    }
+
+    /** Result → start list cleared for the next visitor. */
+    nextAthlete() {
+        this.closeModal(this.els.resultModal);
+        const name = document.getElementById('eventRiderName');
+        const weight = document.getElementById('eventRiderWeight');
+        const gender = document.getElementById('eventRiderGender');
+        if (name) name.value = '';
+        if (weight) weight.value = '';
+        if (gender) gender.value = 'G';
         this.openEventHub();
-        const modal = this.els.resultModal;
-        modal.classList.remove('mode-sprint', 'mode-kom', 'mode-tt');
-        const modeClassMap = { sprint200: 'mode-sprint', climb400: 'mode-kom', tt1k: 'mode-tt', timeTrial: 'mode-tt' }; // tt1k: legacy records
-        modal.classList.add(modeClassMap[c.type] || 'mode-sprint');
-        this.els.resultMode.textContent = this.metaFor(c.type).fullTitle;
-        this.els.resultTitle.textContent = title;
-        this.els.resultValue.textContent = value;
-        this.els.resultValue.style.color = '';
-        if (this.els.resultRank) {
-            this.els.resultRank.textContent = rank || '';
-            this.els.resultRank.style.display = rank ? '' : 'none';
-        }
-        this.els.resultDescription.textContent = description;
-        const podiumEl = document.getElementById('challengeResultPodium');
-        if (podiumEl) {
-            const medals = ['🥇', '🥈', '🥉'];
-            podiumEl.innerHTML = podium && podium.length ? `
-                ${vsRecord !== null ? `<div class="result-vs-record" style="color:${vsRecord < 0 ? '#22c55e' : '#f97316'}">${formatGap(vsRecord)} vs previous record</div>` : ''}
-                ${podium.map((p) => `
-                    <div class="result-podium-row${p.isYou ? ' is-you' : ''}">
-                        <span>${medals[p.place - 1]}</span>
-                        <strong>${escapeHtml(p.name)}</strong>
-                        <span>${formatRaceTime(p.time)}</span>
-                    </div>`).join('')}` : '';
-            podiumEl.style.display = podium && podium.length ? '' : 'none';
-        }
-        this.openModal(modal);
+        this.showHubMessage('');
+        name?.focus();
+    }
+
+    /** Result → same athlete, same challenge (the start list still holds their data). */
+    retryLastChallenge() {
+        this.closeModal(this.els.resultModal);
+        this.openEventHub();
+        if (this.lastAttempt) this.selectHubMode(this.lastAttempt.type);
+        this.launchSelectedMode();
     }
 
     updateTimeTrial(dt) {
@@ -1239,63 +1506,60 @@ export class ChallengeController {
 
         const activeMultiplier = zoneMultiplier * challenge.consistencyFactor;
         challenge.currentMultiplier = activeMultiplier;
+        challenge.currentPct = pct;
+        challenge.baseMultiplier = baseMultiplier;
 
         challenge.score += activeMultiplier * dt;
-
-        const zoneNames = {
-            z1: 'Z1 - Recovery',
-            z2: 'Z2 - Endurance',
-            z3: 'Z3 - Tempo',
-            z4: 'Z4 - Threshold',
-            z5: 'Z5 - VO2Max',
-            z6: 'Z6 - Anaerobic'
-        };
-        if (this.hud) this.hud.setStatus(zoneNames[zone] || 'Z1');
     }
 
+    /** Zone Challenge graphics: score, multiplier, zone bar, current zone and metric strip. */
     syncDisplayedTelemetry() {
-        if (!this.activeChallenge || !this.hud) return;
+        const c = this.activeChallenge;
+        if (!c || !this.hud || c.type !== 'timeTrial') return;
 
         const power = Math.round(this.lastTelemetry.power || 0);
+        const live = c.started && power > 0;
+        const pct = live ? (c.currentPct ?? (c.ftp > 0 ? (power / c.ftp) * 100 : 0)) : 0;
+        const zone = live ? zoneForPct(pct) : null;
 
-        if (this.activeChallenge.type === 'timeTrial') {
-            this.hud.setPrimaryMetric(`${Math.round(this.activeChallenge.score)}`);
-            this.hud.setSecondaryMetric('LIVE POWER', `${power} W`);
-            this.hud.setTertiaryMetric('MULTIPLIER', `${(this.activeChallenge.currentMultiplier || 1.0).toFixed(2)}x`);
+        this.hud.setScore(c.score, live ? c.currentMultiplier : 1, zone, this.zoneHint(c, zone));
+        this.hud.setZone(zone, pct);
+        this.hud.setMetrics({
+            power,
+            pct: Math.round(c.ftp > 0 ? (power / c.ftp) * 100 : 0),
+            cadence: Math.round(this.lastTelemetry.cadence || 0)
+        });
+    }
 
-            const shortNames = { z1: 'Z1', z2: 'Z2', z3: 'Z3', z4: 'Z4', z5: 'Z5', z6: 'Z6' };
-            const zoneMap = { z1: 1, z2: 2, z3: 3, z4: 4, z5: 5, z6: 6 };
-            const currentZone = this.activeChallenge.currentZone || 'z1';
-            this.hud.setZone(shortNames[currentZone] || 'Z1', zoneMap[currentZone]);
-
-            if (!this.activeChallenge.started) {
-                this.hud.setStatus('Power Accumulation Mode');
-            }
+    zoneHint(c, zone) {
+        if (!c.started) return 'Fique na Z4 ou acima para pontuar mais rápido.';
+        if (!zone) return 'Pedale para somar pontos.';
+        if (zone.id >= 5 && !c.isZ5PlusActive) {
+            return `Segure a Z5+ por ${Math.max(0, 3 - c.consecutiveTimeInZ5Plus).toFixed(1)} s para liberar ×${(c.baseMultiplier || zone.mult).toFixed(1)}`;
         }
+        if (zone.id >= 5) return 'Bônus máximo da zona liberado. Mantenha!';
+        if (c.consistencyFactor > 1) return `Ritmo constante: bônus ×${c.consistencyFactor.toFixed(1)}`;
+        return 'Suba de zona para multiplicar os pontos.';
     }
 
     updateTelemetry(data) {
-        if (this.activeChallenge?._waitingForTelemetry) {
-            this.activeChallenge._waitingForTelemetry = false;
-        }
-
         this.lastTelemetry = data;
 
-        if (!this.activeChallenge || this.activeChallenge.finalized) return;
+        const c = this.activeChallenge;
+        if (!c || c.finalized) return;
 
-        if (this.activeChallenge.kind === 'race') {
+        if (c.started) {
+            const s = c.stats;
+            const power = Number(data.power) || 0;
+            s.powerSum += power;
+            s.samples += 1;
+            s.peakPower = Math.max(s.peakPower, power);
+            s.maxSpeed = Math.max(s.maxSpeed, Number(data.speed) || 0);
+        }
+
+        if (c.kind === 'race') {
             this.handleRaceTelemetry(data);
         }
-    }
-
-    drawCurrentChallenge() {
-        this.backdropCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        this.telemetryCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    }
-
-    clearTelemetryCanvas() {
-        this.backdropCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        this.telemetryCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
 
     formatDistance(value, withUnit = true) {
@@ -1316,61 +1580,53 @@ export class ChallengeController {
         return this.modeMeta[type]?.ascending ? (a, b) => a.value - b.value : (a, b) => b.value - a.value;
     }
 
+    /**
+     * Live classification tower: the rider's category, with the rider's live row ranked by
+     * the projected finish time (races) or the current score (Zone Challenge).
+     */
     updateInlineLeaderboard() {
-        const challenge = this.activeChallenge;
-        if (!challenge) return;
+        const c = this.activeChallenge;
+        if (!c || !this.hud) return;
 
-        const currentCleanName = challenge.riderName.replace(/ \[[MFG]\]$/, '');
-        const genderMatch = challenge.riderName.match(/\[([MFG])\]$/);
-        const currentGender = genderMatch ? genderMatch[1] : 'G';
-        const compare = this.rankCompare(challenge.type);
+        const { name, gender } = parseRiderName(c.riderName);
+        const cat = gender === 'F' || gender === 'M' ? gender : 'G';
+        const compare = this.rankCompare(c.type);
+        // Once finished the attempt is already saved: its live row stands for the rider.
+        const self = c.riderName.trim().toLowerCase();
+        const rows = (this.leaderboards[c.type] || [])
+            .filter((e) => cat === 'G' || e.gender === cat)
+            .filter((e) => !c.finalized || e.rawRider?.trim().toLowerCase() !== self)
+            .map((e) => ({ name: e.rider, value: e.value, text: this.formatResultValue(c.type, e.value).replace(/ s$/, '') }));
 
-        const entries = [...this.leaderboards[challenge.type]]
-            .filter(e => currentGender === 'G' || e.gender === currentGender)
-            .sort(compare);
-
-        let preview;
-        let currentRank = -1;
-        if (challenge.kind === 'race') {
-            // A running clock cannot be ranked against finished times: show the top 5
-            // and the rider's live time below them.
-            preview = entries.slice(0, 5);
-            const elapsed = challenge.goTime ? (performance.now() - challenge.goTime) / 1000 : 0;
-            preview.push({ rider: currentCleanName, isCurrentPlayer: true, value: elapsed, live: true });
+        let live, hint;
+        if (c.kind === 'race') {
+            const finished = c.finalized && c.finishTime;
+            const elapsed = c.goTime ? (performance.now() - c.goTime) / 1000 : 0;
+            const v = (this.lastTelemetry.speed || 0) / 3.6;
+            const d = this.displayDistance(c, performance.now());
+            const proj = finished ? c.finishTime
+                : (elapsed > 1 && v > 0.5 ? elapsed + (c.distance - d) / v : null);
+            live = {
+                name: name.toUpperCase(),
+                value: proj ?? Infinity,
+                text: proj === null ? '—' : `${finished ? '' : '~'}${formatClock(proj)}`,
+                live: true
+            };
+            hint = finished ? 'FINAL' : 'PROJEÇÃO';
         } else {
-            const currentRow = { rider: currentCleanName, isCurrentPlayer: true, value: this.getLiveLeaderboardValue() };
-            const all = [...entries.slice(0, 5).filter(e => e.rider !== currentCleanName), currentRow].sort(compare);
-            currentRank = all.findIndex(e => e.isCurrentPlayer) + 1;
-            preview = all.slice(0, 5);
+            const score = Math.floor(c.score || 0);
+            live = { name: `${name.toUpperCase()} (agora)`, value: score, text: String(score), live: true };
+            hint = c.finalized ? 'FINAL' : 'AO VIVO';
+            rows.forEach((r) => { r.text = String(Math.round(r.value)); });
         }
-        const rankImproved = this.lastKnownRank > 0 && currentRank > 0 && currentRank < this.lastKnownRank;
-        this.lastKnownRank = currentRank;
 
-        const html = `
-            <div class="challenge-chip-label">Event Ranking</div>
-            ${preview.map((entry, index) => `
-                <div class="challenge-inline-entry ${entry.isCurrentPlayer ? 'is-active' : ''}" data-index="${index}">
-                    <span>${entry.live ? '▶' : `${index + 1}.`}</span>
-                    <strong>${escapeHtml(entry.rider)}</strong>
-                    <span>${this.formatResultValue(challenge.type, entry.value)}</span>
-                </div>
-            `).join('')}
-        `;
-
-        if (this.hud) this.hud.showLeaderboard(html);
-
-        if (rankImproved) {
-            const activeRow = document.querySelector('.challenge-inline-entry.is-active');
-            if (activeRow) {
-                activeRow.classList.add('challenge-rank-climb');
-                setTimeout(() => activeRow.classList.remove('challenge-rank-climb'), 1000);
-            }
+        const all = [...rows, live].sort(compare);
+        const pos = all.indexOf(live);
+        let shown = all.slice(0, TOWER_ROWS).map((r, i) => ({ ...r, pos: i + 1 }));
+        if (pos >= TOWER_ROWS) {
+            shown = [...shown.slice(0, TOWER_ROWS - 1), { ...live, pos: pos + 1 }];
         }
-    }
-
-    getLiveLeaderboardValue() {
-        if (!this.activeChallenge) return 0;
-        return this.activeChallenge.score || 0;
+        this.hud.setTower(shown.map((r) => ({ pos: r.pos, name: r.name, value: r.text, live: !!r.live })), hint);
     }
 
     async saveResult(type, rider, value, status) {
@@ -1400,110 +1656,93 @@ export class ChallengeController {
     }
 
     async resetLeaderboard(type) {
-        if (confirm(`Are you sure you want to clear the ranking for ${type === 'all' ? 'ALL events' : this.modeMeta[type].title}? This cannot be undone.`)) {
-            if (window.go?.main?.App?.ResetEventLeaderboard) {
-                await window.go.main.App.ResetEventLeaderboard(type);
-                await this.fetchLeaderboardsFromDB();
-                this.renderLeaderboardModal();
-            }
+        const what = type === 'all' ? 'TODAS as provas' : HUB_MODE_TEXT[type]?.name || type;
+        if (!confirm(`Zerar o ranking de ${what}? Isso não pode ser desfeito.`)) return;
+        if (window.go?.main?.App?.ResetEventLeaderboard) {
+            await window.go.main.App.ResetEventLeaderboard(type);
+            await this.fetchLeaderboardsFromDB();
+            this.renderLeaderboardModal();
         }
     }
 
+    /** Ranking screen: one tower per challenge, filtered by the selected category. */
     renderLeaderboardModal() {
+        const medal = ['gold', 'silver', 'bronze'];
         this.els.leaderboardPanels.innerHTML = Object.entries(this.modeMeta).map(([type, meta]) => {
-            let filteredEntries = this.leaderboards[type].filter(e => {
-                if (this.leaderboardFilter === 'G') return true;
-                return e.gender === this.leaderboardFilter;
-            });
-
-            filteredEntries = filteredEntries.sort(this.rankCompare(type)).slice(0, 150);
-
-            const p1 = filteredEntries[0] || null;
-            const p2 = filteredEntries[1] || null;
-            const p3 = filteredEntries[2] || null;
-            const rest = filteredEntries.slice(3);
-
-            const renderPodiumStep = (entry, place, label) => {
-                if (!entry) return `
-                    <div class="lb-podium-col empty is-${place}">
-                        <div class="lb-podium-block"><span class="lb-podium-rank">${label}</span></div>
-                    </div>`;
-
-                const avatarSize = place === 'first' ? 76 : 56;
-                return `
-                    <div class="lb-podium-col is-${place}">
-                        <div style="margin-bottom: 8px;">
-                            ${this.getAvatarHTML(entry.rider, avatarSize)}
-                        </div>
-                        <strong class="lb-podium-name" title="${escapeHtml(entry.rider)}">${escapeHtml(entry.rider)}${entry.isSimulated ? ' <small style="color:#00ADD8">(sim)</small>' : ''}</strong>
-                        <div class="lb-podium-score">${this.formatResultValue(type, entry.value)}</div>
-                        <div class="lb-podium-block">
-                            <span class="lb-podium-rank">${label}</span>
-                        </div>
-                    </div>
-                `;
-            };
-
+            const entries = this.leaderboards[type]
+                .filter((e) => this.leaderboardFilter === 'G' || e.gender === this.leaderboardFilter)
+                .sort(this.rankCompare(type))
+                .slice(0, 50);
+            const rows = entries.map((e, i) => `
+                <div class="ev-rank-row${e.isSimulated ? ' is-sim' : ''}">
+                    <span class="ev-rank-pos${i < 3 ? ` is-${medal[i]}` : ''}">${i + 1}</span>
+                    <span class="ev-rank-who">
+                        <strong>${escapeHtml(e.rider)}${e.isSimulated ? ' · simulador' : ''}</strong>
+                        <small>${CATEGORY_TEXT[e.gender] || 'Sem categoria'}</small>
+                    </span>
+                    <span class="ev-rank-val">${escapeHtml(this.formatResultValue(type, e.value).replace(/ s$/, ''))}</span>
+                </div>`).join('');
             return `
-                <section class="leaderboard-category-card">
-                    <div class="lb-cat-header">
-                        <h3>${meta.fullTitle}</h3>
-                        <button onclick="window.challengeController.resetLeaderboard('${type}')" class="btn-icon-small danger" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;" title="Clear Ranking">Reset</button>
+                <section class="ev-rank-tower">
+                    <div class="ev-rank-head">
+                        <span class="ev-tag ev-tag--accent">${escapeHtml(HUB_MODE_TEXT[type]?.live || meta.title)}</span>
+                        <span class="ev-rank-sub">${entries.length} ${entries.length === 1 ? 'atleta' : 'atletas'}</span>
+                        <button class="ev-rank-reset" type="button" data-reset="${type}" title="Zerar o ranking desta prova (operador)">Zerar</button>
                     </div>
-                    
-                    <div class="leaderboard-podium-kahoot">
-                        ${renderPodiumStep(p2, 'second', '2nd')}
-                        ${renderPodiumStep(p1, 'first', '1st')}
-                        ${renderPodiumStep(p3, 'third', '3rd')}
+                    <div class="ev-rank-cols"><span>POS</span><span>ATLETA</span><span>${meta.kind === 'points' ? 'PONTOS' : 'TEMPO'}</span></div>
+                    <div class="ev-rank-list">
+                        ${rows || '<div class="ev-rank-empty">Nenhuma tentativa nesta categoria ainda.</div>'}
                     </div>
-
-                    <div class="leaderboard-scroll-list">
-                        ${rest.length ? rest.map((entry, index) => `
-                            <div class="leaderboard-row">
-                                <span class="lb-row-rank">${index + 4}</span>
-                                <div>
-                                    ${this.getAvatarHTML(entry.rider, 36)}
-                                </div>
-                                <strong class="lb-row-name">${escapeHtml(entry.rider)}${entry.isSimulated ? ' <small style="color:#00ADD8">(sim)</small>' : ''}</strong>
-                                <span class="leaderboard-score" style="font-weight: 800;">${this.formatResultValue(type, entry.value)}</span>
-                            </div>
-                        `).join('') : '<div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 10px;">No more attempts</div>'}
-                    </div>
-                </section>
-            `;
+                </section>`;
         }).join('');
     }
 
-    async finishActiveChallenge(success, title) {
-        if (!this.activeChallenge || this.activeChallenge.finalized) return;
-
-        this.activeChallenge.finalized = true;
-        const challenge = this.activeChallenge;
-
-        let finalValue = this.getLiveLeaderboardValue();
-        let displayValue = this.formatResultValue(challenge.type, finalValue);
-
-        let description = 'Result saved to the offline leaderboard.';
-
-        // Started now, awaited before stopBackendSession(): SaveEventResult reads the FIT
-        // data from the live session, which DiscardSession wipes.
-        const savePromise = this.saveResult(challenge.type, challenge.riderName, finalValue, 'success');
-        this.updateInlineLeaderboard();
-
-        this.closeChallengeOverlay();
+    async finishActiveChallenge() {
+        const c = this.activeChallenge;
+        if (!c || c.finalized) return;
+        c.finalized = true;
         this.stopAnimationLoop();
 
-        // Show the result UI FIRST, before stopping the backend session.
-        // This prevents the brief flash of the reset main UI (settings screen)
-        // that happens when DiscardSession emits status_change → IDLE.
+        const score = Math.round(c.score || 0);
+        // Best before this attempt, for the "vs record" line (same pool as the placing).
+        let previous = null;
+        try {
+            const before = await window.go.main.App.GetEventRanking(c.type, c.simulated);
+            if (before?.length) previous = { name: parseRiderName(before[0].rider_name).name, score: before[0].score };
+        } catch { /* no previous record */ }
+        c.record = previous;
 
-        this.showResult(challenge, { title, value: displayValue, rank: null, description });
+        // Awaited before stopBackendSession(): SaveEventResult reads the FIT data from the
+        // live session, which DiscardSession wipes.
+        await this.saveResult(c.type, c.riderName, score, 'success');
+        await this.fetchLeaderboardsFromDB();
+        const placing = await this.describePlacing(c, score);
+        const delta = previous ? score - previous.score : null;
 
-        await savePromise;
+        this.hud?.setClock('0:00');
+        this.updateInlineLeaderboard();
+        this.hud?.showFinish({
+            label: 'FIM',
+            value: `${score} PTS`,
+            note: placing.record ? 'NOVO RECORDE · 1º LUGAR'
+                : [placing.position ? `${placing.position}º LUGAR` : '', previous ? `RECORDE: ${previous.name.toUpperCase()} ${Math.round(previous.score)} PTS` : '']
+                    .filter(Boolean).join(' · '),
+            tone: placing.record ? 'record' : 'even'
+        });
+        await new Promise((r) => setTimeout(r, FINISH_BANNER_MS));
+        this.closeChallengeOverlay();
 
-        // Now stop the backend session safely behind the result overlay
+        this.showResult(c, {
+            kicker: 'PONTOS',
+            value: String(score),
+            unit: 'pts',
+            placing,
+            delta: score > 0 ? delta : null,
+            description: score > 0 ? this.recordText(c, placing, delta) : 'Nenhum ponto: pedale mais forte na próxima.',
+            stats: this.attemptStats(c)
+        });
+
         await this.stopBackendSession();
-
         this.cleanupChallengeState();
     }
 
@@ -1531,7 +1770,6 @@ export class ChallengeController {
     }
 
     cleanupChallengeState() {
-        if (this.hud?.el?.tertiaryValue) this.hud.el.tertiaryValue.style.color = '';
         this.activeChallenge = null;
         this._aborting = false;
         this.stopAnimationLoop();
@@ -1572,9 +1810,9 @@ export class ChallengeController {
                 const date = new Date(r.created_at).toLocaleString();
                 const isExportable = r.duration >= 5 && r.filename;
                 const statusHtml = r.duration < 5
-                        ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">Too short (<5s)</span>'
-                        : (!r.filename ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">No FIT data</span>' : '');
-                
+                    ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">Too short (<5s)</span>'
+                    : (!r.filename ? '<span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">No FIT data</span>' : '');
+
                 return `
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                         <label class="race-history-item" style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: ${isExportable ? 'pointer' : 'default'}; opacity: ${isExportable ? '1' : '0.6'}; transition: background 0.2s;">
@@ -1614,7 +1852,7 @@ export class ChallengeController {
             const btnDownload = document.getElementById('btnDownloadFit');
             const newBtn = btnDownload.cloneNode(true);
             btnDownload.parentNode.replaceChild(newBtn, btnDownload);
-            
+
             newBtn.addEventListener('click', async () => {
                 const checkboxes = document.querySelectorAll('.export-checkbox:checked');
                 const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));

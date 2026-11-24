@@ -16,18 +16,47 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="challengeResultModal" class="modal-overlay hidden"
-        style="z-index: 10015; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-        <div class="modal-content challenge-result-content">
-            <div class="challenge-hub-kicker" id="challengeResultMode">Sprint</div>
-            <h2 id="challengeResultTitle">Challenge complete</h2>
-            <div id="challengeResultValue" class="challenge-result-value">0 W</div>
-            <div id="challengeResultRank" class="challenge-result-rank">Bronze</div>
-            <div id="challengeResultPodium" class="challenge-result-podium" style="display: none;"></div>
-            <p id="challengeResultDescription">Result saved to the offline leaderboard.</p>
-            <div class="challenge-result-actions">
-                <button id="btnChallengeResultLeaderboard" class="btn-secondary">Open Leaderboard</button>
-                <button id="btnChallengeResultClose" class="btn-primary">Back to Event Mode</button>
+<!-- Event mode result: final value, attempt stats and the podium of the rider's category,
+     over the blurred live scene. Filled by ChallengeController.showResult(). -->
+<div id="challengeResultModal" class="ev-screen ev-result hidden" aria-label="Resultado do desafio">
+    <div class="ev-screen-shade" aria-hidden="true"></div>
+
+    <div class="ev-screen-top">
+        <div class="ev-tagline">
+            <span class="ev-tag ev-tag--accent" id="challengeResultMode">SPRINT 200 M</span>
+            <span class="ev-tag ev-tag--dark">RESULTADO</span>
+        </div>
+        <div class="ev-result-auto" id="challengeResultAuto" role="timer"></div>
+    </div>
+
+    <div class="ev-result-body">
+        <div class="ev-result-left">
+            <div class="ev-tagline ev-tagline--sm">
+                <span class="ev-tag ev-tag--accent" id="challengeResultRider">ATLETA</span>
+                <span class="ev-tag ev-tag--dark ev-tag--info" id="challengeResultRiderInfo"></span>
             </div>
+            <div class="ev-result-main">
+                <span class="ev-result-kicker" id="challengeResultTitle">TEMPO FINAL</span>
+                <span class="ev-result-value" id="challengeResultValue">0.00</span>
+                <div class="ev-result-verdict">
+                    <span class="ev-result-badge" id="challengeResultRank"></span>
+                    <span class="ev-result-delta" id="challengeResultDelta"></span>
+                    <span class="ev-result-desc" id="challengeResultDescription"></span>
+                </div>
+            </div>
+            <div class="ev-result-stats" id="challengeResultStats"></div>
+        </div>
+
+        <div class="ev-result-right">
+            <span class="ev-result-podium-title" id="challengeResultPodiumTitle">PÓDIO</span>
+            <div class="ev-podium" id="challengeResultPodium"></div>
+            <div class="ev-result-rest" id="challengeResultRest"></div>
         </div>
     </div>
+
+    <div class="ev-result-actions">
+        <button id="btnChallengeResultRetry" class="ev-big-btn ev-big-btn--accent" type="button">TENTAR DE NOVO</button>
+        <button id="btnChallengeResultClose" class="ev-big-btn" type="button">PRÓXIMO ATLETA</button>
+        <button id="btnChallengeResultLeaderboard" class="ev-big-btn" type="button">RANKING COMPLETO</button>
+    </div>
+</div>

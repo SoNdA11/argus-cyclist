@@ -19,11 +19,19 @@ import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
 import './styles/studio-hud.css';
+import '@fontsource/barlow-condensed/latin-600';
+import '@fontsource/barlow-condensed/latin-700';
+import '@fontsource/barlow-condensed/latin-800';
+import '@fontsource/inter/latin-400';
+import '@fontsource/inter/latin-600';
+import '@fontsource/inter/latin-700';
+import './styles/event-broadcast.css';
 import './styles/ai-chat.css';
 import cooldownModalHtml from './components/cooldownModal.html?raw';
 import eventHubPageHtml from './components/eventHubPage.html?raw';
 import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
 import studioHudHtml from './components/studioHudOverlay.html?raw';
+import eventLiveHudHtml from './components/eventLiveHud.html?raw';
 import challengeResultModalHtml from './components/challengeResultModal.html?raw';
 import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
@@ -42,6 +50,7 @@ document.body.insertAdjacentHTML('beforeend',
     eventHubPageHtml +
     eventLeaderboardModalHtml +
     studioHudHtml +
+    eventLiveHudHtml +
     challengeResultModalHtml +
     fitnessTestModalHtml +
     ftpAssessmentConfirmModalHtml +
@@ -58,6 +67,7 @@ import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
 import { ChallengeController } from './modules/ChallengeController.js';
 import { FullscreenHUDController } from './modules/FullscreenHUDController.js';
+import { EventBroadcastHud } from './modules/EventBroadcastHud.js';
 import { AIChatController } from './modules/AIChatController.js';
 
 // Capacitor imports for the Mobile version
@@ -178,7 +188,7 @@ window.chart = chart;
 const workoutCtrl = new WorkoutController();
 window.workoutCtrl = workoutCtrl;
 
-const challengeCtrl = new ChallengeController(ui, hud, mapCtrl, chart);
+const challengeCtrl = new ChallengeController(ui, new EventBroadcastHud(), mapCtrl, chart);
 window.challengeCtrl = challengeCtrl;
 
 const aiChatCtrl = new AIChatController();
@@ -494,15 +504,29 @@ const trainerUIs = [
     }
 ];
 
+function eventButton(icon, label) {
+    return `${icon}<span>${label}</span>`;
+}
+
 function getTrainerStateLabel(state) {
     if (!state?.trainer_connected) return "Disconnected";
     return state.trainer_kind === 'virtual' ? "Simulator Active" : "Trainer Connected";
 }
 
+const EVENT_TRAINER_TEXT = {
+    'Disconnected': 'Desconectado',
+    'Simulator Active': 'Simulador ativo',
+    'Trainer Connected': 'Rolo conectado',
+    'Scanning...': 'Procurando rolo...',
+    'Select a device': 'Escolha o rolo',
+    'No devices found': 'Nenhum rolo encontrado',
+    'Scan error': 'Erro na busca'
+};
+
 function setTrainerStatusForAll(text, color = "") {
     trainerUIs.forEach((uiSet) => {
         if (!uiSet.status) return;
-        uiSet.status.innerText = text;
+        uiSet.status.innerText = uiSet.type === 'event' ? (EVENT_TRAINER_TEXT[text] || text) : text;
         uiSet.status.style.color = color;
     });
 }
@@ -528,6 +552,8 @@ function syncTrainerListsValue(sourceValue) {
 
 function renderTrainerUIState(state) {
     const label = getTrainerStateLabel(state);
+    const equip = document.getElementById('eventEquip');
+    if (equip) equip.dataset.state = !state?.trainer_connected ? 'off' : state.trainer_kind === 'virtual' ? 'virtual' : 'real';
     const color = !state?.trainer_connected ? "" : state.trainer_kind === 'virtual' ? "#00ADD8" : "var(--argus-safe)";
     setTrainerStatusForAll(label, color);
 
@@ -552,9 +578,9 @@ function renderTrainerUIState(state) {
         }
 
         if (uiSet.type === 'event') {
-            uiSet.scan.innerHTML = svgIcons.scan;
-            uiSet.virtual.innerHTML = svgIcons.virtual;
-            uiSet.connect.innerHTML = svgIcons.bt;
+            uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
+            uiSet.virtual.innerHTML = eventButton(svgIcons.virtual, 'Simulador');
+            uiSet.connect.innerHTML = eventButton(svgIcons.bt, 'Conectar');
         }
 
         if (state?.trainer_connected && state.trainer_kind === 'real') {
@@ -571,7 +597,7 @@ function renderTrainerUIState(state) {
                 if (uiSet.list) uiSet.list.classList.add('hidden');
                 if (btnDisc) {
                     btnDisc.classList.remove('hidden');
-                    btnDisc.innerHTML = svgIcons.disconnect;
+                    btnDisc.innerHTML = eventButton(svgIcons.disconnect, 'Desconectar');
                 }
             }
         } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
@@ -589,7 +615,7 @@ function renderTrainerUIState(state) {
                 if (uiSet.list) uiSet.list.classList.add('hidden');
                 if (btnDisc) {
                     btnDisc.classList.remove('hidden');
-                    btnDisc.innerHTML = svgIcons.disconnect;
+                    btnDisc.innerHTML = eventButton(svgIcons.disconnect, 'Desconectar');
                 }
             }
         } else {
@@ -638,7 +664,7 @@ async function scanTrainerDevices() {
     trainerUIs.forEach((uiSet) => {
         if (uiSet.scan) {
             if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.wait;
-            else uiSet.scan.innerHTML = svgIcons.wait;
+            else uiSet.scan.innerHTML = eventButton(svgIcons.wait, 'Procurando...');
             uiSet.scan.disabled = true;
         }
     });
@@ -660,7 +686,7 @@ async function scanTrainerDevices() {
             trainerUIs.forEach((uiSet) => {
                 if (uiSet.scan) {
                     if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                    else uiSet.scan.innerHTML = svgIcons.scan;
+                    else uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
                     uiSet.scan.disabled = false;
                 }
             });
@@ -670,7 +696,7 @@ async function scanTrainerDevices() {
         trainerUIs.forEach((uiSet) => {
             if (uiSet.scan) {
                 if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                else uiSet.scan.innerHTML = svgIcons.scan;
+                else uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
                 uiSet.scan.disabled = false;
             }
         });
@@ -679,24 +705,30 @@ async function scanTrainerDevices() {
 
 document.getElementById('btnScanTrainer')?.addEventListener('click', scanTrainerDevices);
 document.getElementById('btnEventScanTrainer')?.addEventListener('click', scanTrainerDevices);
+// The event hub's status text is translated, so its buttons read the real connection state.
+async function eventTrainerState() {
+    try { return await window.go?.main?.App?.GetDeviceConnectionState?.(); } catch { return null; }
+}
+
 document.getElementById('btnEventConnectTrainer')?.addEventListener('click', async () => {
     const status = document.getElementById('eventTrainerStatus');
     const list = document.getElementById('eventTrainerList');
 
     if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
-        if (status.innerText === "Trainer Connected") {
+        const state = await eventTrainerState();
+        if (state?.trainer_connected && state.trainer_kind === 'real') {
             await window.go.main.App.DisconnectTrainer();
             return;
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a trainer from the list."); return; }
+        if (!selectedMac) { status.innerText = "Escolha um rolo na lista"; return; }
 
         document.getElementById('btnEventConnectTrainer').disabled = true;
         try {
             await window.go.main.App.ConnectTrainer(selectedMac);
         } catch (err) {
-            status.innerText = "Error connecting";
+            status.innerText = "Erro ao conectar";
             status.style.color = "var(--argus-alert)";
             document.getElementById('btnEventConnectTrainer').disabled = false;
         }
@@ -707,7 +739,8 @@ document.getElementById('btnEventConnectVirtual')?.addEventListener('click', asy
     if (Capacitor.isNativePlatform()) return;
     const status = document.getElementById('eventTrainerStatus');
 
-    if (status.innerText === "Simulator Active") {
+    const state = await eventTrainerState();
+    if (state?.trainer_connected && state.trainer_kind === 'virtual') {
         await window.go.main.App.DisconnectTrainer();
         return;
     }
@@ -716,7 +749,7 @@ document.getElementById('btnEventConnectVirtual')?.addEventListener('click', asy
     try {
         await window.go.main.App.ConnectVirtualTrainer();
     } catch (err) {
-        status.innerText = String(err).includes('Fair Mode') ? "Simulator disabled (Fair Mode)" : "Error connecting";
+        status.innerText = String(err).includes('Fair Mode') ? "Simulador bloqueado (Modo Feira)" : "Erro ao conectar";
         status.style.color = "var(--argus-alert)";
         document.getElementById('btnEventConnectVirtual').disabled = false;
     }
@@ -1556,7 +1589,7 @@ if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardVie
 
 // Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
 function isFullScreenPageOpen() {
-    return !!document.querySelector('.home-overlay.active');
+    return !!document.querySelector('.home-overlay.active:not(#eventHubPage)');
 }
 const pageObserver = new MutationObserver(() => {
     if (window.scene3d) window.scene3d.setCovered(isFullScreenPageOpen());
@@ -1590,14 +1623,14 @@ window.setEventScene = setEventScene;
 // loaded yet), selectable from the event hub.
 const QUALITY_KEY = 'argus.scene.quality';     // same key and default as ArgusScene3D.js
 const DEFAULT_QUALITY = 'high';
-const QUALITY_LABELS = { low: 'Low', medium: 'Medium', high: 'High' };
+const QUALITY_LABELS = { low: 'Baixo', medium: 'Médio', high: 'Alto' }; // event hub (pt-BR)
 const readPref = (key, fallback) => { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } };
 
 function setGraphicsQuality(name) {
     try { localStorage.setItem(QUALITY_KEY, name); } catch { /* storage unavailable */ }
     if (window.scene3d) window.scene3d.setQuality(name);
     const label = document.querySelector('#btnGraphicsQuality [data-role="label"]');
-    if (label) label.textContent = `Graphics: ${QUALITY_LABELS[name] || name}`;
+    if (label) label.textContent = `Gráficos: ${QUALITY_LABELS[name] || name}`;
 }
 window.setGraphicsQuality = setGraphicsQuality;
 
@@ -1657,13 +1690,19 @@ async function runRaceAutoCheck() {
     await cc.refreshTrainerStatus();
     log(`[race] sim power: ${await App.ChangePowerSimulation(300)}`);
 
-    // Every on-screen message is logged; the finish banner also triggers a 3D capture.
+    // Every on-screen message is logged.
     const flash = cc.flashMessage.bind(cc);
     let finishShot = null;
     cc.flashMessage = (text, opts = {}) => {
         log(`[race] message: "${text}"${opts.sub ? ` / "${opts.sub}"` : ''}`);
-        if (opts.size === 'big' && finishShot) window.scene3d?.captureFrame(0.75).then((img) => img && log(`[scene3d-shot] ${finishShot} ${img}`));
         return flash(text, opts);
+    };
+    
+    const showFinish = cc.hud.showFinish.bind(cc.hud);
+    cc.hud.showFinish = (opts = {}) => {
+        log(`[race] finish banner: "${opts.label} ${opts.value}" / "${opts.note}"`);
+        if (finishShot) window.scene3d?.captureFrame(0.75).then((img) => img && log(`[scene3d-shot] ${finishShot} ${img}`));
+        return showFinish(opts);
     };
     const shot = async (tag) => {
         const img = await window.scene3d?.captureFrame(0.75);
@@ -1673,8 +1712,9 @@ async function runRaceAutoCheck() {
         const sc = window.scene3d, s = sc?.getState(), c = cc.activeChallenge;
         log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} rider=${s?.courseDistanceM.toFixed(1)} ` +
             `ghost=${s?.ghostDistanceM == null ? 'none' : s.ghostDistanceM.toFixed(1)} gap=${c?.gap === null || c?.gap === undefined ? '-' : c.gap.toFixed(2)} ` +
-            `gates=${sc?.hasGates} fps=${s?.fps.toFixed(0)} hudOver3d=${document.getElementById('studio-hud').classList.contains('hud-over-3d')} ` +
-            `hudGap="${document.getElementById('hud-tertiary-label')?.textContent} ${document.getElementById('hud-tertiary-value')?.textContent}"`);
+            `gates=${sc?.hasGates} fps=${s?.fps.toFixed(0)} liveHud=${!document.getElementById('eventLiveHud').classList.contains('hidden')} ` +
+            `hudGap="${document.querySelector('#eventLiveHud [data-role="gap"]')?.textContent} ${document.querySelector('#eventLiveHud [data-role="gapWord"]')?.textContent}" ` +
+            `tower="${document.querySelector('#eventLiveHud [data-role="towerRows"]')?.textContent.replace(/\s+/g, ' ').trim()}"`);
     };
 
     // opts: {gateShot, probeAt (ms after GO, with capture), powerSteps: [[ms after GO, delta]], finishShot}
@@ -1695,13 +1735,13 @@ async function runRaceAutoCheck() {
         const podium = document.getElementById('challengeResultPodium');
         log(`[race] ${mode}: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s incl. countdown; ` +
             `sim override ${simBefore} -> ${await App.ChangePowerSimulation(0)} W)`);
-        if (podium && podium.style.display !== 'none') log(`[race] podium: ${podium.textContent.replace(/\s+/g, ' ').trim()}`);
+        if (podium) log(`[race] podium: ${podium.textContent.replace(/\s+/g, ' ').trim()}`);
         cc.returnToEventHub();
         await wait(1500);
     };
 
     await race('sprint200', { gateShot: 'gate_start', finishShot: 'finish_sprint200' });
-    await race('climb400');
+    await race('climb400', { probeAt: 20000 });
     log(`[race] after races: 3d rendering=${window.scene3d?.isRendering} (main view ${mainView}, hub open)`);
 
     log(`[race] slower sprint: sim power ${await App.ChangePowerSimulation(-150)}`);
