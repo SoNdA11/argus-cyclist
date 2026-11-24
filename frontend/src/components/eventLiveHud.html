@@ -1,0 +1,145 @@
+<!--
+Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+Copyright (C) 2026 Paulo Sérgio
+SPDX-License-Identifier: GPL-3.0-or-later
+
+Event mode live race graphics ("sports broadcast" look) over the 3D scene. One layout for
+the three challenges: blocks tagged data-show only appear for the listed modes, and the
+metric strip and the tower rows are filled by EventBroadcastHud.js.
+-->
+
+<div id="eventLiveHud" class="ev-live hidden" data-mode="sprint200" aria-label="Desafio ao vivo">
+    <div class="ev-live-shade" aria-hidden="true"></div>
+
+    <div class="ev-live-tl">
+        <div class="ev-tagline">
+            <span class="ev-tag ev-tag--accent" data-role="mode">SPRINT 200 M</span>
+            <span class="ev-tag ev-tag--dark"><span class="ev-live-dot" aria-hidden="true"></span>AO VIVO</span>
+        </div>
+        <button class="ev-live-back" id="btnEventAbort" type="button"
+            title="Abandonar a tentativa e voltar para a lista de largada">← Lista de largada</button>
+    </div>
+
+    <!-- Sprint: straight progress bar, rider and record ghost -->
+    <div class="ev-live-top ev-live-track" data-show="sprint200">
+        <div class="ev-live-track-head">
+            <span>LARGADA</span><strong data-role="distLabel">0 / 200 m</strong><span>CHEGADA</span>
+        </div>
+        <div class="ev-live-track-bar">
+            <div class="ev-live-track-rail"></div>
+            <div class="ev-live-track-fill" data-role="trackFill"></div>
+            <i style="left: 25%"></i><i style="left: 50%"></i><i style="left: 75%"></i>
+            <div class="ev-live-dotmark is-ghost" data-role="trackGhost" title="Ghost do recorde"></div>
+            <div class="ev-live-dotmark is-rider" data-role="trackRider" title="Você"></div>
+        </div>
+        <div class="ev-live-legend">
+            <span><b class="is-rider"></b>Você</span>
+            <span data-role="ghostLegend"><b class="is-ghost"></b><span data-role="ghostLegendText">Ghost do
+                    recorde</span></span>
+        </div>
+    </div>
+
+    <!-- Climb: elevation profile and live grade -->
+    <div class="ev-live-top ev-live-profile" data-show="climb400">
+        <div class="ev-live-profile-main">
+            <div class="ev-live-track-head">
+                <span data-role="climbLabel">PERFIL</span><strong data-role="climbDist">0 / 400 m</strong>
+            </div>
+            <svg width="440" height="64" viewBox="0 0 440 64" role="img"
+                aria-label="Perfil da subida com a sua posição e a do ghost">
+                <polygon data-role="profileArea" fill="rgba(255,198,46,0.16)"></polygon>
+                <polygon data-role="profileDone" fill="rgba(255,198,46,0.42)"></polygon>
+                <polyline data-role="profileLine" fill="none" stroke="#ffc62e" stroke-width="2.5"></polyline>
+                <circle data-role="profileGhost" r="7" fill="#4fe3ff" stroke="#0b1430" stroke-width="3"></circle>
+                <circle data-role="profileRider" r="8" fill="#ffc62e" stroke="#0b1430" stroke-width="3"></circle>
+            </svg>
+        </div>
+        <div class="ev-live-grade">
+            <span>INCLINAÇÃO</span>
+            <strong><span data-role="grade">0.0</span><small>%</small></strong>
+        </div>
+    </div>
+
+    <!-- Zone Challenge: score and multiplier -->
+    <div class="ev-live-top ev-live-score" data-show="timeTrial">
+        <div class="ev-live-score-row">
+            <div class="ev-live-score-pts">
+                <span>PONTOS</span>
+                <strong data-role="score">0</strong>
+            </div>
+            <div class="ev-live-score-mult" data-role="multBox">
+                <span>MULTIPLICADOR</span>
+                <strong>×<span data-role="mult">1.0</span></strong>
+            </div>
+        </div>
+        <div class="ev-live-score-hint" data-role="scoreHint">Fique na Z4 ou acima para pontuar mais rápido.</div>
+    </div>
+
+    <div class="ev-live-clock">
+        <span class="ev-live-clock-tab" data-role="clockLabel">TEMPO</span>
+        <span class="ev-live-clock-val" data-role="clock">0.00</span>
+    </div>
+
+    <div class="ev-live-tower">
+        <div class="ev-live-tower-head"><span>CLASSIFICAÇÃO</span><span data-role="towerHint">PROJEÇÃO</span></div>
+        <div data-role="towerRows"></div>
+    </div>
+
+    <!-- Zone Challenge: power zones with the rider's pointer -->
+    <div class="ev-live-zonebar" data-show="timeTrial">
+        <div class="ev-live-zonebar-head">
+            <span data-role="ftpLabel">ZONAS DE POTÊNCIA · FTP DE REFERÊNCIA 200 W</span><span
+                data-role="pctLabel"></span>
+        </div>
+        <div class="ev-live-zonebar-body">
+            <div class="ev-live-zones" data-role="zones">
+                <div data-zone="1"><strong>Z1</strong><span>×1.0</span></div>
+                <div data-zone="2"><strong>Z2</strong><span>×1.0</span></div>
+                <div data-zone="3"><strong>Z3</strong><span>×1.5</span></div>
+                <div data-zone="4"><strong>Z4</strong><span>×2.2</span></div>
+                <div data-zone="5"><strong>Z5</strong><span>×3.5</span></div>
+                <div data-zone="6"><strong>Z6</strong><span>×5.0</span></div>
+            </div>
+            <div class="ev-live-zone-pointer" data-role="zonePointer" aria-hidden="true"></div>
+        </div>
+    </div>
+
+    <div class="ev-live-athlete">
+        <div class="ev-tagline ev-tagline--sm">
+            <span class="ev-tag ev-tag--accent" data-role="rider">ATLETA</span>
+            <span class="ev-tag ev-tag--dark ev-tag--info" data-role="riderInfo"></span>
+        </div>
+        <div class="ev-live-metrics" data-role="metrics"></div>
+    </div>
+
+    <!-- Races: gap to the record ghost -->
+    <div class="ev-live-gap" data-show="sprint200 climb400">
+        <div class="ev-live-box-head"><span>VS RECORDE</span><span class="is-ghost" data-role="gapRecord"></span></div>
+        <div class="ev-live-gap-body" data-role="gapBox" data-tone="even">
+            <strong data-role="gap">0.00</strong>
+            <span data-role="gapWord">NA LARGADA</span>
+        </div>
+    </div>
+
+    <!-- Zone Challenge: current zone -->
+    <div class="ev-live-gap ev-live-zonenow" data-show="timeTrial">
+        <div class="ev-live-box-head"><span>ZONA ATUAL</span></div>
+        <div class="ev-live-gap-body" data-role="zoneBox" data-zone="0">
+            <strong data-role="zoneId">—</strong>
+            <span data-role="zoneName"></span>
+        </div>
+    </div>
+
+    <div class="ev-live-countdown hidden" data-role="countdown" aria-live="assertive">
+        <strong data-role="count">3</strong>
+        <span data-role="countSub"></span>
+    </div>
+
+    <div class="ev-live-finish hidden" data-role="finish" aria-live="assertive">
+        <div class="ev-tagline ev-tagline--xl">
+            <span class="ev-tag ev-tag--accent" data-role="finishLabel">CHEGADA</span>
+            <span class="ev-tag ev-tag--dark" data-role="finishValue"></span>
+        </div>
+        <div class="ev-live-finish-note" data-role="finishNote" data-tone="even"></div>
+    </div>
+</div>

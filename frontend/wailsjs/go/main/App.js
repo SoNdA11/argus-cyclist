@@ -190,6 +190,14 @@ export function GetEventLeaderboard(arg1) {
   return window['go']['main']['App']['GetEventLeaderboard'](arg1);
 }
 
+export function GetEventRanking(arg1, arg2) {
+  return window['go']['main']['App']['GetEventRanking'](arg1, arg2);
+}
+
+export function GetFairMode() {
+  return window['go']['main']['App']['GetFairMode']();
+}
+
 export function GetFitnessTests() {
   return window['go']['main']['App']['GetFitnessTests']();
 }
@@ -290,6 +298,10 @@ export function SaveIntervalsCredentials(arg1, arg2) {
   return window['go']['main']['App']['SaveIntervalsCredentials'](arg1, arg2);
 }
 
+export function SaveRaceResult(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SaveRaceResult'](arg1, arg2, arg3, arg4);
+}
+
 export function ScanHeartRate() {
   return window['go']['main']['App']['ScanHeartRate']();
 }
@@ -316,6 +328,18 @@ export function SetBuiltInWorkout(arg1) {
 
 export function SetDirectGrade(arg1) {
   return window['go']['main']['App']['SetDirectGrade'](arg1);
+}
+
+export function SetEventCourse(arg1) {
+  return window['go']['main']['App']['SetEventCourse'](arg1);
+}
+
+export function SetEventRiderWeight(arg1) {
+  return window['go']['main']['App']['SetEventRiderWeight'](arg1);
+}
+
+export function SetFairMode(arg1) {
+  return window['go']['main']['App']['SetFairMode'](arg1);
 }
 
 export function SetKOMGradeSchedule(arg1) {

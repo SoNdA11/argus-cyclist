@@ -118,7 +118,9 @@ type AIRepository interface {
 // EventRepository manages the global event leaderboard.
 type EventRepository interface {
 	SaveEventRecord(record EventRecord) error
-	GetTopEventRecords(mode string, limit int) ([]EventRecord, error)
+	// GetTopEventRecords returns the best successful attempt of each rider for a mode,
+	// ranked ascending (lower is better, e.g. times) or descending.
+	GetTopEventRecords(mode string, limit int, ascending, includeSimulated bool) ([]EventRecord, error)
 	ResetEventLeaderboard(mode string) error
 	GetRaceHistory(riderName string) ([]EventRecord, error)
 	GetEventRecordsByID(ids []uint) ([]EventRecord, error)

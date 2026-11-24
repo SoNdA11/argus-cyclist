@@ -45,6 +45,9 @@ type Telemetry struct {
 	Altitude      float64   `json:"alt"`            //Current altitude in meters
 	ElevationGain float64   `json:"elevation_gain"` //Cumulative elevation gain
 	RiderWeight   float64   `json:"rider_weight"`   // Rider weight in kg
+	// Elapsed is the session's active time (s) at this sample: the same clock that
+	// integrates TotalDistance, so race finishes can be interpolated precisely.
+	Elapsed float64 `json:"elapsed"`
 }
 
 // AppState represents the global state of the application.
@@ -148,14 +151,25 @@ type Activity struct {
 type EventRecord struct {
 	ID               uint      `json:"id" gorm:"primaryKey"`
 	RiderName        string    `json:"rider_name"`
-	EventMode        string    `json:"event_mode"` // "sprint", "kom", "timeTrial"
-	Score            float64   `json:"score"`      // Watts, Distance, or Points
+	EventMode        string    `json:"event_mode"` // "sprint200", "climb400", "timeTrial" (legacy: "sprint", "kom", "tt1k")
+	Score            float64   `json:"score"`      // Seconds (distance races), points, or legacy watts/meters
 	Status           string    `json:"status"`     // "success", "failed"
 	CreatedAt        time.Time `json:"created_at"`
 	Filename         string    `json:"filename"`           // Path to the .fit file
 	Duration         int       `json:"duration"`           // Duration in seconds
 	UploadedToStrava bool      `json:"uploaded_to_strava"` // Sync status
+	// Weight is the rider weight (kg) used by the physics during the attempt.
+	Weight float64 `json:"weight"`
+	// IsSimulated marks attempts ridden on the simulator: kept in the history,
+	// excluded from the public ranking.
+	IsSimulated bool `json:"is_simulated"`
+	// Ghost is the elapsed time (s) at every GhostStep meters of a distance race,
+	// as a JSON array, used to replay the attempt as a ghost.
+	Ghost string `json:"ghost"`
 }
+
+// GhostStep is the distance (m) between consecutive samples of EventRecord.Ghost.
+const GhostStep = 5.0
 
 // SyncQueue represents a pending or failed upload to Strava.
 type SyncQueue struct {

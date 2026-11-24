@@ -19,11 +19,19 @@ import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
 import './styles/studio-hud.css';
+import '@fontsource/barlow-condensed/latin-600';
+import '@fontsource/barlow-condensed/latin-700';
+import '@fontsource/barlow-condensed/latin-800';
+import '@fontsource/inter/latin-400';
+import '@fontsource/inter/latin-600';
+import '@fontsource/inter/latin-700';
+import './styles/event-broadcast.css';
 import './styles/ai-chat.css';
 import cooldownModalHtml from './components/cooldownModal.html?raw';
 import eventHubPageHtml from './components/eventHubPage.html?raw';
 import eventLeaderboardModalHtml from './components/eventLeaderboardModal.html?raw';
 import studioHudHtml from './components/studioHudOverlay.html?raw';
+import eventLiveHudHtml from './components/eventLiveHud.html?raw';
 import challengeResultModalHtml from './components/challengeResultModal.html?raw';
 import fitnessTestModalHtml from './components/fitnessTestModal.html?raw';
 import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModal.html?raw';
@@ -42,6 +50,7 @@ document.body.insertAdjacentHTML('beforeend',
     eventHubPageHtml +
     eventLeaderboardModalHtml +
     studioHudHtml +
+    eventLiveHudHtml +
     challengeResultModalHtml +
     fitnessTestModalHtml +
     ftpAssessmentConfirmModalHtml +
@@ -58,6 +67,7 @@ import { ElevationChart } from './modules/ElevationChart.js';
 import { WorkoutController } from './modules/WorkoutController.js';
 import { ChallengeController } from './modules/ChallengeController.js';
 import { FullscreenHUDController } from './modules/FullscreenHUDController.js';
+import { EventBroadcastHud } from './modules/EventBroadcastHud.js';
 import { AIChatController } from './modules/AIChatController.js';
 
 // Capacitor imports for the Mobile version
@@ -178,7 +188,7 @@ window.chart = chart;
 const workoutCtrl = new WorkoutController();
 window.workoutCtrl = workoutCtrl;
 
-const challengeCtrl = new ChallengeController(ui, hud, mapCtrl, chart);
+const challengeCtrl = new ChallengeController(ui, new EventBroadcastHud(), mapCtrl, chart);
 window.challengeCtrl = challengeCtrl;
 
 const aiChatCtrl = new AIChatController();
@@ -323,10 +333,6 @@ document.getElementById('btnProceedAssessmentFTP').addEventListener('click', asy
 
     await window.go.main.App.SetBuiltInWorkout(selectedTest.test_type);
     window.ui.els.btnAction.classList.remove('hidden');
-});
-
-document.getElementById('btnToggleView').addEventListener('click', () => {
-    window.ui.toggleDashboardMode();
 });
 
 document.getElementById('btnJustRide').addEventListener('click', () => {
@@ -498,15 +504,29 @@ const trainerUIs = [
     }
 ];
 
+function eventButton(icon, label) {
+    return `${icon}<span>${label}</span>`;
+}
+
 function getTrainerStateLabel(state) {
     if (!state?.trainer_connected) return "Disconnected";
     return state.trainer_kind === 'virtual' ? "Simulator Active" : "Trainer Connected";
 }
 
+const EVENT_TRAINER_TEXT = {
+    'Disconnected': 'Desconectado',
+    'Simulator Active': 'Simulador ativo',
+    'Trainer Connected': 'Rolo conectado',
+    'Scanning...': 'Procurando rolo...',
+    'Select a device': 'Escolha o rolo',
+    'No devices found': 'Nenhum rolo encontrado',
+    'Scan error': 'Erro na busca'
+};
+
 function setTrainerStatusForAll(text, color = "") {
     trainerUIs.forEach((uiSet) => {
         if (!uiSet.status) return;
-        uiSet.status.innerText = text;
+        uiSet.status.innerText = uiSet.type === 'event' ? (EVENT_TRAINER_TEXT[text] || text) : text;
         uiSet.status.style.color = color;
     });
 }
@@ -532,6 +552,8 @@ function syncTrainerListsValue(sourceValue) {
 
 function renderTrainerUIState(state) {
     const label = getTrainerStateLabel(state);
+    const equip = document.getElementById('eventEquip');
+    if (equip) equip.dataset.state = !state?.trainer_connected ? 'off' : state.trainer_kind === 'virtual' ? 'virtual' : 'real';
     const color = !state?.trainer_connected ? "" : state.trainer_kind === 'virtual' ? "#00ADD8" : "var(--argus-safe)";
     setTrainerStatusForAll(label, color);
 
@@ -556,9 +578,9 @@ function renderTrainerUIState(state) {
         }
 
         if (uiSet.type === 'event') {
-            uiSet.scan.innerHTML = svgIcons.scan;
-            uiSet.virtual.innerHTML = svgIcons.virtual;
-            uiSet.connect.innerHTML = svgIcons.bt;
+            uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
+            uiSet.virtual.innerHTML = eventButton(svgIcons.virtual, 'Simulador');
+            uiSet.connect.innerHTML = eventButton(svgIcons.bt, 'Conectar');
         }
 
         if (state?.trainer_connected && state.trainer_kind === 'real') {
@@ -575,7 +597,7 @@ function renderTrainerUIState(state) {
                 if (uiSet.list) uiSet.list.classList.add('hidden');
                 if (btnDisc) {
                     btnDisc.classList.remove('hidden');
-                    btnDisc.innerHTML = svgIcons.disconnect;
+                    btnDisc.innerHTML = eventButton(svgIcons.disconnect, 'Desconectar');
                 }
             }
         } else if (state?.trainer_connected && state.trainer_kind === 'virtual') {
@@ -593,7 +615,7 @@ function renderTrainerUIState(state) {
                 if (uiSet.list) uiSet.list.classList.add('hidden');
                 if (btnDisc) {
                     btnDisc.classList.remove('hidden');
-                    btnDisc.innerHTML = svgIcons.disconnect;
+                    btnDisc.innerHTML = eventButton(svgIcons.disconnect, 'Desconectar');
                 }
             }
         } else {
@@ -642,7 +664,7 @@ async function scanTrainerDevices() {
     trainerUIs.forEach((uiSet) => {
         if (uiSet.scan) {
             if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.wait;
-            else uiSet.scan.innerHTML = svgIcons.wait;
+            else uiSet.scan.innerHTML = eventButton(svgIcons.wait, 'Procurando...');
             uiSet.scan.disabled = true;
         }
     });
@@ -664,7 +686,7 @@ async function scanTrainerDevices() {
             trainerUIs.forEach((uiSet) => {
                 if (uiSet.scan) {
                     if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                    else uiSet.scan.innerHTML = svgIcons.scan;
+                    else uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
                     uiSet.scan.disabled = false;
                 }
             });
@@ -674,7 +696,7 @@ async function scanTrainerDevices() {
         trainerUIs.forEach((uiSet) => {
             if (uiSet.scan) {
                 if (uiSet.type === 'settings') uiSet.scan.innerHTML = svgIcons.scan;
-                else uiSet.scan.innerHTML = svgIcons.scan;
+                else uiSet.scan.innerHTML = eventButton(svgIcons.bt, 'Procurar rolo');
                 uiSet.scan.disabled = false;
             }
         });
@@ -683,24 +705,30 @@ async function scanTrainerDevices() {
 
 document.getElementById('btnScanTrainer')?.addEventListener('click', scanTrainerDevices);
 document.getElementById('btnEventScanTrainer')?.addEventListener('click', scanTrainerDevices);
+// The event hub's status text is translated, so its buttons read the real connection state.
+async function eventTrainerState() {
+    try { return await window.go?.main?.App?.GetDeviceConnectionState?.(); } catch { return null; }
+}
+
 document.getElementById('btnEventConnectTrainer')?.addEventListener('click', async () => {
     const status = document.getElementById('eventTrainerStatus');
     const list = document.getElementById('eventTrainerList');
 
     if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
-        if (status.innerText === "Trainer Connected") {
+        const state = await eventTrainerState();
+        if (state?.trainer_connected && state.trainer_kind === 'real') {
             await window.go.main.App.DisconnectTrainer();
             return;
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a trainer from the list."); return; }
+        if (!selectedMac) { status.innerText = "Escolha um rolo na lista"; return; }
 
         document.getElementById('btnEventConnectTrainer').disabled = true;
         try {
             await window.go.main.App.ConnectTrainer(selectedMac);
         } catch (err) {
-            status.innerText = "Error connecting";
+            status.innerText = "Erro ao conectar";
             status.style.color = "var(--argus-alert)";
             document.getElementById('btnEventConnectTrainer').disabled = false;
         }
@@ -711,7 +739,8 @@ document.getElementById('btnEventConnectVirtual')?.addEventListener('click', asy
     if (Capacitor.isNativePlatform()) return;
     const status = document.getElementById('eventTrainerStatus');
 
-    if (status.innerText === "Simulator Active") {
+    const state = await eventTrainerState();
+    if (state?.trainer_connected && state.trainer_kind === 'virtual') {
         await window.go.main.App.DisconnectTrainer();
         return;
     }
@@ -720,7 +749,7 @@ document.getElementById('btnEventConnectVirtual')?.addEventListener('click', asy
     try {
         await window.go.main.App.ConnectVirtualTrainer();
     } catch (err) {
-        status.innerText = "Error connecting";
+        status.innerText = String(err).includes('Fair Mode') ? "Simulador bloqueado (Modo Feira)" : "Erro ao conectar";
         status.style.color = "var(--argus-alert)";
         document.getElementById('btnEventConnectVirtual').disabled = false;
     }
@@ -752,7 +781,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
             },
             (data) => {
                 telemetryBus.publish(data);
-                if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+                updateMapPosition(data);
             }
         );
         btnReal.innerHTML = success ? svgIcons.disconnect : svgIcons.bt;
@@ -1442,8 +1471,8 @@ document.addEventListener('keydown', async (e) => {
     const tag = e.target?.tagName?.toLowerCase();
     if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
 
-    // Só ajusta potência no simulador virtual
-    if (lastTrainerKind !== 'virtual') return;
+    // Só ajusta potência no simulador virtual (e nunca com o Modo Feira ligado)
+    if (lastTrainerKind !== 'virtual' || window.fairMode) return;
 
     let delta = 0;
     if (e.key === "ArrowUp") delta = 10;
@@ -1454,6 +1483,412 @@ document.addEventListener('keydown', async (e) => {
     }
 });
 
+
+// ==============================================
+// MAIN VIEW — 3D scene (default) / real map / dashboard
+// The 3D scene is a layer inside #map-container, so the existing code that hides the
+// map (dashboard, Studio, workouts) hides it too. The scene loads on first use.
+// ==============================================
+
+const MAIN_VIEW_KEY = 'argus.mainView';
+let mainView = loadMainView();      // '3d' | 'map' (dashboard is a separate UI mode)
+let lastMapTelemetry = null;
+
+function loadMainView() {
+    try {
+        const v = localStorage.getItem(MAIN_VIEW_KEY);
+        if (v === '3d' || v === 'map') return v;
+    } catch { /* storage unavailable */ }
+    return '3d';
+}
+
+// The scene sprints from the rider's power relative to the active profile's FTP.
+async function refreshScene3DFtp() {
+    try {
+        const profile = await window.go?.main?.App?.GetUserProfile?.();
+        if (window.scene3d) window.scene3d.setFtp(profile?.ftp);
+    } catch { /* keeps the previous FTP */ }
+}
+
+let scene3dLoading = null;
+function ensureScene3D() {
+    if (!scene3dLoading) {
+        scene3dLoading = import('./modules/argus-scene/ArgusScene3D.js').then(({ ArgusScene3D }) => {
+            const scene3d = new ArgusScene3D({ bus: telemetryBus });
+            scene3d.active = mainView === '3d';
+            scene3d.covered = isFullScreenPageOpen();
+            scene3d.mount(document.getElementById('map-container')); // throws without WebGL 2
+            window.scene3d = scene3d;
+            refreshScene3DFtp();
+            return scene3d;
+        }).catch((e) => {
+            console.error('[scene3d] failed to load, falling back to the map', e);
+            scene3dLoading = null;
+            setMainView('map');
+            throw e;
+        });
+    }
+    return scene3dLoading;
+}
+
+// The map only follows the rider while it is visible; the latest sample is applied
+// when the user switches back to it (MapLibre animations would compete with the 3D).
+function updateMapPosition(data) {
+    if (!window.mapController) return;
+    if (mainView === 'map' || !window.scene3d) {
+        window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+    } else {
+        lastMapTelemetry = data;
+    }
+}
+
+function setMainView(view) {
+    const ui = window.ui;
+    if (view === 'dashboard') {
+        if (ui && !ui.isDashboardMode) ui.toggleDashboardMode();
+        updateViewSwitch();
+        return;
+    }
+    if (ui && ui.isDashboardMode) ui.toggleDashboardMode();
+    mainView = view;
+    try { localStorage.setItem(MAIN_VIEW_KEY, view); } catch { /* storage unavailable */ }
+
+    if (view === '3d') {
+        ensureScene3D().then((scene3d) => scene3d.setActive(true)).catch(() => { });
+    } else {
+        if (window.scene3d) window.scene3d.setActive(false);
+        if (window.mapController) {
+            if (lastMapTelemetry) {
+                const d = lastMapTelemetry;
+                lastMapTelemetry = null;
+                window.mapController.updateCyclistPosition(d.lat, d.lon, d.speed, d);
+            }
+            setTimeout(() => window.mapController.forceResize(), 50);
+        }
+    }
+    updateViewSwitch();
+}
+window.setMainView = setMainView;
+
+function updateViewSwitch() {
+    const current = window.ui && window.ui.isDashboardMode ? 'dashboard' : mainView;
+    document.querySelectorAll('#viewSwitch button').forEach((btn) => {
+        const on = btn.dataset.view === current;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+}
+
+document.querySelectorAll('#viewSwitch button').forEach((btn) => {
+    btn.addEventListener('click', () => setMainView(btn.dataset.view));
+});
+
+// Workouts toggle the dashboard on their own: keep the switch in sync.
+const dashboardViewEl = document.getElementById('dashboard-view');
+if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardViewEl, { attributes: true, attributeFilter: ['class'] });
+
+// Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
+function isFullScreenPageOpen() {
+    return !!document.querySelector('.home-overlay.active:not(#eventHubPage)');
+}
+const pageObserver = new MutationObserver(() => {
+    if (window.scene3d) window.scene3d.setCovered(isFullScreenPageOpen());
+});
+document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
+
+// Event races and challenges show the 3D rider behind their HUD, whatever main view
+// is selected; the previous view comes back when the challenge ends.
+let eventSceneActive = false;
+// race (optional): {start, finish, ghost, ghostLabel, clock} for distance races.
+async function setEventScene(on, race = null) {
+    eventSceneActive = !!on;
+    if (eventSceneActive) {
+        try {
+            const scene3d = await ensureScene3D();
+            if (!eventSceneActive) return; // ended while loading
+            refreshScene3DFtp();
+            scene3d.resetRide();           // the rider waits on the start line
+            if (race) scene3d.setRace(race); else scene3d.clearRace();
+            scene3d.setActive(true);
+        } catch { /* the HUD still works without the 3D scene */ }
+    } else if (window.scene3d) {
+        window.scene3d.clearRace();
+        window.scene3d.releaseRide();
+        window.scene3d.setActive(mainView === '3d');
+    }
+}
+window.setEventScene = setEventScene;
+
+// Graphics quality (render resolution): stored by the scene (and here when it is not
+// loaded yet), selectable from the event hub.
+const QUALITY_KEY = 'argus.scene.quality';     // same key and default as ArgusScene3D.js
+const DEFAULT_QUALITY = 'high';
+const QUALITY_LABELS = { low: 'Baixo', medium: 'Médio', high: 'Alto' }; // event hub (pt-BR)
+const readPref = (key, fallback) => { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } };
+
+function setGraphicsQuality(name) {
+    try { localStorage.setItem(QUALITY_KEY, name); } catch { /* storage unavailable */ }
+    if (window.scene3d) window.scene3d.setQuality(name);
+    const label = document.querySelector('#btnGraphicsQuality [data-role="label"]');
+    if (label) label.textContent = `Gráficos: ${QUALITY_LABELS[name] || name}`;
+}
+window.setGraphicsQuality = setGraphicsQuality;
+
+const qualityButton = document.getElementById('btnGraphicsQuality');
+if (qualityButton) {
+    setGraphicsQuality(readPref(QUALITY_KEY, DEFAULT_QUALITY));
+    qualityButton.addEventListener('click', () => {
+        const order = ['low', 'medium', 'high'];
+        const current = readPref(QUALITY_KEY, DEFAULT_QUALITY);
+        setGraphicsQuality(order[(order.indexOf(current) + 1) % order.length]);
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.code === 'Digit3') {
+        e.preventDefault();
+        setMainView('3d');
+    }
+});
+
+updateViewSwitch();
+if (mainView === '3d') ensureScene3D().catch(() => { });
+
+// Dev-only end-to-end check (VITE_SCENE3D_AUTO=1 ./run-dev.sh): virtual trainer at
+// 250 W on the loaded route (built-in KOM climb if none), both themes, FPS and
+// interpolation stats logged to the Wails terminal. The session is discarded at the end.
+// VITE_SCENE3D_AUTO=demo uses the scene's demo ride instead (no trainer, no session).
+if (import.meta.env.VITE_SCENE3D_AUTO === '1' || import.meta.env.VITE_SCENE3D_AUTO === 'demo') {
+    window.addEventListener('load', () => setTimeout(() => runScene3DAutoCheck().catch(e => console.error(e)), 3000));
+}
+
+// Dev-only race check (VITE_RACE_AUTO=1 ./run-dev.sh): runs the three distance races on
+// the simulator, a slower repeat of the sprint (ranking keeps the best per rider),
+// checks the Fair Mode lock, logs everything to the Wails terminal and deletes the
+// test records at the end.
+if (import.meta.env.VITE_RACE_AUTO === '1') {
+    window.addEventListener('load', () => setTimeout(() => runRaceAutoCheck().catch(e => window.runtime?.LogInfo?.(`[race] ERROR ${e}`)), 3000));
+}
+
+async function runRaceAutoCheck() {
+    const App = window.go.main.App;
+    const cc = window.challengeController;
+    const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const NAME = 'AutoTest';
+    const RAW = `${NAME} [G]`;
+    const result = () => ['challengeResultTitle', 'challengeResultValue', 'challengeResultRank', 'challengeResultDescription']
+        .map((id) => document.getElementById(id)?.textContent?.trim()).join(' | ');
+
+    await cc.setFairMode(false);
+    await ensureScene3D();
+    await cc.enterEventMode();
+    document.getElementById('eventRiderName').value = NAME;
+    document.getElementById('eventRiderGender').value = 'G';
+    document.getElementById('eventRiderWeight').value = '70';
+    log(`[race] trainer: ${await App.ConnectVirtualTrainer()}`);
+    await cc.refreshTrainerStatus();
+    log(`[race] sim power: ${await App.ChangePowerSimulation(300)}`);
+
+    // Every on-screen message is logged.
+    const flash = cc.flashMessage.bind(cc);
+    let finishShot = null;
+    cc.flashMessage = (text, opts = {}) => {
+        log(`[race] message: "${text}"${opts.sub ? ` / "${opts.sub}"` : ''}`);
+        return flash(text, opts);
+    };
+    
+    const showFinish = cc.hud.showFinish.bind(cc.hud);
+    cc.hud.showFinish = (opts = {}) => {
+        log(`[race] finish banner: "${opts.label} ${opts.value}" / "${opts.note}"`);
+        if (finishShot) window.scene3d?.captureFrame(0.75).then((img) => img && log(`[scene3d-shot] ${finishShot} ${img}`));
+        return showFinish(opts);
+    };
+    const shot = async (tag) => {
+        const img = await window.scene3d?.captureFrame(0.75);
+        if (img) log(`[scene3d-shot] ${tag} ${img}`);
+    };
+    const probe = (mode) => {
+        const sc = window.scene3d, s = sc?.getState(), c = cc.activeChallenge;
+        log(`[race] 3d during ${mode}: rendering=${sc?.isRendering} rider=${s?.courseDistanceM.toFixed(1)} ` +
+            `ghost=${s?.ghostDistanceM == null ? 'none' : s.ghostDistanceM.toFixed(1)} gap=${c?.gap === null || c?.gap === undefined ? '-' : c.gap.toFixed(2)} ` +
+            `gates=${sc?.hasGates} fps=${s?.fps.toFixed(0)} liveHud=${!document.getElementById('eventLiveHud').classList.contains('hidden')} ` +
+            `hudGap="${document.querySelector('#eventLiveHud [data-role="gap"]')?.textContent} ${document.querySelector('#eventLiveHud [data-role="gapWord"]')?.textContent}" ` +
+            `tower="${document.querySelector('#eventLiveHud [data-role="towerRows"]')?.textContent.replace(/\s+/g, ' ').trim()}"`);
+    };
+
+    // opts: {gateShot, probeAt (ms after GO, with capture), powerSteps: [[ms after GO, delta]], finishShot}
+    const race = async (mode, opts = {}) => {
+        const t0 = performance.now();
+        const simBefore = await App.ChangePowerSimulation(0); // delta 0 only reads the override
+        finishShot = opts.finishShot || null;
+        const launched = cc.launchRace(mode);
+        if (opts.gateShot) { await wait(1800); await shot(opts.gateShot); }
+        await launched; // resolves at GO
+        const go = performance.now();
+        for (const [at, delta] of opts.powerSteps || []) {
+            setTimeout(() => App.ChangePowerSimulation(delta).then((v) => log(`[race] power step at ${at} ms: override ${v} W`)), at);
+        }
+        if (opts.probeAt) { await wait(opts.probeAt); probe(mode); await shot(`ghost_${mode}`); }
+        const limit = (cc.modeMeta[mode].maxDuration + 20) * 1000;
+        while (cc.activeChallenge && performance.now() - go < limit) await wait(250);
+        const podium = document.getElementById('challengeResultPodium');
+        log(`[race] ${mode}: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s incl. countdown; ` +
+            `sim override ${simBefore} -> ${await App.ChangePowerSimulation(0)} W)`);
+        if (podium) log(`[race] podium: ${podium.textContent.replace(/\s+/g, ' ').trim()}`);
+        cc.returnToEventHub();
+        await wait(1500);
+    };
+
+    await race('sprint200', { gateShot: 'gate_start', finishShot: 'finish_sprint200' });
+    await race('climb400', { probeAt: 20000 });
+    log(`[race] after races: 3d rendering=${window.scene3d?.isRendering} (main view ${mainView}, hub open)`);
+
+    log(`[race] slower sprint: sim power ${await App.ChangePowerSimulation(-150)}`);
+    await race('sprint200', { probeAt: 8000 });
+
+    // Start far behind the record, then accelerate past it: one lead change, new record.
+    log(`[race] overtake sprint: sim power ${await App.ChangePowerSimulation(250 - (await App.ChangePowerSimulation(0)))}`);
+    await race('sprint200', { powerSteps: [[6000, 650]], probeAt: 14000, finishShot: 'finish_overtake' });
+    log(`[race] override reset to ${await App.ChangePowerSimulation(300 - (await App.ChangePowerSimulation(0)))}`);
+
+    const ranking = await App.GetEventRanking('sprint200', true);
+    const mine = ranking.filter((r) => r.rider_name === RAW);
+    log(`[race] sprint200 ranking (incl. simulated): ${mine.length} entry for ${RAW}: ` +
+        mine.map((r) => `${r.score.toFixed(2)} s sim=${r.is_simulated} w=${r.weight} ghost=${JSON.parse(r.ghost || '[]').length}`).join(', '));
+    const official = await App.GetEventRanking('sprint200', false);
+    log(`[race] sprint200 official ranking has ${RAW}: ${official.some((r) => r.rider_name === RAW)}`);
+
+    // No power at all: the rider never moves and the race ends as not finished.
+    log(`[race] zero power: sim power ${await App.ChangePowerSimulation(-150 - (await App.ChangePowerSimulation(0)))}`);
+    await race('sprint200');
+
+    // The Zone Challenge (points) still runs its own one-minute flow.
+    log(`[race] zone challenge: sim power ${await App.ChangePowerSimulation(250 - (await App.ChangePowerSimulation(0)))}`);
+    {
+        const t0 = performance.now();
+        await cc.launchTimeTrial();
+        while (cc.activeChallenge && performance.now() - t0 < 120000) await wait(250);
+        log(`[race] timeTrial: ${result()} (wall ${((performance.now() - t0) / 1000).toFixed(1)} s)`);
+        cc.returnToEventHub();
+        const zr = await App.GetEventRanking('timeTrial', true);
+        log(`[race] timeTrial ranking entry: ${JSON.stringify(zr.filter((r) => r.rider_name === RAW).map((r) => [r.score, r.is_simulated, r.weight]))}`);
+        await wait(1500);
+    }
+
+    await cc.setFairMode(true);
+    let connectErr = 'none';
+    try { await App.ConnectVirtualTrainer(); } catch (e) { connectErr = String(e); }
+    log(`[race] fair mode on: connect simulator -> ${connectErr}; power override -> ${await App.ChangePowerSimulation(50)}; state ${JSON.stringify(await App.GetDeviceConnectionState())}`);
+    await cc.setFairMode(false);
+
+    const history = await App.GetRaceHistory(RAW);
+    for (const r of history) await App.DeleteEventRecord(r.id);
+    log(`[race] cleanup: deleted ${history.length} test records; remaining ${(await App.GetRaceHistory(RAW)).length}`);
+    log('[race] done');
+}
+
+async function runScene3DAutoCheck() {
+    const App = window.go.main.App;
+    const log = (msg) => { console.log(msg); window.runtime?.LogInfo?.(msg); };
+    // Surface page errors and console warnings in the Wails terminal during the check.
+    window.addEventListener('error', (e) => log(`[scene3d] PAGE ERROR ${e.message} @ ${e.filename}:${e.lineno}`));
+    const consoleError = console.error.bind(console), consoleWarn = console.warn.bind(console);
+    console.error = (...a) => { consoleError(...a); window.runtime?.LogInfo?.(`[scene3d] console.error ${a.map(String).join(' ').slice(0, 300)}`); };
+    console.warn = (...a) => { consoleWarn(...a); window.runtime?.LogInfo?.(`[scene3d] console.warn ${a.map(String).join(' ').slice(0, 300)}`); };
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const secs = Number(import.meta.env.VITE_SCENE3D_AUTO_SECS || 20);
+    const demo = import.meta.env.VITE_SCENE3D_AUTO === 'demo';
+    const fmt = (s) => `dist=${s.courseDistanceM.toFixed(1)} speed=${s.speedKmh.toFixed(1)} power=${s.power.toFixed(0)} ` +
+        `cadence=${s.cadence.toFixed(0)} sprint=${s.sprint.toFixed(2)} fps=${s.fps.toFixed(1)} camera=${s.camera}`;
+
+    const route = await App.GetRoutePath();
+    if (!route || route.length < 2) await App.LoadPredefinedKOMSegment();
+    if (!demo) {
+        log(`[scene3d] trainer: ${await App.ConnectVirtualTrainer()}`);
+        log(`[scene3d] session: ${await App.ToggleSession()}`);
+        log(`[scene3d] sim power: ${await App.ChangePowerSimulation(250)}`);
+    }
+    let samples = 0;
+    const countSample = () => { samples++; };
+    telemetryBus.subscribe(countSample);
+    window.ui?.toggleStudioMode?.(false);
+    document.querySelectorAll('.home-overlay.active').forEach((el) => el.classList.remove('active'));
+    const previousView = mainView;
+    setMainView('3d');
+    const scene3d = await ensureScene3D();
+    if (demo) scene3d.scene.clearRideData(); // no trainer: let the scene ride on its own physics
+    await wait(3000);
+    log(`[scene3d] telemetry samples in 3 s: ${samples}`);
+    telemetryBus.unsubscribe(countSample);
+    log(`[scene3d] start ua="${navigator.userAgent}" dpr=${window.devicePixelRatio} quality=${scene3d.qualityName}`);
+
+    await wait(secs * 1000);
+    log(`[scene3d] cruise ${fmt(scene3d.getState())}`);
+    const shot = async (tag) => {
+        const img = await scene3d.captureFrame(0.75);
+        if (img) log(`[scene3d-shot] ${tag} ${img}`);
+    };
+    await shot('chase');
+
+    // Sprint: well above FTP (simulator only; the demo forces it).
+    if (demo) scene3d.scene.setSprint(true);
+    else log(`[scene3d] sim power: ${await App.ChangePowerSimulation(500)}`);
+    await wait(4000);
+    log(`[scene3d] sprint ${fmt(scene3d.getState())}`);
+    await shot('sprint');
+    if (demo) scene3d.scene.setSprint(null);
+    else await App.ChangePowerSimulation(-500);
+
+    // Graphics presets (VITE_SCENE3D_QUALITY=1): FPS per render resolution.
+    if (import.meta.env.VITE_SCENE3D_QUALITY === '1') {
+        const previousQuality = scene3d.qualityName;
+        for (const q of ['low', 'medium', 'high']) {
+            scene3d.setQuality(q);
+            await wait(6000);
+            log(`[scene3d] quality=${q} canvas=${scene3d.scene.canvas.width}x${scene3d.scene.canvas.height} ${fmt(scene3d.getState())}`);
+            await shot(`quality_${q}`);
+        }
+        scene3d.setQuality(previousQuality);
+    }
+
+    // Stopping (pausing the session) must stop the legs too.
+    if (!demo) {
+        log(`[scene3d] pause: ${await App.ToggleSession()}`);
+        await wait(6000);
+        log(`[scene3d] after stop: ${fmt(scene3d.getState())}`);
+    }
+
+    // View switching: the scene must render only in the 3D view and never add contexts.
+    const canvases = () => document.querySelectorAll('canvas').length;
+    const before = canvases();
+    let wrong = 0;
+    log(`[scene3d] switch-test start canvases=${before}`);
+    for (let i = 0; i < 50; i++) {
+        for (const [view, expect] of [['map', false], ['dashboard', false], ['3d', true]]) {
+            setMainView(view);
+            await wait(120);
+            if (scene3d.isRendering !== expect) wrong++;
+        }
+    }
+    await wait(2000);
+    log(`[scene3d] switch-test done cycles=50 wrongStates=${wrong} canvases=${canvases()} (before ${before}) ` +
+        `fpsAfter=${scene3d.getState().fps.toFixed(0)} rendering3d=${scene3d.isRendering}`);
+    const markerShown = () => {
+        const m = document.querySelector('#map-container .maplibregl-marker');
+        return m ? getComputedStyle(m).display !== 'none' : 'no-marker';
+    };
+    log(`[scene3d] 3d view marker shown=${markerShown()}`);
+    setMainView('map');
+    await wait(500);
+    log(`[scene3d] map view rendering=${scene3d.isRendering} marker shown=${markerShown()}`);
+    setMainView(previousView);
+    if (!demo) {
+        await App.DiscardSession();
+        await App.DisconnectTrainer();
+    }
+    log('[scene3d] done');
+}
 
 // =======================
 // TAB NAVIGATION (GLOBAL)
@@ -1497,6 +1932,8 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
         if (status === "RECORDING") {
             ui.setRecordingState('RECORDING');
             window.isRecording = true;
+            // Event modes load their own route (e.g. the KOM segment) right before starting.
+            if (window.scene3d) window.scene3d.refreshRoute();
         }
         else if (status === "PAUSED") {
             ui.setRecordingState('PAUSED');
@@ -1523,7 +1960,7 @@ if (window.runtime && !Capacitor.isNativePlatform()) {
 
     window.runtime.EventsOn("telemetry_update", (data) => {
         telemetryBus.publish(data);
-        if (window.mapController) window.mapController.updateCyclistPosition(data.lat, data.lon, data.speed, data);
+        updateMapPosition(data);
     });
 
     window.runtime.EventsOn("cooldown_update", (data) => {

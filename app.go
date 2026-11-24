@@ -76,20 +76,28 @@ type App struct {
 	isHRConnected      bool
 	isVirtualTrainer   bool
 	currentDist        float64
-	telemetryChan      chan domain.Telemetry
-	cancelSim          context.CancelFunc
+	currentSpeed       float64 // m/s, integrated with inertia by physicsEngine.Step
+	// fairMode is the operator lock for public events: the simulator and its
+	// power override are disabled, so every result comes from a real trainer.
+	fairMode bool
+	// eventRiderWeight is the visitor's weight for the next event race (0 = use the
+	// profile). Applied when the session starts, so a profile reload in between
+	// cannot change it; cleared when the session ends.
+	eventRiderWeight float64
+	telemetryChan    chan domain.Telemetry
+	cancelSim        context.CancelFunc
 
 	// Session metadata
-	currentRouteName     string    // Selected GPX route name
-	sessionStart         time.Time // Session start time (for duration calculation)
-	sessionActiveTime    float64
-	sessionPowerSum      uint64 // Sum of power samples (for average power)
-	sessionTicks         int    // Number of power samples
-	sessionPowerData     []int
-	sessionHRData        []int // Array to store HR history second-by-second
+	currentRouteName  string    // Selected GPX route name
+	sessionStart      time.Time // Session start time (for duration calculation)
+	sessionActiveTime float64
+	sessionPowerSum   uint64 // Sum of power samples (for average power)
+	sessionTicks      int    // Number of power samples
+	sessionPowerData  []int
+	sessionHRData     []int // Array to store HR history second-by-second
 	// sessionSampler turns ~3 Hz BLE notifications into the 1 Hz series that
 	// sessionPowerData/sessionHRData must hold for the metrics.
-	sessionSampler fit.SecondResampler
+	sessionSampler       fit.SecondResampler
 	simPower             int16
 	sessionElevationGain float64
 	lastAltitude         float64
@@ -670,6 +678,9 @@ func (a *App) ConnectTrainer(macAddress string) (string, error) {
 // ConnectVirtualTrainer overrides the real BLE service with a mock generator
 // to allow software testing and presentation without physical hardware.
 func (a *App) ConnectVirtualTrainer() (string, error) {
+	if a.fairMode {
+		return "Simulator disabled", fmt.Errorf("Fair Mode is on: the simulator is disabled")
+	}
 	if a.isTrainerConnected {
 		// If something is already connected (real or another mock), disconnect it first.
 		a.trainerService.Disconnect()
@@ -766,10 +777,12 @@ func (a *App) startSession() string {
 		a.isInWorkout = false
 	}
 
+	a.applyEventRiderWeight()
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
 	a.sessionSampler = fit.SecondResampler{}
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionStart = time.Now()
 	a.sessionActiveTime = 0
 	a.workoutStartTimeOffset = 0
@@ -1010,6 +1023,7 @@ func (a *App) FinishSession() (SessionSummary, error) {
 	a.isRecording = false
 	a.isPaused = false
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionPowerData = []int{}
 	a.sessionHRData = []int{}
 	a.sessionSampler = fit.SecondResampler{}
@@ -1042,12 +1056,15 @@ func (a *App) DiscardSession() string {
 	}
 	a.cancelSim = nil
 
+	a.clearEventRiderWeight()
+
 	// Para o fluxo de telemetria (BLE mock) sem desconectar hardware
 	if a.trainerService != nil {
 		a.trainerService.UnsubscribeStats()
 	}
 
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionPowerData = nil
 	a.sessionHRData = nil
 	a.sessionSampler = fit.SecondResampler{}
@@ -1156,6 +1173,7 @@ func (a *App) RecoverPendingSession() (SessionSummary, error) {
 	a.sessionPowerSum = 0
 	a.sessionTicks = 0
 	a.currentDist = 0
+	a.currentSpeed = 0
 	a.sessionElevationGain = 0.0
 	a.lastAltitude = -9999.0
 
@@ -1306,6 +1324,7 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 
 			if a.isPaused {
 				lastUpdate = now
+				a.currentSpeed = 0
 				runtime.EventsEmit(a.ctx, "telemetry_update", domain.Telemetry{
 					Power: currentPower, Cadence: currentCadence, HeartRate: currentHR,
 					Speed: 0, TotalDistance: a.currentDist, CurrentGrade: 0,
@@ -1471,8 +1490,12 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				activeGrade = a.currentDirectGrade
 			}
 
-			speedMs := a.physicsEngine.CalculateSpeed(float64(currentPower), activeGrade)
-			a.currentDist += speedMs * dt
+			// Inertia: speed evolves from the previous value instead of jumping to the
+			// steady state, so standing starts, coasting and grade changes feel real.
+			prevSpeed := a.currentSpeed
+			a.currentSpeed = a.physicsEngine.Step(prevSpeed, float64(currentPower), activeGrade, dt)
+			speedMs := a.currentSpeed
+			a.currentDist += (prevSpeed + speedMs) / 2 * dt
 
 			if a.lastAltitude != -9999.0 {
 				if lastRoutePos == -1.0 || routePos >= lastRoutePos {
@@ -1494,7 +1517,8 @@ func (a *App) gameLoop(ctx context.Context, input <-chan domain.Telemetry) {
 				Speed: speedMs * 3.6, TotalDistance: a.currentDist, CurrentGrade: routePoint.Grade,
 				Latitude: routePoint.Latitude, Longitude: routePoint.Longitude, Altitude: routePoint.Elevation,
 				ElevationGain: a.sessionElevationGain,
-				RiderWeight: a.physicsEngine.UserWeight,
+				RiderWeight:   a.physicsEngine.UserWeight,
+				Elapsed:       a.sessionActiveTime,
 			}
 			a.fitService.AddRecord(fullTelemetry)
 			if a.isRecording {
@@ -1548,6 +1572,11 @@ func (a *App) SetTrainerMode(mode string) {
 
 // ChangePowerSimulation is a placeholder for manual power simulation.
 func (a *App) ChangePowerSimulation(delta int) int {
+	if a.fairMode {
+		a.simPower = 0
+		a.emitFairModeRefusal()
+		return 0
+	}
 	if !a.isVirtualTrainer {
 		a.simPower = 0
 		return 0
@@ -2387,53 +2416,36 @@ func (a *App) SetBuiltInWorkout(testType string) string {
 // EVENT LEADERBOARD BINDINGS
 // ==========================
 
-// SaveEventResult is called by the frontend to persist a challenge result.
+// SaveEventResult is called by the frontend to persist a challenge result
+// (points-based modes such as the Zone Challenge; distance races use SaveRaceResult).
 func (a *App) SaveEventResult(riderName string, mode string, score float64, status string) error {
-	duration := 0
-	if a.fitService != nil {
-		duration = a.fitService.GetRecordCount()
-	}
-
-	filename := ""
-	if duration >= 5 {
-		os.MkdirAll("workouts/events", os.ModePerm)
-		filename = fmt.Sprintf("workouts/events/event_%d.fit", time.Now().UnixNano())
-		if err := a.fitService.Save(filename); err != nil {
-			fmt.Printf("Failed to generate FIT file for event: %v\n", err)
-			filename = ""
-		}
-	}
-
-	record := domain.EventRecord{
-		RiderName:        riderName,
-		EventMode:        mode,
-		Score:            score,
-		Status:           status,
-		CreatedAt:        time.Now(),
-		Filename:         filename,
-		Duration:         duration,
-		UploadedToStrava: false,
-	}
-
-	err := a.storageService.SaveEventRecord(record)
-	if err != nil {
-		return err
-	}
-
 	// Note: We intentionally do NOT save an Activity to the user's personal DB here.
 	// Event results are stored exclusively in events_ranking.db via EventRecord
 	// to keep event mode completely separate from regular user statistics and history.
+	return a.saveEventAttempt(domain.EventRecord{
+		RiderName: riderName,
+		EventMode: mode,
+		Score:     score,
+		Status:    status,
+	})
+}
 
-	return nil
+// saveEventFIT writes the live session to workouts/events and returns its path
+// ("" if it could not be written).
+func (a *App) saveEventFIT() string {
+	os.MkdirAll("workouts/events", os.ModePerm)
+	filename := fmt.Sprintf("workouts/events/event_%d.fit", time.Now().UnixNano())
+	if err := a.fitService.Save(filename); err != nil {
+		fmt.Printf("Failed to generate FIT file for event: %v\n", err)
+		return ""
+	}
+	return filename
 }
 
 // GetEventLeaderboard fetches the top N records for a specific mode.
+// Simulated attempts are excluded (see GetEventRanking).
 func (a *App) GetEventLeaderboard(mode string) []domain.EventRecord {
-	records, err := a.storageService.GetTopEventRecords(mode, 150)
-	if err != nil {
-		return []domain.EventRecord{}
-	}
-	return records
+	return a.GetEventRanking(mode, false)
 }
 
 // ResetEventLeaderboard clears the rankings for a mode (or "all").

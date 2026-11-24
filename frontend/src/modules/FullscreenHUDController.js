@@ -54,6 +54,8 @@ export class FullscreenHUDController {
             sprint: 'sprint',
             kom: 'kom',
             timeTrial: 'tt',
+            sprint200: 'sprint',
+            climb400: 'kom',
             studio: 'studio'
         };
         const activeClass = classMap[mode] || mode;
@@ -118,7 +120,9 @@ export class FullscreenHUDController {
         const map = {
             sprint: { badge: 'SPRINT', primaryLabel: 'PEAK POWER', primaryUnit: 'W', tertiaryLabel: 'CADENCE' },
             kom: { badge: 'KOM', primaryLabel: 'DISTANCE', primaryUnit: 'M', tertiaryLabel: 'GRADE' },
-            timeTrial: { badge: 'TIME TRIAL', primaryLabel: 'SCORE', primaryUnit: 'PTS', tertiaryLabel: 'MULTIPLIER' }
+            timeTrial: { badge: 'ZONE CHALLENGE', primaryLabel: 'SCORE', primaryUnit: 'PTS', tertiaryLabel: 'MULTIPLIER' },
+            sprint200: { badge: 'SPRINT 200 M', primaryLabel: 'DISTANCE', primaryUnit: 'M TO GO', tertiaryLabel: 'POWER' },
+            climb400: { badge: 'CLIMB 400 M', primaryLabel: 'DISTANCE', primaryUnit: 'M TO GO', tertiaryLabel: 'POWER' }
         };
         return map[mode] || map.sprint;
     }

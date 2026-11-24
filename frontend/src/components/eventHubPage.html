@@ -16,126 +16,172 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="eventHubPage" class="home-overlay hidden" style="z-index: 10000;">
-        <div class="home-container" style="margin-top: 6vh; width: 100%; max-width: 1200px; padding: 0 20px;">
+<div id="eventHubPage" class="home-overlay hidden ev-hub" style="z-index: 10000;"
+    aria-label="Modo evento: lista de largada">
 
-            <div style="position: relative; width: 100%; text-align: center; margin-bottom: 40px;">
-                <div class="challenge-hub-kicker"
-                    style="font-size: 0.85rem; margin-bottom: 8px; color: var(--power-color); font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">
-                    E-Sports Simulator</div>
-                <h2 style="font-size: 2.8rem; color: #fff; margin: 0; font-weight: 800; letter-spacing: -0.5px;">Choose
-                    your event</h2>
-                <button class="btn-icon-small" id="btnCloseEventHub" title="Close Event Mode"
-                    style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border:none; width: 36px; height: 36px; border-radius: 18px; color: #fff; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">✕</button>
-            </div>
-
-            <div
-                style="display: flex; gap: 30px; background: rgba(20, 20, 30, 0.45); border: 1px solid rgba(255,255,255,0.08); padding: 24px 32px; border-radius: 24px; margin-bottom: 40px; align-items: center; justify-content: space-between; flex-wrap: wrap; backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-
-                <div style="display: flex; align-items: center; gap: 20px; flex: 1; min-width: 320px;">
-                    <div id="dynamicAvatar"
-                        style="width: 64px; height: 64px; border-radius: 50%; background: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); transition: all 0.3s ease; flex-shrink: 0;">
-                        ?</div>
-                    <div class="input-group" style="margin: 0; width: 100%;">
-                        <label
-                            style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Cyclist
-                            Name & Category</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="eventRiderName" class="home-input" placeholder="Type your name"
-                                autocomplete="off"
-                                style="margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; padding: 12px 10px; border-radius: 12px; font-weight: 500; flex: 1;">
-                            <select id="eventRiderGender" class="home-input home-select"
-                                style="margin: 0; width: 110px; cursor: pointer;">
-                                <option value="G">All</option>
-                                <option value="M">Male</option>
-                                <option value="F">Female</option>
-                            </select>
-                        </div>
-                    </div>
+    <div class="ev-hub-top">
+        <div class="ev-tagline">
+            <span class="ev-tag ev-tag--accent">ARGUS CYCLIST</span>
+            <span class="ev-tag ev-tag--dark">DESAFIO DO LITORAL</span>
+        </div>
+        <div class="ev-hub-top-right">
+            <div class="ev-equip" id="eventEquip" data-state="off">
+                <div class="ev-equip-status">
+                    <span class="ev-equip-dot" aria-hidden="true"></span>
+                    <span class="ev-equip-text">
+                        <span class="ev-equip-kicker">Equipamento</span>
+                        <span id="eventTrainerStatus" class="status-indicator" role="status">Desconectado</span>
+                    </span>
                 </div>
-
-                <div style="width: 1px; height: 60px; background: rgba(255,255,255,0.1); display: block;"
-                    class="hide-mobile"></div>
-
-                <div
-                    style="flex: 1.5; display: flex; align-items: center; justify-content: space-between; min-width: 320px; gap: 15px; flex-wrap: wrap;">
-                    <div style="flex-grow: 1; min-width: 150px;">
-                        <div
-                            style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600;">
-                            Smart Equipment</div>
-                        <div id="eventTrainerStatus" class="status-indicator"
-                            style="font-weight: 800; font-size: 1.1rem; transition: color 0.3s;">Disconnected</div>
-                        <select id="eventTrainerList" class="hidden home-input home-select"
-                            style="width: 100%; margin-top: 8px; margin-bottom: 0;"></select>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                        <button id="btnEventScanTrainer" class="btn-secondary" title="Scan Hardware"
-                            style="padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; transition: all 0.25s ease;">
-                        </button>
-                        <button id="btnEventConnectVirtual" class="btn-secondary" title="Use Simulator"
-                            style="padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: rgba(0, 173, 216, 0.1); border: 1px solid rgba(0, 173, 216, 0.4); color: #00ADD8; transition: all 0.25s ease;">
-                        </button>
-                        <button id="btnEventConnectTrainer" class="btn-primary hidden"
-                            style="padding: 10px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.5); color: #22c55e; transition: all 0.25s ease;"></button>
-                        <button id="btnEventDisconnectTrainer" class="btn-danger hidden"
-                            style="padding: 10px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444; transition: all 0.25s ease;"></button>
-                    </div>
+                <div class="ev-equip-actions">
+                    <select id="eventTrainerList" class="hidden" aria-label="Rolos encontrados"></select>
+                    <button id="btnEventScanTrainer" class="ev-equip-btn" type="button"
+                        title="Procurar rolo por Bluetooth"></button>
+                    <button id="btnEventConnectTrainer" class="ev-equip-btn hidden" type="button"
+                        title="Conectar o rolo escolhido"></button>
+                    <button id="btnEventConnectVirtual" class="ev-equip-btn" type="button"
+                        title="Usar o simulador de potência"></button>
+                    <button id="btnEventDisconnectTrainer" class="ev-equip-btn hidden" type="button"
+                        title="Desconectar"></button>
                 </div>
             </div>
-
-            <div class="challenge-card-grid" style="max-width: 100%; gap: 30px;">
-
-                <button class="challenge-card challenge-sprint-card" id="btnLaunchSprint">
-                    <span class="challenge-card-mode">Sprint Mode</span>
-                    <strong>Max Power Test</strong>
-                    <span>15-second explosive blast. Generate maximum wattage and dominate the leaderboard.</span>
-                    <div class="card-cta">CLICK TO LAUNCH</div>
-                </button>
-
-                <button class="challenge-card challenge-kom-card" id="btnLaunchKOM">
-                    <span class="challenge-card-mode">Climb Mode</span>
-                    <strong>King of the Mountain</strong>
-                    <span>1-minute fixed climb. Smart resistance driven by a dynamic virtual segment.</span>
-                    <div class="card-cta">CLICK TO LAUNCH</div>
-                </button>
-
-                <button class="challenge-card challenge-tt-card" id="btnLaunchTimeTrial">
-                    <span class="challenge-card-mode">Power Accumulation Mode</span>
-                    <strong>Time Trial</strong>
-                    <span>Maximize your score by riding at higher power zones. The longer you sustain Z4-Z6, the more points you earn. No failure — just performance.</span>
-                    <div class="card-cta">CLICK TO LAUNCH</div>
-                </button>
-
-            </div>
-
-            <div style="margin-top: 50px; display: flex; justify-content: center; gap: 20px;">
-                <button id="btnEventLeaderboard"
-                    style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 14px 32px; border-radius: 99px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; gap: 10px; cursor: pointer;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='scale(1.05)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='scale(1)';">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                        <path d="M4 22h16"></path>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                    </svg>
-                    View Global Leaderboard
-                </button>
-                <button id="btnRaceHistory"
-                    style="background: rgba(56, 189, 248, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 14px 32px; border-radius: 99px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; gap: 10px; cursor: pointer;"
-                    onmouseover="this.style.background='rgba(56, 189, 248, 0.2)'; this.style.transform='scale(1.05)';"
-                    onmouseout="this.style.background='rgba(56, 189, 248, 0.1)'; this.style.transform='scale(1)';">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="12 8 12 12 14 14"></polyline>
-                        <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
-                    </svg>
-                    Race History
-                </button>
-            </div>
-
+            <button class="ev-icon-btn" id="btnCloseEventHub" type="button" title="Sair do modo evento"
+                aria-label="Sair do modo evento">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     </div>
+
+    <div class="ev-hub-main">
+        <div class="ev-hub-head">
+            <h1>LISTA DE LARGADA</h1>
+            <span>ESCOLHA O DESAFIO · ↑ ↓ E ENTER</span>
+        </div>
+
+        <div class="ev-panel ev-startlist" role="radiogroup" aria-label="Desafios">
+            <div class="ev-startlist-cols ev-label" aria-hidden="true">
+                <span>#</span><span>Prova</span><span class="ev-start-profile">Percurso</span><span>Recorde</span>
+            </div>
+
+            <button class="ev-start-row" id="btnLaunchSprint" data-mode="sprint200" type="button" role="radio"
+                aria-checked="true">
+                <span class="ev-start-badge">1</span>
+                <span class="ev-start-name">
+                    <strong>SPRINT 200 M</strong>
+                    <span>Plano, tudo ou nada. Vence o menor tempo.</span>
+                </span>
+                <span class="ev-start-profile" aria-hidden="true">
+                    <svg width="130" height="38" viewBox="0 0 130 38">
+                        <path d="M2 28 H128 V36 H2 Z" fill="rgba(255,198,46,0.18)"></path>
+                        <path d="M2 28 H128" stroke="#ffc62e" stroke-width="3" fill="none"></path>
+                    </svg>
+                </span>
+                <span class="ev-start-record" data-role="record"><strong>—</strong><span>Sem recorde ainda</span></span>
+            </button>
+
+            <button class="ev-start-row" id="btnLaunchKOM" data-mode="climb400" type="button" role="radio"
+                aria-checked="false">
+                <span class="ev-start-badge">2</span>
+                <span class="ev-start-name">
+                    <strong>SUBIDA 400 M</strong>
+                    <span>Ladeira de 3% a 6%. O rolo endurece e o seu peso conta.</span>
+                </span>
+                <span class="ev-start-profile" aria-hidden="true">
+                    <svg width="130" height="38" viewBox="0 0 130 38">
+                        <path d="M2 34 L30 30 L60 22 L95 12 L128 3 V36 H2 Z" fill="rgba(255,198,46,0.18)"></path>
+                        <path d="M2 34 L30 30 L60 22 L95 12 L128 3" stroke="#ffc62e" stroke-width="3" fill="none">
+                        </path>
+                    </svg>
+                </span>
+                <span class="ev-start-record" data-role="record"><strong>—</strong><span>Sem recorde ainda</span></span>
+            </button>
+
+            <button class="ev-start-row" id="btnLaunchTimeTrial" data-mode="timeTrial" type="button" role="radio"
+                aria-checked="false">
+                <span class="ev-start-badge">3</span>
+                <span class="ev-start-name">
+                    <strong>DESAFIO DE ZONAS 60 S</strong>
+                    <span>Um minuto para somar pontos nas zonas mais altas.</span>
+                </span>
+                <span class="ev-start-profile" aria-hidden="true">
+                    <svg width="130" height="38" viewBox="0 0 130 38">
+                        <rect x="2" y="28" width="18" height="8" fill="#9aa4b2"></rect>
+                        <rect x="24" y="24" width="18" height="12" fill="#4f9dff"></rect>
+                        <rect x="46" y="20" width="18" height="16" fill="#3fd08a"></rect>
+                        <rect x="68" y="14" width="18" height="22" fill="#ffd23d"></rect>
+                        <rect x="90" y="8" width="18" height="28" fill="#ff8c3a"></rect>
+                        <rect x="112" y="2" width="16" height="34" fill="#ff4d5e"></rect>
+                    </svg>
+                </span>
+                <span class="ev-start-record" data-role="record"><strong>—</strong><span>Sem recorde ainda</span></span>
+            </button>
+        </div>
+
+        <div class="ev-hub-bottom">
+            <div class="ev-panel ev-athlete">
+                <span class="ev-label">Atleta</span>
+                <div class="ev-athlete-fields">
+                    <label class="ev-field">Nome
+                        <input type="text" id="eventRiderName" placeholder="Digite seu nome" maxlength="24"
+                            autocomplete="off">
+                    </label>
+                    <label class="ev-field">Categoria
+                        <select id="eventRiderGender">
+                            <option value="F">Feminino</option>
+                            <option value="M">Masculino</option>
+                            <option value="G" selected>Não informar</option>
+                        </select>
+                    </label>
+                    <label class="ev-field">Peso (kg)
+                        <input type="number" id="eventRiderWeight" placeholder="kg" min="35" max="150" step="1"
+                            inputmode="numeric">
+                    </label>
+                </div>
+                <div class="ev-hub-message" id="eventHubMessage" role="alert"></div>
+            </div>
+            <button class="ev-cta" id="btnEventStart" type="button">
+                <strong>LARGAR</strong>
+                <span data-role="label">SPRINT 200 M</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="ev-hub-footer">
+        <div class="ev-hub-footer-actions">
+            <button id="btnEventLeaderboard" class="ev-btn" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"></path>
+                    <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path>
+                </svg>
+                Ranking
+            </button>
+            <button id="btnRaceHistory" class="ev-btn" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="12 8 12 12 14 14"></polyline>
+                    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
+                </svg>
+                Histórico
+            </button>
+            <button id="btnFairMode" class="ev-btn ev-btn--muted" type="button"
+                title="Trava do operador: desliga o simulador para que todo resultado venha de um rolo real">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span data-role="label">Modo Feira: desligado</span>
+            </button>
+            <button id="btnGraphicsQuality" class="ev-btn ev-btn--muted" type="button"
+                title="Resolução da cena 3D (Baixo para computadores modestos)">
+                <span data-role="label">Gráficos: Alto</span>
+            </button>
+        </div>
+        <div class="ev-hub-tip" id="eventHubTip">O ghost do recorde larga ao seu lado. Bata o tempo dele até a chegada.
+        </div>
+    </div>
+</div>

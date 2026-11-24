@@ -98,6 +98,10 @@ export function GetElevationProfile():Promise<Array<number>>;
 
 export function GetEventLeaderboard(arg1:string):Promise<Array<domain.EventRecord>>;
 
+export function GetEventRanking(arg1:string,arg2:boolean):Promise<Array<domain.EventRecord>>;
+
+export function GetFairMode():Promise<boolean>;
+
 export function GetFitnessTests():Promise<Array<domain.ActiveWorkout>>;
 
 export function GetLevelProgress():Promise<main.LevelProgress>;
@@ -148,6 +152,8 @@ export function SaveGeneratedGPX(arg1:string,arg2:Array<main.ExportPoint>):Promi
 
 export function SaveIntervalsCredentials(arg1:string,arg2:string):Promise<void>;
 
+export function SaveRaceResult(arg1:string,arg2:string,arg3:number,arg4:string):Promise<void>;
+
 export function ScanHeartRate():Promise<Array<domain.BLEDevice>>;
 
 export function ScanTrainers():Promise<Array<domain.BLEDevice>>;
@@ -161,6 +167,12 @@ export function SelectProfileImage():Promise<string>;
 export function SetBuiltInWorkout(arg1:string):Promise<string>;
 
 export function SetDirectGrade(arg1:number):Promise<void>;
+
+export function SetEventCourse(arg1:string):Promise<main.EventCourseInfo>;
+
+export function SetEventRiderWeight(arg1:number):Promise<void>;
+
+export function SetFairMode(arg1:boolean):Promise<boolean>;
 
 export function SetKOMGradeSchedule(arg1:string):Promise<string>;
 

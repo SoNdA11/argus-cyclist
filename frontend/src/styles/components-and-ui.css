@@ -145,6 +145,42 @@ button {
     background-color: var(--border-color);
 }
 
+/* --- Main view switch (3D / Map / Dashboard) --- */
+.view-switch {
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    gap: 2px;
+    border-radius: 999px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+}
+
+.view-switch button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+}
+
+.view-switch button:hover {
+    color: var(--text-main);
+}
+
+.view-switch button.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--power-color);
+}
+
 .btn-import {
     background: rgba(56, 189, 248, 0.1);
     border: 1px solid rgba(56, 189, 248, 0.3);
@@ -287,6 +323,7 @@ html:not([data-theme="satellite"]) footer {
 /* --- Map --- */
 #map-container {
     flex: 1;
+    position: relative; /* hosts the 3D scene layer */
     background-color: #2d3748;
     z-index: 1;
 }
@@ -311,6 +348,11 @@ html:not([data-theme="satellite"]) footer {
 
     filter: drop-shadow(0 0 10px var(--power-color));
     transition: filter 0.3s ease;
+}
+
+/* The 3D view covers the map: its markers (cyclist arrow) belong to the Map view only. */
+#map-container.scene3d-active .maplibregl-marker {
+    display: none;
 }
 
 .arrow-shape {

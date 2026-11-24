@@ -491,6 +491,9 @@ export namespace domain {
 	    filename: string;
 	    duration: number;
 	    uploaded_to_strava: boolean;
+	    weight: number;
+	    is_simulated: boolean;
+	    ghost: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new EventRecord(source);
@@ -507,6 +510,9 @@ export namespace domain {
 	        this.filename = source["filename"];
 	        this.duration = source["duration"];
 	        this.uploaded_to_strava = source["uploaded_to_strava"];
+	        this.weight = source["weight"];
+	        this.is_simulated = source["is_simulated"];
+	        this.ghost = source["ghost"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -872,6 +878,22 @@ export namespace main {
 		}
 	}
 	
+	export class EventCourseInfo {
+	    mode: string;
+	    distance: number;
+	    length: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EventCourseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.mode = source["mode"];
+	        this.distance = source["distance"];
+	        this.length = source["length"];
+	    }
+	}
 	export class ExportPoint {
 	    lat: number;
 	    lon: number;

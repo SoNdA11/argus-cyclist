@@ -85,7 +85,6 @@ export class UIManager {
             statTotalActivities: document.getElementById('statTotalActivities'),
 
             // --- Dashboard Elements ---
-            btnToggleView: document.getElementById('btnToggleView'),
             dashboardView: document.getElementById('dashboard-view'),
             mapContainer: document.getElementById('map-container'),
             hudSidebar: document.querySelector('.hud-sidebar'),

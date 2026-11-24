@@ -228,8 +228,8 @@ func (s *StorageFacade) SaveEventRecord(record domain.EventRecord) error {
 	return s.EventRepo.SaveEventRecord(record)
 }
 
-func (s *StorageFacade) GetTopEventRecords(mode string, limit int) ([]domain.EventRecord, error) {
-	return s.EventRepo.GetTopEventRecords(mode, limit)
+func (s *StorageFacade) GetTopEventRecords(mode string, limit int, ascending, includeSimulated bool) ([]domain.EventRecord, error) {
+	return s.EventRepo.GetTopEventRecords(mode, limit, ascending, includeSimulated)
 }
 
 func (s *StorageFacade) ResetEventLeaderboard(mode string) error {
