@@ -1048,12 +1048,49 @@ function setCourse(profile){
   }
   if(had||course){for(const[,c]of chunks){gl.deleteBuffer(c.g.buf);gl.deleteVertexArray(c.g.vao);}chunks.clear();ensureChunks(99);}
 }
+// [Argus app] distance-to-go boards every MARK_STEP m on the right shoulder, facing the rider:
+// navy board, yellow seven-segment digits and a small "m", on a wooden post.
+const MARK_STEP=100;
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcfgd'};
+function buildMarker(mb,s,meters){
+  const Q=gateFrame(s),D=7.1,BW=0.95,B0=1.55,B1=2.45,y=COL_MARK.ink,front=-0.035;
+  const g=groundY(s,D)-terr(s)-0.3;
+  tube(mb,Q(D,g),Q(D,B0+0.1),0.07,0.06,6,M(GATE.post,null,s,{w:0}));
+  const quad=(d0,d1,h0,h1,fw,col)=>mb.quad(Q(d0,h0,fw),Q(d1,h0,fw),Q(d1,h1,fw),Q(d0,h1,fw),M(col,null,s,{w:0}));
+  for(const fw of[-0.02,0.02]){quad(D-BW,D+BW,B0,B1,fw,GATE.navy);}
+  quad(D-BW,D+BW,B1-0.08,B1,front,y);quad(D-BW,D+BW,B0,B0+0.08,front,y); // yellow edges
+  // digits, centered with the unit
+  const txt=String(meters),dw=0.3,dh=0.52,t=0.065,gap=0.1,mw=0.26;
+  const total=txt.length*dw+(txt.length-1)*gap+0.14+mw;
+  let x=D-total/2;const h0=(B0+B1)/2-dh/2;
+  const bar=(x0,x1,y0,y1)=>quad(x0,x1,y0,y1,front,y);
+  for(const ch of txt){
+    const on=SEG[ch]||'',X0=x,X1=x+dw,Y0=h0,Y1=h0+dh,Ym=h0+dh/2;
+    if(on.includes('a'))bar(X0,X1,Y1-t,Y1);
+    if(on.includes('g'))bar(X0,X1,Ym-t/2,Ym+t/2);
+    if(on.includes('d'))bar(X0,X1,Y0,Y0+t);
+    if(on.includes('f'))bar(X0,X0+t,Ym,Y1);
+    if(on.includes('e'))bar(X0,X0+t,Y0,Ym);
+    if(on.includes('b'))bar(X1-t,X1,Ym,Y1);
+    if(on.includes('c'))bar(X1-t,X1,Y0,Ym);
+    x+=dw+gap;
+  }
+  // lowercase "m": three stems and a top bar, half height
+  x+=0.14-gap;const mh=dh*0.55,mt=0.05;
+  bar(x,x+mw,h0+mh-mt,h0+mh);
+  for(const k of[0,0.5,1]){const sx=x+k*(mw-mt);bar(sx,sx+mt,h0,h0+mh);}
+}
+const COL_MARK={ink:cc('#ffcc2e')};
 function setGates(race){
   if(gates){gl.deleteBuffer(gates.g.buf);gl.deleteVertexArray(gates.g.vao);gates=null;}
   if(!race)return;
   const mb=new MB();
   if(Number.isFinite(race.start))buildGate(mb,origin+race.start,false);
   if(Number.isFinite(race.finish))buildGate(mb,origin+race.finish,true);
+  if(Number.isFinite(race.finish)){
+    const st0=Number.isFinite(race.start)?race.start:0;
+    for(let togo=MARK_STEP;race.finish-togo>st0+10;togo+=MARK_STEP)buildMarker(mb,origin+race.finish-togo,togo);
+  }
   if(mb.a.length)gates={g:mb.upload()};
 }
 
