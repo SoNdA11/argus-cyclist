@@ -58,6 +58,8 @@ export interface ArgusGhostSample {
 export interface ArgusRace {
   start?: number;
   finish?: number;
+  /** [Argus app] Course elevation from the start line (m); the road follows it during the race. */
+  profile?: { d: number; h: number }[];
 }
 
 export interface ArgusSceneState {

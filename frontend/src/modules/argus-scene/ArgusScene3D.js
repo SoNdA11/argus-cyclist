@@ -13,9 +13,9 @@
 // own internal physics is never used, so it never looks like phantom power). When the
 // samples stop (pause, end of session) the rider brakes to a stop after STALE_MS.
 //
-// The scene's visual terrain is procedural: route grades keep coming from the app's route
-// (the trainer and the records are unchanged); only the distance is shared, so the race
-// gates and the record ghost sit at the right meters.
+// The scene's visual terrain is procedural, except during a race: then the road follows the
+// course's elevation profile (setRace's `profile`). The distance is shared, so the race gates
+// and the record ghost sit at the right meters.
 //
 // The legs turn only while the rider produces power (see animatedCadence); with no power
 // the bike may still roll (coasting) with the legs still, and below ~1.6 km/h the rider
@@ -201,11 +201,12 @@ export class ArgusScene3D {
      * Race furniture: start/finish gates and, when given, the record ghost replaying a
      * recorded attempt. `clock()` returns the race time in seconds (0 before GO).
      * Call after resetRide(): the gates are placed relative to the current start line.
-     * @param {{start?: number, finish: number, ghost?: import('../GhostTrack.js').GhostTrack, ghostLabel?: string, clock: () => number}} race
+     * `profile` ([{d, h}] from the start line) shapes the road: flat sprint, uphill climb.
+     * @param {{start?: number, finish: number, profile?: {d: number, h: number}[], ghost?: import('../GhostTrack.js').GhostTrack, ghostLabel?: string, clock: () => number}} race
      */
     setRace(race) {
         if (!this.scene) return;
-        this.scene.setRace({ start: race.start, finish: race.finish });
+        this.scene.setRace({ start: race.start, finish: race.finish, profile: race.profile });
         this.hasGates = true;
         const ghost = race.ghost;
         if (ghost && ghost.valid) {

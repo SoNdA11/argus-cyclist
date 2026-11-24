@@ -237,7 +237,20 @@ function boxR(mb,c,hx,hy,hz,ry,m){
 }
 
 // ================= world
-const terr=s=>3.5*Math.sin(s/190)+1.6*Math.sin(s/71+1.3)+0.35*Math.sin(s/29+0.4);
+const terrBase=s=>3.5*Math.sin(s/190)+1.6*Math.sin(s/71+1.3)+0.35*Math.sin(s/29+0.4);
+// [Argus app] race relief: while a race is set the road follows the course's elevation profile
+// from the start line on (flat sprint, climb only uphill), continuing at the last grade after
+// the runout; behind the line it eases from the procedural terrain to the start level.
+let course=null; // {origin, base, d:[m], h:[m from the start], tail: grade (m/m)}
+function courseY(s){
+  const c=course,x=s-c.origin;
+  if(x<=0)return lerp(terrBase(s),c.base,smooth(-160,-30,x));
+  const d=c.d,h=c.h,n=d.length-1;
+  if(x>=d[n])return c.base+h[n]+(x-d[n])*c.tail;
+  let lo=0,hi=n;while(hi-lo>1){const m=(lo+hi)>>1;if(d[m]<=x)lo=m;else hi=m;}
+  return c.base+h[lo]+(h[hi]-h[lo])*(x-d[lo])/Math.max(1e-6,d[hi]-d[lo]);
+}
+const terr=s=>course?courseY(s):terrBase(s);
 const terrD=s=>(terr(s+0.5)-terr(s-0.5));
 const roadX=s=>18*Math.sin(s/260)+7*Math.sin(s/97+0.5);
 const roadXD=s=>(roadX(s+0.5)-roadX(s-0.5));
@@ -1024,6 +1037,17 @@ function buildGate(mb,s,finish){
   for(let i=0;i<ln;i++)for(let j=0;j<(finish?2:1);j++){const d0=-4.2+8.4*i/ln,d1=-4.2+8.4*(i+1)/ln,s0=s+j*0.5,s1=s0+(finish?0.5:0.45);
     mb.quad(R(d0,s0),R(d1,s0),R(d1,s1),R(d0,s1),M(finish&&(i+j)%2?GATE.black:COL.white,null,s,{w:0}));}
 }
+// [Argus app] profile: [{d, h}] (m from the start line, elevation m), ascending in d
+function setCourse(profile){
+  const pts=Array.isArray(profile)?profile.filter(p=>Number.isFinite(+p.d)&&Number.isFinite(+p.h)):[];
+  const had=!!course;
+  if(pts.length<2)course=null;
+  else{
+    const d=pts.map(p=>+p.d),h=pts.map(p=>+p.h-(+pts[0].h)),n=d.length-1;
+    course={origin,base:terrBase(origin),d,h,tail:d[n]>d[n-1]?(h[n]-h[n-1])/(d[n]-d[n-1]):0};
+  }
+  if(had||course){for(const[,c]of chunks){gl.deleteBuffer(c.g.buf);gl.deleteVertexArray(c.g.vao);}chunks.clear();ensureChunks(99);}
+}
 function setGates(race){
   if(gates){gl.deleteBuffer(gates.g.buf);gl.deleteVertexArray(gates.g.vao);gates=null;}
   if(!race)return;
@@ -1058,9 +1082,9 @@ const api={
   resetRide(){origin=st.dist;originLocked=true;st.v=0;EXT.power=0;EXT.cadence=0;EXT.speed=0;EXT.dist=0;EXT.distT=performance.now()/1000;},
   // [Argus app] stopped immediately (no braking), e.g. when the app opens without a session
   halt(){st.v=0;st.P=0;st.cad=0;st.sprint=0;st.sprV=0;st.standOn=true;st.stand=1;st.stV=0;st.crank=CRANK_READY;EXT.power=0;EXT.cadence=0;EXT.speed=0;},
-  setRace(race){setGates(race||null);},
+  setRace(race){setCourse(race?.profile);setGates(race||null);},
   setGhost(provider,label){GH.provider=typeof provider==='function'?provider:null;GH.label=label||null;if(!GH.provider)GH.visible=false;},
-  clearRace(){setGates(null);GH.provider=null;GH.label=null;GH.visible=false;},
+  clearRace(){setCourse(null);setGates(null);GH.provider=null;GH.label=null;GH.visible=false;},
   setFtp(w){if(Number.isFinite(+w)&&+w>0)FTP=+w;},
   setPixelRatio(r){if(Number.isFinite(+r)&&+r>0){OPT.maxPixelRatio=+r;resize();}},
   // [Argus app] supersampling: resolution = devicePixelRatio × scale (capped by maxPixelRatio)
