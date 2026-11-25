@@ -327,50 +327,53 @@ export class UIManager {
 
         const option = {
             animation: false,
+            backgroundColor: 'transparent',
             tooltip: { trigger: 'axis' },
-            legend: {
-                data: ['Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
-                textStyle: { color: '#ccc' },
-                top: 0
-            },
-            grid: { left: '3%', right: '3%', bottom: '5%', top: 40, containLabel: true },
+            // The legend lives in the panel header (index.html).
+            legend: { show: false, data: ['Power (W)', 'Heart rate (bpm)', 'Cadence (rpm)'] },
+            grid: { left: 8, right: 28, bottom: 4, top: 28, containLabel: true },
             xAxis: {
                 type: 'category',
                 boundaryGap: false,
                 data: this.liveTimeData,
-                axisLabel: { color: '#888' },
+                axisLabel: { color: '#9fb2c9' },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.18)' } },
                 splitLine: { show: false }
             },
             yAxis: [
                 {
                     type: 'value',
-                    name: 'Watts',
                     position: 'left',
-                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                    nameTextStyle: { color: '#9fb2c9' },
+                    axisLabel: { color: '#9fb2c9' },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)' } }
                 },
                 {
                     type: 'value',
-                    name: 'BPM / RPM',
                     position: 'right',
+                    nameTextStyle: { color: '#9fb2c9' },
+                    axisLabel: { color: '#9fb2c9' },
                     splitLine: { show: false }
                 }
             ],
             series: [
                 {
-                    name: 'Power (w)',
+                    name: 'Power (W)',
                     type: 'line',
                     yAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#f1c40f' },
-                    areaStyle: { color: 'rgba(241, 196, 15, 0.1)' },
+                    itemStyle: { color: '#19ecd6' },
+                    lineStyle: { width: 2.5 },
+                    areaStyle: { color: 'rgba(25, 236, 214, 0.10)' },
                     data: this.livePowerData
                 },
                 {
-                    name: 'Heart Rate (bpm)',
+                    name: 'Heart rate (bpm)',
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#e74c3c' },
+                    itemStyle: { color: '#ff6b6f' },
+                    lineStyle: { width: 2.5 },
                     smooth: true,
                     data: this.liveHrData
                 },
@@ -379,7 +382,8 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#3498db' },
+                    itemStyle: { color: '#4c95f2' },
+                    lineStyle: { width: 2, type: 'dashed' },
                     smooth: true,
                     data: this.liveCadenceData
                 }
@@ -644,10 +648,10 @@ export class UIManager {
 
         // --- NEW: Update Dashboard Mode Data & Chart ---
         if (this.isDashboardMode) {
-            this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">w</span>`;
+            this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">W</span>`;
             this.els.dashPower.style.color = powerColor;
 
-            this.els.dashWkg.innerText = `${wkgVal} w/kg`;
+            if (!window.workoutCtrl?.activeWorkout) this.els.dashWkg.innerText = `${wkgVal} W/kg`;
 
             this.els.dashHr.innerHTML = `${data.heart_rate}<span class="dash-unit">bpm</span>`;
             this.els.dashHr.style.color = hrColor;
@@ -716,10 +720,10 @@ export class UIManager {
         this.updateTimerDisplay();
 
         if (this.els.dashPower) {
-            this.els.dashPower.innerHTML = `0<span class="dash-unit">w</span>`;
+            this.els.dashPower.innerHTML = `0<span class="dash-unit">W</span>`;
             this.els.dashPower.style.color = '';
         }
-        if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 w/kg`;
+        if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 W/kg`;
         if (this.els.dashHr) {
             this.els.dashHr.innerHTML = `--<span class="dash-unit">bpm</span>`;
             this.els.dashHr.style.color = '';

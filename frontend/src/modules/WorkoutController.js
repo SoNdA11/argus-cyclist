@@ -102,6 +102,7 @@ export class WorkoutController {
         console.log("WORKOUT: Loading...", workout);
         this.activeWorkout = workout;
         this.panel.classList.remove('hidden');
+        this.setStudioWorkoutInfo(this.getProp(workout, ['name', 'Name', 'title', 'Title']) || 'WORKOUT', 0);
 
         if (this.list) this.list.classList.remove('hidden');
         const actions = document.getElementById('workout-completion-actions');
@@ -156,6 +157,7 @@ export class WorkoutController {
     hide() {
         this.panel.classList.add('hidden');
         this.activeWorkout = null;
+        this.setStudioWorkoutInfo(null, 0);
         this.stopMobileWorkoutLoop();
 
         document.getElementById('map-container').style.display = '';
@@ -316,21 +318,21 @@ export class WorkoutController {
 
         if (isFreeRide) {
             this.elTarget.innerText = "FREE RIDE";
-            this.elTarget.style.color = "#3498db";
+            this.elTarget.style.color = "";
             this.elMessage.innerText = "FREE RIDE - CONTROL YOUR GEARS";
-            this.elMessage.style.color = "#3498db";
+            this.elMessage.style.color = "";
             
             if (window.ui && window.ui.els.studioTarget) {
                 window.ui.els.studioTarget.innerText = "FREE RIDE";
-                window.ui.els.studioTarget.style.color = "#3498db";
+                window.ui.els.studioTarget.style.color = "";
             }
         } else {
-            this.elTarget.innerText = `${targetPower}w`;
+            this.elTarget.innerText = `${targetPower} W`;
             this.elTarget.style.color = "";
             this.elMessage.style.color = "";
 
             if (window.ui && window.ui.els.studioTarget) {
-                window.ui.els.studioTarget.innerText = `${targetPower}W`;
+                window.ui.els.studioTarget.innerText = `${targetPower} W`;
                 window.ui.els.studioTarget.style.color = "";
             }
         }
@@ -339,9 +341,9 @@ export class WorkoutController {
             const dashPowerSub = document.getElementById('dash-wkg');
             if (dashPowerSub) {
                 if (isFreeRide) {
-                    dashPowerSub.innerHTML = `<span style="color:#3498db; font-weight:bold; font-size:1.1rem; letter-spacing:1px;">TARGET: FREE RIDE</span>`;
+                    dashPowerSub.innerHTML = `<span class="ar-dash-target">TARGET: FREE RIDE</span>`;
                 } else {
-                    dashPowerSub.innerHTML = `<span style="color:#f1c40f; font-weight:bold; font-size:1.1rem; letter-spacing:1px;">TARGET: ${targetPower} W</span>`;
+                    dashPowerSub.innerHTML = `<span class="ar-dash-target">TARGET ${targetPower} W</span>`;
                 }
             }
         }
@@ -408,6 +410,37 @@ export class WorkoutController {
             currentProg.style.width = `${pct}%`;
         }
         this.renderGraph(completionPct);
+        this.setStudioWorkoutInfo(undefined, completionPct);
+    }
+
+    /**
+     * Studio header tag and progress bar. name: string to show, null for no workout,
+     * undefined to keep the current one; pct: workout completion 0-100.
+     */
+    setStudioWorkoutInfo(name, pct) {
+        const tag = document.getElementById('arStudioWorkoutName');
+        const text = document.getElementById('arStudioProgressText');
+        const pctEl = document.getElementById('arStudioProgressPct');
+        const bar = document.getElementById('arStudioProgressBar');
+        if (name !== undefined && tag) tag.textContent = name ? String(name).toUpperCase() : 'FREE RIDE';
+        document.querySelector('.ar-studio-tip')?.classList.toggle('hidden', !!this.activeWorkout);
+        document.getElementById('studio-hud')?.classList.toggle('has-workout', !!this.activeWorkout);
+        if (!this.activeWorkout) {
+            if (text) text.textContent = 'No workout loaded';
+            if (pctEl) pctEl.textContent = '';
+            if (bar) bar.style.width = '0%';
+            const label = document.getElementById('studio-timer-label');
+            if (label && name === null) label.textContent = 'FREE RIDE';
+            return;
+        }
+        const segments = this.getProp(this.activeWorkout, ['segments', 'Segments']) || [];
+        const total = this.getProp(this.activeWorkout, ['total_duration', 'TotalDuration']) ||
+            segments.reduce((acc, seg) => acc + (this.getProp(seg, ['duration', 'DurationSeconds', 'Duration']) || 0), 0);
+        const p = Math.max(0, Math.min(100, pct || 0));
+        const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+        if (text) text.textContent = total ? `${fmt(total * p / 100)} of ${fmt(total)}` : 'Workout';
+        if (pctEl) pctEl.textContent = `${Math.floor(p)}%`;
+        if (bar) bar.style.width = `${p}%`;
     }
 
     renderGraph(completionPct) {
@@ -447,7 +480,7 @@ export class WorkoutController {
         const w = canvas.width;
         const h = canvas.height;
 
-        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.fillStyle = "rgba(255,255,255,0.03)";
         ctx.fillRect(0, 0, w, h);
 
         let x = 0;
@@ -507,11 +540,12 @@ export class WorkoutController {
     getZoneColor(factor) {
         const zone = this.getZone(factor);
         switch (zone) {
-            case 1: return "#7f8c8d";
-            case 2: return "#3498db";
-            case 3: return "#2ecc71";
-            case 4: return "#f1c40f";
-            case 5: return "#e74c3c";
+            // Zone tokens of argus-ui.css (--ar-z1 … --ar-z5).
+            case 1: return "#9aa4b2";
+            case 2: return "#4f9dff";
+            case 3: return "#3fd08a";
+            case 4: return "#ffd23d";
+            case 5: return "#ff8c3a";
             default: return "#fff";
         }
     }

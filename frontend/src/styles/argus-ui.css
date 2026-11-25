@@ -880,3 +880,295 @@ body.ar-shell .view-switch .view-label { font: inherit; letter-spacing: inherit;
     body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: min(700px, calc(100% - var(--ar-elev-w) - 304px)); }
     body.ar-shell:has(#workout-panel:not(.hidden)) > footer { right: 259px; }
 }
+
+/* Workout plan open on a mid-size window: metrics stack above the elevation panel. */
+@media (max-width: 1400px) {
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: calc(100% - 348px); bottom: 168px; }
+    body.ar-shell:has(#workout-panel:not(.hidden)) > footer { left: 24px; width: auto; }
+}
+
+/* The dashboard has its own layout (phase 3): no floating elevation panel over it. */
+body.ar-shell[data-view="dashboard"] > footer { display: none; }
+
+/* ======================================================================
+   Live dashboard (index.html #dashboard-view)
+   ====================================================================== */
+
+.ar-legend { display: flex; gap: 14px; font-family: var(--ar-body); font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--ar-soft); }
+.ar-legend > span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ar-legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; }
+.ar-legend i.ar-legend-dash { height: 0; border-top: 3px dashed currentColor; }
+
+body.ar-shell .dashboard-container.ar-dash {
+    top: 0;
+    padding: 20px 24px 24px;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    font-family: var(--ar-body);
+}
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-dash { right: 300px; }
+.ar-dash .dash-layout { max-width: none; gap: 16px; }
+
+.ar-dash .dash-metrics-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    padding: 14px 0;
+    container-type: inline-size;
+}
+.ar-dash .dash-card {
+    min-width: 0;
+    padding: 4px 8px;
+    gap: 4px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+.ar-dash .dash-card + .dash-card { border-left: 1px solid var(--ar-line); }
+.ar-dash .dash-card.power-card { box-shadow: inset 0 -4px 0 var(--ar-accent); }
+.ar-dash .dash-label {
+    margin: 0;
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: var(--ar-muted);
+    white-space: nowrap;
+}
+.ar-dash .dash-value {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: clamp(24px, 3.5cqw, 54px);
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-text);
+    white-space: nowrap;
+}
+.ar-dash .dash-unit { margin-left: 3px; font-family: var(--ar-display); font-weight: 600; font-size: 0.42em; color: var(--ar-muted); }
+.ar-dash .dash-sub { margin: 0; font-family: var(--ar-body); font-size: 12px; font-weight: 600; color: var(--ar-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ar-dash .dash-sub .ar-dash-target { color: var(--ar-info); font-weight: 700; letter-spacing: 1px; }
+
+.ar-dash .dash-chart-section { gap: 0; background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-dash .dash-chart-body { padding: 8px 12px 4px; min-height: 0; }
+.ar-dash #liveDashboardChart { position: absolute; inset: 8px 12px 4px; }
+
+@media (max-width: 1100px) {
+    .ar-dash .ar-legend { display: none; }
+}
+
+/* ======================================================================
+   Workout plan (index.html #workout-panel)
+   ====================================================================== */
+
+body.ar-shell .hud-sidebar.right-panel.ar-workout {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--ar-glass-strong);
+    border: 0;
+    border-left: 1px solid var(--ar-line);
+    backdrop-filter: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-workout .workout-fixed-top { background: transparent; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .panel-header.ar-panel-head { padding: 8px 10px 8px 16px; }
+.ar-workout .panel-header h3 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 16px; letter-spacing: 2px; color: var(--ar-text); }
+.ar-workout .panel-header .ar-icon-btn { width: 32px; height: 32px; background: transparent; color: var(--ar-soft); }
+.ar-workout .panel-header .ar-icon-btn:hover { background: rgba(255, 107, 111, 0.15); color: var(--ar-bad); }
+
+.ar-workout .current-segment-stats { padding: 12px 0; gap: 0; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .stat-box { gap: 2px; padding: 0; background: none; border: 0; border-radius: 0; }
+.ar-workout .stat-box + .stat-box { border-left: 1px solid var(--ar-line); }
+.ar-workout .stat-box .label { margin: 0; font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--ar-muted); }
+.ar-workout .stat-box .value { font-family: var(--ar-display); font-weight: 800; font-size: 40px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+.ar-workout .ar-wo-target .label, .ar-workout .ar-wo-target .value { color: var(--ar-info); }
+
+.ar-workout .intensity-control-row { padding: 10px 16px; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .intensity-control-row .label { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--ar-muted); }
+.ar-workout .intensity-actions .value { width: 64px; font-family: var(--ar-display); font-weight: 800; font-size: 24px; color: var(--ar-accent); }
+.ar-workout .btn-intensity.ar-icon-btn { width: 36px; height: 36px; font-size: 20px; font-weight: 600; }
+.ar-workout .btn-intensity.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--ar-line-2); color: var(--ar-text); }
+
+.ar-workout #workout-graph-container { height: 104px; padding: 8px 12px; background: transparent; border: 0; border-bottom: 1px solid var(--ar-line); }
+
+.ar-workout .ar-wo-progress { display: flex; justify-content: space-between; gap: 8px; padding: 8px 16px; font-size: 12px; color: var(--ar-muted); }
+.ar-workout .ar-wo-progress strong { color: var(--ar-text); font-weight: 600; }
+.ar-workout .hud-message { padding: 4px 16px 12px; font-family: var(--ar-display); font-weight: 700; font-size: 18px; letter-spacing: 1.5px; color: var(--ar-info); }
+
+.ar-workout #workout-list { padding: 0; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
+.ar-workout .workout-segment {
+    margin: 0;
+    padding: 11px 16px 11px 13px;
+    border-radius: 0;
+    border-left: 4px solid var(--ar-z1);
+    border-bottom: 1px solid var(--ar-line);
+    background: transparent;
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-soft);
+}
+.ar-workout .workout-segment.zone-2 { border-left-color: var(--ar-z2); }
+.ar-workout .workout-segment.zone-3 { border-left-color: var(--ar-z3); }
+.ar-workout .workout-segment.zone-4 { border-left-color: var(--ar-z4); }
+.ar-workout .workout-segment.zone-5 { border-left-color: var(--ar-z5); }
+.ar-workout .workout-segment.zone-6 { border-left-color: var(--ar-z6); }
+.ar-workout .segment-info, .ar-workout .segment-duration { text-shadow: none; }
+.ar-workout .segment-duration { font-family: var(--ar-body); font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+.ar-workout .segment-progress-fill { background: rgba(255, 255, 255, 0.06); }
+.ar-workout .workout-segment.active { border-top: 0; border-right: 0; background: var(--ar-accent); color: var(--ar-navy); }
+.ar-workout .workout-segment.active .segment-duration { color: var(--ar-navy); }
+.ar-workout .workout-segment.active .segment-progress-fill { background: rgba(10, 26, 54, 0.18); }
+
+.ar-wo-actions { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.ar-wo-actions.hidden { display: none; }
+.ar-wo-actions button { width: 100%; }
+
+/* ======================================================================
+   Studio (studioHudOverlay.html) — overrides the legacy studio-hud.css
+   ====================================================================== */
+
+.studio-hud.ar-studio {
+    --ar-zone: var(--ar-z1);
+    padding: 24px 32px 32px;
+    gap: 20px;
+    background: radial-gradient(ellipse 55% 45% at 50% 40%, rgba(25, 236, 214, 0.06), transparent 70%), var(--ar-bg);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.studio-hud.ar-studio.zone-2 { --ar-zone: var(--ar-z2); }
+.studio-hud.ar-studio.zone-3 { --ar-zone: var(--ar-z3); }
+.studio-hud.ar-studio.zone-4 { --ar-zone: var(--ar-z4); }
+.studio-hud.ar-studio.zone-5 { --ar-zone: var(--ar-z5); }
+.studio-hud.ar-studio.zone-6 { --ar-zone: var(--ar-z6); }
+
+.ar-studio .hud-glow, .ar-studio-unused { display: none !important; }
+
+/* Top bar */
+.ar-studio .hud-bar.ar-studio-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+.ar-studio .hud-bar-left.ar-tagline { gap: 0; }
+.ar-studio .hud-badge.ar-tag { color: var(--ar-navy); background: var(--ar-accent); border: 0; border-radius: 0; box-shadow: none; animation: none; }
+.ar-studio #arStudioWorkoutName { max-width: 420px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; }
+.ar-studio .hud-rider:empty, .ar-studio .hud-state:empty { display: none; }
+.ar-studio .hud-bar-right { display: flex; gap: 10px; }
+.ar-studio .hud-bar-right .hidden { display: none; }
+
+/* Three panels */
+.ar-studio-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 20px;
+}
+.ar-studio-grid > .ar-panel { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+.ar-studio-block-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.ar-studio-block-name { font-family: var(--ar-display); font-weight: 700; font-size: 32px; letter-spacing: 1px; line-height: 1; text-transform: uppercase; }
+.ar-studio .hud-hub-target { flex-direction: column; align-items: flex-start; gap: 2px; margin: 0; padding: 0; background: none; border: 0; }
+.ar-studio-target-lbl { color: var(--ar-info) !important; }
+.ar-studio-target { font-family: var(--ar-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-info) !important; white-space: nowrap; }
+.ar-studio .hud-graph-box.ar-studio-graph { flex: 1; min-height: 64px; max-height: 280px; position: relative; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.ar-studio-graph canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.ar-studio-power {
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 22px;
+    box-shadow: inset 0 -6px 0 var(--ar-zone);
+}
+.ar-studio-power-val { display: flex; align-items: baseline; gap: 10px; line-height: 0.9; }
+.ar-studio #studio-power {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: clamp(96px, 18vh, 200px);
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-text) !important;
+}
+.ar-studio-power-unit { font-family: var(--ar-display); font-weight: 600; font-size: clamp(32px, 5vh, 52px); color: var(--ar-muted); }
+.ar-studio-zone {
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--ar-zone);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+}
+.ar-studio-zone::after { content: "ZONE 1 · RECOVERY"; }
+.studio-hud.zone-2 .ar-studio-zone::after { content: "ZONE 2 · ENDURANCE"; }
+.studio-hud.zone-3 .ar-studio-zone::after { content: "ZONE 3 · TEMPO"; }
+.studio-hud.zone-4 .ar-studio-zone::after { content: "ZONE 4 · THRESHOLD"; }
+.studio-hud.zone-5 .ar-studio-zone::after { content: "ZONE 5 · VO2 MAX"; }
+.studio-hud.zone-6 .ar-studio-zone::after { content: "ZONE 6 · ANAEROBIC"; }
+.ar-studio-divider { width: 100%; height: 1px; background: var(--ar-line); margin: 10px 0 4px; }
+.ar-studio-clock { font-family: var(--ar-display); font-weight: 800; font-size: clamp(56px, 10vh, 104px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text) !important; }
+
+.ar-studio .hud-intensity.ar-studio-intensity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 18px;
+    background: none;
+    border: 0;
+    position: static;
+    transform: none;
+}
+.ar-studio-intensity .ar-icon-btn { width: 56px; height: 56px; font-size: 26px; font-weight: 600; }
+.ar-studio-int-val { font-family: var(--ar-display); font-weight: 800; font-size: 60px; line-height: 1; color: var(--ar-accent); }
+.ar-studio-head-split { border-top: 1px solid var(--ar-line); }
+.ar-studio-progress { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; }
+.ar-studio-progress-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--ar-muted); }
+.ar-studio-tip { font-size: 13px; margin: 0; }
+.ar-studio-tip.hidden { display: none; }
+
+/* Bottom metrics strip */
+.ar-studio-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 14px 0; flex-shrink: 0; }
+.ar-studio-strip .hud-tray-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding: 0 6px; background: none; border: 0; }
+.ar-studio-strip .hud-tray-cell + .hud-tray-cell { border-left: 1px solid var(--ar-line); }
+.ar-studio-strip .hud-tray-key { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); white-space: nowrap; }
+.ar-studio-strip .hud-tray-num { font-family: var(--ar-display); font-weight: 800; font-size: clamp(26px, 2.6vw, 40px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text) !important; white-space: nowrap; }
+.ar-studio-strip .hud-tray-unit { margin-left: 3px; font-family: var(--ar-display); font-weight: 600; font-size: 0.45em; color: var(--ar-muted); text-transform: none; }
+.ar-studio-strip .is-hr .hud-tray-num { color: var(--ar-bad) !important; }
+.ar-studio-strip .is-cad .hud-tray-num { color: var(--ar-info) !important; }
+
+@media (max-width: 1100px) {
+    .studio-hud.ar-studio { padding: 16px; gap: 14px; }
+    .ar-studio-grid { gap: 14px; }
+    .ar-studio-block-name { font-size: 26px; }
+    .ar-studio-target { font-size: 44px; }
+    .ar-studio-int-val { font-size: 48px; }
+    .ar-studio-intensity .ar-icon-btn { width: 48px; height: 48px; }
+}
+@media (min-width: 1600px) and (min-height: 900px) {
+    .studio-hud.ar-studio > * { zoom: 1.25; }
+}
+@media (max-height: 680px) {
+    .ar-studio-block-name { font-size: 24px; }
+    .ar-studio-target { font-size: 40px; }
+    .ar-studio-int-val { font-size: 44px; }
+    .ar-studio-intensity .ar-icon-btn { width: 44px; height: 44px; }
+    .ar-studio-tip { display: none; }
+}
+
+/* Studio without a workout: no target, block chart or block clock. */
+.ar-studio-free { margin: 0; font-size: 13px; }
+.ar-studio.has-workout .ar-studio-free { display: none; }
+.ar-studio:not(.has-workout) #studio-target-box,
+.ar-studio:not(.has-workout) .ar-studio-graph,
+.ar-studio:not(.has-workout) .ar-studio-next { display: none !important; }

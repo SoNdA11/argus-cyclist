@@ -76,7 +76,7 @@ export class FullscreenHUDController {
             this.el.leaderboard.style.display = 'none';
             this.el.graphContainer.style.display = 'block';
             this.el.targetBox.style.display = 'flex';
-            this.el.timerLabel.textContent = 'NEXT INTERVAL';
+            this.el.timerLabel.textContent = window.workoutCtrl?.activeWorkout ? this.el.timerLabel.textContent : 'FREE RIDE';
             this.el.primaryLabel.textContent = 'POWER';
             this.el.primaryUnit.textContent = 'W';
         } else {

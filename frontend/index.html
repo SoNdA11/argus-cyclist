@@ -177,69 +177,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         <main id="map-container"></main>
 
 
-        <div id="dashboard-view" class="dashboard-container hidden">
+        <!-- Live dashboard: metrics row and the telemetry chart (UIManager fills the ids). -->
+        <div id="dashboard-view" class="dashboard-container ar-dash hidden">
             <div class="dash-layout">
-
-                <div class="dash-metrics-row">
+                <div class="dash-metrics-row ar-panel">
                     <div class="dash-card power-card">
-                        <span class="dash-label">POWER</span>
-                        <div class="dash-value" id="dash-power">0<span class="dash-unit">w</span></div>
-                        <div class="dash-sub" id="dash-wkg" style="color: var(--power-color)">0.0 w/kg</div>
+                        <span class="dash-label">Power</span>
+                        <div class="dash-value" id="dash-power">0<span class="dash-unit">W</span></div>
+                        <div class="dash-sub" id="dash-wkg">0.0 W/kg</div>
                     </div>
                     <div class="dash-card hr-card">
-                        <span class="dash-label">HEART RATE</span>
+                        <span class="dash-label">Heart rate</span>
                         <div class="dash-value" id="dash-hr">--<span class="dash-unit">bpm</span></div>
                     </div>
                     <div class="dash-card">
-                        <span class="dash-label">CADENCE</span>
+                        <span class="dash-label">Cadence</span>
                         <div class="dash-value" id="dash-rpm">0<span class="dash-unit">rpm</span></div>
                     </div>
                     <div class="dash-card">
-                        <span class="dash-label">SPEED</span>
+                        <span class="dash-label">Speed</span>
                         <div class="dash-value" id="dash-speed">0.0<span class="dash-unit">km/h</span></div>
                     </div>
                     <div class="dash-card">
-                        <span class="dash-label">DISTANCE</span>
+                        <span class="dash-label">Distance</span>
                         <div class="dash-value" id="dash-dist">0.0<span class="dash-unit">km</span></div>
                     </div>
                     <div class="dash-card">
-                        <span class="dash-label">TIME</span>
+                        <span class="dash-label">Time</span>
                         <div class="dash-value" id="dash-time">00:00:00</div>
                     </div>
                 </div>
 
-                <div class="dash-chart-section" style="display: flex; gap: 20px;">
-                    <div style="flex: 2; display: flex; flex-direction: column;">
-                        <div class="dash-chart-header">
-                            <h3
-                                style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
-                                Live Telemetry</h3>
-                        </div>
-                        <div class="dash-chart-body">
-                            <div id="liveDashboardChart" style="width: 100%; height: 100%;"></div>
-                        </div>
+                <div class="dash-chart-section ar-panel">
+                    <div class="ar-panel-head">
+                        <span>LIVE TELEMETRY</span>
+                        <span class="ar-legend">
+                            <span><i style="background: var(--ar-accent)"></i>Power</span>
+                            <span><i style="background: var(--ar-bad)"></i>Heart rate</span>
+                            <span><i class="ar-legend-dash" style="color: var(--ar-info)"></i>Cadence</span>
+                        </span>
                     </div>
-                    
+                    <div class="dash-chart-body">
+                        <div id="liveDashboardChart"></div>
+                    </div>
                 </div>
-
             </div>
         </div>
 
-        <aside id="workout-panel" class="hud-sidebar right-panel hidden">
+        <!-- Structured workout plan (WorkoutController fills the ids and the segment list). -->
+        <aside id="workout-panel" class="hud-sidebar right-panel ar-workout hidden">
 
             <div class="workout-fixed-top">
-                <div class="panel-header">
+                <div class="panel-header ar-panel-head">
                     <h3>WORKOUT PLAN</h3>
-                    <button class="btn-icon-small danger" onclick="window.closeWorkout()" title="Exit">✕</button>
+                    <button class="btn-icon-small danger ar-icon-btn" onclick="window.closeWorkout()" title="Close workout" aria-label="Close workout"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
                 </div>
 
                 <div class="current-segment-stats">
-                    <div class="stat-box">
+                    <div class="stat-box ar-wo-target">
                         <span class="label">TARGET</span>
                         <span class="value" id="wo-target">--</span>
                     </div>
                     <div class="stat-box">
-                        <span class="label">REMAINING</span>
+                        <span class="label">BLOCK LEFT</span>
                         <span class="value" id="wo-timer">--:--</span>
                     </div>
                 </div>
@@ -247,9 +247,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <div class="intensity-control-row">
                     <span class="label">INTENSITY</span>
                     <div class="intensity-actions">
-                        <button class="btn-intensity" onclick="window.workoutCtrl.adjustIntensity(-5)">-</button>
+                        <button class="btn-intensity ar-icon-btn" onclick="window.workoutCtrl.adjustIntensity(-5)" aria-label="Lower intensity">−</button>
                         <span class="value" id="wo-intensity">100%</span>
-                        <button class="btn-intensity" onclick="window.workoutCtrl.adjustIntensity(5)">+</button>
+                        <button class="btn-intensity ar-icon-btn" onclick="window.workoutCtrl.adjustIntensity(5)" aria-label="Raise intensity">+</button>
                     </div>
                 </div>
 
@@ -257,13 +257,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <canvas id="workout-canvas"></canvas>
                 </div>
 
-                <div class="workout-progress-info"
-                    style="display: flex; justify-content: space-around; padding: 5px 10px; background: rgba(0,0,0,0.2);">
-                    <span>Done: <strong id="wo-dist-done" style="color: #fff;">0.0 km</strong></span>
-                    <span>To Go: <strong id="wo-dist-rem" style="color: #fff;">--</strong></span>
-                </div>
-                <div class="workout-progress-info">
-                    <span>Progress: <strong id="wo-completion">0%</strong></span>
+                <div class="workout-progress-info ar-wo-progress">
+                    <span>Done <strong id="wo-dist-done">0.0 km</strong></span>
+                    <span>To go <strong id="wo-dist-rem">--</strong></span>
+                    <span>Progress <strong id="wo-completion">0%</strong></span>
                 </div>
 
                 <div class="hud-message" id="wo-message">PREPARE</div>
@@ -272,15 +269,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <div id="workout-list" class="scroll-list">
             </div>
 
-            <div id="workout-completion-actions" class="hidden"
-                style="padding: 15px; display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-primary" onclick="window.go.main.App.RepeatWorkout()">Repeat Current
-                    Workout</button>
-                <button class="btn-secondary" onclick="window.go.main.App.LoadWorkout()">Import New
-                    Workout</button>
-                <button class="btn-danger"
-                    onclick="window.go.main.App.UnloadWorkout(); window.workoutCtrl.hide();">Close
-                    Panel</button>
+            <div id="workout-completion-actions" class="ar-wo-actions hidden">
+                <button class="ar-btn-primary" onclick="window.go.main.App.RepeatWorkout()">REPEAT WORKOUT</button>
+                <button class="ar-btn" onclick="window.go.main.App.LoadWorkout()">Load another workout</button>
+                <button class="ar-btn-danger" onclick="window.go.main.App.UnloadWorkout(); window.workoutCtrl.hide();">Close plan</button>
             </div>
 
         </aside>

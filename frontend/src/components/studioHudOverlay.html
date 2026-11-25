@@ -1,122 +1,104 @@
-<div id="studio-hud" class="studio-hud hidden mode-studio">
-    <div class="hud-glow" id="studio-glow"></div>
-    <div class="hud-grid"></div>
+<!-- Studio: indoor training without a route (workout blocks, power, intensity).
+     Ids are used by UIManager, WorkoutController and FullscreenHUDController. -->
+<div id="studio-hud" class="studio-hud ar-studio hidden mode-studio">
+    <div class="hud-glow" id="studio-glow" aria-hidden="true"></div>
 
-    <div class="hud-bar">
-        <div class="hud-bar-left">
-            <span class="hud-badge" id="hud-mode-badge">STUDIO</span>
+    <div class="hud-bar ar-studio-top">
+        <div class="hud-bar-left ar-tagline">
+            <span class="hud-badge ar-tag" id="hud-mode-badge">STUDIO</span>
+            <span class="ar-tag-dark" id="arStudioWorkoutName">FREE RIDE</span>
             <span class="hud-rider" id="hud-cyclist-name"></span>
         </div>
         <div class="hud-bar-mid">
             <span class="hud-state" id="hud-status-label"></span>
         </div>
         <div class="hud-bar-right">
-            <button id="btnStudioExit" class="hud-btn hud-btn--sec">EXIT</button>
-            <button id="btnStudioLoadWorkout" class="hud-btn hud-btn--sec">LOAD</button>
-            <button id="btnStudioStart" class="hud-btn hud-btn--go">START</button>
-            <button id="hud-abort-btn" class="hud-btn hud-btn--danger hidden">ABORT</button>
+            <button id="btnStudioExit" class="ar-btn" type="button">Exit</button>
+            <button id="btnStudioLoadWorkout" class="ar-btn" type="button">Load workout</button>
+            <button id="btnStudioStart" class="ar-btn-primary" type="button">START</button>
+            <button id="hud-abort-btn" class="ar-btn-danger hidden" type="button">ABORT</button>
         </div>
     </div>
 
-    <div class="hud-stage">
-        <div class="hud-stage-center">
-            <div class="hud-hub">
-                <div class="hud-hub-primary">
-                    <span class="hud-hub-val" id="studio-power">0</span>
-                    <span class="hud-hub-unit" id="hud-primary-unit">W</span>
-                    <span class="hud-hub-lbl" id="hud-primary-label">POWER</span>
-                    <div class="hud-hub-target" id="studio-target-box">
-                        <span class="hud-hub-target-lbl">TARGET</span>
-                        <span class="hud-hub-target-val" id="studio-target">--</span>
-                    </div>
+    <div class="ar-studio-grid">
+        <section class="ar-panel ar-studio-block" aria-label="Current block">
+            <div class="ar-panel-head"><span>CURRENT BLOCK</span></div>
+            <div class="ar-studio-block-body">
+                <span class="ar-studio-block-name" id="studio-timer-label">FREE RIDE</span>
+                <div class="hud-hub-target" id="studio-target-box">
+                    <span class="ar-label ar-studio-target-lbl">Target</span>
+                    <span class="ar-studio-target" id="studio-target">--</span>
                 </div>
-                <div class="hud-hub-divider"></div>
-                <div class="hud-hub-clock">
-                    <span class="hud-hub-tic" id="studio-timer">00:00</span>
-                    <span class="hud-hub-tic-lbl" id="studio-timer-label">NEXT INTERVAL</span>
+                <p class="ar-body ar-studio-free">Targets and blocks show up here when a workout is loaded.</p>
+                <div class="hud-graph-box ar-studio-graph" id="hud-graph-container">
+                    <canvas id="studio-workout-canvas"></canvas>
                 </div>
             </div>
+        </section>
 
-            <div class="hud-cards" id="hud-side-metrics">
-                <div class="hud-card">
-                    <span class="hud-card-lbl" id="hud-secondary-label">LIVE POWER</span>
-                    <span class="hud-card-val" id="hud-secondary-value">0</span>
-                    <span class="hud-card-unit" id="hud-secondary-unit">W</span>
-                </div>
-                <div class="hud-card">
-                    <span class="hud-card-lbl" id="hud-tertiary-label">CADENCE</span>
-                    <span class="hud-card-val" id="hud-tertiary-value">0</span>
-                    <span class="hud-card-unit" id="hud-tertiary-unit">RPM</span>
-                </div>
-                <div class="hud-card" id="hud-zone-metric">
-                    <span class="hud-card-lbl">ZONE</span>
-                    <span class="hud-card-val hud-card-val--zone" id="hud-zone-value">Z1</span>
-                </div>
+        <section class="ar-panel ar-studio-power" aria-label="Power">
+            <span class="ar-label" id="hud-primary-label">POWER</span>
+            <div class="ar-studio-power-val"><span id="studio-power">0</span><span class="ar-studio-power-unit" id="hud-primary-unit">W</span></div>
+            <span class="ar-studio-zone" aria-live="polite"></span>
+            <div class="ar-studio-divider ar-studio-next"></div>
+            <span class="ar-label ar-studio-next">Next block in</span>
+            <span class="ar-studio-clock ar-studio-next" id="studio-timer">00:00</span>
+        </section>
+
+        <section class="ar-panel ar-studio-side" aria-label="Intensity and progress">
+            <div class="ar-panel-head"><span>INTENSITY</span></div>
+            <div class="hud-intensity ar-studio-intensity" id="studio-intensity-row">
+                <button class="ar-icon-btn" id="btnStudioIntensityDown" type="button" aria-label="Lower intensity">−</button>
+                <span class="ar-studio-int-val" id="studio-intensity">100%</span>
+                <button class="ar-icon-btn" id="btnStudioIntensityUp" type="button" aria-label="Raise intensity">+</button>
             </div>
-        </div>
-
-        <div id="hud-inline-leaderboard" class="hud-lb"></div>
+            <div class="ar-panel-head ar-studio-head-split"><span>WORKOUT</span></div>
+            <div class="ar-studio-progress">
+                <div class="ar-studio-progress-row"><span id="arStudioProgressText">No workout loaded</span><span id="arStudioProgressPct"></span></div>
+                <div class="ar-bar"><i id="arStudioProgressBar" style="width: 0%"></i></div>
+                <span class="ar-body ar-studio-tip">Load a workout to ride structured blocks, or just pedal: Studio records like a free ride.</span>
+            </div>
+        </section>
     </div>
 
-    <div class="hud-intensity" id="studio-intensity-row">
-        <span class="hud-int-lbl">INTENSITY</span>
-        <button class="hud-int-btn" id="btnStudioIntensityDown">−</button>
-        <span class="hud-int-val" id="studio-intensity">100%</span>
-        <button class="hud-int-btn" id="btnStudioIntensityUp">+</button>
+    <!-- Only used by the legacy challenge layouts of FullscreenHUDController. -->
+    <div class="ar-studio-unused" aria-hidden="true">
+        <div class="hud-cards" id="hud-side-metrics">
+            <span id="hud-secondary-label"></span><span id="hud-secondary-value"></span><span id="hud-secondary-unit"></span>
+            <span id="hud-tertiary-label"></span><span id="hud-tertiary-value"></span><span id="hud-tertiary-unit"></span>
+            <div id="hud-zone-metric"><span id="hud-zone-value"></span></div>
+        </div>
+        <div id="hud-inline-leaderboard"></div>
     </div>
 
-    <div class="hud-tray">
-        <div class="hud-tray-strip">
-            <div class="hud-tray-cell">
-                <span class="hud-tray-icon heart-icon"></span>
-                <span class="hud-tray-key">HR</span>
-                <span class="hud-tray-num" id="studio-hr">--</span>
-                <span class="hud-tray-unit">BPM</span>
-            </div>
-            <span class="hud-tray-sp"></span>
-            <div class="hud-tray-cell">
-                <span class="hud-tray-icon cadence-icon"></span>
-                <span class="hud-tray-key">CAD</span>
-                <span class="hud-tray-num" id="studio-rpm">0</span>
-                <span class="hud-tray-unit">RPM</span>
-            </div>
-            <span class="hud-tray-sp"></span>
-            <div class="hud-tray-cell">
-                <span class="hud-tray-icon power-icon"></span>
-                <span class="hud-tray-key">W/KG</span>
-                <span class="hud-tray-num" id="studio-wkg">0.0</span>
-            </div>
-            <span class="hud-tray-sp hud-tray-sp--sec"></span>
-            <div class="hud-tray-cell hud-tray-cell--sec">
-                <span class="hud-tray-icon time-icon"></span>
-                <span class="hud-tray-key">ELAPSED</span>
-                <span class="hud-tray-num" id="studio-elapsed">00:00:00</span>
-            </div>
-            <span class="hud-tray-sp hud-tray-sp--sec"></span>
-            <div class="hud-tray-cell hud-tray-cell--sec">
-                <span class="hud-tray-icon speed-icon"></span>
-                <span class="hud-tray-key">SPEED</span>
-                <span class="hud-tray-num" id="studio-speed">0.0</span>
-                <span class="hud-tray-unit">KM/H</span>
-            </div>
-            <span class="hud-tray-sp hud-tray-sp--sec"></span>
-            <div class="hud-tray-cell hud-tray-cell--sec">
-                <span class="hud-tray-icon avg-icon"></span>
-                <span class="hud-tray-key">AVG</span>
-                <span class="hud-tray-num" id="studio-avg-speed">0.0</span>
-                <span class="hud-tray-unit">KM/H</span>
-            </div>
-            <span class="hud-tray-sp hud-tray-sp--sec"></span>
-            <div class="hud-tray-cell hud-tray-cell--sec">
-                <span class="hud-tray-icon dist-icon"></span>
-                <span class="hud-tray-key">DIST</span>
-                <span class="hud-tray-num" id="studio-dist">0.00</span>
-                <span class="hud-tray-unit">KM</span>
-            </div>
+    <div class="ar-glass ar-studio-strip">
+        <div class="hud-tray-cell is-hr">
+            <span class="hud-tray-key">Heart rate</span>
+            <span class="hud-tray-num"><span id="studio-hr">--</span><small class="hud-tray-unit">bpm</small></span>
         </div>
-
-        <div class="hud-graph-box" id="hud-graph-container">
-            <canvas id="studio-workout-canvas"></canvas>
+        <div class="hud-tray-cell is-cad">
+            <span class="hud-tray-key">Cadence</span>
+            <span class="hud-tray-num"><span id="studio-rpm">0</span><small class="hud-tray-unit">rpm</small></span>
+        </div>
+        <div class="hud-tray-cell">
+            <span class="hud-tray-key">W/kg</span>
+            <span class="hud-tray-num"><span id="studio-wkg">0.0</span></span>
+        </div>
+        <div class="hud-tray-cell">
+            <span class="hud-tray-key">Time</span>
+            <span class="hud-tray-num"><span id="studio-elapsed">00:00:00</span></span>
+        </div>
+        <div class="hud-tray-cell">
+            <span class="hud-tray-key">Speed</span>
+            <span class="hud-tray-num"><span id="studio-speed">0.0</span><small class="hud-tray-unit">km/h</small></span>
+        </div>
+        <div class="hud-tray-cell">
+            <span class="hud-tray-key">Average</span>
+            <span class="hud-tray-num"><span id="studio-avg-speed">0.0</span><small class="hud-tray-unit">km/h</small></span>
+        </div>
+        <div class="hud-tray-cell">
+            <span class="hud-tray-key">Distance</span>
+            <span class="hud-tray-num"><span id="studio-dist">0.00</span><small class="hud-tray-unit">km</small></span>
         </div>
     </div>
 </div>
