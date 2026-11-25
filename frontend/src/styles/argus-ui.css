@@ -1874,3 +1874,120 @@ body.ar-shell .editor-panel.ar-route-editor {
 /* While drawing a route the ride panels are hidden: map tools go back to the corner. */
 body.ar-route-editing .ar-map-tools { right: 24px !important; }
 body.ar-route-editing #map-container .maplibregl-ctrl-top-right { right: 24px !important; }
+
+/* ======================================================================
+   In-app alert / confirm / prompt (modules/ArgusDialog.js)
+   ====================================================================== */
+
+/* Above every page and dialog; also shown over the home and the event mode, which hide
+   the other overlays. */
+#arDialog.modal-overlay { z-index: 10050; }
+body.ar-home-open #arDialog,
+body.ev-event-mode #arDialog { visibility: visible !important; }
+#arDialog .ar-dialog-msg { white-space: pre-line; overflow-wrap: anywhere; max-height: 50vh; overflow-y: auto; }
+#arDialog .ar-dialog-msg[hidden], #arDialog .ar-input[hidden], #arDialog button[hidden] { display: none; }
+#arDialog .ar-input { width: 100%; box-sizing: border-box; }
+#arDialog .ar-dialog-actions { justify-content: flex-end; }
+#arDialog .ar-dialog-actions > button { flex: 0 1 auto; min-width: 120px; }
+#arDialog .ar-dialog-danger { background: var(--ar-bad); border-color: var(--ar-bad); color: #fff; font-family: var(--ar-display); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+#arDialog .ar-dialog-danger:hover { background: #ff8487; }
+
+/* ======================================================================
+   First-run tutorial (tutorialModal.html) — overrides tutorial.css
+   ====================================================================== */
+
+#tutorialModal.ar-tutorial { z-index: 10008; background: rgba(5, 15, 34, 0.88); }
+#tutorialModal .ar-tut {
+    width: min(920px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--ar-line);
+    border-top: 4px solid var(--ar-accent);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-tut-top { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px 0; }
+.ar-tut-top .ar-tag { color: var(--ar-navy); }
+#tutorialModal .tutorial-close.ar-icon-btn { position: static; width: 36px; height: 36px; border-radius: 4px; background: var(--ar-glass); border: 1px solid var(--ar-line-2); color: var(--ar-text); }
+#tutorialModal .tutorial-close.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Fixed height: the dialog and its buttons do not jump between steps. */
+#tutorialModal .tutorial-carousel { flex: none; height: clamp(260px, calc(100vh - 220px), 340px); min-height: 0; overflow-y: auto; padding: 0; }
+#tutorialModal .tutorial-step { padding: 18px 22px 22px; height: auto; }
+#tutorialModal .tutorial-step.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 28px; animation: ar-tut-in 0.35s ease both; }
+@keyframes ar-tut-in { from { opacity: 0; transform: translateX(16px); } }
+@media (prefers-reduced-motion: reduce) { #tutorialModal .tutorial-step.active { animation: none; } }
+
+.ar-tut-text { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
+.ar-tut-text .ar-h1 { font-size: clamp(32px, 4vw, 44px); }
+.ar-tut-text .ar-body { margin: 0; font-size: 15px; line-height: 1.55; }
+.ar-tut-text .ar-body strong, .ar-tut-text .ar-caption strong { color: var(--ar-text); }
+.ar-tut-text .ar-caption { margin: 0; }
+.ar-tut-kicker { color: var(--ar-accent); }
+.ar-tut-visual { display: flex; align-items: center; justify-content: center; min-height: 240px; }
+
+/* Step visuals: small copies of the real screens */
+.ar-tut-logo { position: relative; height: 240px; aspect-ratio: 515 / 737; }
+.ar-tut-logo .ar-logo-swirl { animation: ar-logo-spin 10s linear infinite; }
+.ar-tut-card { text-align: left; width: 100%; max-width: 360px; display: flex; flex-direction: column; overflow: hidden; background: var(--ar-glass); }
+.ar-tut-card > .ar-tagline { padding: 16px 16px 0; }
+.ar-tut-card .ar-tag { color: var(--ar-navy); }
+.ar-tut-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+.ar-tut-metrics > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-tut-metrics > div.is-on { border-color: var(--ar-accent); background: var(--ar-accent-soft); }
+.ar-tut-metrics strong, .ar-tut-studio strong { font-family: var(--ar-display); font-weight: 800; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ar-tut-metrics small, .ar-tut-studio small { font-size: 0.45em; color: var(--ar-muted); }
+.ar-tut-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--ar-line); font-size: 14px; color: var(--ar-soft); }
+.ar-tut-row:last-child { border-bottom: 0; }
+.ar-tut-row strong { flex: 1; color: var(--ar-text); font-weight: 600; }
+.ar-tut-row b { font-family: var(--ar-display); font-weight: 700; font-size: 17px; color: var(--ar-text); }
+.ar-tut-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ar-muted); }
+.ar-tut-dot.is-good { background: var(--ar-good); box-shadow: 0 0 0 4px rgba(90, 214, 106, 0.18); }
+.ar-tut-num { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: rgba(255, 255, 255, 0.1); font-family: var(--ar-display); font-weight: 800; font-size: 18px; }
+.ar-tut-num.is-on { background: var(--ar-accent); color: var(--ar-navy); }
+.ar-tut-row .ar-tut-num + strong { font-family: var(--ar-display); font-weight: 700; font-size: 18px; letter-spacing: 1px; }
+.ar-tut-svg { display: block; width: 100%; height: 130px; padding: 10px 12px 12px; box-sizing: border-box; }
+.ar-tut-map { background: linear-gradient(135deg, #12304a, #0b2033); }
+.ar-tut-map .ar-tut-svg { height: 180px; }
+.ar-tut-bars { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; align-items: end; height: 130px; padding: 14px 16px; }
+.ar-tut-bars i { border-radius: 2px 2px 0 0; }
+.ar-tut-bars i.is-on { outline: 2px solid #fff; outline-offset: 1px; }
+.ar-tut-studio { align-items: center; gap: 8px; padding: 22px; box-shadow: inset 0 -5px 0 var(--ar-z4); }
+.ar-tut-studio strong { font-size: 96px; }
+.ar-tut-zone { padding: 4px 12px; border-radius: 3px; background: var(--ar-z4); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 15px; letter-spacing: 1.5px; }
+.ar-tut-privacy { align-items: center; gap: 12px; padding: 30px; color: var(--ar-good); border-color: rgba(90, 214, 106, 0.4); }
+.ar-tut-privacy strong { font-family: var(--ar-display); font-weight: 800; font-size: 28px; letter-spacing: 1.5px; }
+
+/* Footer: checkbox, step dots, navigation */
+#tutorialModal .ar-tut-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 14px 22px; border-top: 1px solid var(--ar-line); background: rgba(255, 255, 255, 0.03); }
+.ar-tut-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ar-muted); cursor: pointer; white-space: nowrap; }
+.ar-tut-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--ar-accent); }
+#tutorialModal .indicators-container { flex: 1; display: flex; justify-content: center; }
+#tutorialModal .step-indicators { gap: 6px; }
+#tutorialModal .step-indicators.hidden { visibility: hidden; display: flex; }
+#tutorialModal .dot { width: 8px; height: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.18); box-shadow: none; }
+#tutorialModal .dot.active { width: 22px; background: var(--ar-accent); box-shadow: none; }
+#tutorialModal .nav-actions { display: flex; gap: 10px; margin: 0; }
+#tutorialModal .nav-actions .hidden { display: none; }
+#tutorialModal .nav-actions button { min-width: 110px; }
+
+@media (max-width: 760px) {
+    #tutorialModal .tutorial-carousel { height: clamp(300px, calc(100vh - 240px), 460px); }
+    #tutorialModal .tutorial-step.active { grid-template-columns: 1fr; gap: 16px; }
+    .ar-tut-visual { min-height: 0; }
+    .ar-tut-logo { height: 160px; }
+    #tutorialModal .ar-tut-footer { flex-wrap: wrap; }
+    #tutorialModal .indicators-container { order: 3; flex-basis: 100%; }
+}
+@media (max-height: 640px) {
+    .ar-tut-visual { min-height: 0; }
+    .ar-tut-logo { height: 170px; }
+    .ar-tut-studio strong { font-size: 64px; }
+}

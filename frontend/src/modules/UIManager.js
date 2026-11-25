@@ -21,6 +21,7 @@ import * as echarts from 'echarts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { telemetryBus } from './TelemetryEventBus.js';
+import { arAlert, arConfirm, arPrompt } from './ArgusDialog.js';
 
 /**
  * UIManager
@@ -1310,13 +1311,13 @@ export class UIManager {
         const deadline = document.getElementById('goalDeadline').value; // YYYY-MM-DD
 
         if (!targetStr || !deadline) {
-            alert("Please fill all fields.");
+            arAlert("Please fill all fields.");
             return;
         }
 
         const target = parseFloat(targetStr);
         if (isNaN(target) || target <= 0) {
-            alert("Target value must be a valid number greater than 0.");
+            arAlert("Target value must be a valid number greater than 0.");
             return;
         }
 
@@ -1329,17 +1330,17 @@ export class UIManager {
             this.closeCustomGoalModal();
             this.loadTrophyRoom();
         } catch (e) {
-            alert("Error creating goal: " + e);
+            arAlert("Error creating goal: " + e);
         }
     }
 
     async deleteCustomGoal(id) {
-        if (!confirm("Are you sure you want to delete this goal?")) return;
+        if (!await arConfirm("Are you sure you want to delete this goal?")) return;
         try {
             await window.go.main.App.DeleteCustomGoal(id);
             this.loadTrophyRoom();
         } catch (e) {
-            alert("Error deleting goal: " + e);
+            arAlert("Error deleting goal: " + e);
         }
     }
 
@@ -1398,7 +1399,7 @@ export class UIManager {
             }
             console.log("Profile Saved");
         } catch (e) {
-            alert("Error saving profile: " + e);
+            arAlert("Error saving profile: " + e);
         }
     }
 
@@ -1513,13 +1514,7 @@ export class UIManager {
                     <span 
                         title="Delete Workout" 
                         class="icon-minimal icon-minimal-danger"
-                        onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
-                            const targetId = ${act.id || act.ID};
-                            window.go.main.App.DeleteActivityHistory(targetId).then(() => {
-                                window.ui.toggleSettings(true);
-                                window.ui.loadCareerDashboard(); 
-                            }).catch(err => alert('Error deleting: ' + err)); 
-                        }"
+                        onclick="event.stopPropagation(); window.ui.deleteActivityFromHistory(${act.id || act.ID})"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
@@ -1620,7 +1615,7 @@ export class UIManager {
     async saveRoute() {
         const points = window.mapController.getGeneratedRoute();
         if (!points || points.length === 0) {
-            alert("Create a route first by clicking 2 points on map.");
+            arAlert("Create a route first by clicking 2 points on map.");
             return;
         }
 
@@ -1628,11 +1623,11 @@ export class UIManager {
 
         try {
             const result = await window.go.main.App.SaveGeneratedGPX(name, points);
-            alert(result);
+            arAlert(result);
 
             this.cancelRoute();
         } catch (e) {
-            alert("Error saving: " + e);
+            arAlert("Error saving: " + e);
         }
     }
 
@@ -2839,7 +2834,7 @@ export class UIManager {
             }
         } catch (error) {
             console.error("Export CSV Error:", error);
-            alert("Failed to export CSV: " + error);
+            arAlert("Failed to export CSV: " + error);
         }
     }
 
@@ -2966,7 +2961,7 @@ export class UIManager {
 
         } catch (error) {
             console.error("Export PDF Error:", error);
-            alert("Failed to export PDF: " + error);
+            arAlert("Failed to export PDF: " + error);
         }
     }
 
@@ -3165,12 +3160,12 @@ export class UIManager {
             this.showToast("Component saved!", 2000);
         } catch (err) {
             console.error("Error saving component:", err);
-            alert("Error saving component: " + err);
+            arAlert("Error saving component: " + err);
         }
     }
 
     async replaceComponentBike(id) {
-        const reason = prompt("Reason for replacement (optional):");
+        const reason = await arPrompt("Reason for replacement (optional):");
         if (reason === null) return;
         try {
             await window.go.main.App.ReplaceBikeComponent(id, reason || "");
@@ -3178,12 +3173,12 @@ export class UIManager {
             this.showToast("Component replaced and archived.", 2000);
         } catch (err) {
             console.error("Error replacing component:", err);
-            alert("Error: " + err);
+            arAlert("Error: " + err);
         }
     }
 
     async archiveComponentBike(id) {
-        if (!confirm("Archive this component? It will be marked as archived.")) return;
+        if (!await arConfirm("Archive this component? It will be marked as archived.")) return;
         try {
             await window.go.main.App.ArchiveBikeComponent(id);
             this.loadBikeComponentsBike();
@@ -3194,7 +3189,7 @@ export class UIManager {
     }
 
     async deleteComponentBike(id) {
-        if (!confirm("Permanently delete this component and its history?")) return;
+        if (!await arConfirm("Permanently delete this component and its history?")) return;
         try {
             await window.go.main.App.DeleteBikeComponent(id);
             this.loadBikeComponentsBike();
@@ -3204,11 +3199,23 @@ export class UIManager {
         }
     }
 
+    /** Deletes an activity from the history list after an in-app confirmation. */
+    async deleteActivityFromHistory(targetId) {
+        if (!await arConfirm('Delete this workout? Statistics will be recalculated and the file will be removed from disk.')) return;
+        try {
+            await window.go.main.App.DeleteActivityHistory(targetId);
+            this.toggleSettings(true);
+            this.loadCareerDashboard();
+        } catch (err) {
+            arAlert('Error deleting: ' + err);
+        }
+    }
+
     async showComponentHistoryBike(componentId) {
         try {
             const reps = await window.go.main.App.GetComponentReplacements(componentId);
             if (!reps || reps.length === 0) {
-                alert("No replacement history for this component.");
+                arAlert("No replacement history for this component.");
                 return;
             }
 
@@ -3218,7 +3225,7 @@ export class UIManager {
                 msg += `\n${date} - Usage: ${(r.usage_at_replace || 0).toFixed(0)} km`;
                 if (r.reason) msg += ` - Reason: ${r.reason}`;
             });
-            alert(msg);
+            arAlert(msg);
         } catch (err) {
             console.error("Error loading history:", err);
         }
@@ -3240,7 +3247,7 @@ window.uploadHistoricalToStrava = async (id, event) => {
         // Validate if user has connected Strava
         const isConn = await window.go.main.App.IsStravaConnected();
         if (!isConn) {
-            alert("Please connect your Strava account in Settings > Profile & Devices first.");
+            arAlert("Please connect your Strava account in Settings > Profile & Devices first.");
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
             return;
@@ -3261,7 +3268,7 @@ window.uploadHistoricalToStrava = async (id, event) => {
 
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
 
         // Revert button state so user can try again
         btn.style.opacity = '1';
@@ -3283,7 +3290,7 @@ window.uploadHistoricalToIntervals = async (id, event) => {
         // Validate if user has connected Intervals.icu
         const isConn = await window.go.main.App.IsIntervalsConnected();
         if (!isConn) {
-            alert("Please connect your Intervals.icu account in Settings > Profile & Devices first.");
+            arAlert("Please connect your Intervals.icu account in Settings > Profile & Devices first.");
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
             return;
@@ -3304,7 +3311,7 @@ window.uploadHistoricalToIntervals = async (id, event) => {
 
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
 
         // Revert button state so user can try again
         btn.style.opacity = '1';

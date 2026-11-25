@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import { arAlert, arConfirm, arPrompt } from './ArgusDialog.js';
+
 export class AIChatController {
     constructor() {
         this.overlay = document.getElementById('aiChatOverlay');
@@ -170,7 +172,7 @@ export class AIChatController {
     }
 
     async deleteConversation(id) {
-        if (!confirm('Delete this conversation and all its messages?')) return;
+        if (!await arConfirm('Delete this conversation and all its messages?')) return;
         try {
             await window.go.main.App.AIDeleteConversation(id);
             if (this.currentConversationID === id) {
@@ -180,18 +182,18 @@ export class AIChatController {
             }
             this.loadConversations();
         } catch (err) {
-            alert('Failed to delete: ' + err);
+            arAlert('Failed to delete: ' + err);
         }
     }
 
     async renameConversation(id, currentTitle) {
-        const title = prompt('Rename conversation:', currentTitle);
+        const title = await arPrompt('Rename conversation:', currentTitle);
         if (title === null || title.trim() === '' || title === currentTitle) return;
         try {
             await window.go.main.App.AIRenameConversation(id, title.trim());
             this.loadConversations();
         } catch (err) {
-            alert('Failed to rename: ' + err);
+            arAlert('Failed to rename: ' + err);
         }
     }
 
@@ -219,7 +221,7 @@ export class AIChatController {
     }
 
     async newConversation() {
-        const title = prompt('Conversation title (optional):');
+        const title = await arPrompt('Conversation title (optional):');
         if (title === null) return;
         try {
             const model = this.modelSelect.value || 'qwen2.5:3b';
@@ -230,7 +232,7 @@ export class AIChatController {
             this.inputEl.focus();
         } catch (err) {
             console.error('Failed to create conversation:', err);
-            alert('Failed to create conversation: ' + err);
+            arAlert('Failed to create conversation: ' + err);
         }
     }
 

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import { arAlert } from './ArgusDialog.js';
+
 export class SummaryController {
     constructor() {
         this.currentActivity = null;
@@ -172,6 +174,6 @@ export class SummaryController {
     }
 
     shareStrava() {
-        alert("Strava sharing coming soon!");
+        arAlert("Strava sharing coming soon!");
     }
 }

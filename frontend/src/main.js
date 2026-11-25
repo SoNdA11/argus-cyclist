@@ -78,6 +78,7 @@ import { AIChatController } from './modules/AIChatController.js';
 import { Capacitor } from '@capacitor/core';
 import { CapacitorBluetoothService } from './modules/CapacitorBluetoothService.js';
 import { telemetryBus } from './modules/TelemetryEventBus.js';
+import { arAlert, arConfirm, arPrompt } from './modules/ArgusDialog.js';
 
 // =====================
 // MOBILE WAILS POLYFILL
@@ -257,7 +258,7 @@ async function openAssessmentFTPConfirmModal(test) {
 window.closeAssessmentFTPConfirmModal = closeAssessmentFTPConfirmModal;
 
 window.closeWorkout = async () => {
-    if (confirm("Stop the structured workout and return to Free Ride?")) {
+    if (await arConfirm("Stop the structured workout and return to Free Ride?")) {
         if (typeof workoutCtrl !== 'undefined') workoutCtrl.hide();
 
         if (Capacitor.isNativePlatform()) {
@@ -353,7 +354,7 @@ document.getElementById('btnJustRide').addEventListener('click', () => {
 
 document.getElementById('btnConnectStrava').addEventListener('click', async () => {
     if (Capacitor && Capacitor.isNativePlatform()) {
-        alert("Strava OAuth is currently only supported on the Desktop version.");
+        arAlert("Strava OAuth is currently only supported on the Desktop version.");
         return;
     }
 
@@ -381,7 +382,7 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
         btn.innerHTML = "Connect";
         status.innerText = "Connection failed or timed out.";
         status.style.color = "var(--argus-alert)";
-        alert("Error connecting to Strava: " + err);
+        arAlert("Error connecting to Strava: " + err);
     }
 });
 
@@ -439,7 +440,7 @@ function bindIntervalsUI() {
         const athleteID = document.getElementById('inputIntervalsAthleteID').value.trim();
         const apiKey = document.getElementById('inputIntervalsAPIKey').value.trim();
         if (!apiKey) {
-            alert("Please enter your Intervals.icu API key.");
+            arAlert("Please enter your Intervals.icu API key.");
             return;
         }
         btnSave.disabled = true;
@@ -451,12 +452,12 @@ function bindIntervalsUI() {
             console.error("Intervals.icu Connection Error:", err);
             btnSave.disabled = false;
             btnSave.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4Z"></path></svg> Connect`;
-            alert("Error connecting to Intervals.icu: " + err);
+            arAlert("Error connecting to Intervals.icu: " + err);
         }
     });
 
     btnDisconnect.addEventListener('click', async () => {
-        if (confirm("Disconnect Argus Cyclist from your Intervals.icu account?")) {
+        if (await arConfirm("Disconnect Argus Cyclist from your Intervals.icu account?")) {
             await window.go.main.App.DisconnectIntervals();
             document.getElementById('inputIntervalsAthleteID').value = '';
             document.getElementById('inputIntervalsAPIKey').value = '';
@@ -801,7 +802,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a trainer from the list."); return; }
+        if (!selectedMac) { arAlert("Please select a trainer from the list."); return; }
 
         btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; btnVirtual.disabled = true; list.disabled = true;
 
@@ -821,7 +822,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
 // ---------------------------
 
 document.getElementById('btnConnVirtual').addEventListener('click', async () => {
-    if (Capacitor.isNativePlatform()) { alert("Virtual Simulator not available on mobile yet."); return; }
+    if (Capacitor.isNativePlatform()) { arAlert("Virtual Simulator not available on mobile yet."); return; }
 
     const btnVirtual = document.getElementById('btnConnVirtual');
     const btnReal = document.getElementById('btnConnTrainer');
@@ -914,7 +915,7 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a HR monitor from the list."); return; }
+        if (!selectedMac) { arAlert("Please select a HR monitor from the list."); return; }
 
         btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; list.disabled = true;
 
@@ -993,7 +994,7 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 chart.setData(elevations);
             }
         }
-    } catch (e) { alert("Error importing GPX: " + e); }
+    } catch (e) { arAlert("Error importing GPX: " + e); }
 });
 
 // GPX Parser for Mobile
@@ -1002,7 +1003,7 @@ function parseGPXForMobile(gpxText, filename) {
     const xmlDoc = parser.parseFromString(gpxText, "text/xml");
     const trkpts = xmlDoc.getElementsByTagName("trkpt");
 
-    if (trkpts.length === 0) { alert("No route points found in GPX"); return; }
+    if (trkpts.length === 0) { arAlert("No route points found in GPX"); return; }
 
     const points = [];
     let totalDist = 0;
@@ -1094,7 +1095,7 @@ document.getElementById('btnLoadWorkout').addEventListener('click', async () => 
             console.log("Workout loaded:", result);
             ui.els.btnAction.classList.remove('hidden');
         }
-    } catch (e) { alert("Error loading workout: " + e); }
+    } catch (e) { arAlert("Error loading workout: " + e); }
 });
 
 // ZWO Parser for Mobile
@@ -1105,7 +1106,7 @@ function parseZWOForMobile(xmlString) {
     const workoutObj = { Segments: [], TotalDuration: 0 };
     const workoutNodes = xmlDoc.getElementsByTagName("workout");
 
-    if (workoutNodes.length === 0) { alert("Invalid ZWO file."); return; }
+    if (workoutNodes.length === 0) { arAlert("Invalid ZWO file."); return; }
 
     const elements = workoutNodes[0].children;
     let idx = 0;
@@ -1155,16 +1156,16 @@ async function handleSessionFinished(sessionSummary) {
     ui.showFinishModal(sessionSummary);
 
     if (sessionSummary.new_ftp > 0) {
-        setTimeout(() => {
+        setTimeout(async () => {
             const msg = `Physiological Assessment Complete!\n\nNew Estimated FTP: ${sessionSummary.new_ftp} W\nMax HR Reached: ${sessionSummary.new_max_hr} BPM\n\nWould you like to update your profile with these new metrics?`;
-            if (confirm(msg)) {
+            if (await arConfirm(msg)) {
                 window.go.main.App.GetUserProfile().then(profile => {
                     profile.ftp = sessionSummary.new_ftp;
                     if (sessionSummary.new_max_hr > profile.max_hr) {
                         profile.max_hr = sessionSummary.new_max_hr;
                     }
                     window.go.main.App.UpdateUserProfile(profile).then(() => {
-                        alert("Profile successfully updated!");
+                        arAlert("Profile successfully updated!");
                         if (window.ui) window.ui.loadUserProfile();
                     });
                 });
@@ -1225,7 +1226,7 @@ async function finishWorkout() {
     if (Capacitor.isNativePlatform()) {
         ui.setRecordingState('IDLE');
         ui.showFinishModal({ distance: window.totalRouteDistance, duration: window.workoutCtrl ? window.workoutCtrl.mobileElapsedTime : 0 });
-        alert("Mobile version currently supports live metrics. FIT file saving is available on Desktop.");
+        arAlert("Mobile version currently supports live metrics. FIT file saving is available on Desktop.");
         return;
     }
 
@@ -1233,7 +1234,7 @@ async function finishWorkout() {
         if (!window.go || !window.go.main) return;
         const sessionSummary = await window.go.main.App.FinishSession();
         await handleSessionFinished(sessionSummary);
-    } catch (e) { alert("Error when saving: " + e); }
+    } catch (e) { arAlert("Error when saving: " + e); }
 }
 window.finishWorkout = finishWorkout;
 
@@ -1249,7 +1250,7 @@ async function recoverPendingSession() {
         modal.classList.remove('active');
         await handleSessionFinished(sessionSummary);
     } catch (e) {
-        alert("Error recovering session: " + e);
+        arAlert("Error recovering session: " + e);
     }
 }
 
@@ -1308,12 +1309,12 @@ window.uploadToStrava = async () => {
         await window.go.main.App.UploadLastWorkoutToStrava();
         btn.innerHTML = "✓ Uploaded";
         btn.style.backgroundColor = "var(--argus-safe)";
-        alert("Workout successfully uploaded to Strava!");
+        arAlert("Workout successfully uploaded to Strava!");
     } catch (err) {
         console.error("Upload error:", err);
         btn.innerHTML = "Upload Failed";
         btn.style.backgroundColor = "var(--argus-alert)";
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
         btn.disabled = false;
     }
 };
@@ -1351,7 +1352,7 @@ window.toggleRecording = async () => {
         if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
             await window.go.main.App.ToggleSession();
         }
-    } catch (e) { alert("Error: " + e); }
+    } catch (e) { arAlert("Error: " + e); }
 };
 
 document.getElementById('btnAction').addEventListener('click', window.toggleRecording);
@@ -1392,7 +1393,7 @@ document.getElementById('btnSkipCooldown').addEventListener('click', async () =>
 });
 
 document.getElementById('btnDiscard').addEventListener('click', async () => {
-    if (confirm("Discard this activity? It won't be saved.")) {
+    if (await arConfirm("Discard this activity? It won't be saved.")) {
         if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
             await window.go.main.App.DiscardSession();
         }
@@ -1407,14 +1408,14 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
 });
 
 document.getElementById('btnFitnessTests').addEventListener('click', async () => {
-    if (Capacitor.isNativePlatform()) { alert("Fitness Tests not available on mobile yet."); return; }
+    if (Capacitor.isNativePlatform()) { arAlert("Fitness Tests not available on mobile yet."); return; }
     try {
         if (!window.go || !window.go.main) return;
 
         const tests = await window.go.main.App.GetFitnessTests();
 
         if (!tests || !Array.isArray(tests)) {
-            alert("The tests were not found in memory. You need to restart 'wails dev' in the terminal for it to recognize the new function in app.go.!");
+            arAlert("The tests were not found in memory. You need to restart 'wails dev' in the terminal for it to recognize the new function in app.go.!");
             return;
         }
 
@@ -1454,7 +1455,7 @@ document.getElementById('btnFitnessTests').addEventListener('click', async () =>
         modal.classList.remove('hidden');
         modal.classList.add('active');
 
-    } catch (e) { alert("Error loading tests: " + e); }
+    } catch (e) { arAlert("Error loading tests: " + e); }
 });
 
 
@@ -2108,7 +2109,7 @@ window.checkStravaStatus = async () => {
 };
 
 document.getElementById('btnDisconnectStrava').addEventListener('click', async () => {
-    if (confirm("Disconnect Argus Cyclist from your Strava account?")) {
+    if (await arConfirm("Disconnect Argus Cyclist from your Strava account?")) {
         try {
             await window.go.main.App.DisconnectStrava();
             await window.checkStravaStatus();
@@ -2121,14 +2122,14 @@ document.getElementById('btnDisconnectStrava').addEventListener('click', async (
 window.deleteProfile = async (id, name, event) => {
     event?.stopPropagation?.();
 
-    if (confirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
+    if (await arConfirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
         try {
             await window.go.main.App.DeleteLocalAccount(id);
             // Refresh the grid immediately after successful deletion
             initHomeScreen();
         } catch (err) {
             console.error("Error deleting profile:", err);
-            alert("Failed to delete profile: " + err);
+            arAlert("Failed to delete profile: " + err);
         }
     }
 };
@@ -2151,14 +2152,14 @@ window.loginProfile = async (id) => {
 
     } catch (err) {
         console.error("Login Error:", err);
-        alert("Error logging in: " + err);
+        arAlert("Error logging in: " + err);
     }
 };
 
 window.logoutProfile = async () => {
     // 1. Avoid switching accounts mid-workout
     if (window.isRecording || (document.getElementById('btnAction') && document.getElementById('btnAction').innerText === "STOP")) {
-        alert("Please finish and save your current workout before switching profiles.");
+        arAlert("Please finish and save your current workout before switching profiles.");
         return;
     }
 
