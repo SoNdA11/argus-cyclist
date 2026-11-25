@@ -21,9 +21,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
    ====================================
 */
 
-/* Triggers when the device is in landscape mode (mobile/tablet) */
-@media (max-height: 600px) and (orientation: landscape),
-(max-height: 700px) and (orientation: landscape) {
+/* Triggers when the device is in landscape mode (mobile/tablet). Touch screens only:
+   short desktop windows keep the desktop layout. */
+@media (max-height: 700px) and (orientation: landscape) and (pointer: coarse) {
 
     /* 1. FULLSCREEN MAP VIEWPORT 
        Ensures the 3D map occupies the entire background behind the HUD elements. */

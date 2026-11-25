@@ -531,3 +531,352 @@ body.ar-home-open .modal-overlay { visibility: hidden !important; }
     .ar-home-bottom { flex-direction: column; }
     .ar-home-bottom .ar-cta { flex-basis: auto; }
 }
+
+/* ======================================================================
+   Shared pieces used by the ride screens
+   ====================================================================== */
+
+.ar-glass { background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 4px; }
+
+.ar-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--ar-line);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--ar-text);
+}
+
+.ar-tagline-sm { height: 34px; }
+.ar-tagline-sm .ar-tag { font-size: 18px; padding: 0 18px 0 12px; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.ar-tagline-sm .ar-tag-dark { font-size: 15px; letter-spacing: 1px; padding: 0 16px; margin-left: -5px; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+
+.ar-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ar-muted); flex-shrink: 0; }
+
+.ar-pills {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+}
+
+/* ======================================================================
+   Free Ride shell: top bar, ride HUD over the 3D scene / map, elevation
+   ====================================================================== */
+
+body.ar-shell { background: var(--ar-bg); font-family: var(--ar-body); }
+
+/* ---------- Top bar ---------- */
+
+body.ar-shell header.ar-topbar {
+    height: 64px;
+    flex-shrink: 0;
+    gap: 12px;
+    padding: 0 20px;
+    background: rgba(5, 15, 34, 0.94);
+    border-bottom: 1px solid var(--ar-line);
+    backdrop-filter: none;
+}
+
+body.ar-shell .ar-topbar .brand { flex-shrink: 1; min-width: 0; gap: 0; font-size: inherit; }
+body.ar-shell .ar-topbar .brand span { color: inherit; }
+body.ar-shell .ar-topbar .brand .ar-tag { color: var(--ar-navy); flex-shrink: 0; }
+body.ar-shell .ar-topbar .brand .ar-tag-dark {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    line-height: 34px;
+    background: var(--ar-panel-2);
+    color: var(--ar-soft);
+    text-transform: uppercase;
+}
+body.ar-shell .ar-topbar .brand .ar-tag-dark:empty { display: none; }
+
+body.ar-shell .ar-topbar .header-controls { flex: 1; min-width: 0; gap: 8px; }
+.ar-tb-spacer { flex: 1; }
+.ar-tb-sep { width: 1px; height: 28px; background: var(--ar-line-2); margin: 0 4px; flex-shrink: 0; }
+
+/* View switch as broadcast pills. */
+body.ar-shell .view-switch.ar-pills { border-radius: 4px; padding: 3px; margin-left: 4px; flex-shrink: 0; }
+body.ar-shell .view-switch.ar-pills button {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 3px;
+    color: var(--ar-soft);
+    font-family: var(--ar-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+body.ar-shell .view-switch.ar-pills button:hover { color: var(--ar-text); background: rgba(255, 255, 255, 0.06); }
+body.ar-shell .view-switch.ar-pills button.active { background: var(--ar-accent); color: var(--ar-navy); }
+
+/* Text tools (icon + label). */
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn {
+    height: 40px;
+    padding: 0 12px;
+    gap: 7px;
+    flex-shrink: 0;
+    border: 1px solid var(--ar-line-2);
+    border-radius: 4px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn:hover { background: rgba(40, 60, 100, 0.95); }
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn svg { flex-shrink: 0; color: var(--ar-accent); }
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+body.ar-shell .ar-topbar .btn-icon.ar-tb-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+}
+body.ar-shell .ar-topbar .btn-icon.ar-tb-icon:hover { background: rgba(40, 60, 100, 0.95); }
+
+/* Start / stop (UIManager swaps btn-start and btn-stop). */
+body.ar-shell .ar-topbar .btn-action {
+    height: 40px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    box-shadow: none;
+    font-family: var(--ar-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+body.ar-shell .ar-topbar .btn-action.btn-start { background: var(--ar-accent); color: var(--ar-navy); }
+body.ar-shell .ar-topbar .btn-action.btn-start:hover { transform: none; filter: brightness(1.08); box-shadow: none; }
+body.ar-shell .ar-topbar .btn-action.btn-stop { background: var(--ar-bad); color: #fff; }
+body.ar-shell .ar-topbar .btn-action.hidden { display: none; }
+
+body.ar-shell .ar-topbar button:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+/* Narrow windows: labels give way to icons (names stay as aria-label / title). */
+@media (max-width: 1480px) {
+    .ar-tb-collapse .ar-tb-label { display: none; }
+    body.ar-shell .ar-topbar .btn-import.ar-tb-collapse { width: 40px; padding: 0; justify-content: center; }
+}
+@media (max-width: 1300px) {
+    body.ar-shell .view-switch .view-label { display: none; }
+    body.ar-shell .ar-topbar .brand .ar-tag-dark { max-width: 140px; }
+}
+@media (max-width: 960px) {
+    body.ar-shell header.ar-topbar { padding: 0 12px; gap: 8px; }
+    body.ar-shell .ar-topbar .header-controls { gap: 4px; }
+    .ar-tb-sep { display: none; }
+    body.ar-shell .view-switch.ar-pills button { padding: 0 10px; }
+    body.ar-shell .ar-topbar .btn-action { padding: 0 12px; font-size: 16px; }
+}
+@media (max-width: 1120px) {
+    .ar-tb-btn .ar-tb-label { display: none; }
+    body.ar-shell .ar-topbar .btn-import.ar-tb-btn { width: 40px; padding: 0; justify-content: center; }
+    body.ar-shell .ar-topbar .brand .ar-tag-dark { display: none; }
+}
+
+/* ---------- Ride HUD ---------- */
+
+body.ar-shell .main-viewport { --ar-elev-w: clamp(320px, 36vw, 560px); }
+
+/* The old sidebar becomes a transparent layer; only its panels take clicks. */
+body.ar-shell .hud-sidebar.ar-ride-hud {
+    position: absolute;
+    inset: 0;
+    z-index: 1001;
+    width: auto;
+    padding: 0;
+    overflow: visible;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    pointer-events: none;
+}
+.ar-ride-hud > * { pointer-events: auto; }
+
+.ar-ride-state { position: absolute; top: 20px; left: 24px; }
+.ar-ride-state .ar-tag { color: var(--ar-navy); }
+.ar-ride-state .ar-tag-dark { gap: 8px; }
+#arRideState.is-live .ar-dot { background: var(--ar-live); animation: ar-live-pulse 1.2s ease-in-out infinite; }
+@keyframes ar-live-pulse { 50% { opacity: 0.35; } }
+
+.ar-ride-right {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ar-ride-hud .data-card { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0; min-width: 0; flex: none; justify-content: center; }
+.ar-ride-hud .data-label {
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ar-muted);
+    white-space: nowrap;
+}
+.ar-ride-hud .data-value {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ar-text);
+    white-space: nowrap;
+}
+.ar-ride-hud .data-unit {
+    margin-left: 3px;
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 0.45em;
+    color: var(--ar-muted);
+}
+.ar-ride-hud .data-unit:empty { display: none; }
+
+.ar-ride-time { display: flex; align-items: stretch; overflow: hidden; }
+.ar-ride-time-lbl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+.ar-ride-hud .ar-ride-time .data-value { flex: 1; padding: 6px 16px; font-size: 52px; text-align: right; }
+
+.ar-ride-route { overflow: hidden; }
+.ar-ride-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; padding: 12px 0; }
+
+.ar-ride-metrics {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    width: min(700px, calc(100% - var(--ar-elev-w) - 64px));
+}
+.ar-ride-metrics .ar-tagline-sm { height: 30px; }
+.ar-ride-metrics .ar-tag { color: var(--ar-navy); font-size: 17px; }
+.ar-ride-rider-meta { font-family: var(--ar-body) !important; font-size: 13px !important; font-weight: 600; letter-spacing: 0 !important; }
+.ar-ride-rider-meta:empty { display: none !important; }
+.ar-ride-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px 0;
+    border-radius: 0 4px 4px 4px;
+}
+.ar-ride-hud .ar-ride-strip .data-value { font-size: clamp(28px, 2.9vw, 40px); }
+.ar-ride-strip .data-card + .data-card { border-left: 1px solid var(--ar-line); }
+
+/* ---------- Elevation profile (old footer) as a panel over the scene ---------- */
+
+body.ar-shell > footer {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: var(--ar-elev-w, 500px);
+    height: 132px;
+    padding: 0;
+    z-index: 1002;
+    overflow: hidden;
+    background: var(--ar-glass);
+    border: 1px solid var(--ar-line);
+    border-radius: 4px;
+    backdrop-filter: none;
+    --ar-elev-w: clamp(320px, 36vw, 560px);
+}
+body.ar-shell > footer .elevation-header { margin: 0; font-size: 14px; color: var(--ar-text); }
+body.ar-shell > footer #elevationCurrent { color: var(--ar-muted); font-weight: 600; letter-spacing: 1px; }
+body.ar-shell > footer .elevation-graph-container { background: transparent; }
+body.ar-shell > footer #progressCursor { background: var(--ar-accent); box-shadow: 0 0 6px rgba(25, 236, 214, 0.6); }
+
+/* ---------- Map-only tools ---------- */
+
+.ar-map-tools {
+    position: absolute;
+    top: 20px;
+    right: 316px;
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+}
+body[data-view="map"] .ar-map-tools { display: flex; }
+body.ar-shell .ar-map-tools .btn-icon { width: 44px; height: 44px; border-radius: 4px; }
+
+/* MapLibre zoom controls under our tools; attribution above the elevation panel. */
+body.ar-shell #map-container .maplibregl-ctrl-top-right { top: 120px; right: 316px; }
+body.ar-shell #map-container .maplibregl-ctrl-bottom-right { bottom: 156px; right: 14px; }
+body.ar-shell:not([data-view="map"]) #map-container .maplibregl-ctrl-top-right { display: none; }
+body.ar-shell #map-container .maplibregl-ctrl-top-right .maplibregl-ctrl { margin: 0; }
+body.ar-shell #map-container .maplibregl-ctrl-group { background: var(--ar-glass); border: 1px solid var(--ar-line-2); border-radius: 4px; box-shadow: none; overflow: hidden; }
+body.ar-shell #map-container .maplibregl-ctrl-group button { width: 44px; height: 40px; }
+body.ar-shell #map-container .maplibregl-ctrl-group button + button { border-top: 1px solid var(--ar-line); }
+body.ar-shell #map-container .maplibregl-ctrl-group button:hover { background-color: rgba(255, 255, 255, 0.08); }
+body.ar-shell #map-container .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(1) brightness(1.4); }
+
+/* A workout plan open on the right: the right-hand panels move left of it. */
+/* (The map itself narrows by the panel width, so its own controls need no shift.) */
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-right { right: 324px; }
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-map-tools { right: 616px; }
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: min(700px, calc(100% - var(--ar-elev-w) - 364px)); }
+body.ar-shell:has(#workout-panel:not(.hidden)) > footer { right: 324px; }
+
+/* Short or narrow windows: smaller numbers so the corners never meet. */
+@media (max-height: 640px) {
+    .ar-ride-hud .ar-ride-time .data-value { font-size: 40px; }
+    .ar-ride-grid { gap: 6px 0; padding: 8px 0; }
+    .ar-ride-hud .ar-ride-grid .data-value { font-size: 26px; }
+    body.ar-shell > footer { height: 104px; }
+}
+@media (max-width: 900px) {
+    .ar-ride-right { width: 220px; }
+    .ar-ride-hud .ar-ride-time .data-value { font-size: 40px; }
+    .ar-ride-metrics { width: calc(100% - 48px); bottom: 168px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: calc(100% - 348px); }
+    .ar-ride-hud .ar-ride-strip .data-value { font-size: 26px; }
+    .ar-ride-hud .ar-ride-strip .data-label { font-size: 11px; letter-spacing: 1px; }
+    body.ar-shell > footer { left: 24px; width: auto; }
+}
+
+body.ar-shell .view-switch .view-label { font: inherit; letter-spacing: inherit; }
+
+/* Big screens (TV / 1080p and up): scale the ride panels like the event HUD. */
+@media (min-width: 1600px) and (min-height: 900px) {
+    .ar-ride-hud > *, .ar-map-tools, body.ar-shell > footer { zoom: 1.25; }
+    body.ar-shell .main-viewport, body.ar-shell > footer { --ar-elev-w: clamp(320px, 28vw, 560px); }
+    body.ar-shell #map-container .maplibregl-ctrl-top-right { top: 150px; right: 395px; }
+    body.ar-shell #map-container .maplibregl-ctrl-bottom-right { bottom: 195px; }
+    /* Zoomed lengths: 259 px x 1.25 = the 324 px that clear the 300 px workout panel. */
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-right { right: 259px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-map-tools { right: 556px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: min(700px, calc(100% - var(--ar-elev-w) - 304px)); }
+    body.ar-shell:has(#workout-panel:not(.hidden)) > footer { right: 259px; }
+}

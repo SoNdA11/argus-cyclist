@@ -51,11 +51,12 @@ export class ElevationChart {
     }
 
     getGradientColor(deltaEle) {
-        if (deltaEle > 3.0) return "#e74c3c";
-        if (deltaEle > 1.5) return "#e67e22";
-        if (deltaEle > 0.5) return "#f1c40f";
-        if (deltaEle < -0.5) return "#3498db";
-        return "#2ecc71";
+        // Same slope colours as the route legend (argus-ui.css zone tokens).
+        if (deltaEle > 3.0) return "#ff4d5e";
+        if (deltaEle > 1.5) return "#ff8c3a";
+        if (deltaEle > 0.5) return "#ffd23d";
+        if (deltaEle < -0.5) return "#4c95f2";
+        return "#3fd08a";
     }
 
     draw() {
@@ -72,8 +73,8 @@ export class ElevationChart {
         const stepX = w / (this.data.length - 1);
 
         const fillGradient = this.ctx.createLinearGradient(0, h, 0, 0);
-        fillGradient.addColorStop(0, "rgba(44, 62, 80, 0.6)");
-        fillGradient.addColorStop(1, "rgba(231, 76, 60, 0.1)");
+        fillGradient.addColorStop(0, "rgba(159, 178, 201, 0.10)");
+        fillGradient.addColorStop(1, "rgba(159, 178, 201, 0.24)");
 
         this.ctx.beginPath();
         this.ctx.moveTo(0, h);

@@ -1578,6 +1578,7 @@ window.setMainView = setMainView;
 
 function updateViewSwitch() {
     const current = window.ui && window.ui.isDashboardMode ? 'dashboard' : mainView;
+    document.body.dataset.view = current; // map-only tools and HUD placement (argus-ui.css)
     document.querySelectorAll('#viewSwitch button').forEach((btn) => {
         const on = btn.dataset.view === current;
         btn.classList.toggle('active', on);

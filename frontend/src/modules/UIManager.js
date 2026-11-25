@@ -564,12 +564,12 @@ export class UIManager {
         const hrColor = this.getHeartRateZoneColor(data.heart_rate);
 
         // Raw telemetry values
-        this.els.watts.innerHTML = `${data.power}<span class="data-unit">w</span>`;
+        this.els.watts.innerHTML = `${data.power}<span class="data-unit">W</span>`;
         this.els.watts.style.color = powerColor;
 
         this.els.rpm.innerHTML = `${data.cadence}<span class="data-unit">rpm</span>`;
 
-        this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">❤</span>`;
+        this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">bpm</span>`;
         this.els.hr.style.color = hrColor;
 
         const gradeColor = this.getGradeColor(data.grade);
@@ -599,7 +599,7 @@ export class UIManager {
         // power output against the rider's body mass, directly affecting climbing ability.
         const totalWeight = data.rider_weight || data.riderWeight || this.riderWeight || 75;
         const wkgVal = (data.power / totalWeight).toFixed(2);
-        this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;
+        this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit"></span>`;
 
         // Update Studio / Challenge HUD metrics
         if (this.isStudioMode || (this.hud && this.hud.isOpen())) {
@@ -704,7 +704,7 @@ export class UIManager {
      * Display the currently loaded route filename.
      */
     setFilename(name) {
-        this.els.filename.innerText = "| " + name;
+        this.els.filename.innerText = name;
     }
 
     // ===============
@@ -729,12 +729,12 @@ export class UIManager {
         if (this.els.dashDist) this.els.dashDist.innerHTML = `0.00<span class="dash-unit">km</span>`;
 
         if (this.els.watts) {
-            this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+            this.els.watts.innerHTML = `0<span class="data-unit">W</span>`;
             this.els.watts.style.color = '';
         }
-        if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+        if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit"></span>`;
         if (this.els.hr) {
-            this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+            this.els.hr.innerHTML = `--<span class="data-unit">bpm</span>`;
             this.els.hr.style.color = '';
         }
         if (this.els.rpm) this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
@@ -769,12 +769,12 @@ export class UIManager {
      */
     showRoutePreview(totalDistance, totalElevation = 0) {
         // Reset telemetry values to zero/dash
-        this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        this.els.watts.innerHTML = `0<span class="data-unit">W</span>`;
         this.els.watts.style.color = '';
 
         this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
 
-        this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        this.els.hr.innerHTML = `--<span class="data-unit">bpm</span>`;
         this.els.hr.style.color = '';
 
         this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
@@ -786,7 +786,7 @@ export class UIManager {
         }
 
         this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`; // Or miles based on preference
-        this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+        this.els.wkg.innerHTML = `0.0<span class="data-unit"></span>`;
 
         // Reset Timer
         this.els.time.innerText = `00:00:00`;
@@ -999,6 +999,10 @@ export class UIManager {
      * @param {'RECORDING' | 'PAUSED' | 'IDLE'} state
      */
     setRecordingState(state) {
+        // Ride HUD state tag (FREE RIDE · READY / RECORDING / PAUSED).
+        const stateText = document.getElementById('arRideStateText');
+        if (stateText) stateText.textContent = { RECORDING: 'RECORDING', PAUSED: 'PAUSED' }[state] || 'READY';
+        document.getElementById('arRideState')?.classList.toggle('is-live', state === 'RECORDING');
         if (state === 'RECORDING') {
             this.els.btnAction.innerText = "STOP";
             this.els.btnAction.className = "btn-action btn-stop";
@@ -1059,6 +1063,14 @@ export class UIManager {
 
             this.setLevelProgress({ level: profile.level, xp: profile.current_xp });
             await this.loadLevelProgress();
+
+            // Rider tag above the ride metrics.
+            const riderName = document.getElementById('arRiderName');
+            if (riderName) riderName.textContent = (profile.name || 'Rider').split(' ')[0].toUpperCase();
+            const athleteName = document.getElementById('arAthleteName');
+            if (athleteName) athleteName.textContent = (profile.name || 'Rider').toUpperCase();
+            const riderMeta = document.getElementById('arRiderMeta');
+            if (riderMeta) riderMeta.textContent = `${profile.weight || 75} kg · FTP ${profile.ftp || 200} W`;
 
             // Set Photo Details Update if on main view
             if (document.getElementById('profileNameDisplay')) {

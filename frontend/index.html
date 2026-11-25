@@ -26,30 +26,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     <title>Argus Cyclist</title>
 </head>
 
-<body>
-    <header>
-        <div class="brand">ARGUS<span>CYCLIST</span> <span id="filename" class="filename-display"></span></div>
+<body class="ar-shell">
+    <!-- Top bar (Free Ride): brand + route, main view, tools, rider shortcuts and the start
+         button. Labels collapse to icons on narrow windows (argus-ui.css). -->
+    <header class="ar-topbar">
+        <div class="brand ar-tagline ar-tagline-sm">
+            <span class="ar-tag">ARGUS CYCLIST</span>
+            <span id="filename" class="filename-display ar-tag-dark"></span>
+        </div>
         <div class="header-controls">
-            <div class="view-switch" id="viewSwitch" role="tablist" aria-label="Main view">
+            <div class="view-switch ar-pills" id="viewSwitch" role="tablist" aria-label="Main view">
                 <button type="button" data-view="3d" role="tab" title="3D view (Ctrl+Shift+3)">3D</button>
                 <button type="button" data-view="map" role="tab" title="Real map">Map</button>
-                <button type="button" data-view="dashboard" role="tab" title="Dashboard">
+                <button type="button" data-view="dashboard" role="tab" title="Dashboard" aria-label="Dashboard">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                     </svg>
                     <span class="view-label">Dashboard</span>
                 </button>
             </div>
-            <button class="btn-icon" id="btnOpenSettings" title="Settings">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
-                </svg>
+            <div class="ar-tb-spacer"></div>
+            <button id="btnJustRide" class="btn-import ar-tb-btn" title="Studio" aria-label="Studio">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg><span class="ar-tb-label">Studio</span>
             </button>
-            <button class="btn-icon" id="btnTrophy" title="Trophy Room">
+            <button id="btnLoadWorkout" class="btn-import ar-tb-btn ar-tb-collapse" title="Load workout" aria-label="Load workout">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20v-6M10 20V8M14 20v-9M18 20V5"></path></svg><span class="ar-tb-label">Load workout</span>
+            </button>
+            <button id="btnFitnessTests" class="btn-import ar-tb-btn" title="Assessments" aria-label="Assessments">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="8"></circle><path d="M12 14l3-3M10 2h4M12 2v4"></path></svg><span class="ar-tb-label">Assessments</span>
+            </button>
+            <button id="btnOpenEditor" class="btn-import ar-tb-btn ar-tb-collapse" onclick="window.ui.startRouteEditor()" title="Create route" aria-label="Create route">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="5" r="2"></circle><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"></path></svg><span class="ar-tb-label">Create route</span>
+            </button>
+            <button id="btnImport" class="btn-import ar-tb-btn ar-tb-collapse" title="Import GPX" aria-label="Import GPX">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg><span class="ar-tb-label">Import GPX</span>
+            </button>
+            <span class="ar-tb-sep" aria-hidden="true"></span>
+            <button class="btn-icon ar-tb-icon" aria-label="Trophy Room" id="btnTrophy" title="Trophy Room">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -60,21 +74,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
                 </svg>
             </button>
-            <button class="btn-icon" id="btnCenter" title="Center Map">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="16"></line>
-                    <line x1="8" y1="12" x2="16" y2="12"></line>
-                </svg>
-            </button>
-            <button class="btn-icon" id="btnLayers" title="Switch Layer">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                    <polyline points="2 17 12 22 22 17"></polyline>
-                    <polyline points="2 12 12 17 22 12"></polyline>
-                </svg>
-            </button>
-            <button class="btn-icon" id="btnOpenAIChat" title="AI Coach">
+            <button class="btn-icon ar-tb-icon" aria-label="AI Coach" id="btnOpenAIChat" title="AI Coach">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="9"/>
                     <polyline points="12,3 12,8 9,11" stroke-width="1.2"/>
@@ -88,54 +88,91 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <rect x="9.5" y="9.5" width="5" height="5" rx="1.2" fill="currentColor" opacity=".6"/>
                 </svg>
             </button>
-            <button id="btnOpenEditor" class="btn-import" onclick="window.ui.startRouteEditor()">
-                Create Route
+            <button class="btn-icon ar-tb-icon" aria-label="Settings" id="btnOpenSettings" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
             </button>
-            <button id="btnFitnessTests" class="btn-import">Assessments</button>
-            <button id="btnJustRide" class="btn-import">Studio</button>
-            <button id="btnLoadWorkout" class="btn-import">Load Workout</button>
-            <button id="btnImport" class="btn-import">Import GPX</button>
             <button id="btnAction" class="btn-action btn-start hidden">START RIDE</button>
         </div>
     </header>
     <div class="main-viewport">
-        <aside class="hud-sidebar">
-            <div class="data-card"><span class="data-label">Time</span>
-                <div class="data-value val-time" id="time">00:00:00</div>
-            </div>
-            <div class="data-card"><span class="data-label">Power</span>
-                <div class="data-value val-watts" id="watts">0<span class="data-unit">w</span></div>
-            </div>
-
-            <div class="data-card"><span class="data-label">W/Kg</span>
-                <div class="data-value" id="wkg">0.0<span class="data-unit">w/kg</span></div>
+        <!-- Ride HUD over the 3D scene / map. The values keep their ids (UIManager updates them). -->
+        <aside class="hud-sidebar ar-ride-hud">
+            <div class="ar-tagline ar-tagline-sm ar-ride-state">
+                <span class="ar-tag">FREE RIDE</span>
+                <span class="ar-tag-dark" id="arRideState"><span class="ar-dot" aria-hidden="true"></span><span id="arRideStateText">READY</span></span>
             </div>
 
-            <div class="data-card"><span class="data-label">Speed</span>
-                <div class="data-value" id="speed">0.0<span class="data-unit">km/h</span></div>
-            </div>
-            <div class="data-card"><span class="data-label">Heart Rate</span>
-                <div class="data-value val-hr" id="hr">--<span class="data-unit">❤</span></div>
-            </div>
-            <div class="data-card"><span class="data-label">Cadence</span>
-                <div class="data-value" id="rpm">0<span class="data-unit">rpm</span></div>
-            </div>
-            <div class="data-card"><span class="data-label">Grade</span>
-                <div class="data-value val-grade" id="grade">0.0<span class="data-unit">%</span></div>
+            <div class="ar-ride-right">
+                <div class="ar-glass ar-ride-time">
+                    <span class="ar-ride-time-lbl">TIME</span>
+                    <div class="data-value val-time" id="time">00:00:00</div>
+                </div>
+                <div class="ar-glass ar-ride-route">
+                    <div class="ar-panel-head"><span>ROUTE</span></div>
+                    <div class="ar-ride-grid">
+                    <div class="data-card"><span class="data-label">Distance</span>
+                        <div class="data-value" id="dist">0.0<span class="data-unit">km</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Remaining</span>
+                        <div class="data-value val-rem" id="distRem">0.0<span class="data-unit">km</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Grade</span>
+                        <div class="data-value val-grade" id="grade">0.0<span class="data-unit">%</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Elevation</span>
+                        <div class="data-value" id="elevation">0<span class="data-unit">m</span></div>
+                    </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="data-card"><span class="data-label">Elevation</span>
-                <div class="data-value" id="elevation">0<span class="data-unit">m</span></div>
-            </div>
-
-            <div class="data-card"><span class="data-label">Distance</span>
-                <div class="data-value" id="dist">0.0<span class="data-unit">km</span></div>
-            </div>
-
-            <div class="data-card"><span class="data-label">Remaining</span>
-                <div class="data-value val-rem" id="distRem">0.0<span class="data-unit">km</span></div>
+            <div class="ar-ride-metrics">
+                <div class="ar-tagline ar-tagline-sm">
+                    <span class="ar-tag" id="arRiderName">RIDER</span>
+                    <span class="ar-tag-dark ar-ride-rider-meta" id="arRiderMeta"></span>
+                </div>
+                <div class="ar-glass ar-ride-strip">
+                    <div class="data-card"><span class="data-label">Power</span>
+                        <div class="data-value val-watts" id="watts">0<span class="data-unit">W</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Heart rate</span>
+                        <div class="data-value val-hr" id="hr">--<span class="data-unit">bpm</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Cadence</span>
+                        <div class="data-value" id="rpm">0<span class="data-unit">rpm</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">Speed</span>
+                        <div class="data-value" id="speed">0.0<span class="data-unit">km/h</span></div>
+                    </div>
+                    <div class="data-card"><span class="data-label">W/kg</span>
+                        <div class="data-value" id="wkg">0.0<span class="data-unit"></span></div>
+                    </div>
+                </div>
             </div>
         </aside>
+
+        <!-- Map-only tools (hidden in the 3D view). -->
+        <div class="ar-map-tools">
+            <button class="btn-icon ar-icon-btn" aria-label="Center map" id="btnCenter" title="Center Map">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+            </button>
+            <button class="btn-icon ar-icon-btn" aria-label="Switch map layer" id="btnLayers" title="Switch Layer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </button>
+        </div>
 
         <main id="map-container"></main>
 
@@ -575,7 +612,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     </div>
     
     <footer>
-        <div class="elevation-header"><span>Elevation Profile</span><span id="elevationCurrent"></span></div>
+        <div class="elevation-header ar-panel-head"><span>ELEVATION PROFILE</span><span id="elevationCurrent"></span></div>
         <div class="elevation-graph-container">
             <canvas id="elevationCanvas"></canvas>
             <div id="progressCursor"></div>
