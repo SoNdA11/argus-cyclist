@@ -15,7 +15,6 @@ export const EVENT_ZONES = [
     { id: 5, name: 'VO2MÁX', max: 121, mult: 3.5 },
     { id: 6, name: 'ANAERÓBICO', max: Infinity, mult: 5.0 }
 ];
-const ZONE_BAR_MAX = 150; // % of FTP at the right end of the zone bar
 
 /** Metric strip per mode: [key, label, unit, highlighted]. */
 const METRICS = {
@@ -99,7 +98,10 @@ export class EventBroadcastHud {
         if (mode === 'sprint200') this.setTrack(0, 0);
         if (mode === 'climb400') this.buildProfile(opts.profile);
         if (isPoints) {
-            this.text('ftpLabel', `ZONAS DE POTÊNCIA · FTP DE REFERÊNCIA ${Math.round(opts.ftp || 200)} W`);
+            const ftp = Math.round(opts.ftp || 200);
+            this.text('ftpLabel', opts.weight
+                ? `ZONAS PARA ${Math.round(opts.weight)} KG · REFERÊNCIA ${ftp} W`
+                : `ZONAS DE POTÊNCIA · REFERÊNCIA ${ftp} W`);
             this.setScore(0, 1, null, 'Fique na Z4 ou acima para pontuar mais rápido.');
             this.setZone(null, 0);
         }
@@ -271,11 +273,6 @@ export class EventBroadcastHud {
         this.text('zoneId', zone ? `Z${zone.id}` : '—');
         this.text('zoneName', zone ? zone.name : '');
         this.text('pctLabel', zone ? `${Math.round(pct)}% DO FTP` : '');
-        const pointer = this.el('zonePointer');
-        if (pointer) {
-            pointer.style.left = `${(Math.max(0, Math.min(ZONE_BAR_MAX, pct)) / ZONE_BAR_MAX * 100).toFixed(2)}%`;
-            pointer.classList.toggle('hidden', !zone);
-        }
     }
 
     // ----- Countdown and finish banner -----
