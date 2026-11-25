@@ -16,15 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="recoveryModal" class="modal-overlay">
-    <div class="modal-content-small">
-        <h3>Unfinished session found</h3>
-        <p id="recoveryDetails" style="color: var(--text-muted); margin: 10px 0 20px 0; line-height: 1.5;">
-            An unfinished session was found and can still be saved.
-        </p>
-        <div class="action-buttons">
-            <button id="btnRecoverSession" class="btn-safe">Recover &amp; Save</button>
-            <button id="btnDiscardRecovery" class="btn-danger">Discard</button>
+<!-- Unfinished session found on start-up (main.js fills recoveryDetails). -->
+<div id="recoveryModal" class="modal-overlay ar-dialog-overlay">
+    <section class="ar-dialog is-info" role="dialog" aria-labelledby="recoveryTitle">
+        <span class="ar-label ar-dialog-kicker">On start-up</span>
+        <h2 class="ar-h2" id="recoveryTitle">UNFINISHED SESSION</h2>
+        <p id="recoveryDetails" class="ar-body">An unfinished session was found and can still be saved.</p>
+        <div class="ar-dialog-actions">
+            <button id="btnDiscardRecovery" class="ar-btn-danger" type="button">Discard</button>
+            <button id="btnRecoverSession" class="ar-btn-primary" type="button">RECOVER &amp; SAVE</button>
         </div>
-    </div>
+    </section>
 </div>

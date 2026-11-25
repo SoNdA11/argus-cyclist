@@ -1421,28 +1421,24 @@ document.getElementById('btnFitnessTests').addEventListener('click', async () =>
         const list = document.getElementById('fitnessTestList');
         list.innerHTML = '';
 
-        tests.forEach(test => {
-            const btn = document.createElement('div');
-            btn.style.cssText = "background: var(--bg-elevated); padding: 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+        // Header tag: the FTP the tests are scaled from.
+        window.go.main.App.GetUserProfile().then((profile) => {
+            const tag = document.getElementById('arAssessFtp');
+            if (tag && profile?.ftp) tag.textContent = `CURRENT FTP ${profile.ftp} W`;
+        }).catch(() => { });
 
+        tests.forEach((test, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ar-assess-row';
             btn.innerHTML = `
-                <h4 style="margin:0 0 5px 0; color: #fff;">${test.metadata.name}</h4>
-                <p style="margin:0; font-size: 12px; color: var(--text-muted);">${test.metadata.description}</p>
-                <div style="margin-top: 10px; font-size: 11px; font-weight: bold; color: var(--zone-3);">DURATION: ${Math.round(test.total_duration / 60)} MIN</div>
+                <span class="ar-assess-num">${i + 1}</span>
+                <span class="ar-assess-text">
+                    <strong>${test.metadata.name}</strong>
+                    <span>${test.metadata.description}</span>
+                </span>
+                <span class="ar-assess-dur">${Math.round(test.total_duration / 60)}<small> min</small></span>
             `;
-
-            btn.onmouseover = () => {
-                btn.style.borderColor = "var(--zone-4)";
-                btn.style.transform = "scale(1.03)";
-                btn.style.background = "rgba(255, 255, 255, 0.05)";
-                btn.style.boxShadow = "0 8px 15px rgba(0,0,0,0.4)";
-            };
-            btn.onmouseout = () => {
-                btn.style.borderColor = "transparent";
-                btn.style.transform = "scale(1)";
-                btn.style.background = "var(--bg-elevated)";
-                btn.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
-            };
 
             btn.onclick = async () => {
                 const modal = document.getElementById('fitnessTestModal');

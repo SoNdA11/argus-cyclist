@@ -1659,3 +1659,218 @@ body.ar-shell .hud-sidebar.right-panel.ar-workout {
 
 /* Bike components tab (athlete area) */
 #settingsModal.ar-athlete #tab-components.active { gap: 14px; overflow-y: auto; }
+
+/* ======================================================================
+   Dialogs (cooldown, recovery, pause, FTP confirm): one format for all
+   ====================================================================== */
+
+/* Above the top bar and the athlete page; dimmed scene behind. */
+.modal-overlay.ar-dialog-overlay { z-index: 10010; background: rgba(5, 15, 34, 0.86); } /* no backdrop blur: costly over the live WebGL scene */
+.modal-overlay.ar-dialog-overlay.hidden:not(.active) { display: none; }
+
+.ar-dialog {
+    --ar-dialog-c: var(--ar-accent);
+    width: min(460px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px 22px 20px;
+    border: 1px solid var(--ar-line);
+    border-top: 4px solid var(--ar-dialog-c);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-dialog.is-bad { --ar-dialog-c: var(--ar-bad); }
+.ar-dialog.is-info { --ar-dialog-c: var(--ar-info); }
+.ar-dialog.is-center { align-items: center; text-align: center; }
+.ar-dialog .ar-body { margin: 0; }
+.ar-dialog .ar-body strong { color: var(--ar-text); }
+.ar-dialog-kicker { color: var(--ar-dialog-c); }
+.ar-dialog-head { display: flex; justify-content: space-between; align-items: center; margin: -6px 0 -6px; }
+.ar-dialog-head .ar-icon-btn { width: 36px; height: 36px; }
+.ar-dialog-clock { font-family: var(--ar-display); font-weight: 800; font-size: 88px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ar-dialog-metrics { width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 10px 0; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-dialog-metrics > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ar-dialog-val { font-family: var(--ar-display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+.ar-dialog-val.is-hr { color: var(--ar-bad); }
+.ar-dialog-full { width: 100%; }
+.ar-dialog-actions { display: flex; gap: 10px; }
+.ar-dialog-actions > button { flex: 1; }
+.ar-dialog-actions > .ar-btn-primary { flex: 1.5; }
+.ar-dialog-actions-3 > button { padding: 0 12px; }
+
+/* ======================================================================
+   Assessments (fitnessTestModal.html)
+   ====================================================================== */
+
+.ar-assess { max-width: none; }
+.ar-assess-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: min(760px, 100%); }
+.ar-assess-head .ar-caption { letter-spacing: 1px; text-transform: uppercase; }
+.ar-assess-list { width: min(760px, 100%); display: flex; flex-direction: column; }
+.ar-assess-row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 90px;
+    align-items: center;
+    column-gap: 12px;
+    width: 100%;
+    padding: 16px 18px;
+    border: 0;
+    border-top: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ar-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.ar-assess-row:first-child { border-top: 0; }
+.ar-assess-row:hover, .ar-assess-row:focus-visible { background: var(--ar-accent-soft); box-shadow: inset 5px 0 0 var(--ar-accent); outline: none; }
+.ar-assess-num { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: rgba(255, 255, 255, 0.1); font-family: var(--ar-display); font-weight: 800; font-size: 22px; }
+.ar-assess-row:hover .ar-assess-num { background: var(--ar-accent); color: var(--ar-navy); }
+.ar-assess-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ar-assess-text strong { font-family: var(--ar-display); font-weight: 700; font-size: 26px; letter-spacing: 1px; line-height: 1; text-transform: uppercase; }
+.ar-assess-text span { font-size: 13px; line-height: 1.45; color: var(--ar-soft); }
+.ar-assess-dur { text-align: right; font-family: var(--ar-display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+.ar-assess-dur small { font-size: 0.5em; font-weight: 600; color: var(--ar-muted); }
+
+/* ======================================================================
+   Toast (index.html #toast-notification)
+   ====================================================================== */
+
+body.ar-shell .toast {
+    top: 84px;
+    bottom: auto;
+    left: 50%;
+    z-index: 10030;
+    max-width: min(560px, calc(100vw - 32px));
+    padding: 12px 18px;
+    border: 1px solid rgba(25, 236, 214, 0.5);
+    border-left: 4px solid var(--ar-accent);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    white-space: pre-line;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+body.ar-shell .toast.show { transform: translateX(-50%) translateY(6px); }
+
+/* ======================================================================
+   Route creator (index.html #routeEditorPanel)
+   ====================================================================== */
+
+body.ar-route-editing .ar-ride-hud,
+body.ar-route-editing > footer { display: none !important; }
+
+body.ar-shell .editor-panel.ar-route-editor {
+    top: 20px;
+    left: 24px;
+    right: auto;
+    width: 340px;
+    padding: 0;
+    z-index: 1003;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-route-editor > * + * { margin-top: 12px; }
+.ar-route-editor .ar-tag { color: var(--ar-navy); }
+.ar-route-editor .ar-panel { background: var(--ar-glass); overflow: hidden; }
+.ar-route-editor .editor-instr.ar-note { margin: 0; padding: 14px 18px; border-radius: 0; border-bottom: 1px solid var(--ar-line); font-size: 13px; }
+.ar-route-editor .editor-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0; padding: 14px 0; }
+.ar-route-editor .editor-stats > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ar-route-editor .editor-stats strong { font-family: var(--ar-display); font-weight: 800; font-size: 34px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+.ar-route-editor .ar-route-name { padding: 0 18px 16px; color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+.ar-route-editor .editor-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ar-route-editor .editor-actions .ar-btn { flex: 1; }
+.ar-route-editor .editor-actions .ar-btn-primary { flex: 1.4; }
+
+/* ======================================================================
+   End of ride summary (index.html #finishModal)
+   ====================================================================== */
+
+#finishModal .ar-dialog.finish-content { width: min(560px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 32px); text-align: left; }
+#finishModal .ar-tag { color: var(--ar-navy); }
+#finishModal .finish-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+#finishModal .stat-box-small { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 8px 10px; border: 1px solid var(--ar-line); border-radius: 4px; background: rgba(255, 255, 255, 0.03); text-align: left; }
+#finishModal .stat-box-small .label { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ar-muted); }
+#finishModal .stat-box-small .value { justify-content: flex-start !important; font-family: var(--ar-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+#finishModal .zones-container { margin: 0; padding: 0; background: none; border: 0; display: flex; flex-direction: column; gap: 6px; }
+#finishModal .zones-bar { height: 14px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.06); }
+#finishModal .zones-legend { display: flex; justify-content: space-between; font-family: var(--ar-display); font-weight: 700; font-size: 13px; }
+.ar-xp { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-xp-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ar-soft); }
+.ar-xp-row > span:last-child { font-family: var(--ar-display); font-weight: 700; font-size: 16px; color: var(--ar-text); }
+.ar-xp-total { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--ar-line); font-weight: 600; color: var(--ar-text); }
+.ar-xp-total > span:last-child { color: var(--ar-accent); font-size: 20px; }
+.ar-xp-levelup { margin-top: 8px; padding: 8px; border-radius: 4px; background: var(--ar-accent-soft); color: var(--ar-accent); text-align: center; font-family: var(--ar-display); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+.ar-finish-actions { flex-wrap: wrap; margin: 0; }
+.ar-finish-actions .hidden { display: none !important; }
+.ar-finish-actions .btn-strava.ar-btn, .ar-finish-actions .btn-intervals.ar-btn { background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); box-shadow: none; font-size: 13px; }
+.ar-drift-warn { padding: 1px 6px; border-radius: 3px; background: rgba(255, 210, 61, 0.15); color: var(--ar-z4); font-family: var(--ar-display); font-weight: 700; font-size: 12px; letter-spacing: 1px; }
+
+/* Info "?" markers and their tooltips (finish modal and activity detail) */
+.ar-dialog .info-icon, .ar-detail .info-icon { background: rgba(255, 255, 255, 0.12); color: var(--ar-soft); border: 0; }
+.ar-dialog .tooltip-content, .ar-detail .tooltip-content { background: var(--ar-glass-strong); border: 1px solid var(--ar-line-2); border-radius: 4px; font-family: var(--ar-body); text-transform: none; letter-spacing: 0; }
+
+/* ======================================================================
+   Activity detail (index.html #activityDetailModal)
+   ====================================================================== */
+
+#activityDetailModal.ar-detail .modern-detail-modal { width: 100%; max-width: none; padding: 24px 32px; }
+#activityDetailModal .ar-page-top { margin: 0; padding: 0; border: 0; }
+#activityDetailModal #detail-route-name { margin: 0; max-width: 520px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; text-transform: uppercase; }
+.ar-detail-actions { display: flex; gap: 10px; align-items: center; }
+#activityDetailModal .share-dropdown-menu { background: var(--ar-glass-strong); border: 1px solid var(--ar-line-2); border-radius: 4px; }
+#activityDetailModal .share-dropdown-menu button { color: var(--ar-text); font-family: var(--ar-body); }
+#activityDetailModal .share-dropdown-menu button:hover { background: var(--ar-accent-soft); }
+#activityDetailModal .share-dropdown-menu .hidden, #activityDetailModal .share-dropdown-menu.hidden { display: none; }
+#activityDetailModal .detail-body { gap: 12px; }
+#activityDetailModal .modern-stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; }
+#activityDetailModal .modern-stat-card { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); box-shadow: none; transform: none; text-align: left; align-items: flex-start; }
+#activityDetailModal .modern-stat-card .label { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#activityDetailModal .modern-stat-card .value { font-family: var(--ar-display); font-weight: 800; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+#activityDetailModal .modern-stat-card .value.is-power { color: var(--ar-accent); }
+#activityDetailModal .charts-row { gap: 12px; }
+#activityDetailModal .modern-chart-wrapper { padding: 0; border: 1px solid var(--ar-line); border-radius: 4px; display: flex; flex-direction: column; }
+.ar-detail-telemetry { flex: 1.8; min-width: 0; }
+.ar-detail-mmp { flex: 1; min-width: 0; }
+.ar-detail-chart { width: 100%; height: clamp(260px, 38vh, 400px); }
+.ar-thresholds { display: flex; justify-content: space-around; align-items: center; gap: 16px; padding: 12px 18px; }
+.ar-thresholds h4 { margin: 0 0 4px; }
+.ar-vt1 { color: var(--ar-z3) !important; }
+.ar-vt2 { color: var(--ar-z5) !important; }
+.ar-vt-data { margin-top: 4px; font-family: var(--ar-display); font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) {
+    #activityDetailModal .modern-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #activityDetailModal .charts-row { flex-direction: column; }
+    #finishModal .finish-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Finish modal: compact enough for 720 px tall windows, scrolls inside beyond that. */
+#finishModal .ar-dialog.finish-content { max-height: calc(100vh - 32px) !important; overflow-y: auto !important; gap: 10px; padding: 18px 20px; margin: 0; }
+#finishModal .ar-dialog .ar-h2 { font-size: 26px; }
+#finishModal .stat-box-small { padding: 6px 10px; align-items: flex-start; }
+#finishModal .stat-box-small .label { justify-content: flex-start; text-align: left; }
+#finishModal .stat-box-small .value { font-size: 20px; white-space: nowrap; }
+#finishModal .ar-xp { gap: 3px; padding: 10px 12px; }
+#finishModal .modal-actions { padding: 0; border: 0; }
+.ar-thresholds .toggle-switch input:checked + .slider { background-color: var(--ar-accent); }
+
+/* While drawing a route the ride panels are hidden: map tools go back to the corner. */
+body.ar-route-editing .ar-map-tools { right: 24px !important; }
+body.ar-route-editing #map-container .maplibregl-ctrl-top-right { right: 24px !important; }

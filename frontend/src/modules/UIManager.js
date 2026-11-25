@@ -491,10 +491,10 @@ export class UIManager {
      */
     getTSSColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value < 150) return '#2ecc71'; // Safe (Green)
-        if (value <= 300) return '#3498db'; // Neutral (Blue)
-        if (value <= 450) return '#f1c40f'; // Warn (Yellow)
-        return '#e74c3c'; // Alert (Red)
+        if (value < 150) return '#5ad66a'; // Safe (Green)
+        if (value <= 300) return '#4c95f2'; // Neutral (Blue)
+        if (value <= 450) return '#ffd23d'; // Warn (Yellow)
+        return '#ff6b6f'; // Alert (Red)
     }
 
     /**
@@ -505,10 +505,10 @@ export class UIManager {
      */
     getIFColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value < 0.75) return '#2ecc71'; // Safe
-        if (value <= 0.85) return '#3498db'; // Neutral
-        if (value <= 0.95) return '#f1c40f'; // Warn
-        return '#e74c3c'; // Alert
+        if (value < 0.75) return '#5ad66a'; // Safe
+        if (value <= 0.85) return '#4c95f2'; // Neutral
+        if (value <= 0.95) return '#ffd23d'; // Warn
+        return '#ff6b6f'; // Alert
     }
 
     /**
@@ -519,10 +519,10 @@ export class UIManager {
      */
     getTRIMPColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value <= 70) return '#2ecc71'; // Safe
-        if (value <= 140) return '#3498db'; // Neutral
-        if (value <= 250) return '#f1c40f'; // Warn
-        return '#e74c3c'; // Alert
+        if (value <= 70) return '#5ad66a'; // Safe
+        if (value <= 140) return '#4c95f2'; // Neutral
+        if (value <= 250) return '#ffd23d'; // Warn
+        return '#ff6b6f'; // Alert
     }
 
     /**
@@ -533,9 +533,9 @@ export class UIManager {
      */
     getDriftColor(value) {
         if (value == null || isNaN(value)) return 'var(--text-main)';
-        if (value < 5) return '#2ecc71'; // Safe
-        if (value < 10) return '#f1c40f'; // Warn (Yellow)
-        return '#e74c3c'; // Alert (Poor Endurance)
+        if (value < 5) return '#5ad66a'; // Safe
+        if (value < 10) return '#ffd23d'; // Warn (Yellow)
+        return '#ff6b6f'; // Alert (Poor Endurance)
     }
 
     /**
@@ -547,10 +547,10 @@ export class UIManager {
      */
     getHRRColor(value) {
         if (!value || value <= 0) return 'var(--text-main)'; // Default fallback
-        if (value < 12) return '#e74c3c'; // Alert (Severe Risk)
-        if (value <= 20) return '#f1c40f'; // Warn (Average)
-        if (value <= 35) return '#2ecc71'; // Safe (Good)
-        return '#3498db'; // Elite (Neutral/Blue indicator)
+        if (value < 12) return '#ff6b6f'; // Alert (Severe Risk)
+        if (value <= 20) return '#ffd23d'; // Warn (Average)
+        if (value <= 35) return '#5ad66a'; // Safe (Good)
+        return '#4c95f2'; // Elite (Neutral/Blue indicator)
     }
 
     // =================
@@ -841,6 +841,9 @@ export class UIManager {
     }
 
     startRouteEditor() {
+        // Points are placed on the real map: leave the 3D view and the dashboard first.
+        if (window.setMainView) window.setMainView('map');
+        document.body.classList.add('ar-route-editing'); // hides the ride HUD (argus-ui.css)
         document.getElementById('routeEditorPanel').style.display = 'block';
         document.getElementById('btnOpenEditor').style.display = 'none'; // Esconde botão de abrir
 
@@ -854,7 +857,8 @@ export class UIManager {
 
     cancelRoute() {
         document.getElementById('routeEditorPanel').style.display = 'none';
-        document.getElementById('btnOpenEditor').style.display = 'block';
+        document.getElementById('btnOpenEditor').style.display = '';
+        document.body.classList.remove('ar-route-editing');
 
         window.mapController.disableEditorMode();
     }
@@ -1682,7 +1686,7 @@ export class UIManager {
         if (!modal) return;
 
         if (summary && summary.activity) {
-            document.getElementById('finish-np').innerText = summary.activity.normalized_power ? `${summary.activity.normalized_power} w` : '-- w';
+            document.getElementById('finish-np').innerText = summary.activity.normalized_power ? `${summary.activity.normalized_power} W` : '-- W';
             document.getElementById('finish-if').innerText = summary.activity.intensity_factor ? summary.activity.intensity_factor.toFixed(2) : '--';
             document.getElementById('finish-tss').innerText = summary.activity.tss ? summary.activity.tss.toFixed(1) : '--';
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
@@ -1697,7 +1701,7 @@ export class UIManager {
                 // Only show valid decoupling for rides longer than 1 hour (3600s)
                 if (durationSec >= 3600) {
                     // Display yellow warning emoji if drift > 5%
-                    const warning = drift > 5.0 ? `<span title="High Cardiovascular Drift! Indicates lack of base aerobic conditioning." style="color: #f1c40f; font-size: 1.1rem;">⚠️</span>` : '';
+                    const warning = drift > 5.0 ? `<span class="ar-drift-warn" title="High cardiovascular drift: indicates a weak aerobic base.">HIGH</span>` : '';
                     decouplingEl.innerHTML = `${drift.toFixed(1)}% ${warning}`;
                 } else {
                     decouplingEl.innerText = 'N/A (<1h)';
@@ -1778,12 +1782,12 @@ export class UIManager {
         bar.innerHTML = '';
 
         const zoneKeys = [
-            { key: 'z1_time', color: 'var(--zone-1)' },
-            { key: 'z2_time', color: 'var(--zone-2)' },
-            { key: 'z3_time', color: 'var(--zone-3)' },
-            { key: 'z4_time', color: 'var(--zone-4)' },
-            { key: 'z5_time', color: 'var(--zone-5)' },
-            { key: 'z6_time', color: 'var(--zone-6)' }
+            { key: 'z1_time', color: 'var(--ar-z1)' },
+            { key: 'z2_time', color: 'var(--ar-z2)' },
+            { key: 'z3_time', color: 'var(--ar-z3)' },
+            { key: 'z4_time', color: 'var(--ar-z4)' },
+            { key: 'z5_time', color: 'var(--ar-z5)' },
+            { key: 'z6_time', color: 'var(--ar-z6)' }
         ];
 
         zoneKeys.forEach(zone => {
@@ -1940,10 +1944,10 @@ export class UIManager {
             const hrrColor = this.getHRRColor(activity.hrr_1);
 
             document.getElementById('detail-metrics-grid').innerHTML = `
-                <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} m</span></div>
+                <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} min</span></div>
                 <div class="modern-stat-card"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
-                <div class="modern-stat-card"><span class="label">Avg Power</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
-                <div class="modern-stat-card"><span class="label">NP®</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
+                <div class="modern-stat-card"><span class="label">Avg Power</span><span class="value is-power">${activity.avg_power} W</span></div>
+                <div class="modern-stat-card"><span class="label">NP®</span><span class="value is-power">${activity.normalized_power || '--'} W</span></div>
                 <div class="modern-stat-card"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
                 
                 <div class="modern-stat-card">
@@ -1987,16 +1991,7 @@ export class UIManager {
                 const chartsRow = document.querySelector('.charts-row');
                 analysisBox = document.createElement('div');
                 analysisBox.id = 'physiological-analysis-box';
-                analysisBox.style.cssText = `
-                    margin-top: 15px; 
-                    padding: 15px; 
-                    background: rgba(0,0,0,0.3); 
-                    border: 1px dashed rgba(255,255,255,0.2); 
-                    border-radius: 8px;
-                    display: flex;
-                    justify-content: space-around;
-                    align-items: center;
-                `;
+                analysisBox.className = 'ar-panel ar-thresholds';
                 chartsRow.parentNode.insertBefore(analysisBox, chartsRow.nextSibling);
             }
 
@@ -2012,17 +2007,17 @@ export class UIManager {
                 </div>
                 
                 <div id="vt1-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
-                    <h4 style="color: #2ecc71; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT1 / LT1 (Aerobic)</h4>
-                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#2ecc71">GREEN</strong> line</span>
-                    <div id="vt1-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                    <h4 class="ar-label ar-vt1">VT1 / LT1 · AEROBIC</h4>
+                    <span class="ar-caption">Drag the <strong class="ar-vt1">GREEN</strong> line</span>
+                    <div id="vt1-data" class="ar-vt-data">-- W | -- bpm</div>
                 </div>
                 
                 <div style="width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 10px;"></div>
                 
                 <div id="vt2-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
-                    <h4 style="color: #9b59b6; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT2 / LT2 (Anaerobic)</h4>
-                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#9b59b6">PURPLE</strong> line</span>
-                    <div id="vt2-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                    <h4 class="ar-label ar-vt2">VT2 / LT2 · ANAEROBIC</h4>
+                    <span class="ar-caption">Drag the <strong class="ar-vt2">ORANGE</strong> line</span>
+                    <div id="vt2-data" class="ar-vt-data">-- W | -- bpm</div>
                 </div>
             `;
 
@@ -2059,20 +2054,21 @@ export class UIManager {
 
             const el = document.getElementById(`${type}-data`);
             if (el) {
-                el.innerText = `${pwr} w | ${hr} bpm`;
+                el.innerText = `${pwr} W | ${hr} bpm`;
                 el.style.color = '#fff';
                 setTimeout(() => el.style.color = '', 300);
             }
         };
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'cross' }
             },
             legend: {
                 data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)', 'VT1', 'VT2'],
-                textStyle: { color: '#ccc' },
+                textStyle: { color: '#d6e2f0' },
                 selected: { 'Elevation': false },
                 top: 0
             },
@@ -2085,14 +2081,14 @@ export class UIManager {
                 type: 'category',
                 boundaryGap: false,
                 data: timeAxis,
-                axisLabel: { color: '#888' }
+                axisLabel: { color: '#9fb2c9' }
             },
             yAxis: [
                 {
                     type: 'value',
                     name: 'Watts',
                     position: 'left',
-                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)', type: 'dashed' } }
                 },
                 {
                     type: 'value',
@@ -2126,12 +2122,12 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#f1c40f' },
-                    lineStyle: { width: 2.5, color: '#f1c40f' },
+                    itemStyle: { color: '#19ecd6' },
+                    lineStyle: { width: 2.5, color: '#19ecd6' },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(241, 196, 15, 0.3)' },
-                            { offset: 1, color: 'rgba(241, 196, 15, 0.0)' }
+                            { offset: 0, color: 'rgba(25, 236, 214, 0.3)' },
+                            { offset: 1, color: 'rgba(25, 236, 214, 0.0)' }
                         ])
                     },
                     data: details.power
@@ -2141,12 +2137,12 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#e74c3c' },
-                    lineStyle: { width: 2.5, color: '#e74c3c' },
+                    itemStyle: { color: '#ff6b6f' },
+                    lineStyle: { width: 2.5, color: '#ff6b6f' },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(231, 76, 60, 0.25)' },
-                            { offset: 1, color: 'rgba(231, 76, 60, 0.0)' }
+                            { offset: 0, color: 'rgba(255, 107, 111, 0.25)' },
+                            { offset: 1, color: 'rgba(255, 107, 111, 0.0)' }
                         ])
                     },
                     data: details.hr
@@ -2156,8 +2152,8 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 1.5, color: '#3498db', type: 'dashed' },
+                    itemStyle: { color: '#4c95f2' },
+                    lineStyle: { width: 1.5, color: '#4c95f2', type: 'dashed' },
                     data: details.cadence
                 },
                 {
@@ -2165,16 +2161,16 @@ export class UIManager {
                     type: 'line',
                     data: [],
                     symbol: 'none',
-                    itemStyle: { color: '#2ecc71' },
-                    lineStyle: { width: 2, color: '#2ecc71', type: 'dashed' }
+                    itemStyle: { color: '#3fd08a' },
+                    lineStyle: { width: 2, color: '#3fd08a', type: 'dashed' }
                 },
                 {
                     name: 'VT2',
                     type: 'line',
                     data: [],
                     symbol: 'none',
-                    itemStyle: { color: '#9b59b6' },
-                    lineStyle: { width: 2, color: '#9b59b6', type: 'dashed' }
+                    itemStyle: { color: '#ff8c3a' },
+                    lineStyle: { width: 2, color: '#ff8c3a', type: 'dashed' }
                 }
             ]
         };
@@ -2218,13 +2214,13 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                style: { stroke: '#2ecc71', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                style: { stroke: '#3fd08a', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
                                 shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
-                                style: { fill: '#2ecc71', opacity: 1 },
+                                style: { fill: '#3fd08a', opacity: 1 },
                                 z: 101
                             },
                             {
@@ -2250,13 +2246,13 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                style: { stroke: '#9b59b6', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                style: { stroke: '#ff8c3a', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
                                 shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
-                                style: { fill: '#9b59b6', opacity: 1 },
+                                style: { fill: '#ff8c3a', opacity: 1 },
                                 z: 101
                             },
                             {
@@ -2364,24 +2360,25 @@ export class UIManager {
         const labels = ['1s', '5s', '15s', '30s', '1m', '5m', '10m', '20m'];
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: { trigger: 'axis' },
             grid: { left: '5%', right: '5%', bottom: '12%', top: '10%', containLabel: true },
             xAxis: {
                 type: 'category',
                 data: labels,
-                axisLabel: { color: '#888' }
+                axisLabel: { color: '#9fb2c9' }
             },
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)', type: 'dashed' } }
             },
             series: [{
                 data: mmpValues,
                 type: 'bar',
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#f1c40f' },
-                        { offset: 1, color: '#e67e22' }
+                        { offset: 0, color: '#19ecd6' },
+                        { offset: 1, color: '#0fb8a6' }
                     ]),
                     borderRadius: [6, 6, 0, 0]
                 },
