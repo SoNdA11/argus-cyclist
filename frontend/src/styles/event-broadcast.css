@@ -9,19 +9,20 @@
 */
 
 :root {
-    --ev-navy: #0b1430;
-    --ev-panel: rgba(11, 20, 48, 0.92);
-    --ev-panel-strong: rgba(11, 20, 48, 0.96);
-    --ev-line: rgba(255, 255, 255, 0.1);
-    --ev-text: #f5f7fb;
-    --ev-text-soft: #dbe3f0;
-    --ev-muted: #a9b4c8;
-    --ev-accent: #ffc62e;
-    --ev-accent-soft: rgba(255, 198, 46, 0.14);
-    --ev-ghost: #4fe3ff;
-    --ev-ahead: #2bd576;
-    --ev-behind: #ff6b6f;
-    --ev-live: #ff4d5e;
+    /* Same palette as the shared standard (argus-ui.css). */
+    --ev-navy: var(--ar-navy);
+    --ev-panel: var(--ar-glass);
+    --ev-panel-strong: var(--ar-glass-strong);
+    --ev-line: var(--ar-line);
+    --ev-text: var(--ar-text);
+    --ev-text-soft: var(--ar-soft);
+    --ev-muted: var(--ar-muted);
+    --ev-accent: var(--ar-accent);
+    --ev-accent-soft: var(--ar-accent-soft);
+    --ev-ghost: var(--ar-info);
+    --ev-ahead: var(--ar-good);
+    --ev-behind: var(--ar-bad);
+    --ev-live: var(--ar-live);
     --ev-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
     --ev-font-body: 'Inter', system-ui, sans-serif;
 }
@@ -117,8 +118,8 @@
 
 .ev-btn.is-on {
     color: var(--ev-ahead);
-    border-color: rgba(43, 213, 118, 0.5);
-    background: rgba(43, 213, 118, 0.12);
+    border-color: rgba(90, 214, 106, 0.5);
+    background: rgba(90, 214, 106, 0.12);
 }
 
 .ev-btn--muted {
@@ -153,7 +154,7 @@
 #eventHubPage.ev-hub {
     /* The live 3D scene shows through on the right; the left side stays readable. */
     background:
-        linear-gradient(90deg, #070c1d 0%, #070c1d 44%, rgba(6, 11, 26, 0.7) 52%, rgba(6, 11, 26, 0.25) 78%, rgba(6, 11, 26, 0.1) 100%) !important;
+        linear-gradient(90deg, #050f22 0%, #050f22 44%, rgba(5, 15, 34, 0.7) 52%, rgba(5, 15, 34, 0.25) 78%, rgba(5, 15, 34, 0.1) 100%) !important;
     padding: 24px 32px;
     font-family: var(--ev-font-body);
     color: var(--ev-text);
@@ -221,7 +222,7 @@
 .ev-equip[data-state="real"] .ev-equip-dot,
 .ev-equip[data-state="virtual"] .ev-equip-dot {
     background: var(--ev-ahead);
-    box-shadow: 0 0 0 4px rgba(43, 213, 118, 0.2);
+    box-shadow: 0 0 0 4px rgba(90, 214, 106, 0.2);
 }
 
 .ev-equip #eventTrainerStatus {
@@ -368,7 +369,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
 }
 
 .ev-start-row:hover {
-    background: rgba(255, 198, 46, 0.07);
+    background: rgba(25, 236, 214, 0.07);
 }
 
 .ev-start-row[aria-checked="true"] {
@@ -493,7 +494,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     -webkit-appearance: none;
     appearance: none;
     background-color: #17213f;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffc62e' stroke-width='2'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2319ecd6' stroke-width='2'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 32px !important;
@@ -595,7 +596,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
 
 .ev-hub-tip {
     max-width: 380px;
-    background: rgba(11, 20, 48, 0.85);
+    background: rgba(10, 26, 54, 0.85);
     border-left: 4px solid var(--ev-ghost);
     padding: 10px 14px;
     font-size: 13px;
@@ -634,7 +635,7 @@ body.ev-hub-open .scene3d-layer {
 
 @media (max-width: 900px) {
     #eventHubPage.ev-hub {
-        background: rgba(6, 11, 26, 0.92) !important;
+        background: rgba(5, 15, 34, 0.92) !important;
         padding: 16px;
     }
 
@@ -763,7 +764,7 @@ body.ev-hub-open .scene3d-layer {
 .ev-live-shade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(6, 11, 26, 0.55) 0%, rgba(6, 11, 26, 0) 22%, rgba(6, 11, 26, 0) 66%, rgba(6, 11, 26, 0.65) 100%);
+    background: linear-gradient(180deg, rgba(5, 15, 34, 0.55) 0%, rgba(5, 15, 34, 0) 22%, rgba(5, 15, 34, 0) 66%, rgba(5, 15, 34, 0.65) 100%);
 }
 
 .ev-live-tl {
@@ -781,7 +782,7 @@ body.ev-hub-open .scene3d-layer {
     padding: 6px 12px;
     border: 0;
     border-radius: 3px;
-    background: rgba(11, 20, 48, 0.8);
+    background: rgba(10, 26, 54, 0.8);
     color: var(--ev-text-soft);
     font-family: var(--ev-font-body);
     font-size: 13px;
@@ -804,7 +805,7 @@ body.ev-hub-open .scene3d-layer {
     width: min(600px, calc(100% - 682px));
     box-sizing: border-box;
     padding: 10px 16px 8px;
-    background: rgba(11, 20, 48, 0.9);
+    background: rgba(10, 26, 54, 0.9);
     border-radius: 4px;
 }
 
@@ -1411,7 +1412,7 @@ body.ev-hub-open .scene3d-layer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(6, 11, 26, 0.35);
+    background: rgba(5, 15, 34, 0.35);
 }
 
 .ev-live-countdown strong {
@@ -1476,13 +1477,13 @@ body.ev-hub-open .scene3d-layer {
 .ev-screen-shade {
     position: absolute;
     inset: 0;
-    background: rgba(6, 11, 26, 0.72);
+    background: rgba(5, 15, 34, 0.72);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
 
 .ev-screen-shade--deep {
-    background: rgba(6, 11, 26, 0.82);
+    background: rgba(5, 15, 34, 0.82);
 }
 
 .ev-screen-top {
@@ -1531,7 +1532,7 @@ body.ev-hub-open .scene3d-layer {
 .ev-result-auto {
     padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(11, 20, 48, 0.9);
+    background: rgba(10, 26, 54, 0.9);
     font-size: 14px;
     color: var(--ev-text-soft);
 }

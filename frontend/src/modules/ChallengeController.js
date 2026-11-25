@@ -1143,7 +1143,7 @@ export class ChallengeController {
             c.ahead = ahead; // initial state: no announcement
         } else if (ahead !== c.ahead && Math.abs(c.gap) > OVERTAKE_HYSTERESIS) {
             c.ahead = ahead;
-            if (ahead) this.flashMessage('VOCÊ PASSOU O RECORDE!', { color: '#2bd576' });
+            if (ahead) this.flashMessage('VOCÊ PASSOU O RECORDE!', { color: '#5ad66a' });
             else this.flashMessage('O RECORDE ESTÁ À FRENTE', { color: '#ff6b6f' });
         }
     }

@@ -1,0 +1,252 @@
+/*
+    Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+    Copyright (C) 2026  Paulo Sérgio
+    SPDX-License-Identifier: GPL-3.0-or-later
+
+    Argus UI standard: the "sports broadcast" look of the event mode, shared by every
+    screen. Tokens first, then generic components (ar-*), then screen sections.
+    Numbers always use the condensed display face with tabular digits.
+*/
+
+:root {
+    /* Palette taken from the logo: aqua (#00f0da), blue (#4292f0) on deep navy (#091b34). */
+    --ar-bg: #050f22;
+    --ar-navy: #0a1a36;
+    --ar-panel: #0d2142;
+    --ar-panel-2: #132a50;
+    --ar-glass: rgba(10, 26, 54, 0.92);
+    --ar-glass-strong: rgba(10, 26, 54, 0.96);
+    --ar-line: rgba(255, 255, 255, 0.1);
+    --ar-line-2: rgba(255, 255, 255, 0.18);
+    --ar-text: #f3f8fc;
+    --ar-soft: #d6e2f0;
+    --ar-muted: #9fb2c9;
+    --ar-accent: #19ecd6;          /* action / you */
+    --ar-accent-soft: rgba(25, 236, 214, 0.14);
+    --ar-info: #4c95f2;            /* reference (ghost, record) */
+    --ar-good: #5ad66a;
+    --ar-bad: #ff6b6f;
+    --ar-live: #ff4d5e;
+    --ar-z1: #9aa4b2;
+    --ar-z2: #4f9dff;
+    --ar-z3: #3fd08a;
+    --ar-z4: #ffd23d;
+    --ar-z5: #ff8c3a;
+    --ar-z6: #ff4d5e;
+    --ar-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --ar-body: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------- Tags: slanted broadcast labels ---------- */
+
+.ar-tagline { display: flex; align-items: stretch; height: 44px; }
+
+.ar-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px 0 16px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+.ar-tag-dark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: -6px;
+    padding: 0 22px 0 20px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+/* ---------- Type ---------- */
+
+.ar-h1 { margin: 0; font-family: var(--ar-display); font-weight: 800; font-size: 46px; letter-spacing: 1px; line-height: 1; color: var(--ar-text); }
+.ar-label { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 2px; color: var(--ar-muted); text-transform: uppercase; }
+.ar-num { font-family: var(--ar-display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.ar-unit { font-family: var(--ar-display); font-weight: 600; color: var(--ar-muted); }
+.ar-body { font-family: var(--ar-body); font-size: 14px; line-height: 1.5; color: var(--ar-soft); }
+.ar-caption { font-family: var(--ar-body); font-size: 12px; color: var(--ar-muted); }
+
+/* ---------- Panels ---------- */
+
+.ar-panel { background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 6px; }
+
+/* ---------- Buttons (all at least 44 px tall) ---------- */
+
+.ar-btn,
+.ar-btn-primary,
+.ar-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+
+.ar-btn {
+    padding: 0 18px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ar-btn:hover { background: rgba(40, 52, 88, 0.95); }
+
+.ar-btn-primary {
+    padding: 0 22px;
+    border: 0;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.ar-btn-primary:hover { filter: brightness(1.08); }
+
+.ar-btn-danger {
+    padding: 0 18px;
+    border: 1px solid rgba(255, 107, 111, 0.5);
+    background: transparent;
+    color: var(--ar-bad);
+    font-family: var(--ar-body);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ar-btn-danger:hover { background: rgba(255, 107, 111, 0.12); }
+
+.ar-btn:disabled,
+.ar-btn-primary:disabled,
+.ar-btn-danger:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+
+.ar-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    cursor: pointer;
+}
+
+.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Big slanted call to action (LARGAR / RIDE). */
+.ar-cta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 10px 34px 10px 22px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    text-align: left;
+    cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+    transition: filter 0.15s ease;
+}
+
+.ar-cta:hover { filter: brightness(1.08); }
+.ar-cta:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.ar-cta strong { font-family: var(--ar-display); font-weight: 800; font-size: 38px; letter-spacing: 1px; line-height: 1; }
+.ar-cta span { font-family: var(--ar-display); font-weight: 600; font-size: 16px; letter-spacing: 1px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ar-btn:focus-visible,
+.ar-btn-primary:focus-visible,
+.ar-btn-danger:focus-visible,
+.ar-icon-btn:focus-visible,
+.ar-cta:focus-visible {
+    outline: 2px solid var(--ar-accent);
+    outline-offset: 2px;
+}
+
+/* ---------- Fields ---------- */
+
+.ar-field { display: flex; flex-direction: column; gap: 4px; font-family: var(--ar-body); font-size: 12px; color: #c3cbdb; text-align: left; }
+
+.ar-input {
+    height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ar-input::placeholder { color: #7f8aa0; font-weight: 500; }
+.ar-input:focus { outline: 2px solid var(--ar-accent); outline-offset: 1px; }
+.ar-input[type="number"] { -moz-appearance: textfield; }
+.ar-input[type="number"]::-webkit-inner-spin-button,
+.ar-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------- Badges and bars ---------- */
+
+.ar-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 3px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 2px;
+}
+
+.ar-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.ar-bar > i { display: block; height: 100%; background: var(--ar-accent); }
+
+.ar-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: rgba(76, 149, 242, 0.08);
+    font-family: var(--ar-body);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ar-soft);
+}
+
+.ar-note svg { flex-shrink: 0; margin-top: 1px; color: var(--ar-info); }

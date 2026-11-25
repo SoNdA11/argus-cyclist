@@ -19,6 +19,7 @@ import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
 import './styles/studio-hud.css';
+import './styles/argus-ui.css';
 import '@fontsource/barlow-condensed/latin-600';
 import '@fontsource/barlow-condensed/latin-700';
 import '@fontsource/barlow-condensed/latin-800';

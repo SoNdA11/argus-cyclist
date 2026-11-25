@@ -936,7 +936,7 @@ function overlay(dt){
 // state (distance, pedaling) and drawn as a translucent hologram in the left lane. The gates
 // are static meshes in the coastal style: carnauba palm posts, a canvas banner and São João
 // bunting flags.
-const GHOST_COL=cc('#4fe3ff'),GHOST_A=0.5,GHOST_RANGE=260;
+const GHOST_COL=cc('#4c95f2'),GHOST_A=0.5,GHOST_RANGE=260;
 const GH={provider:null,label:null,dist:0,v:0,cad:0,crank:0,wheel:0,stand:1,visible:false,parts:[],m:ID,head:null};
 let ghostGL=null,jumped=false;
 function updateGhost(dt){
@@ -980,8 +980,8 @@ function drawGhostLabel(){
   const tw=oc.measureText(GH.label).width,w=tw+30,h=24,x=sp[0]-w/2,y=sp[1]-h-6;
   oc.fillStyle='rgba(8,20,44,0.72)';oc.beginPath();
   if(oc.roundRect)oc.roundRect(x,y,w,h,12);else oc.rect(x,y,w,h);oc.fill();
-  oc.strokeStyle='rgba(79,227,255,0.85)';oc.lineWidth=1.2;oc.stroke();
-  oc.fillStyle='#4fe3ff';oc.beginPath();oc.arc(x+12,y+h/2,3.5,0,TAU);oc.fill();
+  oc.strokeStyle='rgba(76,149,242,0.85)';oc.lineWidth=1.2;oc.stroke();
+  oc.fillStyle='#4c95f2';oc.beginPath();oc.arc(x+12,y+h/2,3.5,0,TAU);oc.fill();
   oc.fillStyle='#f4f8ff';oc.textBaseline='middle';oc.fillText(GH.label,x+21,y+h/2+0.5);
   oc.beginPath();oc.moveTo(sp[0]-5,y+h);oc.lineTo(sp[0]+5,y+h);oc.lineTo(sp[0],y+h+5);oc.closePath();oc.fillStyle='rgba(8,20,44,0.72)';oc.fill();
   oc.globalAlpha=1;
