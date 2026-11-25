@@ -255,6 +255,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                         </p>
                                     </div>
                                 </section>
+
+                                <section class="ar-panel ar-danger-zone" aria-label="Delete rider">
+                                    <div class="ar-panel-head"><span>DELETE RIDER</span></div>
+                                    <div class="ar-danger-body">
+                                        <p class="ar-body">Removes this rider and all rides, records and settings from this computer. This cannot be undone.</p>
+                                        <button id="btnDeleteRider" class="ar-btn-danger" type="button" onclick="window.deleteCurrentRider()">Delete rider</button>
+                                    </div>
+                                </section>
                             </div>
                         </div>
                     </div>
@@ -403,7 +411,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 </div>
 
                 <div class="modal-actions ar-athlete-actions">
-                    <button id="btnLogout" class="ar-btn-danger" onclick="window.logoutProfile()">
+                    <button id="btnLogout" class="ar-btn" onclick="window.logoutProfile()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>

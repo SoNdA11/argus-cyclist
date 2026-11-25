@@ -283,7 +283,7 @@ body.ar-home-open .modal-overlay { visibility: hidden !important; }
     gap: 16px;
 }
 
-.ar-home-top, .ar-home-main, .ar-newrider, .ar-home-footer { position: relative; z-index: 1; }
+.ar-home-top, .ar-home-main, .ar-newrider { position: relative; z-index: 1; }
 
 /* ---------- Animated logo (right side) ---------- */
 
@@ -459,7 +459,6 @@ body.ar-home-open .modal-overlay { visibility: hidden !important; }
 
 .ar-home-bottom .ar-cta { flex: 0 0 250px; min-height: 76px; box-sizing: border-box; }
 
-.ar-home-footer { margin-top: auto; display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* New rider form */
 
@@ -1992,3 +1991,10 @@ body.ev-event-mode #arDialog { visibility: visible !important; }
     .ar-tut-logo { height: 170px; }
     .ar-tut-studio strong { font-size: 64px; }
 }
+
+/* Rider deletion (athlete area, profile tab): only for the logged-in rider. */
+.ar-danger-zone { border-color: rgba(255, 107, 111, 0.35) !important; }
+.ar-danger-zone .ar-panel-head { color: var(--ar-bad); }
+.ar-danger-body { display: flex; align-items: center; gap: 14px; padding: 14px 18px; }
+.ar-danger-body .ar-body { margin: 0; flex: 1; font-size: 13px; }
+.ar-danger-body .ar-btn-danger { flex-shrink: 0; }

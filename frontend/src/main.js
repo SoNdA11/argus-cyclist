@@ -2034,11 +2034,9 @@ function formatCompactNumber(n) {
 window.toggleCreateForm = (show) => {
     const select = document.getElementById('homeSelect');
     const form = document.getElementById('createProfileForm');
-    const footer = document.getElementById('homeFooter');
     const welcome = document.getElementById('homeWelcome');
 
     select?.classList.toggle('hidden', !!show);
-    footer?.classList.toggle('hidden', !!show);
     form?.classList.toggle('hidden', !show);
     const error = document.getElementById('newRiderError');
     if (error) error.textContent = '';
@@ -2120,24 +2118,36 @@ document.getElementById('btnDisconnectStrava').addEventListener('click', async (
     }
 });
 
-window.deleteProfile = async (id, name, event) => {
-    event?.stopPropagation?.();
-
-    if (await arConfirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
-        try {
-            await window.go.main.App.DeleteLocalAccount(id);
-            // Refresh the grid immediately after successful deletion
-            initHomeScreen();
-        } catch (err) {
-            console.error("Error deleting profile:", err);
-            arAlert("Failed to delete profile: " + err);
-        }
+// Rider deletion lives in the athlete area (not on the home list) and only ever removes
+// the rider who is logged in: leave the profile first, then delete it.
+window.deleteCurrentRider = async () => {
+    const acc = window.currentAccount;
+    if (!acc) return;
+    if (window.isRecording || document.getElementById('btnAction')?.innerText === "STOP") {
+        arAlert("Finish and save your current ride before deleting this rider.");
+        return;
+    }
+    const ok = await arConfirm(
+        `Delete the rider "${acc.name}"?\n\nAll rides, records, goals and settings of this rider will be removed from this computer. This cannot be undone.`,
+        { title: 'DELETE THIS RIDER?', okLabel: 'DELETE RIDER', danger: true }
+    );
+    if (!ok) return;
+    try {
+        await window.logoutProfile();
+        await window.go.main.App.DeleteLocalAccount(acc.id);
+        window.currentAccount = null;
+        initHomeScreen();
+    } catch (err) {
+        console.error("Error deleting profile:", err);
+        arAlert("Failed to delete rider: " + err);
     }
 };
 
 window.loginProfile = async (id) => {
     try {
         await window.go.main.App.SelectLocalAccount(id);
+        const acc = homeAccounts.find((a) => String(a.id) === String(id));
+        window.currentAccount = { id, name: acc?.name || 'Rider' }; // used by deleteCurrentRider
         document.getElementById('homeScreen').classList.remove('active');
 
         if (window.ui) {
@@ -2246,10 +2256,8 @@ function selectHomeRider(id) {
     });
     const ride = document.getElementById('btnHomeRide');
     const label = document.getElementById('homeRideLabel');
-    const del = document.getElementById('btnHomeDeleteRider');
     if (ride) ride.disabled = !acc;
     if (label) label.textContent = acc ? `AS ${acc.name.toUpperCase()}` : 'SELECT A RIDER';
-    if (del) del.disabled = !acc;
 }
 
 function rideSelectedRider() {
@@ -2257,10 +2265,6 @@ function rideSelectedRider() {
 }
 
 document.getElementById('btnHomeRide')?.addEventListener('click', rideSelectedRider);
-document.getElementById('btnHomeDeleteRider')?.addEventListener('click', (e) => {
-    const acc = homeAccounts.find((a) => String(a.id) === String(homeSelectedId));
-    if (acc) window.deleteProfile(acc.id, acc.name, e);
-});
 
 // The home owns the keyboard while it is open: arrows move the selection, Enter rides.
 document.addEventListener('keydown', (e) => {
