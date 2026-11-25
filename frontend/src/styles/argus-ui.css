@@ -1172,3 +1172,490 @@ body.ar-shell .hud-sidebar.right-panel.ar-workout {
 .ar-studio:not(.has-workout) #studio-target-box,
 .ar-studio:not(.has-workout) .ar-studio-graph,
 .ar-studio:not(.has-workout) .ar-studio-next { display: none !important; }
+
+/* ======================================================================
+   Athlete area (settingsModal.html): full-screen page with tab pills
+   ====================================================================== */
+
+/* Full-screen page: above the top bar (z 6000); trophy and components modals (10005) open over it. */
+#settingsModal.ar-athlete { z-index: 7000; background: var(--ar-bg); }
+#settingsModal.ar-athlete .settings-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 24px 32px;
+    border: 0;
+    border-radius: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    box-shadow: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+#settingsModal.ar-athlete .settings-shell { gap: 16px; }
+
+.ar-athlete-top { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.ar-athlete-top .ar-tag { color: var(--ar-navy); }
+#arAthleteName { max-width: 320px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; }
+.ar-athlete-close { margin-left: auto; }
+
+#settingsModal.ar-athlete .settings-nav.ar-pills {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 2px;
+    margin: 0;
+    padding: 3px;
+    border-radius: 4px;
+    background: var(--ar-glass);
+    border: 1px solid var(--ar-line-2);
+}
+#settingsModal.ar-athlete .settings-nav .tab-btn {
+    display: block;
+    height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ar-soft);
+    font-family: var(--ar-body);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: none;
+    transform: none;
+}
+#settingsModal.ar-athlete .settings-nav .tab-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--ar-text); }
+#settingsModal.ar-athlete .settings-nav .tab-btn.active { background: var(--ar-accent); color: var(--ar-navy); }
+#settingsModal.ar-athlete .settings-nav .tab-btn:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+#settingsModal.ar-athlete .settings-panels { padding: 0; overflow: hidden; }
+#settingsModal.ar-athlete .tab-pane { animation: none; }
+#settingsModal.ar-athlete #tab-profile.active { overflow-y: auto; padding-right: 0; }
+
+/* Shared bits inside the athlete panels */
+#settingsModal.ar-athlete .ar-panel { background: var(--ar-glass); overflow: hidden; }
+#settingsModal.ar-athlete .ar-panel-head .ar-caption { font-family: var(--ar-body); font-weight: 500; letter-spacing: 0; }
+.ar-head-split { border-top: 1px solid var(--ar-line); }
+.ar-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; padding: 16px 18px; }
+.ar-span-2 { grid-column: span 2; }
+.ar-span-3 { grid-column: 1 / -1; }
+.ar-span-all { grid-column: 1 / -1; }
+#settingsModal.ar-athlete .ar-field { color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+#settingsModal.ar-athlete select.ar-input { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2319ecd6' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+#settingsModal.ar-athlete .ar-input { width: 100%; margin: 0; }
+#settingsModal.ar-athlete .hidden { display: none !important; }
+.ar-erg-row { display: flex; gap: 10px; }
+.ar-empty { padding: 10px; text-align: center; font-size: 13px; color: var(--ar-muted); }
+
+/* ---------- Profile tab ---------- */
+
+.ar-profile-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ar-profile-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.ar-id-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px; text-align: center; }
+#settingsModal.ar-athlete .profile-avatar-container {
+    width: 132px;
+    height: 132px;
+    padding: 0;
+    margin: 0;
+    border: 3px solid var(--ar-accent);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--ar-panel-2);
+    cursor: pointer;
+}
+#settingsModal.ar-athlete .profile-avatar-container img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 0; border: 0; }
+#settingsModal.ar-athlete #profileNameDisplay { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 28px; letter-spacing: 1px; line-height: 1.05; text-transform: uppercase; color: var(--ar-text) !important; }
+#settingsModal.ar-athlete .player-progression { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; padding: 0; background: none; border: 0; }
+#settingsModal.ar-athlete .level-row { justify-content: center; margin: 0; }
+#settingsModal.ar-athlete .level-pill { padding: 3px 10px; border: 0; border-radius: 3px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 15px; letter-spacing: 1.5px; box-shadow: none; }
+#settingsModal.ar-athlete .xp-container-inline { width: 100%; max-width: none; flex: none; margin: 0; }
+#settingsModal.ar-athlete .xp-bar-bg { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); border: 0; overflow: hidden; }
+#settingsModal.ar-athlete .xp-bar-fill { height: 100%; background: var(--ar-accent); box-shadow: none; }
+#settingsModal.ar-athlete .badges-row:empty { display: none; }
+.ar-id-photo { width: 100%; margin-top: auto; }
+
+.ar-device-row,
+#settingsModal.ar-athlete .device-row.ar-device-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: none;
+}
+.ar-device-row > strong { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.ar-device-ctrls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; min-width: 0; }
+#settingsModal.ar-athlete .status-indicator { padding: 0; background: none; border: 0; font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+#settingsModal.ar-athlete .status-indicator::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+#settingsModal.ar-athlete .btn-icon-small {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--ar-line-2);
+    border-radius: 4px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+}
+#settingsModal.ar-athlete .btn-icon-small:hover { background: rgba(255, 255, 255, 0.12); }
+#settingsModal.ar-athlete .btn-icon-small.danger { color: var(--ar-bad); border-color: rgba(255, 107, 111, 0.45); }
+#settingsModal.ar-athlete .ar-device-ctrls select { max-width: 160px; height: 40px; padding: 0 10px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 13px; }
+#settingsModal.ar-athlete .btn-strava.ar-btn { min-height: 40px; padding: 0 14px; background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); font-size: 13px; box-shadow: none; }
+#settingsModal.ar-athlete .btn-strava.ar-btn:disabled { opacity: 0.7; cursor: default; }
+
+/* Intervals.icu card inside the integrations panel */
+#settingsModal.ar-athlete .integration-card { margin: 0; padding: 14px 18px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+#settingsModal.ar-athlete .integration-card-header { margin: 0 0 8px; }
+#settingsModal.ar-athlete .integration-logo { background: rgba(76, 149, 242, 0.15); color: var(--ar-info); border-radius: 4px; }
+#settingsModal.ar-athlete .integration-brand-text strong { font-size: 15px; color: var(--ar-text); }
+#settingsModal.ar-athlete .integration-brand-text small,
+#settingsModal.ar-athlete .integration-desc,
+#settingsModal.ar-athlete .integration-hint { font-size: 12px; color: var(--ar-muted); }
+#settingsModal.ar-athlete .integration-fields input { height: 40px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; }
+#settingsModal.ar-athlete .integration-fields label { color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+#settingsModal.ar-athlete .btn-intervals { min-height: 40px; padding: 0 16px; border: 0; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 16px; letter-spacing: 1px; box-shadow: none; }
+
+/* ---------- History tab ---------- */
+
+.ar-history-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 14px;
+}
+#settingsModal.ar-athlete .stat-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+#settingsModal.ar-athlete .stat-summary .stat-box { display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; gap: 10px; padding: 12px 18px; border-radius: 4px; }
+#settingsModal.ar-athlete .stat-summary small { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#settingsModal.ar-athlete .stat-summary strong { font-family: var(--ar-display); font-weight: 800; font-size: clamp(28px, 3vw, 44px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text); white-space: nowrap; }
+
+.ar-history-list { display: flex; flex-direction: column; min-height: 0; }
+#settingsModal.ar-athlete .history-list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; border: 0; background: none; }
+#settingsModal.ar-athlete .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ar-soft);
+}
+#settingsModal.ar-athlete #historyContainer .history-item:hover { background: rgba(25, 236, 214, 0.06) !important; }
+#settingsModal.ar-athlete .history-item.history-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 8px 14px;
+    background: var(--ar-panel);
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ar-muted);
+}
+.ar-hist-name { flex: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ar-hist-name strong { color: var(--ar-text); font-weight: 600; }
+.ar-hist-num { flex: 1; text-align: right; font-family: var(--ar-display); font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-header .ar-hist-num { font-size: 13px; font-weight: 600; }
+.ar-hist-num.is-power { color: var(--ar-accent); }
+.ar-hist-actions { width: 132px; flex-shrink: 0; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.history-header .ar-hist-actions { display: block; text-align: right; }
+#settingsModal.ar-athlete .icon-minimal { display: inline-flex; padding: 4px; border-radius: 3px; }
+#settingsModal.ar-athlete .icon-minimal:hover { background: rgba(255, 255, 255, 0.08); }
+
+.ar-history-side { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+#settingsModal.ar-athlete .calendar-wrapper { margin: 0; padding: 0; border-radius: 4px; flex-shrink: 0; }
+#settingsModal.ar-athlete .calendar-header { margin: 0; padding: 6px 10px; }
+#settingsModal.ar-athlete .calendar-header h4 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--ar-text); }
+#settingsModal.ar-athlete .calendar-header .btn-icon-small { width: 30px; height: 30px; font-size: 18px; }
+#settingsModal.ar-athlete .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding: 8px 12px 10px; }
+#settingsModal.ar-athlete .cal-day-header { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1px; color: var(--ar-muted); text-align: center; }
+#settingsModal.ar-athlete .cal-day { position: relative; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: none; font-size: 13px; color: var(--ar-soft); border: 0; }
+#settingsModal.ar-athlete .cal-day.active { background: var(--ar-accent); color: var(--ar-navy); font-weight: 700; }
+#settingsModal.ar-athlete .cal-day.today { outline: 1px solid var(--ar-accent); }
+#settingsModal.ar-athlete .cal-dot { display: none; }
+
+#settingsModal.ar-athlete .records-container { flex: 1; min-height: 0; display: flex; flex-direction: column; margin: 0; padding: 0; border-radius: 4px; }
+#settingsModal.ar-athlete .power-table-wrapper { flex: 1; min-height: 0; overflow-y: auto; margin: 0; border: 0; background: none; }
+#settingsModal.ar-athlete .power-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#settingsModal.ar-athlete .power-table th { position: sticky; top: 0; padding: 6px 12px; background: var(--ar-panel); text-align: right; font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); border: 0; }
+#settingsModal.ar-athlete .power-table td { padding: 5px 12px; text-align: right; border: 0; border-bottom: 1px solid var(--ar-line); color: var(--ar-soft); }
+#settingsModal.ar-athlete .power-table th:first-child, #settingsModal.ar-athlete .power-table td:first-child { text-align: left; }
+#settingsModal.ar-athlete .power-table td.col-watts { font-family: var(--ar-display); font-weight: 800; font-size: 17px; color: var(--ar-accent) !important; }
+
+/* ---------- Career tab ---------- */
+
+#settingsModal.ar-athlete .career-scroll-wrapper { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 0; }
+#settingsModal.ar-athlete .career-chart-container { margin: 0; padding: 0 0 10px; border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); }
+.ar-pmc-head { flex-wrap: wrap; }
+.ar-pmc-latest { display: flex; align-items: baseline; gap: 18px; font-family: var(--ar-body); letter-spacing: 0; }
+.ar-pmc-latest strong { color: var(--ar-soft); font-weight: 600; }
+.ar-pmc-val { display: flex; align-items: baseline; gap: 6px; }
+.ar-pmc-val .ar-label { font-size: 12px; }
+.ar-pmc-val > span:last-child { font-family: var(--ar-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+.ar-pmc-val .is-ctl { color: var(--ar-info); }
+.ar-pmc-val .is-atl { color: var(--ar-z5); }
+#settingsModal.ar-athlete .career-subtitle { margin: 8px 14px 0; font-size: 12px; color: var(--ar-muted); }
+.ar-chart-pmc { width: 100%; height: clamp(220px, 34vh, 360px); }
+.ar-chart-decoupling { width: 100%; height: clamp(160px, 24vh, 260px); }
+#settingsModal.ar-athlete .tsb-legend { justify-content: flex-start; flex-wrap: wrap; gap: 8px 16px; margin: 4px 14px 0; }
+.ar-legend i.ar-sq { width: 10px; height: 10px; border-radius: 2px; }
+.ar-legend-sep { color: var(--ar-muted); }
+
+/* ---------- Footer ---------- */
+
+#settingsModal.ar-athlete .modal-actions.ar-athlete-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0; padding: 0; border: 0; flex-shrink: 0; }
+.ar-athlete-actions-right { display: flex; gap: 10px; }
+#settingsModal.ar-athlete #btnLogout svg { margin: 0 !important; }
+
+@media (max-width: 1180px) {
+    .ar-profile-grid { grid-template-columns: 240px minmax(0, 1fr); }
+    .ar-profile-side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    #settingsModal.ar-athlete .settings-nav .tab-btn { padding: 0 12px; }
+}
+@media (max-width: 960px) {
+    #settingsModal.ar-athlete .settings-content { padding: 16px; }
+    .ar-athlete-top { flex-wrap: wrap; gap: 10px; }
+    .ar-athlete-top .ar-tagline { order: 1; }
+    .ar-athlete-close { order: 2; }
+    #settingsModal.ar-athlete .settings-nav.ar-pills { order: 3; width: 100%; overflow-x: auto; }
+    .ar-profile-grid { grid-template-columns: 1fr; }
+    .ar-profile-side { grid-template-columns: 1fr; }
+    .ar-history-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+    .ar-history-list { min-height: 320px; }
+    .ar-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ar-span-2 { grid-column: 1 / -1; }
+}
+@media (max-width: 1180px) {
+    .ar-hist-actions { width: auto; gap: 4px; }
+    .ar-hist-name { flex: 1.6; }
+}
+
+/* ======================================================================
+   Full-screen pages opened from the athlete area / top bar:
+   Trophy Room (trophyModal.html); bike components is a tab of the athlete area
+   ====================================================================== */
+
+.modal-overlay.ar-modal-page { z-index: 10005; background: var(--ar-bg); }
+.ar-modal-page > .settings-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 24px 32px;
+    gap: 16px;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    box-shadow: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-page-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
+.ar-page-top .ar-tag { color: var(--ar-navy); }
+.ar-modal-page .ar-panel { background: var(--ar-glass); overflow: hidden; }
+.ar-modal-page .hidden { display: none !important; }
+.ar-h2 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 28px; letter-spacing: 1px; color: var(--ar-text); }
+
+/* ---------- Trophy Room ---------- */
+
+#trophyModal .trophy-layout { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; overflow: visible; }
+#trophyModal .trophy-main-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; margin: 0; }
+#trophyModal .trophy-card { margin: 0; padding: 0; border: 1px solid var(--ar-line); border-radius: 4px; box-shadow: none; transform: none; }
+#trophyModal .streak-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 18px; text-align: center; animation: none; }
+#trophyModal .streak-value { font-family: var(--ar-display); font-weight: 800; font-size: 120px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-accent); background: none; -webkit-text-fill-color: currentColor; text-shadow: none; animation: none; }
+#trophyModal .streak-label { font-family: var(--ar-body); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ar-soft); }
+#trophyModal .streak-card::before, #trophyModal .streak-card::after { display: none; }
+#trophyModal .goals-card .ar-panel-head .ar-btn { min-height: 34px; padding: 0 12px; font-size: 13px; background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); box-shadow: none; }
+#trophyModal .compact-goals-list { display: flex; flex-direction: column; gap: 8px; max-height: none; margin: 0; padding: 12px 18px 4px; overflow: visible; }
+#trophyModal .goal-card-premium { margin: 0; padding: 10px 12px; border: 1px solid var(--ar-line); border-radius: 4px; background: rgba(255, 255, 255, 0.03); box-shadow: none; transform: none; }
+#trophyModal .goal-metric-badge { padding: 2px 8px; border-radius: 3px; background: var(--ar-accent-soft); color: var(--ar-accent); font-family: var(--ar-display); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+#trophyModal .goal-deadline-text, #trophyModal .goal-progress-stats { font-size: 12px; color: var(--ar-muted); }
+#trophyModal .goal-progress-val, #trophyModal .goal-progress-pct { font-family: var(--ar-display); font-weight: 700; font-size: 15px; color: var(--ar-text); }
+#trophyModal .premium-progress-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); }
+#trophyModal .premium-progress-fill { background: var(--ar-accent); box-shadow: none; }
+#trophyModal .btn-delete-goal { color: var(--ar-muted); background: none; }
+#trophyModal .btn-delete-goal:hover { color: var(--ar-bad); }
+#trophyModal .completed-section { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px 18px 14px; border: 0; }
+#trophyModal .tiny-goals-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-height: none; overflow: visible; }
+.ar-goal-done { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; background: rgba(90, 214, 106, 0.1); font-size: 14px; color: var(--ar-soft); }
+.ar-goal-done-tag { padding: 2px 8px; border-radius: 3px; background: var(--ar-good); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 13px; letter-spacing: 1px; }
+
+#trophyModal .badges-section { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; background: none; border: 0; }
+#trophyModal .badges-scroll-container { max-height: none; overflow: visible; padding: 0; }
+#trophyModal .badges-minimal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+#trophyModal .minimalist-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid rgba(25, 236, 214, 0.45);
+    border-radius: 6px;
+    background: var(--ar-glass);
+    text-align: left;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+#trophyModal .minimalist-badge.badge-locked { border-color: var(--ar-line); opacity: 0.5; }
+#trophyModal .badge-icon-wrap { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; margin: 0; border-radius: 4px; background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+#trophyModal .badge-icon-wrap svg { width: 22px; height: 22px; }
+.ar-badge-title { display: block; font-family: var(--ar-display); font-weight: 700; font-size: 20px; letter-spacing: 0.5px; line-height: 1.05; color: var(--ar-text); }
+.ar-badge-sub { font-size: 12px; color: var(--ar-muted); }
+
+/* ---------- Bike components ---------- */
+
+.ar-comp-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0; }
+.ar-comp-head .ar-body { margin: 0; }
+#tab-components .component-form { padding: 0 0 14px; border: 1px solid var(--ar-line); border-radius: 4px; }
+#tab-components .component-form h4.ar-panel-head { margin: 0 0 12px; }
+#tab-components .component-form .input-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0 18px 12px; }
+#tab-components .component-form .input-group { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+#tab-components .component-form label { font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+#tab-components .component-form input,
+#tab-components .component-form select { height: 44px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; color-scheme: dark; }
+#tab-components .component-form-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 0 18px; }
+
+#tab-components .components-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--ar-line); border-radius: 4px; }
+#tab-components .history-item,
+#tab-components .component-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ar-soft);
+}
+#tab-components .history-item.history-header { padding: 8px 18px; background: var(--ar-panel); font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#tab-components .component-item:hover { background: rgba(25, 236, 214, 0.05); }
+#tab-components .component-item.archived { opacity: 0.55; }
+#tab-components .component-item strong { font-size: 16px; font-weight: 600; color: var(--ar-text); }
+#tab-components .component-item > div > div { color: var(--ar-muted) !important; font-size: 12px !important; }
+#tab-components .wear-bar-container { display: flex; align-items: center; gap: 10px; }
+#tab-components .wear-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); }
+#tab-components .wear-bar-container span { font-family: var(--ar-display); font-size: 16px !important; width: 52px; text-align: right; }
+.ar-wear-warn { margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--ar-bad); }
+#tab-components .status-badge { padding: 3px 8px; border: 1px solid var(--ar-line-2); border-radius: 3px; background: none; font-family: var(--ar-display); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ar-muted); }
+#tab-components .status-badge.active { color: var(--ar-good); border-color: rgba(90, 214, 106, 0.5); }
+#tab-components .btn-icon-small { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); }
+#tab-components .btn-icon-small:hover { background: rgba(255, 255, 255, 0.12); }
+#tab-components .btn-icon-small.danger { color: var(--ar-bad); border-color: rgba(255, 107, 111, 0.45); }
+#tab-components .component-item > div:last-child { width: 170px !important; justify-content: flex-end !important; gap: 6px !important; }
+#tab-components .history-item.history-header > span:last-child { width: 170px !important; text-align: right !important; }
+
+@media (max-width: 960px) {
+    .ar-modal-page > .settings-content { padding: 16px; }
+    #trophyModal .trophy-main-grid { grid-template-columns: 1fr; }
+    #trophyModal .tiny-goals-list { grid-template-columns: 1fr; }
+    #tab-components .component-form .input-row { grid-template-columns: 1fr 1fr; }
+    .ar-comp-head { flex-direction: column; align-items: stretch; }
+}
+#tab-components .component-item .ar-wear-warn { color: var(--ar-bad) !important; }
+
+/* ======================================================================
+   AI coach (aiChatPanel.html) — overrides ai-chat.css
+   ====================================================================== */
+
+#aiChatOverlay { font-family: var(--ar-body); }
+#aiChatOverlay .ai-overlay-content { background: radial-gradient(ellipse 50% 40% at 60% 40%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg); color: var(--ar-text); }
+#aiChatOverlay .ai-sidebar { width: 280px; background: var(--ar-navy); border-right: 1px solid var(--ar-line); }
+#aiChatOverlay .ai-sidebar-header { padding: 20px 18px; }
+#aiChatOverlay .ai-sidebar-brand {
+    gap: 8px;
+    height: 34px;
+    padding: 0 18px 0 12px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+#aiChatOverlay .ai-sidebar-brand svg { width: 18px; height: 18px; }
+#aiChatOverlay .ai-sidebar-close { width: 36px; height: 36px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); }
+#aiChatOverlay .ai-sidebar-close:hover { background: rgba(255, 255, 255, 0.12); }
+#aiChatOverlay .ai-new-chat {
+    justify-content: center;
+    min-height: 44px;
+    margin: 0 18px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: none;
+}
+#aiChatOverlay .ai-new-chat:hover { filter: brightness(1.08); background: var(--ar-accent); }
+#aiChatOverlay .ai-sidebar-section-label { padding: 20px 18px 8px; font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#aiChatOverlay .ai-conv-item { border-radius: 4px; color: var(--ar-soft); }
+#aiChatOverlay .ai-conv-item:hover { background: rgba(255, 255, 255, 0.06); }
+#aiChatOverlay .ai-conv-item.active { background: var(--ar-accent-soft); box-shadow: inset 3px 0 0 var(--ar-accent); color: var(--ar-text); }
+#aiChatOverlay .ai-conv-empty { font-size: 12px; color: var(--ar-muted); }
+#aiChatOverlay .ai-sidebar-footer { padding: 16px 18px; border-top: 1px solid var(--ar-line); }
+#aiChatOverlay .ai-model-label { font-size: 13px; font-weight: 600; color: var(--ar-muted); text-transform: none; letter-spacing: 0; }
+#aiChatOverlay .ai-model-select select { height: 44px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; }
+
+#aiChatOverlay .ai-welcome { gap: 16px; }
+#aiChatOverlay .ai-welcome-icon { width: 72px; height: 72px; border-radius: 6px; border: 2px solid var(--ar-accent); background: var(--ar-panel-2); color: var(--ar-accent); box-shadow: none; animation: none; }
+#aiChatOverlay .ai-welcome-icon svg { width: 34px; height: 34px; }
+#aiChatOverlay .ai-welcome h2 { margin: 0; font-family: var(--ar-display); font-weight: 800; font-size: 46px; letter-spacing: 1px; line-height: 1; color: var(--ar-text); background: none; -webkit-text-fill-color: currentColor; }
+#aiChatOverlay .ai-welcome p { max-width: 620px; margin: 0; font-size: 15px; line-height: 1.55; color: var(--ar-soft); }
+#aiChatOverlay .ai-welcome-note { display: block; margin-top: 8px; font-size: 12px; color: var(--ar-muted); }
+#aiChatOverlay .ai-chip { min-height: 44px; padding: 0 16px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); font-family: var(--ar-body); font-weight: 600; font-size: 14px; }
+#aiChatOverlay .ai-chip:hover { border-color: var(--ar-accent); background: var(--ar-glass); color: var(--ar-text); }
+#aiChatOverlay .ai-chip svg { color: var(--ar-accent); }
+
+#aiChatOverlay .ai-msg-avatar { border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-accent); }
+#aiChatOverlay .ai-msg-user .ai-msg-avatar { background: var(--ar-accent-soft); color: var(--ar-accent); }
+#aiChatOverlay .ai-msg-bubble { border-radius: 6px; font-size: 15px; }
+#aiChatOverlay .ai-msg-user .ai-msg-bubble { background: var(--ar-accent); color: var(--ar-navy); border-bottom-right-radius: 2px; }
+#aiChatOverlay .ai-msg-assistant .ai-msg-bubble { background: var(--ar-glass); border: 1px solid var(--ar-line); color: var(--ar-soft); }
+#aiChatOverlay .ai-dot { background: var(--ar-accent); }
+
+#aiChatOverlay .ai-workout-bar { border: 1px solid rgba(25, 236, 214, 0.4); border-radius: 4px; background: var(--ar-glass); }
+#aiChatOverlay .ai-workout-bar-icon { border-radius: 4px; background: var(--ar-accent-soft); color: var(--ar-accent); }
+#aiChatOverlay .ai-workout-bar-label { font-family: var(--ar-display); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#aiChatOverlay .ai-workout-save-btn { min-height: 40px; border: 0; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 16px; letter-spacing: 1px; box-shadow: none; }
+
+#aiChatOverlay .ai-input-area { padding: 16px 24px 24px; border-top: 1px solid var(--ar-line); background: none; }
+#aiChatOverlay .ai-input-wrapper { padding: 6px 6px 6px 16px; border: 1px solid var(--ar-line-2); border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: none; }
+#aiChatOverlay .ai-input-wrapper:focus-within { border-color: var(--ar-accent); box-shadow: none; }
+#aiChatOverlay #aiChatInput { font-family: var(--ar-body); font-size: 15px; color: var(--ar-text); }
+#aiChatOverlay #aiChatInput::placeholder { color: #7f8aa0; }
+#aiChatOverlay .ai-send-btn { width: 44px; height: 44px; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); box-shadow: none; }
+#aiChatOverlay .ai-send-btn:hover { filter: brightness(1.08); background: var(--ar-accent); }
+
+#aiChatOverlay .ai-workout-card { border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); }
+#aiChatOverlay .ai-wk-total { color: var(--ar-accent); font-family: var(--ar-display); }
+#aiChatOverlay .ai-chat-main, #aiChatOverlay .ai-messages { background: transparent; }
+
+/* Bike components tab (athlete area) */
+#settingsModal.ar-athlete #tab-components.active { gap: 14px; overflow-y: auto; }

@@ -39,7 +39,6 @@ import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModa
 import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
-import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
 import aiChatPanelHtml from './components/aiChatPanel.html?raw';
 import recoveryModalHtml from './components/recoveryModal.html?raw';
 import defaultAvatarUrl from './assets/images/avatar-default.png';
@@ -63,7 +62,6 @@ document.body.insertAdjacentHTML('beforeend', (
     tutorialModalHtml +
     raceHistoryModalHtml +
     trophyModalHtml +
-    bikeComponentsModalHtml +
     aiChatPanelHtml +
     recoveryModalHtml
 ).replaceAll(DEFAULT_AVATAR_TOKEN, defaultAvatarUrl));
@@ -320,10 +318,6 @@ document.getElementById('btnCloseTrophy').addEventListener('click', () => {
     ui.toggleTrophyModal(false);
 });
 
-document.getElementById('btnCloseBikeComponents').addEventListener('click', () => {
-    ui.toggleBikeComponentsModal(false);
-});
-
 document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
     closeAssessmentFTPConfirmModal();
 await ui.openProfileSettings();
@@ -377,14 +371,14 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
         const result = await window.go.main.App.ConnectStrava();
 
         if (result === "ok") {
-            btn.innerHTML = "✓ Strava Connected";
+            btn.innerHTML = "Connected";
             status.innerText = "Ready to auto-upload";
             status.style.color = "var(--argus-safe)";
         }
     } catch (err) {
         console.error("Strava Connection Error:", err);
         btn.disabled = false;
-        btn.innerHTML = "Connect with Strava";
+        btn.innerHTML = "Connect";
         status.innerText = "Connection failed or timed out.";
         status.style.color = "var(--argus-alert)";
         alert("Error connecting to Strava: " + err);
@@ -1922,6 +1916,7 @@ function openTab(tabId, event) {
     if (tabId === 'tab-career') {
         setTimeout(() => { window.ui.loadCareerDashboard(); }, 50);
     }
+    if (tabId === 'tab-components') window.ui.loadBikeComponentsBike();
 }
 window.openTab = openTab;
 
@@ -2100,17 +2095,13 @@ window.checkStravaStatus = async () => {
             const status = document.getElementById('statusStrava');
 
             if (isConn) {
-                btn.innerHTML = "✓ Strava Connected";
+                btn.innerHTML = "Connected";
                 btn.disabled = true;
                 btnDisconnect.classList.remove('hidden');
                 status.innerText = "Ready to auto-upload";
                 status.style.color = "var(--argus-safe)";
             } else {
-                btn.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg> Connect with Strava`;
+                btn.innerHTML = "Connect";
                 btn.disabled = false;
                 btnDisconnect.classList.add('hidden');
                 status.innerText = "Not connected";

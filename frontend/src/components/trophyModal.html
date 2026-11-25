@@ -16,55 +16,48 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="trophyModal" class="modal-overlay hidden" style="z-index: 10005;">
-    <div class="settings-content trophy-modal-content" style="max-width: 900px; height: auto; max-height: 85vh; overflow-y: auto;">
-        <div class="challenge-hub-header" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; margin-bottom: 15px;">
-            <div style="text-align: left;">
-                <div class="challenge-hub-kicker" style="color: gold; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 800;">AWARDS & STATS</div>
-                <h2 style="font-size: 1.8rem; margin: 0; font-weight: 800; color: #fff;">Trophy Room</h2>
+<!-- Trophy Room: weekly streak, custom goals and achievements (UIManager.loadTrophyRoom). -->
+<div id="trophyModal" class="modal-overlay ar-modal-page hidden">
+    <div class="settings-content trophy-modal-content">
+        <div class="ar-page-top">
+            <div class="ar-tagline">
+                <span class="ar-tag">TROPHY ROOM</span>
+                <span class="ar-tag-dark">AWARDS &amp; STATS</span>
             </div>
-            <button class="btn-icon-small" id="btnCloseTrophy" title="Close" style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer;">✕</button>
+            <button class="ar-icon-btn" id="btnCloseTrophy" type="button" title="Close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
         </div>
 
         <div class="trophy-layout">
             <div class="trophy-main-grid">
-                <div class="trophy-card streak-card">
-                    <div class="card-icon-glow"></div>
-                    <div class="card-icon">
-                        <!-- Star removed for better animation -->
-                    </div>
-                    <div class="card-content">
-                        <div class="streak-value" id="streakCount">0</div>
-                        <div class="streak-label">WEEKLY STREAK</div>
-                    </div>
-                </div>
+                <section class="ar-panel trophy-card streak-card" aria-label="Weekly streak">
+                    <span class="ar-label">Weekly streak</span>
+                    <div class="streak-value" id="streakCount">0</div>
+                    <span class="streak-label">weeks in a row with at least one ride</span>
+                </section>
 
-                <div class="trophy-card goals-card">
-                    <div class="card-header">
-                        <h4>Custom Goals</h4>
-                        <button class="btn-add-goal-premium" onclick="window.ui.openCustomGoalModal()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            NEW GOAL
-                        </button>
+                <section class="ar-panel trophy-card goals-card" aria-label="Custom goals">
+                    <div class="ar-panel-head">
+                        <span>CUSTOM GOALS</span>
+                        <button class="ar-btn btn-add-goal-premium" onclick="window.ui.openCustomGoalModal()">+ New goal</button>
                     </div>
                     <div id="customGoalsList" class="compact-goals-list">
-                        <div class="empty-state">Loading goals...</div>
+                        <div class="ar-empty">Loading goals...</div>
                     </div>
                     <div class="completed-section">
-                        <h5>COMPLETED</h5>
+                        <span class="ar-label">Completed</span>
                         <div id="completedGoalsList" class="tiny-goals-list"></div>
                     </div>
-                </div>
+                </section>
             </div>
 
-            <div class="badges-section">
-                <h4>Achievements</h4>
+            <section class="badges-section" aria-label="Achievements">
+                <h2 class="ar-h2">ACHIEVEMENTS</h2>
                 <div class="badges-scroll-container">
                     <div id="badgesContainer" class="badges-minimal-grid">
-                        <div class="empty-state">Loading badges...</div>
+                        <div class="ar-empty">Loading badges...</div>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>
