@@ -549,14 +549,13 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     justify-content: center;
     align-items: flex-start;
     gap: 2px;
-    padding: 12px 34px 12px 22px;
+    padding: 12px 22px;
     border: 0;
     border-radius: 6px;
     background: var(--ev-accent);
     color: var(--ev-navy);
     cursor: pointer;
     text-align: left;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
     transition: filter 0.15s ease;
 }
 
@@ -1142,6 +1141,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-tower-name {
+    color: var(--ev-text);
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -1160,6 +1160,10 @@ body.ev-hub-open .scene3d-layer {
 
 .ev-tower-row.is-live {
     background: var(--ev-accent);
+    color: var(--ev-navy);
+}
+
+.ev-tower-row.is-live .ev-tower-name {
     color: var(--ev-navy);
 }
 
@@ -1296,7 +1300,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-live-metric {
-    padding: 0 18px;
+    padding: 0 14px;
     border-right: 1px solid var(--ev-line);
 }
 
@@ -1318,6 +1322,7 @@ body.ev-hub-open .scene3d-layer {
     font-size: 38px;
     line-height: 1.05;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap; /* the unit stays beside the number (km/h used to wrap) */
 }
 
 .ev-live-metric-val small {
@@ -1961,7 +1966,8 @@ body.ev-hub-open .scene3d-layer {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.ev-rank-row.is-sim {
+.ev-rank-row.is-sim .ev-rank-who small,
+.ev-rank-row.is-sim .ev-rank-val {
     opacity: 0.7;
 }
 
@@ -2009,6 +2015,7 @@ body.ev-hub-open .scene3d-layer {
     white-space: nowrap;
     font-weight: 600;
     font-size: 16px;
+    color: var(--ev-text);
 }
 
 .ev-rank-who small {
@@ -2017,6 +2024,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-rank-val {
+    color: var(--ev-text);
     font-family: var(--ev-font-display);
     font-weight: 700;
     font-size: 22px;

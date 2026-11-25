@@ -168,14 +168,13 @@
     justify-content: center;
     align-items: flex-start;
     gap: 2px;
-    padding: 10px 34px 10px 22px;
+    padding: 10px 22px;
     border: 0;
     border-radius: 6px;
     background: var(--ar-accent);
     color: var(--ar-navy);
     text-align: left;
     cursor: pointer;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
     transition: filter 0.15s ease;
 }
 
