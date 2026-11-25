@@ -1586,9 +1586,9 @@ const dashboardViewEl = document.getElementById('dashboard-view');
 if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardViewEl, { attributes: true, attributeFilter: ['class'] });
 
 // Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
-// The event hub is not a cover: the live scene shows through on its right.
+// Both show the animated logo on the right instead of the live scene.
 function isFullScreenPageOpen() {
-    return !!document.querySelector('.home-overlay.active:not(#eventHubPage)');
+    return !!document.querySelector('.home-overlay.active');
 }
 function syncHomeOpenClass() {
     document.body.classList.toggle('ar-home-open', !!document.getElementById('homeScreen')?.classList.contains('active'));

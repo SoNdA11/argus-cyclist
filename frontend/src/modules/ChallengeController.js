@@ -502,15 +502,12 @@ export class ChallengeController {
         if (!el) return;
         el.classList.remove('hidden');
         el.classList.add('active');
-        // While the start list is open the 3D frames the rider in the free area on its right.
-        if (el === this.els.eventHubModal) document.body.classList.add('ev-hub-open');
     }
 
     closeModal(el) {
         if (!el) return;
         el.classList.remove('active');
         el.classList.add('hidden');
-        if (el === this.els.eventHubModal) document.body.classList.remove('ev-hub-open');
         if (el === this.els.resultModal) this.stopResultTimer();
     }
 

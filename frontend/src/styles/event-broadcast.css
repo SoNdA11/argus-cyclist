@@ -152,9 +152,8 @@
 /* ---------- Event hub: start list ---------- */
 
 #eventHubPage.ev-hub {
-    /* The live 3D scene shows through on the right; the left side stays readable. */
-    background:
-        linear-gradient(90deg, #050f22 0%, #050f22 44%, rgba(5, 15, 34, 0.7) 52%, rgba(5, 15, 34, 0.25) 78%, rgba(5, 15, 34, 0.1) 100%) !important;
+    /* Opaque page: the animated logo fills the free area on the right (no 3D behind). */
+    background: radial-gradient(ellipse 45% 60% at 76% 50%, rgba(79, 227, 255, 0.09), transparent 70%), var(--ar-bg) !important;
     padding: 24px 32px;
     font-family: var(--ev-font-body);
     color: var(--ev-text);
@@ -603,20 +602,21 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     color: var(--ev-text-soft);
 }
 
-/* The scene keeps rendering behind the start list, narrowed to the free area on the right so
-   the rider waiting on the start line stays in view (the layer's size change resizes the 3D). */
-body.ev-hub-open .scene3d-layer {
-    left: 44% !important;
+/* Logo stage: right of the 800 px column (scaled with the hub zoom), above the footer. */
+#eventHubPage .ev-hub-stage {
+    left: calc(64px + 800px * var(--ev-zoom, 1));
+    bottom: calc(96px * var(--ev-zoom, 1));
 }
 
-@media (max-width: 900px) {
-    body.ev-hub-open .scene3d-layer {
-        left: 0 !important;
-    }
+#eventHubPage .ev-hub-top,
+#eventHubPage .ev-hub-main,
+#eventHubPage .ev-hub-footer {
+    position: relative;
+    z-index: 1;
 }
 
 /* Big fair screens (TV / 1080p and up): scale the whole hub instead of leaving it small. */
-#eventHubPage.ev-hub>* {
+#eventHubPage.ev-hub>*:not(.ev-hub-stage) {
     zoom: var(--ev-zoom, 1);
 }
 
