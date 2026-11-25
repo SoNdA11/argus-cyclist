@@ -2059,3 +2059,9 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
         justify-content: flex-end;
     }
 }
+/* Event mode: the Free Ride map tools (centre / layers) and the map zoom never show
+   through the event screens, whatever main view was saved. */
+body.ev-event-mode .ar-map-tools,
+body.ev-event-mode #map-container .maplibregl-ctrl-top-right {
+    display: none !important;
+}
