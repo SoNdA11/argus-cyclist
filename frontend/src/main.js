@@ -991,7 +991,8 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
 
                 const elevations = await window.go.main.App.GetElevationProfile();
-                chart.setData(elevations);
+                // Same points as the route path: their cumulative distance places the profile.
+                chart.setData(elevations, elevations.length === routePoints.length ? routePoints.map(p => p.distance) : null);
             }
         }
     } catch (e) { arAlert("Error importing GPX: " + e); }
@@ -1063,7 +1064,7 @@ function parseGPXForMobile(gpxText, filename) {
 
     window.mapController.renderRoute({ type: 'FeatureCollection', features: features });
     window.mapController.setInitialPosition(smoothedPoints[0].lat, smoothedPoints[0].lon);
-    window.chart.setData(smoothedPoints.map(p => p.ele));
+    window.chart.setData(smoothedPoints.map(p => p.ele), smoothedPoints.map(p => p.distance));
 }
 
 

@@ -814,6 +814,8 @@ body.ar-shell > footer {
 body.ar-shell > footer .elevation-header { margin: 0; font-size: 14px; color: var(--ar-text); }
 body.ar-shell > footer #elevationCurrent { color: var(--ar-muted); font-weight: 600; letter-spacing: 1px; }
 body.ar-shell > footer .elevation-graph-container { background: transparent; }
+/* The canvas never sizes its box: its backing store is larger than the box on HiDPI screens. */
+body.ar-shell > footer #elevationCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 body.ar-shell > footer #progressCursor { background: var(--ar-accent); box-shadow: 0 0 6px rgba(25, 236, 214, 0.6); }
 
 /* ---------- Map-only tools ---------- */
