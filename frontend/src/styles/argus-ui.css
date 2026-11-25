@@ -250,3 +250,284 @@
 }
 
 .ar-note svg { flex-shrink: 0; margin-top: 1px; color: var(--ar-info); }
+
+/* ======================================================================
+   Home: rider selection and new rider (homeScreen.html)
+   ====================================================================== */
+
+/* Opaque page: the animated logo fills the free area on the right. */
+#homeScreen.ar-home {
+    background: radial-gradient(ellipse 45% 60% at 74% 52%, rgba(76, 149, 242, 0.09), transparent 70%), var(--ar-bg) !important;
+    padding: 24px 32px;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 18px;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+
+/* While the home is open the main chrome is hidden. */
+body.ar-home-open > header,
+body.ar-home-open .hud-sidebar,
+body.ar-home-open > footer {
+    display: none !important;
+}
+
+/* Overlays that open behind the home (settings, first-run tutorial) wait until it closes,
+   as they did when the home was opaque. */
+body.ar-home-open .modal-overlay { visibility: hidden !important; }
+
+.ar-home-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ar-home-top, .ar-home-main, .ar-newrider, .ar-home-footer { position: relative; z-index: 1; }
+
+/* ---------- Animated logo (right side) ---------- */
+
+/* Free area right of the 720 px column (scaled with the home zoom). */
+.ar-home-stage {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(64px + 720px * var(--ar-zoom, 1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    container-type: size;
+}
+
+/* Base image 515 x 737; the swirl disc sits at its ring's centre. */
+.ar-logo-anim {
+    position: relative;
+    height: min(66cqh, 92cqw);
+    aspect-ratio: 515 / 737;
+    animation: ar-logo-in 1s cubic-bezier(.2, .8, .2, 1) both, ar-logo-float 6s ease-in-out 1s infinite alternate;
+}
+
+.ar-logo-anim::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 44.5%;
+    width: 95%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(76, 149, 242, 0.22), rgba(79, 140, 255, 0.08) 45%, transparent 70%);
+    animation: ar-logo-halo 3s ease-in-out infinite alternate;
+}
+
+.ar-logo-base,
+.ar-logo-swirl { position: absolute; display: block; background: center / contain no-repeat; }
+/* CSS urls are bundled by Vite (plain src paths in the HTML partials are not). */
+.ar-logo-base { background-image: url('../assets/images/argus-logo-base.png'); }
+.ar-logo-swirl { background-image: url('../assets/images/argus-logo-swirl.png'); }
+.ar-logo-base { inset: 0; width: 100%; height: 100%; animation: ar-logo-glow 3s ease-in-out infinite alternate; }
+.ar-logo-swirl {
+    left: 11.88%;
+    top: 17.91%;
+    width: 75.92%;
+    aspect-ratio: 1;
+    animation: ar-logo-spin 10s linear infinite;
+}
+
+@keyframes ar-logo-in { from { opacity: 0; transform: scale(.88) translateY(16px); } }
+@keyframes ar-logo-float { to { transform: translateY(-10px); } }
+@keyframes ar-logo-spin { to { transform: rotate(360deg); } }
+@keyframes ar-logo-halo { from { opacity: .55; transform: translate(-50%, -50%) scale(.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } }
+@keyframes ar-logo-glow {
+    from { filter: drop-shadow(0 0 2px rgba(76, 149, 242, 0.25)); }
+    to { filter: drop-shadow(0 0 14px rgba(76, 149, 242, 0.55)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ar-logo-anim, .ar-logo-anim::before, .ar-logo-base, .ar-logo-swirl { animation: none; }
+}
+
+@media (max-width: 1100px) { .ar-home-stage { display: none; } }
+
+.ar-home-main {
+    width: min(720px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.ar-home-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ar-home-head span { font-size: 13px; letter-spacing: 1px; color: var(--ar-muted); text-transform: uppercase; }
+
+.ar-riders { overflow: hidden; }
+
+.ar-riders-cols,
+.ar-rider {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 96px 88px 112px;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.ar-riders-cols { padding: 10px 18px; background: rgba(255, 255, 255, 0.05); }
+.ar-riders-cols span:nth-child(n+3):nth-child(-n+5) { text-align: right; }
+
+.ar-rider {
+    width: 100%;
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--ar-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    box-sizing: border-box;
+}
+
+.ar-rider:hover { background: rgba(25, 236, 214, 0.07); }
+.ar-rider:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: -2px; }
+
+.ar-rider[aria-checked="true"] {
+    background: var(--ar-accent-soft);
+    box-shadow: inset 5px 0 0 var(--ar-accent);
+}
+
+.ar-rider-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    object-fit: cover;
+    box-sizing: border-box;
+    background: var(--ar-panel-2);
+}
+
+.ar-rider[aria-checked="true"] .ar-rider-photo { border-color: var(--ar-accent); }
+
+.ar-rider-name { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.ar-rider-name strong {
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ar-rider-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ar-muted); white-space: nowrap; overflow: hidden; }
+.ar-rider-meta .ar-badge { font-size: 13px; padding: 1px 8px; }
+
+.ar-rider-stat { text-align: right; white-space: nowrap; }
+.ar-rider-stat .ar-num { font-size: 26px; }
+.ar-rider-stat .ar-unit { font-size: 14px; }
+
+.ar-rider-new .ar-rider-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: var(--ar-accent);
+}
+
+.ar-rider-new .ar-rider-name strong { font-size: 24px; }
+.ar-rider-new { grid-template-columns: 76px minmax(0, 1fr); }
+
+.ar-home-bottom { display: flex; gap: 14px; align-items: stretch; }
+
+.ar-home-hint {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ar-soft);
+}
+
+.ar-home-bottom .ar-cta { flex: 0 0 250px; min-height: 76px; box-sizing: border-box; }
+
+.ar-home-footer { margin-top: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* New rider form */
+
+#createProfileForm.ar-newrider {
+    width: min(600px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+#createProfileForm.ar-newrider.hidden { display: none !important; }
+
+.ar-newrider-card { padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+.ar-newrider-row { display: flex; gap: 18px; align-items: center; }
+
+.ar-photo-pick {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    flex-shrink: 0;
+    padding: 0;
+    border-radius: 4px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: transparent;
+    overflow: hidden;
+    cursor: pointer;
+    color: var(--ar-muted);
+}
+
+.ar-photo-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ar-photo-pick span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 3px 0;
+    background: rgba(5, 15, 34, 0.78);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--ar-soft);
+}
+
+.ar-photo-pick:hover { border-color: var(--ar-accent); }
+.ar-photo-pick:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+.ar-newrider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ar-newrider-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.ar-newrider-actions .ar-btn { min-width: 140px; }
+.ar-newrider-actions .ar-btn-primary { min-width: 200px; }
+
+.ar-form-error { font-size: 13px; font-weight: 600; color: var(--ar-bad); }
+.ar-form-error:empty { display: none; }
+
+/* Big screens: scale the home like the event start list. */
+#homeScreen.ar-home > :not(.ar-home-stage) { zoom: var(--ar-zoom, 1); }
+@media (min-width: 1600px) and (min-height: 900px) { #homeScreen.ar-home { --ar-zoom: 1.3; } }
+@media (min-width: 2400px) and (min-height: 1300px) { #homeScreen.ar-home { --ar-zoom: 1.75; } }
+
+@media (max-width: 900px) {
+    #homeScreen.ar-home { padding: 16px; }
+    .ar-riders-cols { display: none; }
+    .ar-rider { grid-template-columns: 64px minmax(0, 1fr); }
+    .ar-rider-stat { display: none; }
+    .ar-home-bottom { flex-direction: column; }
+    .ar-home-bottom .ar-cta { flex-basis: auto; }
+}

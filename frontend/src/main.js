@@ -42,8 +42,13 @@ import trophyModalHtml from './components/trophyModal.html?raw';
 import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
 import aiChatPanelHtml from './components/aiChatPanel.html?raw';
 import recoveryModalHtml from './components/recoveryModal.html?raw';
+import defaultAvatarUrl from './assets/images/avatar-default.png';
 
-document.body.insertAdjacentHTML('beforeend',
+// Plain src paths in the HTML partials are not bundled by Vite: the default photo is
+// imported above and written into the markup here.
+const DEFAULT_AVATAR_TOKEN = '%DEFAULT_AVATAR%';
+
+document.body.insertAdjacentHTML('beforeend', (
     homeScreenHtml +
     settingsModalHtml +
     confirmModalHtml +
@@ -61,7 +66,7 @@ document.body.insertAdjacentHTML('beforeend',
     bikeComponentsModalHtml +
     aiChatPanelHtml +
     recoveryModalHtml
-);
+).replaceAll(DEFAULT_AVATAR_TOKEN, defaultAvatarUrl));
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
@@ -1589,12 +1594,18 @@ const dashboardViewEl = document.getElementById('dashboard-view');
 if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardViewEl, { attributes: true, attributeFilter: ['class'] });
 
 // Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
+// The event hub is not a cover: the live scene shows through on its right.
 function isFullScreenPageOpen() {
     return !!document.querySelector('.home-overlay.active:not(#eventHubPage)');
 }
+function syncHomeOpenClass() {
+    document.body.classList.toggle('ar-home-open', !!document.getElementById('homeScreen')?.classList.contains('active'));
+}
 const pageObserver = new MutationObserver(() => {
+    syncHomeOpenClass();
     if (window.scene3d) window.scene3d.setCovered(isFullScreenPageOpen());
 });
+syncHomeOpenClass();
 document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
 
 // Event races and challenges show the 3D rider behind their HUD, whatever main view
@@ -2027,33 +2038,18 @@ function formatCompactNumber(n) {
 }
 
 window.toggleCreateForm = (show) => {
-    const grid = document.getElementById('profileGrid');
+    const select = document.getElementById('homeSelect');
     const form = document.getElementById('createProfileForm');
-    const subtitle = document.getElementById('homeSubtitle');
+    const footer = document.getElementById('homeFooter');
     const welcome = document.getElementById('homeWelcome');
-    const eventActions = document.querySelector('.home-event-actions');
 
-    if (show) {
-        grid.style.display = 'none';
-        form.classList.remove('hidden');
-        form.style.display = 'block';
-        if (eventActions) {
-            eventActions.classList.add('hidden');
-            eventActions.style.display = 'none';
-        }
-        if (subtitle) subtitle.innerText = "Create a new rider profile";
-        if (welcome) welcome.innerText = "New rider";
-    } else {
-        grid.style.display = '';
-        form.classList.add('hidden');
-        form.style.display = 'none';
-        if (eventActions) {
-            eventActions.classList.remove('hidden');
-            eventActions.style.display = '';
-        }
-        if (welcome) welcome.innerText = "Welcome back";
-        if (subtitle) subtitle.innerText = "Select a rider profile to start your session.";
-    }
+    select?.classList.toggle('hidden', !!show);
+    footer?.classList.toggle('hidden', !!show);
+    form?.classList.toggle('hidden', !show);
+    const error = document.getElementById('newRiderError');
+    if (error) error.textContent = '';
+    if (welcome) welcome.innerText = show ? 'NEW RIDER' : getTimeGreeting().toUpperCase();
+    if (show) document.getElementById('newRiderName')?.focus();
 };
 
 window.selectAvatar = async () => {
@@ -2071,8 +2067,10 @@ window.createProfile = async () => {
     const weightInput = parseFloat(document.getElementById('newRiderWeight').value) || 75.0;
     const ftpInput = parseFloat(document.getElementById('newRiderFTP').value) || 200.0;
 
+    const formError = document.getElementById('newRiderError');
     if (!nameInput.trim()) {
-        alert("Please provide the cyclist's name.");
+        if (formError) formError.textContent = "Enter the rider's name.";
+        document.getElementById('newRiderName')?.focus();
         return;
     }
 
@@ -2088,7 +2086,7 @@ window.createProfile = async () => {
         }
     } catch (err) {
         console.error("Backend error:", err);
-        alert("Error creating account: " + err);
+        if (formError) formError.textContent = `Could not create the rider: ${err}`;
     }
 };
 
@@ -2133,8 +2131,7 @@ document.getElementById('btnDisconnectStrava').addEventListener('click', async (
 });
 
 window.deleteProfile = async (id, name, event) => {
-    // Stop event propagation so clicking the 'X' doesn't trigger loginProfile
-    event.stopPropagation();
+    event?.stopPropagation?.();
 
     if (confirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
         try {
@@ -2240,106 +2237,112 @@ function formatHomeTime(seconds) {
     return `${m}m`;
 }
 
+function escapeHomeText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
+// Home rider list: a click selects a rider, a double click (or RIDE / Enter) logs in.
+let homeAccounts = [];
+let homeSelectedId = null;
+
+function selectHomeRider(id) {
+    homeSelectedId = id;
+    const acc = homeAccounts.find((a) => String(a.id) === String(id));
+    document.querySelectorAll('#profileGrid .ar-rider[data-id]').forEach((row) => {
+        row.setAttribute('aria-checked', row.dataset.id === String(id) ? 'true' : 'false');
+        row.tabIndex = row.dataset.id === String(id) ? 0 : -1;
+    });
+    const ride = document.getElementById('btnHomeRide');
+    const label = document.getElementById('homeRideLabel');
+    const del = document.getElementById('btnHomeDeleteRider');
+    if (ride) ride.disabled = !acc;
+    if (label) label.textContent = acc ? `AS ${acc.name.toUpperCase()}` : 'SELECT A RIDER';
+    if (del) del.disabled = !acc;
+}
+
+function rideSelectedRider() {
+    if (homeSelectedId !== null) window.loginProfile(homeSelectedId);
+}
+
+document.getElementById('btnHomeRide')?.addEventListener('click', rideSelectedRider);
+document.getElementById('btnHomeDeleteRider')?.addEventListener('click', (e) => {
+    const acc = homeAccounts.find((a) => String(a.id) === String(homeSelectedId));
+    if (acc) window.deleteProfile(acc.id, acc.name, e);
+});
+
+// The home owns the keyboard while it is open: arrows move the selection, Enter rides.
+document.addEventListener('keydown', (e) => {
+    const home = document.getElementById('homeScreen');
+    if (!home?.classList.contains('active') || document.getElementById('homeSelect')?.classList.contains('hidden')) return;
+    const tag = e.target?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    const ids = homeAccounts.map((a) => String(a.id));
+    if (!ids.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const i = ids.indexOf(String(homeSelectedId)) + (e.key === 'ArrowDown' ? 1 : -1);
+        selectHomeRider(ids[(i + ids.length) % ids.length]);
+        document.querySelector(`#profileGrid .ar-rider[data-id="${homeSelectedId}"]`)?.focus();
+        e.preventDefault();
+    } else if (e.key === 'Enter' && tag !== 'button') {
+        e.preventDefault();
+        rideSelectedRider();
+    }
+});
+
 async function initHomeScreen() {
     const grid = document.getElementById('profileGrid');
     grid.innerHTML = "";
+    window.toggleCreateForm(false);
 
     try {
         const rawAccounts = await window.go.main.App.GetLocalAccounts();
-        const accounts = (rawAccounts || []).filter(acc => acc.name !== 'Event Mode');
-        const welcome = document.getElementById('homeWelcome');
+        homeAccounts = (rawAccounts || []).filter(acc => acc.name !== 'Event Mode');
         const subtitle = document.getElementById('homeSubtitle');
-
-        if (welcome) {
-            const greeting = getTimeGreeting();
-            welcome.innerText = accounts && accounts.length ? `${greeting}` : `${greeting}`;
-        }
         if (subtitle) {
-            if (!accounts || accounts.length === 0) {
-                subtitle.innerText = "Create your first rider profile to begin.";
-            } else if (accounts.length === 1) {
-                subtitle.innerText = "Select your rider profile to start your session.";
-            } else {
-                subtitle.innerText = "Choose who’s riding today.";
-            }
+            subtitle.innerText = !homeAccounts.length ? 'Create your first rider to begin'
+                : homeAccounts.length === 1 ? 'Select your profile to start' : "Choose who's riding today";
         }
 
-        // Renders existing accounts
-        if (accounts && accounts.length > 0) {
-            accounts.forEach(acc => {
-                const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : "src/assets/images/argus-cyclist.png";
-                const km = (acc.total_km || 0).toFixed(1);
-                const time = formatHomeTime(acc.total_time);
-                const elev = Math.round(acc.total_elevation || 0);
-                const lvl = acc.level || 1;
-                const weight = acc.weight ? `${acc.weight} kg` : "";
-                const ftp = acc.ftp ? `${acc.ftp} W` : "";
+        grid.innerHTML = homeAccounts.map((acc) => {
+            const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : defaultAvatarUrl;
+            const name = escapeHomeText(acc.name);
+            const meta = [acc.weight ? `${acc.weight} kg` : '', acc.ftp ? `FTP ${acc.ftp} W` : ''].filter(Boolean).join(' · ');
+            return `
+                <div class="ar-rider" role="radio" aria-checked="false" tabindex="-1" data-id="${escapeHomeText(acc.id)}">
+                    <img class="ar-rider-photo" src="${photo}" alt="">
+                    <span class="ar-rider-name">
+                        <strong>${name}</strong>
+                        <span class="ar-rider-meta"><span class="ar-badge">LVL ${acc.level || 1}</span>${escapeHomeText(meta)}</span>
+                    </span>
+                    <span class="ar-rider-stat"><span class="ar-num">${formatCompactNumber(acc.total_km || 0)}</span><span class="ar-unit"> km</span></span>
+                    <span class="ar-rider-stat"><span class="ar-num">${Math.round(acc.total_elevation || 0)}</span><span class="ar-unit"> m</span></span>
+                    <span class="ar-rider-stat"><span class="ar-num">${formatHomeTime(acc.total_time)}</span></span>
+                </div>`;
+        }).join('') + `
+            <div class="ar-rider ar-rider-new" role="button" tabindex="0" id="homeNewRider">
+                <span class="ar-rider-photo" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                </span>
+                <span class="ar-rider-name">
+                    <strong>NEW RIDER</strong>
+                    <span class="ar-rider-meta">Name, weight and FTP</span>
+                </span>
+            </div>`;
 
-                grid.innerHTML += `
-                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')" role="button" tabindex="0">
-                        <button
-                            type="button"
-                            class="btn-delete-profile"
-                            aria-label="Delete profile ${acc.name}"
-                            onclick="window.deleteProfile('${acc.id}', '${acc.name}', event)"
-                        >✖</button>
+        grid.querySelectorAll('.ar-rider[data-id]').forEach((row) => {
+            row.addEventListener('click', () => selectHomeRider(row.dataset.id));
+            row.addEventListener('dblclick', () => window.loginProfile(row.dataset.id));
+        });
+        const newRow = document.getElementById('homeNewRider');
+        newRow?.addEventListener('click', () => window.toggleCreateForm(true));
+        newRow?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.toggleCreateForm(true); }
+        });
 
-                        <div class="profile-card-top">
-                            <img class="profile-avatar" src="${photo}" alt="Avatar for ${acc.name}">
-                            <div class="profile-meta">
-                                <h4 class="profile-name">${acc.name}</h4>
-                                <div class="profile-subtitle">
-                                    <span class="pill pill-level">LVL ${lvl}</span>
-                                    ${weight ? `<span class="pill">${weight}</span>` : ""}
-                                    ${ftp ? `<span class="pill">${ftp}</span>` : ""}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="profile-stats">
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.dist}</span>
-                                    <span class="stat-label">DISTANCE</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${formatCompactNumber(km)}</span>
-                                    <span class="stat-unit">km</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.elev}</span>
-                                    <span class="stat-label">ALTITUDE</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${elev}</span>
-                                    <span class="stat-unit">m</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.time}</span>
-                                    <span class="stat-label">TIME</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${time}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // "New Account" Card
-        grid.innerHTML += `
-            <div class="profile-card profile-card-new" onclick="window.toggleCreateForm(true)">
-                <div class="plus-icon">+</div>
-                <h4>Create new rider</h4>
-                <div class="new-rider-hint">Name • Weight • FTP</div>
-            </div>
-        `;
+        const keep = homeAccounts.some((a) => String(a.id) === String(homeSelectedId));
+        selectHomeRider(keep ? homeSelectedId : (homeAccounts[0]?.id ?? null));
     } catch (err) {
         console.error("Error loading accounts:", err);
     }
