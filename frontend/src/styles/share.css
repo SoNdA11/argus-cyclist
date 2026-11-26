@@ -312,11 +312,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: 1;
 }
 
-#btnLaunchTimeTrial:hover {
-    filter: brightness(1.1);
-    transform: scale(1.05);
-}
-
 .challenge-leaderboard-content {
     width: 96vw !important;
     max-width: 1800px !important;

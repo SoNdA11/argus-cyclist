@@ -16,38 +16,82 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="homeScreen" class="home-overlay active">
-        <div class="home-container">
-            <div class="home-header">
-                <img src="src/assets/images/argus-cyclist.png" alt="Argus Cyclist Logo" class="home-logo">
-                <div class="home-titles">
-                    <div class="home-brand">ARGUS<span>CYCLIST</span></div>
-                    <div class="home-welcome" id="homeWelcome">Welcome back</div>
-                    <p class="home-subtitle" id="homeSubtitle">Select a rider profile to start your session.</p>
-                </div>
-            </div>
-
-            <div class="profile-grid" id="profileGrid">
-            </div>
-
-            <div class="home-event-actions">
-                <button id="btnHomeEventMode" class="home-event-btn">Open Event Mode</button>
-            </div>
-
-            <div id="createProfileForm" class="create-profile-form hidden">
-                <div class="profile-avatar-container" onclick="window.selectAvatar()" style="margin: 0 auto 15px auto;">
-                    <img id="newAvatarPreview" src="src/assets/images/argus-cyclist.png" alt="Avatar">
-                    <div class="avatar-overlay">📷 Photo</div>
-                </div>
-                <input type="text" id="newRiderName" placeholder="Rider Name" class="home-input">
-                <input type="number" id="newRiderWeight" placeholder="Weight (kg)" class="home-input">
-                <input type="number" id="newRiderFTP" placeholder="FTP (Watts)" class="home-input">
-
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn-secondary" onclick="window.toggleCreateForm(false)"
-                        style="flex: 1;">Cancel</button>
-                    <button class="btn-primary" onclick="window.createProfile()" style="flex: 2;">Create</button>
-                </div>
-            </div>
+<!-- Home: rider selection (start-list style) and the new rider form, beside the animated
+     logo. Rows are rendered by initHomeScreen() in main.js. -->
+<div id="homeScreen" class="home-overlay active ar-home" aria-label="Choose your rider">
+    <!-- Animated logo on the right: the swirl spins like a wheel inside the static ring. -->
+    <div class="ar-home-stage" aria-hidden="true">
+        <div class="ar-logo-anim">
+            <span class="ar-logo-base"></span>
+            <span class="ar-logo-swirl"></span>
         </div>
     </div>
+
+    <div class="ar-home-top">
+        <div class="ar-tagline">
+            <span class="ar-tag">ARGUS CYCLIST</span>
+            <span class="ar-tag-dark" id="homeWelcome">WELCOME BACK</span>
+        </div>
+        <button id="btnHomeEventMode" class="ar-btn" type="button" title="Open the fair event mode">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 1-1h12l-2 4 2 4H5"></path></svg>
+            Event mode
+        </button>
+    </div>
+
+    <div class="ar-home-main" id="homeSelect">
+        <div class="ar-home-head">
+            <h1 class="ar-h1" id="homeTitle">CHOOSE YOUR RIDER</h1>
+            <span id="homeSubtitle">Select a profile to start</span>
+        </div>
+
+        <div class="ar-panel ar-riders" role="radiogroup" aria-labelledby="homeTitle">
+            <div class="ar-riders-cols ar-label" aria-hidden="true">
+                <span></span><span>Rider</span><span>Distance</span><span>Climb</span><span>Time</span>
+            </div>
+            <div id="profileGrid"></div>
+        </div>
+
+        <div class="ar-home-bottom">
+            <div class="ar-panel ar-home-hint" id="homeHint">Click a rider to select, double-click or press Enter to ride.</div>
+            <button class="ar-cta" id="btnHomeRide" type="button" disabled>
+                <strong>RIDE</strong>
+                <span id="homeRideLabel">SELECT A RIDER</span>
+            </button>
+        </div>
+    </div>
+
+    <form id="createProfileForm" class="ar-newrider hidden" onsubmit="event.preventDefault(); window.createProfile();">
+        <h1 class="ar-h1">CREATE YOUR PROFILE</h1>
+        <p class="ar-body" style="margin: 0">Weight and FTP set the trainer physics and your power zones. You can change them later in your profile.</p>
+
+        <div class="ar-panel ar-newrider-card">
+            <div class="ar-newrider-row">
+                <button type="button" class="ar-photo-pick" onclick="window.selectAvatar()" aria-label="Choose a profile photo">
+                    <img id="newAvatarPreview" src="%DEFAULT_AVATAR%" alt="">
+                    <span>PHOTO</span>
+                </button>
+                <label class="ar-field" style="flex: 1">Rider name
+                    <input type="text" id="newRiderName" class="ar-input" placeholder="How you want to appear" maxlength="32" autocomplete="off">
+                </label>
+            </div>
+            <div class="ar-newrider-grid">
+                <label class="ar-field">Weight (kg)
+                    <input type="number" id="newRiderWeight" class="ar-input" placeholder="75" min="30" max="200" inputmode="decimal">
+                </label>
+                <label class="ar-field">FTP (W)
+                    <input type="number" id="newRiderFTP" class="ar-input" placeholder="200" min="50" max="600" inputmode="numeric">
+                </label>
+            </div>
+            <div class="ar-note">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+                <span>Don't know your FTP? Leave it blank (200 W is used) and take an assessment later, like the Ramp Test.</span>
+            </div>
+            <div class="ar-form-error" id="newRiderError" role="alert"></div>
+        </div>
+
+        <div class="ar-newrider-actions">
+            <button class="ar-btn" type="button" onclick="window.toggleCreateForm(false)">Cancel</button>
+            <button class="ar-btn-primary" type="submit">CREATE RIDER</button>
+        </div>
+    </form>
+</div>

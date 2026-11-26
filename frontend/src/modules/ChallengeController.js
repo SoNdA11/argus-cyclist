@@ -20,6 +20,8 @@ import { telemetryBus } from './TelemetryEventBus.js';
 import { GhostTrack, formatGap } from './GhostTrack.js';
 import { formatClock, zoneForPct } from './EventBroadcastHud.js';
 
+// Zone challenge: reference FTP = ZONE_WKG x rider weight (typical recreational adult).
+const ZONE_WKG = 2.5;
 const FAIR_MODE_KEY = 'argus.fairMode';
 const OVERTAKE_HYSTERESIS = 0.15; // s of gap before announcing a change of lead
 const FINISH_BANNER_MS = 2200;     // finish banner over the 3D before the result screen
@@ -86,7 +88,7 @@ const HUB_MODE_TEXT = {
     },
     timeTrial: {
         name: 'DESAFIO DE ZONAS', live: 'DESAFIO DE ZONAS · 60 S',
-        tip: 'Quanto mais alta a zona de potência, mais pontos por segundo. Segure a Z5 por 3 s para o bônus máximo.',
+        tip: 'As zonas se ajustam ao seu peso. Quanto mais alta a zona, mais pontos por segundo; segure a Z5 por 3 s para o bônus máximo.',
         countdown: 'QUANTO MAIS ALTA A ZONA, MAIS PONTOS POR SEGUNDO'
     }
 };
@@ -502,15 +504,12 @@ export class ChallengeController {
         if (!el) return;
         el.classList.remove('hidden');
         el.classList.add('active');
-        // While the start list is open the 3D frames the rider in the free area on its right.
-        if (el === this.els.eventHubModal) document.body.classList.add('ev-hub-open');
     }
 
     closeModal(el) {
         if (!el) return;
         el.classList.remove('active');
         el.classList.add('hidden');
-        if (el === this.els.eventHubModal) document.body.classList.remove('ev-hub-open');
         if (el === this.els.resultModal) this.stopResultTimer();
     }
 
@@ -846,21 +845,21 @@ export class ChallengeController {
     async launchTimeTrial() {
         const riderName = this.getRiderName();
         if (!riderName) return;
-        // Optional here (power-based score), but recorded with the result when given.
-        const weight = this.getRiderWeight({ required: false });
-        if (weight === null) return;
-        if (weight) {
-            try {
-                await window.go.main.App.SetEventRiderWeight(weight);
-            } catch (e) {
-                this.showHubMessage(`Não foi possível registrar o peso: ${e}`);
-                return;
-            }
+        // Required here: the zones are scaled to the rider's weight (see ZONE_WKG).
+        const weight = this.getRiderWeight();
+        if (!weight) return;
+        try {
+            await window.go.main.App.SetEventRiderWeight(weight);
+        } catch (e) {
+            this.showHubMessage(`Não foi possível registrar o peso: ${e}`);
+            return;
         }
 
         if (!await this.prepareChallengeEnvironment('timeTrial')) return;
 
-        const ftp = this.ui?.ftp || 200;
+        // Fair for every visitor: nobody knows their FTP at the fair, so the reference is
+        // estimated from the weight measured on the scale (not the logged-in profile's FTP).
+        const ftp = Math.round(ZONE_WKG * weight);
         let simulated = false;
         try {
             const state = await window.go.main.App.GetDeviceConnectionState();
@@ -964,7 +963,8 @@ export class ChallengeController {
             record: c?.record || null,
             distance: c?.distance || 0,
             profile: c?.profile || null,
-            ftp: c?.ftp
+            ftp: c?.ftp,
+            weight: c?.weight
         });
         if (this.ui) {
             this.ui.els.header.style.display = 'none';
@@ -1143,7 +1143,7 @@ export class ChallengeController {
             c.ahead = ahead; // initial state: no announcement
         } else if (ahead !== c.ahead && Math.abs(c.gap) > OVERTAKE_HYSTERESIS) {
             c.ahead = ahead;
-            if (ahead) this.flashMessage('VOCÊ PASSOU O RECORDE!', { color: '#2bd576' });
+            if (ahead) this.flashMessage('VOCÊ PASSOU O RECORDE!', { color: '#5ad66a' });
             else this.flashMessage('O RECORDE ESTÁ À FRENTE', { color: '#ff6b6f' });
         }
     }

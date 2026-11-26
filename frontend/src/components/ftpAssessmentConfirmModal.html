@@ -16,19 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="ftpAssessmentConfirmModal" class="modal-overlay hidden">
-        <div class="modal-content-small" style="width: 540px; max-width: 90%;">
-            <div class="modal-header" style="display:flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; color: var(--zone-4);">Confirm Baseline FTP</h2>
-                <button class="close-btn"
-                    style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;"
-                    onclick="window.closeAssessmentFTPConfirmModal()">×</button>
-            </div>
-            <p id="ftpAssessmentConfirmMessage"
-                style="color: var(--text-muted); margin-top: 14px; font-size: 14px; line-height: 1.6;"></p>
-            <div class="modal-actions centered" style="margin-top: 24px; gap: 12px; justify-content: flex-end;">
-                <button id="btnEditAssessmentFTP" class="btn-secondary">Edit FTP</button>
-                <button id="btnProceedAssessmentFTP" class="btn-primary">Proceed</button>
-            </div>
+<!-- Confirms the FTP an assessment is scaled from (main.js fills the message and the button). -->
+<div id="ftpAssessmentConfirmModal" class="modal-overlay ar-dialog-overlay hidden">
+    <section class="ar-dialog is-accent" role="dialog" aria-labelledby="ftpConfirmTitle">
+        <div class="ar-dialog-head">
+            <span class="ar-label ar-dialog-kicker">Assessment</span>
+            <button class="close-btn ar-icon-btn" type="button" onclick="window.closeAssessmentFTPConfirmModal()" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
         </div>
-    </div>
+        <h2 class="ar-h2" id="ftpConfirmTitle">CONFIRM BASELINE FTP</h2>
+        <p id="ftpAssessmentConfirmMessage" class="ar-body"></p>
+        <div class="ar-dialog-actions">
+            <button id="btnEditAssessmentFTP" class="ar-btn" type="button">Edit FTP</button>
+            <button id="btnProceedAssessmentFTP" class="ar-btn-primary" type="button">PROCEED</button>
+        </div>
+    </section>
+</div>

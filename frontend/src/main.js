@@ -19,6 +19,7 @@ import homeScreenHtml from './components/homeScreen.html?raw';
 import settingsModalHtml from './components/settingsModal.html?raw';
 import confirmModalHtml from './components/confirmModal.html?raw';
 import './styles/studio-hud.css';
+import './styles/argus-ui.css';
 import '@fontsource/barlow-condensed/latin-600';
 import '@fontsource/barlow-condensed/latin-700';
 import '@fontsource/barlow-condensed/latin-800';
@@ -38,11 +39,15 @@ import ftpAssessmentConfirmModalHtml from './components/ftpAssessmentConfirmModa
 import tutorialModalHtml from './components/tutorialModal.html?raw';
 import raceHistoryModalHtml from './components/raceHistoryModal.html?raw';
 import trophyModalHtml from './components/trophyModal.html?raw';
-import bikeComponentsModalHtml from './components/bikeComponentsModal.html?raw';
 import aiChatPanelHtml from './components/aiChatPanel.html?raw';
 import recoveryModalHtml from './components/recoveryModal.html?raw';
+import defaultAvatarUrl from './assets/images/avatar-default.png';
 
-document.body.insertAdjacentHTML('beforeend',
+// Plain src paths in the HTML partials are not bundled by Vite: the default photo is
+// imported above and written into the markup here.
+const DEFAULT_AVATAR_TOKEN = '%DEFAULT_AVATAR%';
+
+document.body.insertAdjacentHTML('beforeend', (
     homeScreenHtml +
     settingsModalHtml +
     confirmModalHtml +
@@ -57,10 +62,9 @@ document.body.insertAdjacentHTML('beforeend',
     tutorialModalHtml +
     raceHistoryModalHtml +
     trophyModalHtml +
-    bikeComponentsModalHtml +
     aiChatPanelHtml +
     recoveryModalHtml
-);
+).replaceAll(DEFAULT_AVATAR_TOKEN, defaultAvatarUrl));
 import { MapController } from './modules/MapController.js';
 import { UIManager } from './modules/UIManager.js';
 import { ElevationChart } from './modules/ElevationChart.js';
@@ -74,6 +78,7 @@ import { AIChatController } from './modules/AIChatController.js';
 import { Capacitor } from '@capacitor/core';
 import { CapacitorBluetoothService } from './modules/CapacitorBluetoothService.js';
 import { telemetryBus } from './modules/TelemetryEventBus.js';
+import { arAlert, arConfirm, arPrompt } from './modules/ArgusDialog.js';
 
 // =====================
 // MOBILE WAILS POLYFILL
@@ -253,7 +258,7 @@ async function openAssessmentFTPConfirmModal(test) {
 window.closeAssessmentFTPConfirmModal = closeAssessmentFTPConfirmModal;
 
 window.closeWorkout = async () => {
-    if (confirm("Stop the structured workout and return to Free Ride?")) {
+    if (await arConfirm("Stop the structured workout and return to Free Ride?")) {
         if (typeof workoutCtrl !== 'undefined') workoutCtrl.hide();
 
         if (Capacitor.isNativePlatform()) {
@@ -314,10 +319,6 @@ document.getElementById('btnCloseTrophy').addEventListener('click', () => {
     ui.toggleTrophyModal(false);
 });
 
-document.getElementById('btnCloseBikeComponents').addEventListener('click', () => {
-    ui.toggleBikeComponentsModal(false);
-});
-
 document.getElementById('btnEditAssessmentFTP').addEventListener('click', async () => {
     closeAssessmentFTPConfirmModal();
 await ui.openProfileSettings();
@@ -353,7 +354,7 @@ document.getElementById('btnJustRide').addEventListener('click', () => {
 
 document.getElementById('btnConnectStrava').addEventListener('click', async () => {
     if (Capacitor && Capacitor.isNativePlatform()) {
-        alert("Strava OAuth is currently only supported on the Desktop version.");
+        arAlert("Strava OAuth is currently only supported on the Desktop version.");
         return;
     }
 
@@ -371,17 +372,17 @@ document.getElementById('btnConnectStrava').addEventListener('click', async () =
         const result = await window.go.main.App.ConnectStrava();
 
         if (result === "ok") {
-            btn.innerHTML = "✓ Strava Connected";
+            btn.innerHTML = "Connected";
             status.innerText = "Ready to auto-upload";
             status.style.color = "var(--argus-safe)";
         }
     } catch (err) {
         console.error("Strava Connection Error:", err);
         btn.disabled = false;
-        btn.innerHTML = "Connect with Strava";
+        btn.innerHTML = "Connect";
         status.innerText = "Connection failed or timed out.";
         status.style.color = "var(--argus-alert)";
-        alert("Error connecting to Strava: " + err);
+        arAlert("Error connecting to Strava: " + err);
     }
 });
 
@@ -439,7 +440,7 @@ function bindIntervalsUI() {
         const athleteID = document.getElementById('inputIntervalsAthleteID').value.trim();
         const apiKey = document.getElementById('inputIntervalsAPIKey').value.trim();
         if (!apiKey) {
-            alert("Please enter your Intervals.icu API key.");
+            arAlert("Please enter your Intervals.icu API key.");
             return;
         }
         btnSave.disabled = true;
@@ -451,12 +452,12 @@ function bindIntervalsUI() {
             console.error("Intervals.icu Connection Error:", err);
             btnSave.disabled = false;
             btnSave.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4Z"></path></svg> Connect`;
-            alert("Error connecting to Intervals.icu: " + err);
+            arAlert("Error connecting to Intervals.icu: " + err);
         }
     });
 
     btnDisconnect.addEventListener('click', async () => {
-        if (confirm("Disconnect Argus Cyclist from your Intervals.icu account?")) {
+        if (await arConfirm("Disconnect Argus Cyclist from your Intervals.icu account?")) {
             await window.go.main.App.DisconnectIntervals();
             document.getElementById('inputIntervalsAthleteID').value = '';
             document.getElementById('inputIntervalsAPIKey').value = '';
@@ -801,7 +802,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a trainer from the list."); return; }
+        if (!selectedMac) { arAlert("Please select a trainer from the list."); return; }
 
         btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; btnVirtual.disabled = true; list.disabled = true;
 
@@ -821,7 +822,7 @@ document.getElementById('btnConnTrainer').addEventListener('click', async () => 
 // ---------------------------
 
 document.getElementById('btnConnVirtual').addEventListener('click', async () => {
-    if (Capacitor.isNativePlatform()) { alert("Virtual Simulator not available on mobile yet."); return; }
+    if (Capacitor.isNativePlatform()) { arAlert("Virtual Simulator not available on mobile yet."); return; }
 
     const btnVirtual = document.getElementById('btnConnVirtual');
     const btnReal = document.getElementById('btnConnTrainer');
@@ -914,7 +915,7 @@ document.getElementById('btnConnHR').addEventListener('click', async () => {
         }
 
         const selectedMac = list.value;
-        if (!selectedMac) { alert("Please select a HR monitor from the list."); return; }
+        if (!selectedMac) { arAlert("Please select a HR monitor from the list."); return; }
 
         btnReal.innerHTML = svgIcons.wait; btnReal.disabled = true; list.disabled = true;
 
@@ -990,10 +991,11 @@ document.getElementById('btnImport').addEventListener('click', async () => {
                 mapCtrl.setInitialPosition(routePoints[0].lat, routePoints[0].lon);
 
                 const elevations = await window.go.main.App.GetElevationProfile();
-                chart.setData(elevations);
+                // Same points as the route path: their cumulative distance places the profile.
+                chart.setData(elevations, elevations.length === routePoints.length ? routePoints.map(p => p.distance) : null);
             }
         }
-    } catch (e) { alert("Error importing GPX: " + e); }
+    } catch (e) { arAlert("Error importing GPX: " + e); }
 });
 
 // GPX Parser for Mobile
@@ -1002,7 +1004,7 @@ function parseGPXForMobile(gpxText, filename) {
     const xmlDoc = parser.parseFromString(gpxText, "text/xml");
     const trkpts = xmlDoc.getElementsByTagName("trkpt");
 
-    if (trkpts.length === 0) { alert("No route points found in GPX"); return; }
+    if (trkpts.length === 0) { arAlert("No route points found in GPX"); return; }
 
     const points = [];
     let totalDist = 0;
@@ -1062,7 +1064,7 @@ function parseGPXForMobile(gpxText, filename) {
 
     window.mapController.renderRoute({ type: 'FeatureCollection', features: features });
     window.mapController.setInitialPosition(smoothedPoints[0].lat, smoothedPoints[0].lon);
-    window.chart.setData(smoothedPoints.map(p => p.ele));
+    window.chart.setData(smoothedPoints.map(p => p.ele), smoothedPoints.map(p => p.distance));
 }
 
 
@@ -1094,7 +1096,7 @@ document.getElementById('btnLoadWorkout').addEventListener('click', async () => 
             console.log("Workout loaded:", result);
             ui.els.btnAction.classList.remove('hidden');
         }
-    } catch (e) { alert("Error loading workout: " + e); }
+    } catch (e) { arAlert("Error loading workout: " + e); }
 });
 
 // ZWO Parser for Mobile
@@ -1105,7 +1107,7 @@ function parseZWOForMobile(xmlString) {
     const workoutObj = { Segments: [], TotalDuration: 0 };
     const workoutNodes = xmlDoc.getElementsByTagName("workout");
 
-    if (workoutNodes.length === 0) { alert("Invalid ZWO file."); return; }
+    if (workoutNodes.length === 0) { arAlert("Invalid ZWO file."); return; }
 
     const elements = workoutNodes[0].children;
     let idx = 0;
@@ -1155,16 +1157,16 @@ async function handleSessionFinished(sessionSummary) {
     ui.showFinishModal(sessionSummary);
 
     if (sessionSummary.new_ftp > 0) {
-        setTimeout(() => {
+        setTimeout(async () => {
             const msg = `Physiological Assessment Complete!\n\nNew Estimated FTP: ${sessionSummary.new_ftp} W\nMax HR Reached: ${sessionSummary.new_max_hr} BPM\n\nWould you like to update your profile with these new metrics?`;
-            if (confirm(msg)) {
+            if (await arConfirm(msg)) {
                 window.go.main.App.GetUserProfile().then(profile => {
                     profile.ftp = sessionSummary.new_ftp;
                     if (sessionSummary.new_max_hr > profile.max_hr) {
                         profile.max_hr = sessionSummary.new_max_hr;
                     }
                     window.go.main.App.UpdateUserProfile(profile).then(() => {
-                        alert("Profile successfully updated!");
+                        arAlert("Profile successfully updated!");
                         if (window.ui) window.ui.loadUserProfile();
                     });
                 });
@@ -1225,7 +1227,7 @@ async function finishWorkout() {
     if (Capacitor.isNativePlatform()) {
         ui.setRecordingState('IDLE');
         ui.showFinishModal({ distance: window.totalRouteDistance, duration: window.workoutCtrl ? window.workoutCtrl.mobileElapsedTime : 0 });
-        alert("Mobile version currently supports live metrics. FIT file saving is available on Desktop.");
+        arAlert("Mobile version currently supports live metrics. FIT file saving is available on Desktop.");
         return;
     }
 
@@ -1233,7 +1235,7 @@ async function finishWorkout() {
         if (!window.go || !window.go.main) return;
         const sessionSummary = await window.go.main.App.FinishSession();
         await handleSessionFinished(sessionSummary);
-    } catch (e) { alert("Error when saving: " + e); }
+    } catch (e) { arAlert("Error when saving: " + e); }
 }
 window.finishWorkout = finishWorkout;
 
@@ -1249,7 +1251,7 @@ async function recoverPendingSession() {
         modal.classList.remove('active');
         await handleSessionFinished(sessionSummary);
     } catch (e) {
-        alert("Error recovering session: " + e);
+        arAlert("Error recovering session: " + e);
     }
 }
 
@@ -1308,12 +1310,12 @@ window.uploadToStrava = async () => {
         await window.go.main.App.UploadLastWorkoutToStrava();
         btn.innerHTML = "✓ Uploaded";
         btn.style.backgroundColor = "var(--argus-safe)";
-        alert("Workout successfully uploaded to Strava!");
+        arAlert("Workout successfully uploaded to Strava!");
     } catch (err) {
         console.error("Upload error:", err);
         btn.innerHTML = "Upload Failed";
         btn.style.backgroundColor = "var(--argus-alert)";
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
         btn.disabled = false;
     }
 };
@@ -1351,7 +1353,7 @@ window.toggleRecording = async () => {
         if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
             await window.go.main.App.ToggleSession();
         }
-    } catch (e) { alert("Error: " + e); }
+    } catch (e) { arAlert("Error: " + e); }
 };
 
 document.getElementById('btnAction').addEventListener('click', window.toggleRecording);
@@ -1392,7 +1394,7 @@ document.getElementById('btnSkipCooldown').addEventListener('click', async () =>
 });
 
 document.getElementById('btnDiscard').addEventListener('click', async () => {
-    if (confirm("Discard this activity? It won't be saved.")) {
+    if (await arConfirm("Discard this activity? It won't be saved.")) {
         if (!Capacitor.isNativePlatform() && window.go && window.go.main) {
             await window.go.main.App.DiscardSession();
         }
@@ -1407,42 +1409,38 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
 });
 
 document.getElementById('btnFitnessTests').addEventListener('click', async () => {
-    if (Capacitor.isNativePlatform()) { alert("Fitness Tests not available on mobile yet."); return; }
+    if (Capacitor.isNativePlatform()) { arAlert("Fitness Tests not available on mobile yet."); return; }
     try {
         if (!window.go || !window.go.main) return;
 
         const tests = await window.go.main.App.GetFitnessTests();
 
         if (!tests || !Array.isArray(tests)) {
-            alert("The tests were not found in memory. You need to restart 'wails dev' in the terminal for it to recognize the new function in app.go.!");
+            arAlert("The tests were not found in memory. You need to restart 'wails dev' in the terminal for it to recognize the new function in app.go.!");
             return;
         }
 
         const list = document.getElementById('fitnessTestList');
         list.innerHTML = '';
 
-        tests.forEach(test => {
-            const btn = document.createElement('div');
-            btn.style.cssText = "background: var(--bg-elevated); padding: 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; transform: scale(1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+        // Header tag: the FTP the tests are scaled from.
+        window.go.main.App.GetUserProfile().then((profile) => {
+            const tag = document.getElementById('arAssessFtp');
+            if (tag && profile?.ftp) tag.textContent = `CURRENT FTP ${profile.ftp} W`;
+        }).catch(() => { });
 
+        tests.forEach((test, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ar-assess-row';
             btn.innerHTML = `
-                <h4 style="margin:0 0 5px 0; color: #fff;">${test.metadata.name}</h4>
-                <p style="margin:0; font-size: 12px; color: var(--text-muted);">${test.metadata.description}</p>
-                <div style="margin-top: 10px; font-size: 11px; font-weight: bold; color: var(--zone-3);">DURATION: ${Math.round(test.total_duration / 60)} MIN</div>
+                <span class="ar-assess-num">${i + 1}</span>
+                <span class="ar-assess-text">
+                    <strong>${test.metadata.name}</strong>
+                    <span>${test.metadata.description}</span>
+                </span>
+                <span class="ar-assess-dur">${Math.round(test.total_duration / 60)}<small> min</small></span>
             `;
-
-            btn.onmouseover = () => {
-                btn.style.borderColor = "var(--zone-4)";
-                btn.style.transform = "scale(1.03)";
-                btn.style.background = "rgba(255, 255, 255, 0.05)";
-                btn.style.boxShadow = "0 8px 15px rgba(0,0,0,0.4)";
-            };
-            btn.onmouseout = () => {
-                btn.style.borderColor = "transparent";
-                btn.style.transform = "scale(1)";
-                btn.style.background = "var(--bg-elevated)";
-                btn.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
-            };
 
             btn.onclick = async () => {
                 const modal = document.getElementById('fitnessTestModal');
@@ -1458,7 +1456,7 @@ document.getElementById('btnFitnessTests').addEventListener('click', async () =>
         modal.classList.remove('hidden');
         modal.classList.add('active');
 
-    } catch (e) { alert("Error loading tests: " + e); }
+    } catch (e) { arAlert("Error loading tests: " + e); }
 });
 
 
@@ -1572,6 +1570,7 @@ window.setMainView = setMainView;
 
 function updateViewSwitch() {
     const current = window.ui && window.ui.isDashboardMode ? 'dashboard' : mainView;
+    document.body.dataset.view = current; // map-only tools and HUD placement (argus-ui.css)
     document.querySelectorAll('#viewSwitch button').forEach((btn) => {
         const on = btn.dataset.view === current;
         btn.classList.toggle('active', on);
@@ -1588,12 +1587,18 @@ const dashboardViewEl = document.getElementById('dashboard-view');
 if (dashboardViewEl) new MutationObserver(updateViewSwitch).observe(dashboardViewEl, { attributes: true, attributeFilter: ['class'] });
 
 // Full-screen pages (profile selection, event hub) cover the scene: no rendering under them.
+// Both show the animated logo on the right instead of the live scene.
 function isFullScreenPageOpen() {
-    return !!document.querySelector('.home-overlay.active:not(#eventHubPage)');
+    return !!document.querySelector('.home-overlay.active');
+}
+function syncHomeOpenClass() {
+    document.body.classList.toggle('ar-home-open', !!document.getElementById('homeScreen')?.classList.contains('active'));
 }
 const pageObserver = new MutationObserver(() => {
+    syncHomeOpenClass();
     if (window.scene3d) window.scene3d.setCovered(isFullScreenPageOpen());
 });
+syncHomeOpenClass();
 document.querySelectorAll('.home-overlay').forEach((el) => pageObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
 
 // Event races and challenges show the 3D rider behind their HUD, whatever main view
@@ -1909,6 +1914,7 @@ function openTab(tabId, event) {
     if (tabId === 'tab-career') {
         setTimeout(() => { window.ui.loadCareerDashboard(); }, 50);
     }
+    if (tabId === 'tab-components') window.ui.loadBikeComponentsBike();
 }
 window.openTab = openTab;
 
@@ -2026,33 +2032,16 @@ function formatCompactNumber(n) {
 }
 
 window.toggleCreateForm = (show) => {
-    const grid = document.getElementById('profileGrid');
+    const select = document.getElementById('homeSelect');
     const form = document.getElementById('createProfileForm');
-    const subtitle = document.getElementById('homeSubtitle');
     const welcome = document.getElementById('homeWelcome');
-    const eventActions = document.querySelector('.home-event-actions');
 
-    if (show) {
-        grid.style.display = 'none';
-        form.classList.remove('hidden');
-        form.style.display = 'block';
-        if (eventActions) {
-            eventActions.classList.add('hidden');
-            eventActions.style.display = 'none';
-        }
-        if (subtitle) subtitle.innerText = "Create a new rider profile";
-        if (welcome) welcome.innerText = "New rider";
-    } else {
-        grid.style.display = '';
-        form.classList.add('hidden');
-        form.style.display = 'none';
-        if (eventActions) {
-            eventActions.classList.remove('hidden');
-            eventActions.style.display = '';
-        }
-        if (welcome) welcome.innerText = "Welcome back";
-        if (subtitle) subtitle.innerText = "Select a rider profile to start your session.";
-    }
+    select?.classList.toggle('hidden', !!show);
+    form?.classList.toggle('hidden', !show);
+    const error = document.getElementById('newRiderError');
+    if (error) error.textContent = '';
+    if (welcome) welcome.innerText = show ? 'NEW RIDER' : getTimeGreeting().toUpperCase();
+    if (show) document.getElementById('newRiderName')?.focus();
 };
 
 window.selectAvatar = async () => {
@@ -2070,8 +2059,10 @@ window.createProfile = async () => {
     const weightInput = parseFloat(document.getElementById('newRiderWeight').value) || 75.0;
     const ftpInput = parseFloat(document.getElementById('newRiderFTP').value) || 200.0;
 
+    const formError = document.getElementById('newRiderError');
     if (!nameInput.trim()) {
-        alert("Please provide the cyclist's name.");
+        if (formError) formError.textContent = "Enter the rider's name.";
+        document.getElementById('newRiderName')?.focus();
         return;
     }
 
@@ -2087,7 +2078,7 @@ window.createProfile = async () => {
         }
     } catch (err) {
         console.error("Backend error:", err);
-        alert("Error creating account: " + err);
+        if (formError) formError.textContent = `Could not create the rider: ${err}`;
     }
 };
 
@@ -2100,17 +2091,13 @@ window.checkStravaStatus = async () => {
             const status = document.getElementById('statusStrava');
 
             if (isConn) {
-                btn.innerHTML = "✓ Strava Connected";
+                btn.innerHTML = "Connected";
                 btn.disabled = true;
                 btnDisconnect.classList.remove('hidden');
                 status.innerText = "Ready to auto-upload";
                 status.style.color = "var(--argus-safe)";
             } else {
-                btn.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg> Connect with Strava`;
+                btn.innerHTML = "Connect";
                 btn.disabled = false;
                 btnDisconnect.classList.add('hidden');
                 status.innerText = "Not connected";
@@ -2121,7 +2108,7 @@ window.checkStravaStatus = async () => {
 };
 
 document.getElementById('btnDisconnectStrava').addEventListener('click', async () => {
-    if (confirm("Disconnect Argus Cyclist from your Strava account?")) {
+    if (await arConfirm("Disconnect Argus Cyclist from your Strava account?")) {
         try {
             await window.go.main.App.DisconnectStrava();
             await window.checkStravaStatus();
@@ -2131,25 +2118,36 @@ document.getElementById('btnDisconnectStrava').addEventListener('click', async (
     }
 });
 
-window.deleteProfile = async (id, name, event) => {
-    // Stop event propagation so clicking the 'X' doesn't trigger loginProfile
-    event.stopPropagation();
-
-    if (confirm(`Are you sure you want to permanently delete the profile "${name}"?\n\nAll your workout history, settings, and progress will be lost. This cannot be undone.`)) {
-        try {
-            await window.go.main.App.DeleteLocalAccount(id);
-            // Refresh the grid immediately after successful deletion
-            initHomeScreen();
-        } catch (err) {
-            console.error("Error deleting profile:", err);
-            alert("Failed to delete profile: " + err);
-        }
+// Rider deletion lives in the athlete area (not on the home list) and only ever removes
+// the rider who is logged in: leave the profile first, then delete it.
+window.deleteCurrentRider = async () => {
+    const acc = window.currentAccount;
+    if (!acc) return;
+    if (window.isRecording || document.getElementById('btnAction')?.innerText === "STOP") {
+        arAlert("Finish and save your current ride before deleting this rider.");
+        return;
+    }
+    const ok = await arConfirm(
+        `Delete the rider "${acc.name}"?\n\nAll rides, records, goals and settings of this rider will be removed from this computer. This cannot be undone.`,
+        { title: 'DELETE THIS RIDER?', okLabel: 'DELETE RIDER', danger: true }
+    );
+    if (!ok) return;
+    try {
+        await window.logoutProfile();
+        await window.go.main.App.DeleteLocalAccount(acc.id);
+        window.currentAccount = null;
+        initHomeScreen();
+    } catch (err) {
+        console.error("Error deleting profile:", err);
+        arAlert("Failed to delete rider: " + err);
     }
 };
 
 window.loginProfile = async (id) => {
     try {
         await window.go.main.App.SelectLocalAccount(id);
+        const acc = homeAccounts.find((a) => String(a.id) === String(id));
+        window.currentAccount = { id, name: acc?.name || 'Rider' }; // used by deleteCurrentRider
         document.getElementById('homeScreen').classList.remove('active');
 
         if (window.ui) {
@@ -2165,14 +2163,14 @@ window.loginProfile = async (id) => {
 
     } catch (err) {
         console.error("Login Error:", err);
-        alert("Error logging in: " + err);
+        arAlert("Error logging in: " + err);
     }
 };
 
 window.logoutProfile = async () => {
     // 1. Avoid switching accounts mid-workout
     if (window.isRecording || (document.getElementById('btnAction') && document.getElementById('btnAction').innerText === "STOP")) {
-        alert("Please finish and save your current workout before switching profiles.");
+        arAlert("Please finish and save your current workout before switching profiles.");
         return;
     }
 
@@ -2239,106 +2237,106 @@ function formatHomeTime(seconds) {
     return `${m}m`;
 }
 
+function escapeHomeText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
+// Home rider list: a click selects a rider, a double click (or RIDE / Enter) logs in.
+let homeAccounts = [];
+let homeSelectedId = null;
+
+function selectHomeRider(id) {
+    homeSelectedId = id;
+    const acc = homeAccounts.find((a) => String(a.id) === String(id));
+    document.querySelectorAll('#profileGrid .ar-rider[data-id]').forEach((row) => {
+        row.setAttribute('aria-checked', row.dataset.id === String(id) ? 'true' : 'false');
+        row.tabIndex = row.dataset.id === String(id) ? 0 : -1;
+    });
+    const ride = document.getElementById('btnHomeRide');
+    const label = document.getElementById('homeRideLabel');
+    if (ride) ride.disabled = !acc;
+    if (label) label.textContent = acc ? `AS ${acc.name.toUpperCase()}` : 'SELECT A RIDER';
+}
+
+function rideSelectedRider() {
+    if (homeSelectedId !== null) window.loginProfile(homeSelectedId);
+}
+
+document.getElementById('btnHomeRide')?.addEventListener('click', rideSelectedRider);
+
+// The home owns the keyboard while it is open: arrows move the selection, Enter rides.
+document.addEventListener('keydown', (e) => {
+    const home = document.getElementById('homeScreen');
+    if (!home?.classList.contains('active') || document.getElementById('homeSelect')?.classList.contains('hidden')) return;
+    const tag = e.target?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    const ids = homeAccounts.map((a) => String(a.id));
+    if (!ids.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const i = ids.indexOf(String(homeSelectedId)) + (e.key === 'ArrowDown' ? 1 : -1);
+        selectHomeRider(ids[(i + ids.length) % ids.length]);
+        document.querySelector(`#profileGrid .ar-rider[data-id="${homeSelectedId}"]`)?.focus();
+        e.preventDefault();
+    } else if (e.key === 'Enter' && tag !== 'button') {
+        e.preventDefault();
+        rideSelectedRider();
+    }
+});
+
 async function initHomeScreen() {
     const grid = document.getElementById('profileGrid');
     grid.innerHTML = "";
+    window.toggleCreateForm(false);
 
     try {
         const rawAccounts = await window.go.main.App.GetLocalAccounts();
-        const accounts = (rawAccounts || []).filter(acc => acc.name !== 'Event Mode');
-        const welcome = document.getElementById('homeWelcome');
+        homeAccounts = (rawAccounts || []).filter(acc => acc.name !== 'Event Mode');
         const subtitle = document.getElementById('homeSubtitle');
-
-        if (welcome) {
-            const greeting = getTimeGreeting();
-            welcome.innerText = accounts && accounts.length ? `${greeting}` : `${greeting}`;
-        }
         if (subtitle) {
-            if (!accounts || accounts.length === 0) {
-                subtitle.innerText = "Create your first rider profile to begin.";
-            } else if (accounts.length === 1) {
-                subtitle.innerText = "Select your rider profile to start your session.";
-            } else {
-                subtitle.innerText = "Choose who’s riding today.";
-            }
+            subtitle.innerText = !homeAccounts.length ? 'Create your first rider to begin'
+                : homeAccounts.length === 1 ? 'Select your profile to start' : "Choose who's riding today";
         }
 
-        // Renders existing accounts
-        if (accounts && accounts.length > 0) {
-            accounts.forEach(acc => {
-                const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : "src/assets/images/argus-cyclist.png";
-                const km = (acc.total_km || 0).toFixed(1);
-                const time = formatHomeTime(acc.total_time);
-                const elev = Math.round(acc.total_elevation || 0);
-                const lvl = acc.level || 1;
-                const weight = acc.weight ? `${acc.weight} kg` : "";
-                const ftp = acc.ftp ? `${acc.ftp} W` : "";
+        grid.innerHTML = homeAccounts.map((acc) => {
+            const photo = acc.avatar && acc.avatar.length > 10 ? acc.avatar : defaultAvatarUrl;
+            const name = escapeHomeText(acc.name);
+            const meta = [acc.weight ? `${acc.weight} kg` : '', acc.ftp ? `FTP ${acc.ftp} W` : ''].filter(Boolean).join(' · ');
+            return `
+                <div class="ar-rider" role="radio" aria-checked="false" tabindex="-1" data-id="${escapeHomeText(acc.id)}">
+                    <img class="ar-rider-photo" src="${photo}" alt="">
+                    <span class="ar-rider-name">
+                        <strong>${name}</strong>
+                        <span class="ar-rider-meta"><span class="ar-badge">LVL ${acc.level || 1}</span>${escapeHomeText(meta)}</span>
+                    </span>
+                    <span class="ar-rider-stat"><span class="ar-num">${formatCompactNumber(acc.total_km || 0)}</span><span class="ar-unit"> km</span></span>
+                    <span class="ar-rider-stat"><span class="ar-num">${Math.round(acc.total_elevation || 0)}</span><span class="ar-unit"> m</span></span>
+                    <span class="ar-rider-stat"><span class="ar-num">${formatHomeTime(acc.total_time)}</span></span>
+                </div>`;
+        }).join('') + `
+            <div class="ar-rider ar-rider-new" role="button" tabindex="0" id="homeNewRider">
+                <span class="ar-rider-photo" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                </span>
+                <span class="ar-rider-name">
+                    <strong>NEW RIDER</strong>
+                    <span class="ar-rider-meta">Name, weight and FTP</span>
+                </span>
+            </div>`;
 
-                grid.innerHTML += `
-                    <div class="profile-card" onclick="window.loginProfile('${acc.id}')" role="button" tabindex="0">
-                        <button
-                            type="button"
-                            class="btn-delete-profile"
-                            aria-label="Delete profile ${acc.name}"
-                            onclick="window.deleteProfile('${acc.id}', '${acc.name}', event)"
-                        >✖</button>
+        grid.querySelectorAll('.ar-rider[data-id]').forEach((row) => {
+            row.addEventListener('click', () => selectHomeRider(row.dataset.id));
+            row.addEventListener('dblclick', () => window.loginProfile(row.dataset.id));
+        });
+        const newRow = document.getElementById('homeNewRider');
+        newRow?.addEventListener('click', () => window.toggleCreateForm(true));
+        newRow?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.toggleCreateForm(true); }
+        });
 
-                        <div class="profile-card-top">
-                            <img class="profile-avatar" src="${photo}" alt="Avatar for ${acc.name}">
-                            <div class="profile-meta">
-                                <h4 class="profile-name">${acc.name}</h4>
-                                <div class="profile-subtitle">
-                                    <span class="pill pill-level">LVL ${lvl}</span>
-                                    ${weight ? `<span class="pill">${weight}</span>` : ""}
-                                    ${ftp ? `<span class="pill">${ftp}</span>` : ""}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="profile-stats">
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.dist}</span>
-                                    <span class="stat-label">DISTANCE</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${formatCompactNumber(km)}</span>
-                                    <span class="stat-unit">km</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.elev}</span>
-                                    <span class="stat-label">ALTITUDE</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${elev}</span>
-                                    <span class="stat-unit">m</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-header">
-                                    <span class="stat-icon">${svgIcons.time}</span>
-                                    <span class="stat-label">TIME</span>
-                                </div>
-                                <div class="stat-content">
-                                    <span class="stat-value">${time}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // "New Account" Card
-        grid.innerHTML += `
-            <div class="profile-card profile-card-new" onclick="window.toggleCreateForm(true)">
-                <div class="plus-icon">+</div>
-                <h4>Create new rider</h4>
-                <div class="new-rider-hint">Name • Weight • FTP</div>
-            </div>
-        `;
+        const keep = homeAccounts.some((a) => String(a.id) === String(homeSelectedId));
+        selectHomeRider(keep ? homeSelectedId : (homeAccounts[0]?.id ?? null));
     } catch (err) {
         console.error("Error loading accounts:", err);
     }

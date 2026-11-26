@@ -16,13 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="confirmModal" class="modal-overlay">
-        <div class="modal-content-small">
-            <h3>Workout Paused</h3>
-            <div class="action-buttons">
-                <button id="btnResume" class="btn-safe">Resume</button>
-                <button id="btnFinishSave" class="btn-finish">Finish & Save</button>
-                <button id="btnDiscard" class="btn-danger">Discard</button>
-            </div>
+<!-- Ride paused: resume, finish and save, or discard. -->
+<div id="confirmModal" class="modal-overlay ar-dialog-overlay">
+    <section class="ar-dialog is-accent" role="dialog" aria-labelledby="confirmTitle">
+        <span class="ar-label ar-dialog-kicker">Paused</span>
+        <h2 class="ar-h2" id="confirmTitle">RIDE PAUSED</h2>
+        <p class="ar-body">Resume where you stopped, or finish now and save the ride to your history.</p>
+        <div class="ar-dialog-actions ar-dialog-actions-3">
+            <button id="btnDiscard" class="ar-btn-danger" type="button">Discard</button>
+            <button id="btnFinishSave" class="ar-btn" type="button">Finish &amp; save</button>
+            <button id="btnResume" class="ar-btn-primary" type="button">RESUME</button>
         </div>
-    </div>
+    </section>
+</div>

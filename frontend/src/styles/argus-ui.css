@@ -1,0 +1,2000 @@
+/*
+    Argus Cyclist - Virtual Cycling Environment for interactive bicycling experiments.
+    Copyright (C) 2026  Paulo Sérgio
+    SPDX-License-Identifier: GPL-3.0-or-later
+
+    Argus UI standard: the "sports broadcast" look of the event mode, shared by every
+    screen. Tokens first, then generic components (ar-*), then screen sections.
+    Numbers always use the condensed display face with tabular digits.
+*/
+
+:root {
+    /* Palette taken from the logo: aqua (#00f0da), blue (#4292f0) on deep navy (#091b34). */
+    --ar-bg: #050f22;
+    --ar-navy: #0a1a36;
+    --ar-panel: #0d2142;
+    --ar-panel-2: #132a50;
+    --ar-glass: rgba(10, 26, 54, 0.92);
+    --ar-glass-strong: rgba(10, 26, 54, 0.96);
+    --ar-line: rgba(255, 255, 255, 0.1);
+    --ar-line-2: rgba(255, 255, 255, 0.18);
+    --ar-text: #f3f8fc;
+    --ar-soft: #d6e2f0;
+    --ar-muted: #9fb2c9;
+    --ar-accent: #19ecd6;          /* action / you */
+    --ar-accent-soft: rgba(25, 236, 214, 0.14);
+    --ar-info: #4c95f2;            /* reference (ghost, record) */
+    --ar-good: #5ad66a;
+    --ar-bad: #ff6b6f;
+    --ar-live: #ff4d5e;
+    --ar-z1: #9aa4b2;
+    --ar-z2: #4f9dff;
+    --ar-z3: #3fd08a;
+    --ar-z4: #ffd23d;
+    --ar-z5: #ff8c3a;
+    --ar-z6: #ff4d5e;
+    --ar-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --ar-body: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------- Tags: slanted broadcast labels ---------- */
+
+.ar-tagline { display: flex; align-items: stretch; height: 44px; }
+
+.ar-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px 0 16px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+.ar-tag-dark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: -6px;
+    padding: 0 22px 0 20px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+/* ---------- Type ---------- */
+
+.ar-h1 { margin: 0; font-family: var(--ar-display); font-weight: 800; font-size: 46px; letter-spacing: 1px; line-height: 1; color: var(--ar-text); }
+.ar-label { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 2px; color: var(--ar-muted); text-transform: uppercase; }
+.ar-num { font-family: var(--ar-display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.ar-unit { font-family: var(--ar-display); font-weight: 600; color: var(--ar-muted); }
+.ar-body { font-family: var(--ar-body); font-size: 14px; line-height: 1.5; color: var(--ar-soft); }
+.ar-caption { font-family: var(--ar-body); font-size: 12px; color: var(--ar-muted); }
+
+/* ---------- Panels ---------- */
+
+.ar-panel { background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 6px; }
+
+/* ---------- Buttons (all at least 44 px tall) ---------- */
+
+.ar-btn,
+.ar-btn-primary,
+.ar-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+
+.ar-btn {
+    padding: 0 18px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ar-btn:hover { background: rgba(40, 52, 88, 0.95); }
+
+.ar-btn-primary {
+    padding: 0 22px;
+    border: 0;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.ar-btn-primary:hover { filter: brightness(1.08); }
+
+.ar-btn-danger {
+    padding: 0 18px;
+    border: 1px solid rgba(255, 107, 111, 0.5);
+    background: transparent;
+    color: var(--ar-bad);
+    font-family: var(--ar-body);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ar-btn-danger:hover { background: rgba(255, 107, 111, 0.12); }
+
+.ar-btn:disabled,
+.ar-btn-primary:disabled,
+.ar-btn-danger:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+
+.ar-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    cursor: pointer;
+}
+
+.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Big slanted call to action (LARGAR / RIDE). */
+.ar-cta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    text-align: left;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.ar-cta:hover { filter: brightness(1.08); }
+.ar-cta:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.ar-cta strong { font-family: var(--ar-display); font-weight: 800; font-size: 38px; letter-spacing: 1px; line-height: 1; }
+.ar-cta span { font-family: var(--ar-display); font-weight: 600; font-size: 16px; letter-spacing: 1px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ar-btn:focus-visible,
+.ar-btn-primary:focus-visible,
+.ar-btn-danger:focus-visible,
+.ar-icon-btn:focus-visible,
+.ar-cta:focus-visible {
+    outline: 2px solid var(--ar-accent);
+    outline-offset: 2px;
+}
+
+/* ---------- Fields ---------- */
+
+.ar-field { display: flex; flex-direction: column; gap: 4px; font-family: var(--ar-body); font-size: 12px; color: #c3cbdb; text-align: left; }
+
+.ar-input {
+    height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ar-input::placeholder { color: #7f8aa0; font-weight: 500; }
+.ar-input:focus { outline: 2px solid var(--ar-accent); outline-offset: 1px; }
+.ar-input[type="number"] { -moz-appearance: textfield; }
+.ar-input[type="number"]::-webkit-inner-spin-button,
+.ar-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------- Badges and bars ---------- */
+
+.ar-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 3px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 2px;
+}
+
+.ar-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.ar-bar > i { display: block; height: 100%; background: var(--ar-accent); }
+
+.ar-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: rgba(76, 149, 242, 0.08);
+    font-family: var(--ar-body);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ar-soft);
+}
+
+.ar-note svg { flex-shrink: 0; margin-top: 1px; color: var(--ar-info); }
+
+/* ======================================================================
+   Home: rider selection and new rider (homeScreen.html)
+   ====================================================================== */
+
+/* Opaque page: the animated logo fills the free area on the right. */
+#homeScreen.ar-home {
+    background: radial-gradient(ellipse 45% 60% at 74% 52%, rgba(76, 149, 242, 0.09), transparent 70%), var(--ar-bg) !important;
+    padding: 24px 32px;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 18px;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+
+/* While the home is open the main chrome is hidden. */
+body.ar-home-open > header,
+body.ar-home-open .hud-sidebar,
+body.ar-home-open > footer {
+    display: none !important;
+}
+
+/* Overlays that open behind the home (settings, first-run tutorial) wait until it closes,
+   as they did when the home was opaque. */
+body.ar-home-open .modal-overlay { visibility: hidden !important; }
+
+.ar-home-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ar-home-top, .ar-home-main, .ar-newrider { position: relative; z-index: 1; }
+
+/* ---------- Animated logo (right side) ---------- */
+
+/* Free area right of the 720 px column (scaled with the home zoom). */
+.ar-home-stage {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(64px + 720px * var(--ar-zoom, 1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    container-type: size;
+}
+
+/* Base image 515 x 737; the swirl disc sits at its ring's centre. */
+.ar-logo-anim {
+    position: relative;
+    height: min(66cqh, 92cqw);
+    aspect-ratio: 515 / 737;
+    animation: ar-logo-in 1s cubic-bezier(.2, .8, .2, 1) both, ar-logo-float 6s ease-in-out 1s infinite alternate;
+}
+
+.ar-logo-anim::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 44.5%;
+    width: 95%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(76, 149, 242, 0.22), rgba(79, 140, 255, 0.08) 45%, transparent 70%);
+    animation: ar-logo-halo 3s ease-in-out infinite alternate;
+}
+
+.ar-logo-base,
+.ar-logo-swirl { position: absolute; display: block; background: center / contain no-repeat; }
+/* CSS urls are bundled by Vite (plain src paths in the HTML partials are not). */
+.ar-logo-base { background-image: url('../assets/images/argus-logo-base.png'); }
+.ar-logo-swirl { background-image: url('../assets/images/argus-logo-swirl.png'); }
+.ar-logo-base { inset: 0; width: 100%; height: 100%; animation: ar-logo-glow 3s ease-in-out infinite alternate; }
+.ar-logo-swirl {
+    left: 11.88%;
+    top: 17.91%;
+    width: 75.92%;
+    aspect-ratio: 1;
+    animation: ar-logo-spin 10s linear infinite;
+}
+
+@keyframes ar-logo-in { from { opacity: 0; transform: scale(.88) translateY(16px); } }
+@keyframes ar-logo-float { to { transform: translateY(-10px); } }
+@keyframes ar-logo-spin { to { transform: rotate(360deg); } }
+@keyframes ar-logo-halo { from { opacity: .55; transform: translate(-50%, -50%) scale(.92); } to { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } }
+@keyframes ar-logo-glow {
+    from { filter: drop-shadow(0 0 2px rgba(76, 149, 242, 0.25)); }
+    to { filter: drop-shadow(0 0 14px rgba(76, 149, 242, 0.55)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ar-logo-anim, .ar-logo-anim::before, .ar-logo-base, .ar-logo-swirl { animation: none; }
+}
+
+@media (max-width: 1100px) { .ar-home-stage { display: none; } }
+
+.ar-home-main {
+    width: min(720px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.ar-home-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ar-home-head span { font-size: 13px; letter-spacing: 1px; color: var(--ar-muted); text-transform: uppercase; }
+
+.ar-riders { overflow: hidden; }
+
+.ar-riders-cols,
+.ar-rider {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 96px 88px 112px;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.ar-riders-cols { padding: 10px 18px; background: rgba(255, 255, 255, 0.05); }
+.ar-riders-cols span:nth-child(n+3):nth-child(-n+5) { text-align: right; }
+
+.ar-rider {
+    width: 100%;
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--ar-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    box-sizing: border-box;
+}
+
+.ar-rider:hover { background: rgba(25, 236, 214, 0.07); }
+.ar-rider:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: -2px; }
+
+.ar-rider[aria-checked="true"] {
+    background: var(--ar-accent-soft);
+    box-shadow: inset 5px 0 0 var(--ar-accent);
+}
+
+.ar-rider-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    object-fit: cover;
+    box-sizing: border-box;
+    background: var(--ar-panel-2);
+}
+
+.ar-rider[aria-checked="true"] .ar-rider-photo { border-color: var(--ar-accent); }
+
+.ar-rider-name { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.ar-rider-name strong {
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ar-rider-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ar-muted); white-space: nowrap; overflow: hidden; }
+.ar-rider-meta .ar-badge { font-size: 13px; padding: 1px 8px; }
+
+.ar-rider-stat { text-align: right; white-space: nowrap; }
+.ar-rider-stat .ar-num { font-size: 26px; }
+.ar-rider-stat .ar-unit { font-size: 14px; }
+
+.ar-rider-new .ar-rider-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: var(--ar-accent);
+}
+
+.ar-rider-new .ar-rider-name strong { font-size: 24px; }
+.ar-rider-new { grid-template-columns: 76px minmax(0, 1fr); }
+
+.ar-home-bottom { display: flex; gap: 14px; align-items: stretch; }
+
+.ar-home-hint {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ar-soft);
+}
+
+.ar-home-bottom .ar-cta { flex: 0 0 250px; min-height: 76px; box-sizing: border-box; }
+
+
+/* New rider form */
+
+#createProfileForm.ar-newrider {
+    width: min(600px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+#createProfileForm.ar-newrider.hidden { display: none !important; }
+
+.ar-newrider-card { padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+.ar-newrider-row { display: flex; gap: 18px; align-items: center; }
+
+.ar-photo-pick {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    flex-shrink: 0;
+    padding: 0;
+    border-radius: 4px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: transparent;
+    overflow: hidden;
+    cursor: pointer;
+    color: var(--ar-muted);
+}
+
+.ar-photo-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ar-photo-pick span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 3px 0;
+    background: rgba(5, 15, 34, 0.78);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--ar-soft);
+}
+
+.ar-photo-pick:hover { border-color: var(--ar-accent); }
+.ar-photo-pick:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+.ar-newrider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ar-newrider-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.ar-newrider-actions .ar-btn { min-width: 140px; }
+.ar-newrider-actions .ar-btn-primary { min-width: 200px; }
+
+.ar-form-error { font-size: 13px; font-weight: 600; color: var(--ar-bad); }
+.ar-form-error:empty { display: none; }
+
+/* Big screens: scale the home like the event start list. */
+#homeScreen.ar-home > :not(.ar-home-stage) { zoom: var(--ar-zoom, 1); }
+@media (min-width: 1600px) and (min-height: 900px) { #homeScreen.ar-home { --ar-zoom: 1.3; } }
+@media (min-width: 2400px) and (min-height: 1300px) { #homeScreen.ar-home { --ar-zoom: 1.75; } }
+
+@media (max-width: 900px) {
+    #homeScreen.ar-home { padding: 16px; }
+    .ar-riders-cols { display: none; }
+    .ar-rider { grid-template-columns: 64px minmax(0, 1fr); }
+    .ar-rider-stat { display: none; }
+    .ar-home-bottom { flex-direction: column; }
+    .ar-home-bottom .ar-cta { flex-basis: auto; }
+}
+
+/* ======================================================================
+   Shared pieces used by the ride screens
+   ====================================================================== */
+
+.ar-glass { background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 4px; }
+
+.ar-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--ar-line);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--ar-text);
+}
+
+.ar-tagline-sm { height: 34px; }
+.ar-tagline-sm .ar-tag { font-size: 18px; padding: 0 18px 0 12px; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.ar-tagline-sm .ar-tag-dark { font-size: 15px; letter-spacing: 1px; padding: 0 16px; margin-left: -5px; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+
+.ar-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ar-muted); flex-shrink: 0; }
+
+.ar-pills {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+}
+
+/* ======================================================================
+   Free Ride shell: top bar, ride HUD over the 3D scene / map, elevation
+   ====================================================================== */
+
+body.ar-shell { background: var(--ar-bg); font-family: var(--ar-body); }
+
+/* ---------- Top bar ---------- */
+
+body.ar-shell header.ar-topbar {
+    height: 64px;
+    flex-shrink: 0;
+    gap: 12px;
+    padding: 0 20px;
+    background: rgba(5, 15, 34, 0.94);
+    border-bottom: 1px solid var(--ar-line);
+    backdrop-filter: none;
+}
+
+body.ar-shell .ar-topbar .brand { flex-shrink: 1; min-width: 0; gap: 0; font-size: inherit; }
+body.ar-shell .ar-topbar .brand span { color: inherit; }
+body.ar-shell .ar-topbar .brand .ar-tag { color: var(--ar-navy); flex-shrink: 0; }
+body.ar-shell .ar-topbar .brand .ar-tag-dark {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    line-height: 34px;
+    background: var(--ar-panel-2);
+    color: var(--ar-soft);
+    text-transform: uppercase;
+}
+body.ar-shell .ar-topbar .brand .ar-tag-dark:empty { display: none; }
+
+body.ar-shell .ar-topbar .header-controls { flex: 1; min-width: 0; gap: 8px; }
+.ar-tb-spacer { flex: 1; }
+.ar-tb-sep { width: 1px; height: 28px; background: var(--ar-line-2); margin: 0 4px; flex-shrink: 0; }
+
+/* View switch as broadcast pills. */
+body.ar-shell .view-switch.ar-pills { border-radius: 4px; padding: 3px; margin-left: 4px; flex-shrink: 0; }
+body.ar-shell .view-switch.ar-pills button {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 3px;
+    color: var(--ar-soft);
+    font-family: var(--ar-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+body.ar-shell .view-switch.ar-pills button:hover { color: var(--ar-text); background: rgba(255, 255, 255, 0.06); }
+body.ar-shell .view-switch.ar-pills button.active { background: var(--ar-accent); color: var(--ar-navy); }
+
+/* Text tools (icon + label). */
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn {
+    height: 40px;
+    padding: 0 12px;
+    gap: 7px;
+    flex-shrink: 0;
+    border: 1px solid var(--ar-line-2);
+    border-radius: 4px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn:hover { background: rgba(40, 60, 100, 0.95); }
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn svg { flex-shrink: 0; color: var(--ar-accent); }
+body.ar-shell .ar-topbar .btn-import.ar-tb-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+body.ar-shell .ar-topbar .btn-icon.ar-tb-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    border: 1px solid var(--ar-line-2);
+    background: var(--ar-glass);
+    color: var(--ar-text);
+}
+body.ar-shell .ar-topbar .btn-icon.ar-tb-icon:hover { background: rgba(40, 60, 100, 0.95); }
+
+/* Start / stop (UIManager swaps btn-start and btn-stop). */
+body.ar-shell .ar-topbar .btn-action {
+    height: 40px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    box-shadow: none;
+    font-family: var(--ar-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+body.ar-shell .ar-topbar .btn-action.btn-start { background: var(--ar-accent); color: var(--ar-navy); }
+body.ar-shell .ar-topbar .btn-action.btn-start:hover { transform: none; filter: brightness(1.08); box-shadow: none; }
+body.ar-shell .ar-topbar .btn-action.btn-stop { background: var(--ar-bad); color: #fff; }
+body.ar-shell .ar-topbar .btn-action.hidden { display: none; }
+
+body.ar-shell .ar-topbar button:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+/* Narrow windows: labels give way to icons (names stay as aria-label / title). */
+@media (max-width: 1480px) {
+    .ar-tb-collapse .ar-tb-label { display: none; }
+    body.ar-shell .ar-topbar .btn-import.ar-tb-collapse { width: 40px; padding: 0; justify-content: center; }
+}
+@media (max-width: 1300px) {
+    body.ar-shell .view-switch .view-label { display: none; }
+    body.ar-shell .ar-topbar .brand .ar-tag-dark { max-width: 140px; }
+}
+@media (max-width: 960px) {
+    body.ar-shell header.ar-topbar { padding: 0 12px; gap: 8px; }
+    body.ar-shell .ar-topbar .header-controls { gap: 4px; }
+    .ar-tb-sep { display: none; }
+    body.ar-shell .view-switch.ar-pills button { padding: 0 10px; }
+    body.ar-shell .ar-topbar .btn-action { padding: 0 12px; font-size: 16px; }
+}
+@media (max-width: 1120px) {
+    .ar-tb-btn .ar-tb-label { display: none; }
+    body.ar-shell .ar-topbar .btn-import.ar-tb-btn { width: 40px; padding: 0; justify-content: center; }
+    body.ar-shell .ar-topbar .brand .ar-tag-dark { display: none; }
+}
+
+/* ---------- Ride HUD ---------- */
+
+body.ar-shell .main-viewport { --ar-elev-w: clamp(320px, 36vw, 560px); }
+
+/* The old sidebar becomes a transparent layer; only its panels take clicks. */
+body.ar-shell .hud-sidebar.ar-ride-hud {
+    position: absolute;
+    inset: 0;
+    z-index: 1001;
+    width: auto;
+    padding: 0;
+    overflow: visible;
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    pointer-events: none;
+}
+.ar-ride-hud > * { pointer-events: auto; }
+
+.ar-ride-state { position: absolute; top: 20px; left: 24px; }
+.ar-ride-state .ar-tag { color: var(--ar-navy); }
+.ar-ride-state .ar-tag-dark { gap: 8px; }
+#arRideState.is-live .ar-dot { background: var(--ar-live); animation: ar-live-pulse 1.2s ease-in-out infinite; }
+@keyframes ar-live-pulse { 50% { opacity: 0.35; } }
+
+.ar-ride-right {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ar-ride-hud .data-card { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0; min-width: 0; flex: none; justify-content: center; }
+.ar-ride-hud .data-label {
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ar-muted);
+    white-space: nowrap;
+}
+.ar-ride-hud .data-value {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ar-text);
+    white-space: nowrap;
+}
+.ar-ride-hud .data-unit {
+    margin-left: 3px;
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 0.45em;
+    color: var(--ar-muted);
+}
+.ar-ride-hud .data-unit:empty { display: none; }
+
+.ar-ride-time { display: flex; align-items: stretch; overflow: hidden; }
+.ar-ride-time-lbl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+.ar-ride-hud .ar-ride-time .data-value { flex: 1; padding: 6px 16px; font-size: 52px; text-align: right; }
+
+.ar-ride-route { overflow: hidden; }
+.ar-ride-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; padding: 12px 0; }
+
+.ar-ride-metrics {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    width: min(700px, calc(100% - var(--ar-elev-w) - 64px));
+}
+.ar-ride-metrics .ar-tagline-sm { height: 30px; }
+.ar-ride-metrics .ar-tag { color: var(--ar-navy); font-size: 17px; }
+.ar-ride-rider-meta { font-family: var(--ar-body) !important; font-size: 13px !important; font-weight: 600; letter-spacing: 0 !important; }
+.ar-ride-rider-meta:empty { display: none !important; }
+.ar-ride-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px 0;
+    border-radius: 0 4px 4px 4px;
+}
+.ar-ride-hud .ar-ride-strip .data-value { font-size: clamp(28px, 2.9vw, 40px); }
+.ar-ride-strip .data-card + .data-card { border-left: 1px solid var(--ar-line); }
+
+/* ---------- Elevation profile (old footer) as a panel over the scene ---------- */
+
+body.ar-shell > footer {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: var(--ar-elev-w, 500px);
+    height: 132px;
+    padding: 0;
+    z-index: 1002;
+    overflow: hidden;
+    background: var(--ar-glass);
+    border: 1px solid var(--ar-line);
+    border-radius: 4px;
+    backdrop-filter: none;
+    --ar-elev-w: clamp(320px, 36vw, 560px);
+}
+body.ar-shell > footer .elevation-header { margin: 0; font-size: 14px; color: var(--ar-text); }
+body.ar-shell > footer #elevationCurrent { color: var(--ar-muted); font-weight: 600; letter-spacing: 1px; }
+body.ar-shell > footer .elevation-graph-container { background: transparent; }
+/* The canvas never sizes its box: its backing store is larger than the box on HiDPI screens. */
+body.ar-shell > footer #elevationCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+body.ar-shell > footer #progressCursor { background: var(--ar-accent); box-shadow: 0 0 6px rgba(25, 236, 214, 0.6); }
+
+/* ---------- Map-only tools ---------- */
+
+.ar-map-tools {
+    position: absolute;
+    top: 20px;
+    right: 316px;
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+}
+body[data-view="map"] .ar-map-tools { display: flex; }
+body.ar-shell .ar-map-tools .btn-icon { width: 44px; height: 44px; border-radius: 4px; }
+
+/* MapLibre zoom controls under our tools; attribution above the elevation panel. */
+body.ar-shell #map-container .maplibregl-ctrl-top-right { top: 120px; right: 316px; }
+body.ar-shell #map-container .maplibregl-ctrl-bottom-right { bottom: 156px; right: 14px; }
+body.ar-shell:not([data-view="map"]) #map-container .maplibregl-ctrl-top-right { display: none; }
+body.ar-shell #map-container .maplibregl-ctrl-top-right .maplibregl-ctrl { margin: 0; }
+body.ar-shell #map-container .maplibregl-ctrl-group { background: var(--ar-glass); border: 1px solid var(--ar-line-2); border-radius: 4px; box-shadow: none; overflow: hidden; }
+body.ar-shell #map-container .maplibregl-ctrl-group button { width: 44px; height: 40px; }
+body.ar-shell #map-container .maplibregl-ctrl-group button + button { border-top: 1px solid var(--ar-line); }
+body.ar-shell #map-container .maplibregl-ctrl-group button:hover { background-color: rgba(255, 255, 255, 0.08); }
+body.ar-shell #map-container .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(1) brightness(1.4); }
+
+/* A workout plan open on the right: the right-hand panels move left of it. */
+/* (The map itself narrows by the panel width, so its own controls need no shift.) */
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-right { right: 324px; }
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-map-tools { right: 616px; }
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: min(700px, calc(100% - var(--ar-elev-w) - 364px)); }
+body.ar-shell:has(#workout-panel:not(.hidden)) > footer { right: 324px; }
+
+/* Short or narrow windows: smaller numbers so the corners never meet. */
+@media (max-height: 640px) {
+    .ar-ride-hud .ar-ride-time .data-value { font-size: 40px; }
+    .ar-ride-grid { gap: 6px 0; padding: 8px 0; }
+    .ar-ride-hud .ar-ride-grid .data-value { font-size: 26px; }
+    body.ar-shell > footer { height: 104px; }
+}
+@media (max-width: 900px) {
+    .ar-ride-right { width: 220px; }
+    .ar-ride-hud .ar-ride-time .data-value { font-size: 40px; }
+    .ar-ride-metrics { width: calc(100% - 48px); bottom: 168px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: calc(100% - 348px); }
+    .ar-ride-hud .ar-ride-strip .data-value { font-size: 26px; }
+    .ar-ride-hud .ar-ride-strip .data-label { font-size: 11px; letter-spacing: 1px; }
+    body.ar-shell > footer { left: 24px; width: auto; }
+}
+
+body.ar-shell .view-switch .view-label { font: inherit; letter-spacing: inherit; }
+
+/* Big screens (TV / 1080p and up): scale the ride panels like the event HUD. */
+@media (min-width: 1600px) and (min-height: 900px) {
+    .ar-ride-hud > *, .ar-map-tools, body.ar-shell > footer { zoom: 1.25; }
+    body.ar-shell .main-viewport, body.ar-shell > footer { --ar-elev-w: clamp(320px, 28vw, 560px); }
+    body.ar-shell #map-container .maplibregl-ctrl-top-right { top: 150px; right: 395px; }
+    body.ar-shell #map-container .maplibregl-ctrl-bottom-right { bottom: 195px; }
+    /* Zoomed lengths: 259 px x 1.25 = the 324 px that clear the 300 px workout panel. */
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-right { right: 259px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-map-tools { right: 556px; }
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: min(700px, calc(100% - var(--ar-elev-w) - 304px)); }
+    body.ar-shell:has(#workout-panel:not(.hidden)) > footer { right: 259px; }
+}
+
+/* Workout plan open on a mid-size window: metrics stack above the elevation panel. */
+@media (max-width: 1400px) {
+    body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-ride-metrics { width: calc(100% - 348px); bottom: 168px; }
+    body.ar-shell:has(#workout-panel:not(.hidden)) > footer { left: 24px; width: auto; }
+}
+
+/* The dashboard has its own layout (phase 3): no floating elevation panel over it. */
+body.ar-shell[data-view="dashboard"] > footer { display: none; }
+
+/* ======================================================================
+   Live dashboard (index.html #dashboard-view)
+   ====================================================================== */
+
+.ar-legend { display: flex; gap: 14px; font-family: var(--ar-body); font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--ar-soft); }
+.ar-legend > span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ar-legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; }
+.ar-legend i.ar-legend-dash { height: 0; border-top: 3px dashed currentColor; }
+
+body.ar-shell .dashboard-container.ar-dash {
+    top: 0;
+    padding: 20px 24px 24px;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    font-family: var(--ar-body);
+}
+body.ar-shell .main-viewport:has(#workout-panel:not(.hidden)) .ar-dash { right: 300px; }
+.ar-dash .dash-layout { max-width: none; gap: 16px; }
+
+.ar-dash .dash-metrics-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    padding: 14px 0;
+    container-type: inline-size;
+}
+.ar-dash .dash-card {
+    min-width: 0;
+    padding: 4px 8px;
+    gap: 4px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+.ar-dash .dash-card + .dash-card { border-left: 1px solid var(--ar-line); }
+.ar-dash .dash-card.power-card { box-shadow: inset 0 -4px 0 var(--ar-accent); }
+.ar-dash .dash-label {
+    margin: 0;
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: var(--ar-muted);
+    white-space: nowrap;
+}
+.ar-dash .dash-value {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: clamp(24px, 3.5cqw, 54px);
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-text);
+    white-space: nowrap;
+}
+.ar-dash .dash-unit { margin-left: 3px; font-family: var(--ar-display); font-weight: 600; font-size: 0.42em; color: var(--ar-muted); }
+.ar-dash .dash-sub { margin: 0; font-family: var(--ar-body); font-size: 12px; font-weight: 600; color: var(--ar-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ar-dash .dash-sub .ar-dash-target { color: var(--ar-info); font-weight: 700; letter-spacing: 1px; }
+
+.ar-dash .dash-chart-section { gap: 0; background: var(--ar-glass); border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-dash .dash-chart-body { padding: 8px 12px 4px; min-height: 0; }
+.ar-dash #liveDashboardChart { position: absolute; inset: 8px 12px 4px; }
+
+@media (max-width: 1100px) {
+    .ar-dash .ar-legend { display: none; }
+}
+
+/* ======================================================================
+   Workout plan (index.html #workout-panel)
+   ====================================================================== */
+
+body.ar-shell .hud-sidebar.right-panel.ar-workout {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--ar-glass-strong);
+    border: 0;
+    border-left: 1px solid var(--ar-line);
+    backdrop-filter: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-workout .workout-fixed-top { background: transparent; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .panel-header.ar-panel-head { padding: 8px 10px 8px 16px; }
+.ar-workout .panel-header h3 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 16px; letter-spacing: 2px; color: var(--ar-text); }
+.ar-workout .panel-header .ar-icon-btn { width: 32px; height: 32px; background: transparent; color: var(--ar-soft); }
+.ar-workout .panel-header .ar-icon-btn:hover { background: rgba(255, 107, 111, 0.15); color: var(--ar-bad); }
+
+.ar-workout .current-segment-stats { padding: 12px 0; gap: 0; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .stat-box { gap: 2px; padding: 0; background: none; border: 0; border-radius: 0; }
+.ar-workout .stat-box + .stat-box { border-left: 1px solid var(--ar-line); }
+.ar-workout .stat-box .label { margin: 0; font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--ar-muted); }
+.ar-workout .stat-box .value { font-family: var(--ar-display); font-weight: 800; font-size: 40px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+.ar-workout .ar-wo-target .label, .ar-workout .ar-wo-target .value { color: var(--ar-info); }
+
+.ar-workout .intensity-control-row { padding: 10px 16px; border-bottom: 1px solid var(--ar-line); }
+.ar-workout .intensity-control-row .label { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--ar-muted); }
+.ar-workout .intensity-actions .value { width: 64px; font-family: var(--ar-display); font-weight: 800; font-size: 24px; color: var(--ar-accent); }
+.ar-workout .btn-intensity.ar-icon-btn { width: 36px; height: 36px; font-size: 20px; font-weight: 600; }
+.ar-workout .btn-intensity.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--ar-line-2); color: var(--ar-text); }
+
+.ar-workout #workout-graph-container { height: 104px; padding: 8px 12px; background: transparent; border: 0; border-bottom: 1px solid var(--ar-line); }
+
+.ar-workout .ar-wo-progress { display: flex; justify-content: space-between; gap: 8px; padding: 8px 16px; font-size: 12px; color: var(--ar-muted); }
+.ar-workout .ar-wo-progress strong { color: var(--ar-text); font-weight: 600; }
+.ar-workout .hud-message { padding: 4px 16px 12px; font-family: var(--ar-display); font-weight: 700; font-size: 18px; letter-spacing: 1.5px; color: var(--ar-info); }
+
+.ar-workout #workout-list { padding: 0; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
+.ar-workout .workout-segment {
+    margin: 0;
+    padding: 11px 16px 11px 13px;
+    border-radius: 0;
+    border-left: 4px solid var(--ar-z1);
+    border-bottom: 1px solid var(--ar-line);
+    background: transparent;
+    font-family: var(--ar-display);
+    font-weight: 700;
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-soft);
+}
+.ar-workout .workout-segment.zone-2 { border-left-color: var(--ar-z2); }
+.ar-workout .workout-segment.zone-3 { border-left-color: var(--ar-z3); }
+.ar-workout .workout-segment.zone-4 { border-left-color: var(--ar-z4); }
+.ar-workout .workout-segment.zone-5 { border-left-color: var(--ar-z5); }
+.ar-workout .workout-segment.zone-6 { border-left-color: var(--ar-z6); }
+.ar-workout .segment-info, .ar-workout .segment-duration { text-shadow: none; }
+.ar-workout .segment-duration { font-family: var(--ar-body); font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+.ar-workout .segment-progress-fill { background: rgba(255, 255, 255, 0.06); }
+.ar-workout .workout-segment.active { border-top: 0; border-right: 0; background: var(--ar-accent); color: var(--ar-navy); }
+.ar-workout .workout-segment.active .segment-duration { color: var(--ar-navy); }
+.ar-workout .workout-segment.active .segment-progress-fill { background: rgba(10, 26, 54, 0.18); }
+
+.ar-wo-actions { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.ar-wo-actions.hidden { display: none; }
+.ar-wo-actions button { width: 100%; }
+
+/* ======================================================================
+   Studio (studioHudOverlay.html) — overrides the legacy studio-hud.css
+   ====================================================================== */
+
+.studio-hud.ar-studio {
+    --ar-zone: var(--ar-z1);
+    padding: 24px 32px 32px;
+    gap: 20px;
+    background: radial-gradient(ellipse 55% 45% at 50% 40%, rgba(25, 236, 214, 0.06), transparent 70%), var(--ar-bg);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.studio-hud.ar-studio.zone-2 { --ar-zone: var(--ar-z2); }
+.studio-hud.ar-studio.zone-3 { --ar-zone: var(--ar-z3); }
+.studio-hud.ar-studio.zone-4 { --ar-zone: var(--ar-z4); }
+.studio-hud.ar-studio.zone-5 { --ar-zone: var(--ar-z5); }
+.studio-hud.ar-studio.zone-6 { --ar-zone: var(--ar-z6); }
+
+.ar-studio .hud-glow, .ar-studio-unused { display: none !important; }
+
+/* Top bar */
+.ar-studio .hud-bar.ar-studio-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+.ar-studio .hud-bar-left.ar-tagline { gap: 0; }
+.ar-studio .hud-badge.ar-tag { color: var(--ar-navy); background: var(--ar-accent); border: 0; border-radius: 0; box-shadow: none; animation: none; }
+.ar-studio #arStudioWorkoutName { max-width: 420px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; }
+.ar-studio .hud-rider:empty, .ar-studio .hud-state:empty { display: none; }
+.ar-studio .hud-bar-right { display: flex; gap: 10px; }
+.ar-studio .hud-bar-right .hidden { display: none; }
+
+/* Three panels */
+.ar-studio-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 20px;
+}
+.ar-studio-grid > .ar-panel { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+.ar-studio-block-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.ar-studio-block-name { font-family: var(--ar-display); font-weight: 700; font-size: 32px; letter-spacing: 1px; line-height: 1; text-transform: uppercase; }
+.ar-studio .hud-hub-target { flex-direction: column; align-items: flex-start; gap: 2px; margin: 0; padding: 0; background: none; border: 0; }
+.ar-studio-target-lbl { color: var(--ar-info) !important; }
+.ar-studio-target { font-family: var(--ar-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-info) !important; white-space: nowrap; }
+.ar-studio .hud-graph-box.ar-studio-graph { flex: 1; min-height: 64px; max-height: 280px; position: relative; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.ar-studio-graph canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.ar-studio-power {
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 22px;
+    box-shadow: inset 0 -6px 0 var(--ar-zone);
+}
+.ar-studio-power-val { display: flex; align-items: baseline; gap: 10px; line-height: 0.9; }
+.ar-studio #studio-power {
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: clamp(96px, 18vh, 200px);
+    font-variant-numeric: tabular-nums;
+    color: var(--ar-text) !important;
+}
+.ar-studio-power-unit { font-family: var(--ar-display); font-weight: 600; font-size: clamp(32px, 5vh, 52px); color: var(--ar-muted); }
+.ar-studio-zone {
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--ar-zone);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+}
+.ar-studio-zone::after { content: "ZONE 1 · RECOVERY"; }
+.studio-hud.zone-2 .ar-studio-zone::after { content: "ZONE 2 · ENDURANCE"; }
+.studio-hud.zone-3 .ar-studio-zone::after { content: "ZONE 3 · TEMPO"; }
+.studio-hud.zone-4 .ar-studio-zone::after { content: "ZONE 4 · THRESHOLD"; }
+.studio-hud.zone-5 .ar-studio-zone::after { content: "ZONE 5 · VO2 MAX"; }
+.studio-hud.zone-6 .ar-studio-zone::after { content: "ZONE 6 · ANAEROBIC"; }
+.ar-studio-divider { width: 100%; height: 1px; background: var(--ar-line); margin: 10px 0 4px; }
+.ar-studio-clock { font-family: var(--ar-display); font-weight: 800; font-size: clamp(56px, 10vh, 104px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text) !important; }
+
+.ar-studio .hud-intensity.ar-studio-intensity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 18px;
+    background: none;
+    border: 0;
+    position: static;
+    transform: none;
+}
+.ar-studio-intensity .ar-icon-btn { width: 56px; height: 56px; font-size: 26px; font-weight: 600; }
+.ar-studio-int-val { font-family: var(--ar-display); font-weight: 800; font-size: 60px; line-height: 1; color: var(--ar-accent); }
+.ar-studio-head-split { border-top: 1px solid var(--ar-line); }
+.ar-studio-progress { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; }
+.ar-studio-progress-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--ar-muted); }
+.ar-studio-tip { font-size: 13px; margin: 0; }
+.ar-studio-tip.hidden { display: none; }
+
+/* Bottom metrics strip */
+.ar-studio-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 14px 0; flex-shrink: 0; }
+.ar-studio-strip .hud-tray-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding: 0 6px; background: none; border: 0; }
+.ar-studio-strip .hud-tray-cell + .hud-tray-cell { border-left: 1px solid var(--ar-line); }
+.ar-studio-strip .hud-tray-key { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); white-space: nowrap; }
+.ar-studio-strip .hud-tray-num { font-family: var(--ar-display); font-weight: 800; font-size: clamp(26px, 2.6vw, 40px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text) !important; white-space: nowrap; }
+.ar-studio-strip .hud-tray-unit { margin-left: 3px; font-family: var(--ar-display); font-weight: 600; font-size: 0.45em; color: var(--ar-muted); text-transform: none; }
+.ar-studio-strip .is-hr .hud-tray-num { color: var(--ar-bad) !important; }
+.ar-studio-strip .is-cad .hud-tray-num { color: var(--ar-info) !important; }
+
+@media (max-width: 1100px) {
+    .studio-hud.ar-studio { padding: 16px; gap: 14px; }
+    .ar-studio-grid { gap: 14px; }
+    .ar-studio-block-name { font-size: 26px; }
+    .ar-studio-target { font-size: 44px; }
+    .ar-studio-int-val { font-size: 48px; }
+    .ar-studio-intensity .ar-icon-btn { width: 48px; height: 48px; }
+}
+@media (min-width: 1600px) and (min-height: 900px) {
+    .studio-hud.ar-studio > * { zoom: 1.25; }
+}
+@media (max-height: 680px) {
+    .ar-studio-block-name { font-size: 24px; }
+    .ar-studio-target { font-size: 40px; }
+    .ar-studio-int-val { font-size: 44px; }
+    .ar-studio-intensity .ar-icon-btn { width: 44px; height: 44px; }
+    .ar-studio-tip { display: none; }
+}
+
+/* Studio without a workout: no target, block chart or block clock. */
+.ar-studio-free { margin: 0; font-size: 13px; }
+.ar-studio.has-workout .ar-studio-free { display: none; }
+.ar-studio:not(.has-workout) #studio-target-box,
+.ar-studio:not(.has-workout) .ar-studio-graph,
+.ar-studio:not(.has-workout) .ar-studio-next { display: none !important; }
+
+/* ======================================================================
+   Athlete area (settingsModal.html): full-screen page with tab pills
+   ====================================================================== */
+
+/* Full-screen page: above the top bar (z 6000); trophy and components modals (10005) open over it. */
+#settingsModal.ar-athlete { z-index: 7000; background: var(--ar-bg); }
+#settingsModal.ar-athlete .settings-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 24px 32px;
+    border: 0;
+    border-radius: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    box-shadow: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+#settingsModal.ar-athlete .settings-shell { gap: 16px; }
+
+.ar-athlete-top { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.ar-athlete-top .ar-tag { color: var(--ar-navy); }
+#arAthleteName { max-width: 320px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; }
+.ar-athlete-close { margin-left: auto; }
+
+#settingsModal.ar-athlete .settings-nav.ar-pills {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 2px;
+    margin: 0;
+    padding: 3px;
+    border-radius: 4px;
+    background: var(--ar-glass);
+    border: 1px solid var(--ar-line-2);
+}
+#settingsModal.ar-athlete .settings-nav .tab-btn {
+    display: block;
+    height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ar-soft);
+    font-family: var(--ar-body);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: none;
+    transform: none;
+}
+#settingsModal.ar-athlete .settings-nav .tab-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--ar-text); }
+#settingsModal.ar-athlete .settings-nav .tab-btn.active { background: var(--ar-accent); color: var(--ar-navy); }
+#settingsModal.ar-athlete .settings-nav .tab-btn:focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 2px; }
+
+#settingsModal.ar-athlete .settings-panels { padding: 0; overflow: hidden; }
+#settingsModal.ar-athlete .tab-pane { animation: none; }
+#settingsModal.ar-athlete #tab-profile.active { overflow-y: auto; padding-right: 0; }
+
+/* Shared bits inside the athlete panels */
+#settingsModal.ar-athlete .ar-panel { background: var(--ar-glass); overflow: hidden; }
+#settingsModal.ar-athlete .ar-panel-head .ar-caption { font-family: var(--ar-body); font-weight: 500; letter-spacing: 0; }
+.ar-head-split { border-top: 1px solid var(--ar-line); }
+.ar-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; padding: 16px 18px; }
+.ar-span-2 { grid-column: span 2; }
+.ar-span-3 { grid-column: 1 / -1; }
+.ar-span-all { grid-column: 1 / -1; }
+#settingsModal.ar-athlete .ar-field { color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+#settingsModal.ar-athlete select.ar-input { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2319ecd6' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+#settingsModal.ar-athlete .ar-input { width: 100%; margin: 0; }
+#settingsModal.ar-athlete .hidden { display: none !important; }
+.ar-erg-row { display: flex; gap: 10px; }
+.ar-empty { padding: 10px; text-align: center; font-size: 13px; color: var(--ar-muted); }
+
+/* ---------- Profile tab ---------- */
+
+.ar-profile-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ar-profile-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.ar-id-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px; text-align: center; }
+#settingsModal.ar-athlete .profile-avatar-container {
+    width: 132px;
+    height: 132px;
+    padding: 0;
+    margin: 0;
+    border: 3px solid var(--ar-accent);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--ar-panel-2);
+    cursor: pointer;
+}
+#settingsModal.ar-athlete .profile-avatar-container img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 0; border: 0; }
+#settingsModal.ar-athlete #profileNameDisplay { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 28px; letter-spacing: 1px; line-height: 1.05; text-transform: uppercase; color: var(--ar-text) !important; }
+#settingsModal.ar-athlete .player-progression { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; padding: 0; background: none; border: 0; }
+#settingsModal.ar-athlete .level-row { justify-content: center; margin: 0; }
+#settingsModal.ar-athlete .level-pill { padding: 3px 10px; border: 0; border-radius: 3px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 15px; letter-spacing: 1.5px; box-shadow: none; }
+#settingsModal.ar-athlete .xp-container-inline { width: 100%; max-width: none; flex: none; margin: 0; }
+#settingsModal.ar-athlete .xp-bar-bg { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); border: 0; overflow: hidden; }
+#settingsModal.ar-athlete .xp-bar-fill { height: 100%; background: var(--ar-accent); box-shadow: none; }
+#settingsModal.ar-athlete .badges-row:empty { display: none; }
+.ar-id-photo { width: 100%; margin-top: auto; }
+
+.ar-device-row,
+#settingsModal.ar-athlete .device-row.ar-device-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: none;
+}
+.ar-device-row > strong { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.ar-device-ctrls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; min-width: 0; }
+#settingsModal.ar-athlete .status-indicator { padding: 0; background: none; border: 0; font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+#settingsModal.ar-athlete .status-indicator::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+#settingsModal.ar-athlete .btn-icon-small {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--ar-line-2);
+    border-radius: 4px;
+    background: var(--ar-glass);
+    color: var(--ar-text);
+}
+#settingsModal.ar-athlete .btn-icon-small:hover { background: rgba(255, 255, 255, 0.12); }
+#settingsModal.ar-athlete .btn-icon-small.danger { color: var(--ar-bad); border-color: rgba(255, 107, 111, 0.45); }
+#settingsModal.ar-athlete .ar-device-ctrls select { max-width: 160px; height: 40px; padding: 0 10px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 13px; }
+#settingsModal.ar-athlete .btn-strava.ar-btn { min-height: 40px; padding: 0 14px; background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); font-size: 13px; box-shadow: none; }
+#settingsModal.ar-athlete .btn-strava.ar-btn:disabled { opacity: 0.7; cursor: default; }
+
+/* Intervals.icu card inside the integrations panel */
+#settingsModal.ar-athlete .integration-card { margin: 0; padding: 14px 18px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+#settingsModal.ar-athlete .integration-card-header { margin: 0 0 8px; }
+#settingsModal.ar-athlete .integration-logo { background: rgba(76, 149, 242, 0.15); color: var(--ar-info); border-radius: 4px; }
+#settingsModal.ar-athlete .integration-brand-text strong { font-size: 15px; color: var(--ar-text); }
+#settingsModal.ar-athlete .integration-brand-text small,
+#settingsModal.ar-athlete .integration-desc,
+#settingsModal.ar-athlete .integration-hint { font-size: 12px; color: var(--ar-muted); }
+#settingsModal.ar-athlete .integration-fields input { height: 40px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; }
+#settingsModal.ar-athlete .integration-fields label { color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+#settingsModal.ar-athlete .btn-intervals { min-height: 40px; padding: 0 16px; border: 0; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 16px; letter-spacing: 1px; box-shadow: none; }
+
+/* ---------- History tab ---------- */
+
+.ar-history-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 14px;
+}
+#settingsModal.ar-athlete .stat-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+#settingsModal.ar-athlete .stat-summary .stat-box { display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; gap: 10px; padding: 12px 18px; border-radius: 4px; }
+#settingsModal.ar-athlete .stat-summary small { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#settingsModal.ar-athlete .stat-summary strong { font-family: var(--ar-display); font-weight: 800; font-size: clamp(28px, 3vw, 44px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-text); white-space: nowrap; }
+
+.ar-history-list { display: flex; flex-direction: column; min-height: 0; }
+#settingsModal.ar-athlete .history-list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; border: 0; background: none; }
+#settingsModal.ar-athlete .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ar-soft);
+}
+#settingsModal.ar-athlete #historyContainer .history-item:hover { background: rgba(25, 236, 214, 0.06) !important; }
+#settingsModal.ar-athlete .history-item.history-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 8px 14px;
+    background: var(--ar-panel);
+    font-family: var(--ar-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ar-muted);
+}
+.ar-hist-name { flex: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ar-hist-name strong { color: var(--ar-text); font-weight: 600; }
+.ar-hist-num { flex: 1; text-align: right; font-family: var(--ar-display); font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.history-header .ar-hist-num { font-size: 13px; font-weight: 600; }
+.ar-hist-num.is-power { color: var(--ar-accent); }
+.ar-hist-actions { width: 132px; flex-shrink: 0; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.history-header .ar-hist-actions { display: block; text-align: right; }
+#settingsModal.ar-athlete .icon-minimal { display: inline-flex; padding: 4px; border-radius: 3px; }
+#settingsModal.ar-athlete .icon-minimal:hover { background: rgba(255, 255, 255, 0.08); }
+
+.ar-history-side { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+#settingsModal.ar-athlete .calendar-wrapper { margin: 0; padding: 0; border-radius: 4px; flex-shrink: 0; }
+#settingsModal.ar-athlete .calendar-header { margin: 0; padding: 6px 10px; }
+#settingsModal.ar-athlete .calendar-header h4 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--ar-text); }
+#settingsModal.ar-athlete .calendar-header .btn-icon-small { width: 30px; height: 30px; font-size: 18px; }
+#settingsModal.ar-athlete .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding: 8px 12px 10px; }
+#settingsModal.ar-athlete .cal-day-header { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1px; color: var(--ar-muted); text-align: center; }
+#settingsModal.ar-athlete .cal-day { position: relative; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: none; font-size: 13px; color: var(--ar-soft); border: 0; }
+#settingsModal.ar-athlete .cal-day.active { background: var(--ar-accent); color: var(--ar-navy); font-weight: 700; }
+#settingsModal.ar-athlete .cal-day.today { outline: 1px solid var(--ar-accent); }
+#settingsModal.ar-athlete .cal-dot { display: none; }
+
+#settingsModal.ar-athlete .records-container { flex: 1; min-height: 0; display: flex; flex-direction: column; margin: 0; padding: 0; border-radius: 4px; }
+#settingsModal.ar-athlete .power-table-wrapper { flex: 1; min-height: 0; overflow-y: auto; margin: 0; border: 0; background: none; }
+#settingsModal.ar-athlete .power-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#settingsModal.ar-athlete .power-table th { position: sticky; top: 0; padding: 6px 12px; background: var(--ar-panel); text-align: right; font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); border: 0; }
+#settingsModal.ar-athlete .power-table td { padding: 5px 12px; text-align: right; border: 0; border-bottom: 1px solid var(--ar-line); color: var(--ar-soft); }
+#settingsModal.ar-athlete .power-table th:first-child, #settingsModal.ar-athlete .power-table td:first-child { text-align: left; }
+#settingsModal.ar-athlete .power-table td.col-watts { font-family: var(--ar-display); font-weight: 800; font-size: 17px; color: var(--ar-accent) !important; }
+
+/* ---------- Career tab ---------- */
+
+#settingsModal.ar-athlete .career-scroll-wrapper { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 0; }
+#settingsModal.ar-athlete .career-chart-container { margin: 0; padding: 0 0 10px; border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); }
+.ar-pmc-head { flex-wrap: wrap; }
+.ar-pmc-latest { display: flex; align-items: baseline; gap: 18px; font-family: var(--ar-body); letter-spacing: 0; }
+.ar-pmc-latest strong { color: var(--ar-soft); font-weight: 600; }
+.ar-pmc-val { display: flex; align-items: baseline; gap: 6px; }
+.ar-pmc-val .ar-label { font-size: 12px; }
+.ar-pmc-val > span:last-child { font-family: var(--ar-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+.ar-pmc-val .is-ctl { color: var(--ar-info); }
+.ar-pmc-val .is-atl { color: var(--ar-z5); }
+#settingsModal.ar-athlete .career-subtitle { margin: 8px 14px 0; font-size: 12px; color: var(--ar-muted); }
+.ar-chart-pmc { width: 100%; height: clamp(220px, 34vh, 360px); }
+.ar-chart-decoupling { width: 100%; height: clamp(160px, 24vh, 260px); }
+#settingsModal.ar-athlete .tsb-legend { justify-content: flex-start; flex-wrap: wrap; gap: 8px 16px; margin: 4px 14px 0; }
+.ar-legend i.ar-sq { width: 10px; height: 10px; border-radius: 2px; }
+.ar-legend-sep { color: var(--ar-muted); }
+
+/* ---------- Footer ---------- */
+
+#settingsModal.ar-athlete .modal-actions.ar-athlete-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0; padding: 0; border: 0; flex-shrink: 0; }
+.ar-athlete-actions-right { display: flex; gap: 10px; }
+#settingsModal.ar-athlete #btnLogout svg { margin: 0 !important; }
+
+@media (max-width: 1180px) {
+    .ar-profile-grid { grid-template-columns: 240px minmax(0, 1fr); }
+    .ar-profile-side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    #settingsModal.ar-athlete .settings-nav .tab-btn { padding: 0 12px; }
+}
+@media (max-width: 960px) {
+    #settingsModal.ar-athlete .settings-content { padding: 16px; }
+    .ar-athlete-top { flex-wrap: wrap; gap: 10px; }
+    .ar-athlete-top .ar-tagline { order: 1; }
+    .ar-athlete-close { order: 2; }
+    #settingsModal.ar-athlete .settings-nav.ar-pills { order: 3; width: 100%; overflow-x: auto; }
+    .ar-profile-grid { grid-template-columns: 1fr; }
+    .ar-profile-side { grid-template-columns: 1fr; }
+    .ar-history-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+    .ar-history-list { min-height: 320px; }
+    .ar-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ar-span-2 { grid-column: 1 / -1; }
+}
+@media (max-width: 1180px) {
+    .ar-hist-actions { width: auto; gap: 4px; }
+    .ar-hist-name { flex: 1.6; }
+}
+
+/* ======================================================================
+   Full-screen pages opened from the athlete area / top bar:
+   Trophy Room (trophyModal.html); bike components is a tab of the athlete area
+   ====================================================================== */
+
+.modal-overlay.ar-modal-page { z-index: 10005; background: var(--ar-bg); }
+.ar-modal-page > .settings-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 24px 32px;
+    gap: 16px;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg);
+    box-shadow: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-page-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
+.ar-page-top .ar-tag { color: var(--ar-navy); }
+.ar-modal-page .ar-panel { background: var(--ar-glass); overflow: hidden; }
+.ar-modal-page .hidden { display: none !important; }
+.ar-h2 { margin: 0; font-family: var(--ar-display); font-weight: 700; font-size: 28px; letter-spacing: 1px; color: var(--ar-text); }
+
+/* ---------- Trophy Room ---------- */
+
+#trophyModal .trophy-layout { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; overflow: visible; }
+#trophyModal .trophy-main-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; margin: 0; }
+#trophyModal .trophy-card { margin: 0; padding: 0; border: 1px solid var(--ar-line); border-radius: 4px; box-shadow: none; transform: none; }
+#trophyModal .streak-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 18px; text-align: center; animation: none; }
+#trophyModal .streak-value { font-family: var(--ar-display); font-weight: 800; font-size: 120px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ar-accent); background: none; -webkit-text-fill-color: currentColor; text-shadow: none; animation: none; }
+#trophyModal .streak-label { font-family: var(--ar-body); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ar-soft); }
+#trophyModal .streak-card::before, #trophyModal .streak-card::after { display: none; }
+#trophyModal .goals-card .ar-panel-head .ar-btn { min-height: 34px; padding: 0 12px; font-size: 13px; background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); box-shadow: none; }
+#trophyModal .compact-goals-list { display: flex; flex-direction: column; gap: 8px; max-height: none; margin: 0; padding: 12px 18px 4px; overflow: visible; }
+#trophyModal .goal-card-premium { margin: 0; padding: 10px 12px; border: 1px solid var(--ar-line); border-radius: 4px; background: rgba(255, 255, 255, 0.03); box-shadow: none; transform: none; }
+#trophyModal .goal-metric-badge { padding: 2px 8px; border-radius: 3px; background: var(--ar-accent-soft); color: var(--ar-accent); font-family: var(--ar-display); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+#trophyModal .goal-deadline-text, #trophyModal .goal-progress-stats { font-size: 12px; color: var(--ar-muted); }
+#trophyModal .goal-progress-val, #trophyModal .goal-progress-pct { font-family: var(--ar-display); font-weight: 700; font-size: 15px; color: var(--ar-text); }
+#trophyModal .premium-progress-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); }
+#trophyModal .premium-progress-fill { background: var(--ar-accent); box-shadow: none; }
+#trophyModal .btn-delete-goal { color: var(--ar-muted); background: none; }
+#trophyModal .btn-delete-goal:hover { color: var(--ar-bad); }
+#trophyModal .completed-section { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px 18px 14px; border: 0; }
+#trophyModal .tiny-goals-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-height: none; overflow: visible; }
+.ar-goal-done { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; background: rgba(90, 214, 106, 0.1); font-size: 14px; color: var(--ar-soft); }
+.ar-goal-done-tag { padding: 2px 8px; border-radius: 3px; background: var(--ar-good); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 13px; letter-spacing: 1px; }
+
+#trophyModal .badges-section { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; background: none; border: 0; }
+#trophyModal .badges-scroll-container { max-height: none; overflow: visible; padding: 0; }
+#trophyModal .badges-minimal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+#trophyModal .minimalist-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid rgba(25, 236, 214, 0.45);
+    border-radius: 6px;
+    background: var(--ar-glass);
+    text-align: left;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+#trophyModal .minimalist-badge.badge-locked { border-color: var(--ar-line); opacity: 0.5; }
+#trophyModal .badge-icon-wrap { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; margin: 0; border-radius: 4px; background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+#trophyModal .badge-icon-wrap svg { width: 22px; height: 22px; }
+.ar-badge-title { display: block; font-family: var(--ar-display); font-weight: 700; font-size: 20px; letter-spacing: 0.5px; line-height: 1.05; color: var(--ar-text); }
+.ar-badge-sub { font-size: 12px; color: var(--ar-muted); }
+
+/* ---------- Bike components ---------- */
+
+.ar-comp-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0; }
+.ar-comp-head .ar-body { margin: 0; }
+#tab-components .component-form { padding: 0 0 14px; border: 1px solid var(--ar-line); border-radius: 4px; }
+#tab-components .component-form h4.ar-panel-head { margin: 0 0 12px; }
+#tab-components .component-form .input-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0 18px 12px; }
+#tab-components .component-form .input-group { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+#tab-components .component-form label { font-size: 13px; font-weight: 600; color: var(--ar-muted); }
+#tab-components .component-form input,
+#tab-components .component-form select { height: 44px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; color-scheme: dark; }
+#tab-components .component-form-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 0 18px; }
+
+#tab-components .components-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--ar-line); border-radius: 4px; }
+#tab-components .history-item,
+#tab-components .component-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ar-soft);
+}
+#tab-components .history-item.history-header { padding: 8px 18px; background: var(--ar-panel); font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#tab-components .component-item:hover { background: rgba(25, 236, 214, 0.05); }
+#tab-components .component-item.archived { opacity: 0.55; }
+#tab-components .component-item strong { font-size: 16px; font-weight: 600; color: var(--ar-text); }
+#tab-components .component-item > div > div { color: var(--ar-muted) !important; font-size: 12px !important; }
+#tab-components .wear-bar-container { display: flex; align-items: center; gap: 10px; }
+#tab-components .wear-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); }
+#tab-components .wear-bar-container span { font-family: var(--ar-display); font-size: 16px !important; width: 52px; text-align: right; }
+.ar-wear-warn { margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--ar-bad); }
+#tab-components .status-badge { padding: 3px 8px; border: 1px solid var(--ar-line-2); border-radius: 3px; background: none; font-family: var(--ar-display); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ar-muted); }
+#tab-components .status-badge.active { color: var(--ar-good); border-color: rgba(90, 214, 106, 0.5); }
+#tab-components .btn-icon-small { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); }
+#tab-components .btn-icon-small:hover { background: rgba(255, 255, 255, 0.12); }
+#tab-components .btn-icon-small.danger { color: var(--ar-bad); border-color: rgba(255, 107, 111, 0.45); }
+#tab-components .component-item > div:last-child { width: 170px !important; justify-content: flex-end !important; gap: 6px !important; }
+#tab-components .history-item.history-header > span:last-child { width: 170px !important; text-align: right !important; }
+
+@media (max-width: 960px) {
+    .ar-modal-page > .settings-content { padding: 16px; }
+    #trophyModal .trophy-main-grid { grid-template-columns: 1fr; }
+    #trophyModal .tiny-goals-list { grid-template-columns: 1fr; }
+    #tab-components .component-form .input-row { grid-template-columns: 1fr 1fr; }
+    .ar-comp-head { flex-direction: column; align-items: stretch; }
+}
+#tab-components .component-item .ar-wear-warn { color: var(--ar-bad) !important; }
+
+/* ======================================================================
+   AI coach (aiChatPanel.html) — overrides ai-chat.css
+   ====================================================================== */
+
+#aiChatOverlay { font-family: var(--ar-body); }
+#aiChatOverlay .ai-overlay-content { background: radial-gradient(ellipse 50% 40% at 60% 40%, rgba(25, 236, 214, 0.05), transparent 70%), var(--ar-bg); color: var(--ar-text); }
+#aiChatOverlay .ai-sidebar { width: 280px; background: var(--ar-navy); border-right: 1px solid var(--ar-line); }
+#aiChatOverlay .ai-sidebar-header { padding: 20px 18px; }
+#aiChatOverlay .ai-sidebar-brand {
+    gap: 8px;
+    height: 34px;
+    padding: 0 18px 0 12px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+#aiChatOverlay .ai-sidebar-brand svg { width: 18px; height: 18px; }
+#aiChatOverlay .ai-sidebar-close { width: 36px; height: 36px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); }
+#aiChatOverlay .ai-sidebar-close:hover { background: rgba(255, 255, 255, 0.12); }
+#aiChatOverlay .ai-new-chat {
+    justify-content: center;
+    min-height: 44px;
+    margin: 0 18px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--ar-accent);
+    color: var(--ar-navy);
+    font-family: var(--ar-display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: none;
+}
+#aiChatOverlay .ai-new-chat:hover { filter: brightness(1.08); background: var(--ar-accent); }
+#aiChatOverlay .ai-sidebar-section-label { padding: 20px 18px 8px; font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#aiChatOverlay .ai-conv-item { border-radius: 4px; color: var(--ar-soft); }
+#aiChatOverlay .ai-conv-item:hover { background: rgba(255, 255, 255, 0.06); }
+#aiChatOverlay .ai-conv-item.active { background: var(--ar-accent-soft); box-shadow: inset 3px 0 0 var(--ar-accent); color: var(--ar-text); }
+#aiChatOverlay .ai-conv-empty { font-size: 12px; color: var(--ar-muted); }
+#aiChatOverlay .ai-sidebar-footer { padding: 16px 18px; border-top: 1px solid var(--ar-line); }
+#aiChatOverlay .ai-model-label { font-size: 13px; font-weight: 600; color: var(--ar-muted); text-transform: none; letter-spacing: 0; }
+#aiChatOverlay .ai-model-select select { height: 44px; padding: 0 12px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-text); font-family: var(--ar-body); font-size: 14px; }
+
+#aiChatOverlay .ai-welcome { gap: 16px; }
+#aiChatOverlay .ai-welcome-icon { width: 72px; height: 72px; border-radius: 6px; border: 2px solid var(--ar-accent); background: var(--ar-panel-2); color: var(--ar-accent); box-shadow: none; animation: none; }
+#aiChatOverlay .ai-welcome-icon svg { width: 34px; height: 34px; }
+#aiChatOverlay .ai-welcome h2 { margin: 0; font-family: var(--ar-display); font-weight: 800; font-size: 46px; letter-spacing: 1px; line-height: 1; color: var(--ar-text); background: none; -webkit-text-fill-color: currentColor; }
+#aiChatOverlay .ai-welcome p { max-width: 620px; margin: 0; font-size: 15px; line-height: 1.55; color: var(--ar-soft); }
+#aiChatOverlay .ai-welcome-note { display: block; margin-top: 8px; font-size: 12px; color: var(--ar-muted); }
+#aiChatOverlay .ai-chip { min-height: 44px; padding: 0 16px; border: 1px solid var(--ar-line-2); border-radius: 4px; background: var(--ar-glass); color: var(--ar-text); font-family: var(--ar-body); font-weight: 600; font-size: 14px; }
+#aiChatOverlay .ai-chip:hover { border-color: var(--ar-accent); background: var(--ar-glass); color: var(--ar-text); }
+#aiChatOverlay .ai-chip svg { color: var(--ar-accent); }
+
+#aiChatOverlay .ai-msg-avatar { border-radius: 4px; background: var(--ar-panel-2); color: var(--ar-accent); }
+#aiChatOverlay .ai-msg-user .ai-msg-avatar { background: var(--ar-accent-soft); color: var(--ar-accent); }
+#aiChatOverlay .ai-msg-bubble { border-radius: 6px; font-size: 15px; }
+#aiChatOverlay .ai-msg-user .ai-msg-bubble { background: var(--ar-accent); color: var(--ar-navy); border-bottom-right-radius: 2px; }
+#aiChatOverlay .ai-msg-assistant .ai-msg-bubble { background: var(--ar-glass); border: 1px solid var(--ar-line); color: var(--ar-soft); }
+#aiChatOverlay .ai-dot { background: var(--ar-accent); }
+
+#aiChatOverlay .ai-workout-bar { border: 1px solid rgba(25, 236, 214, 0.4); border-radius: 4px; background: var(--ar-glass); }
+#aiChatOverlay .ai-workout-bar-icon { border-radius: 4px; background: var(--ar-accent-soft); color: var(--ar-accent); }
+#aiChatOverlay .ai-workout-bar-label { font-family: var(--ar-display); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#aiChatOverlay .ai-workout-save-btn { min-height: 40px; border: 0; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 16px; letter-spacing: 1px; box-shadow: none; }
+
+#aiChatOverlay .ai-input-area { padding: 16px 24px 24px; border-top: 1px solid var(--ar-line); background: none; }
+#aiChatOverlay .ai-input-wrapper { padding: 6px 6px 6px 16px; border: 1px solid var(--ar-line-2); border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: none; }
+#aiChatOverlay .ai-input-wrapper:focus-within { border-color: var(--ar-accent); box-shadow: none; }
+#aiChatOverlay #aiChatInput { font-family: var(--ar-body); font-size: 15px; color: var(--ar-text); }
+#aiChatOverlay #aiChatInput::placeholder { color: #7f8aa0; }
+#aiChatOverlay .ai-send-btn { width: 44px; height: 44px; border-radius: 4px; background: var(--ar-accent); color: var(--ar-navy); box-shadow: none; }
+#aiChatOverlay .ai-send-btn:hover { filter: brightness(1.08); background: var(--ar-accent); }
+
+#aiChatOverlay .ai-workout-card { border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); }
+#aiChatOverlay .ai-wk-total { color: var(--ar-accent); font-family: var(--ar-display); }
+#aiChatOverlay .ai-chat-main, #aiChatOverlay .ai-messages { background: transparent; }
+
+/* Bike components tab (athlete area) */
+#settingsModal.ar-athlete #tab-components.active { gap: 14px; overflow-y: auto; }
+
+/* ======================================================================
+   Dialogs (cooldown, recovery, pause, FTP confirm): one format for all
+   ====================================================================== */
+
+/* Above the top bar and the athlete page; dimmed scene behind. */
+.modal-overlay.ar-dialog-overlay { z-index: 10010; background: rgba(5, 15, 34, 0.86); } /* no backdrop blur: costly over the live WebGL scene */
+.modal-overlay.ar-dialog-overlay.hidden:not(.active) { display: none; }
+
+.ar-dialog {
+    --ar-dialog-c: var(--ar-accent);
+    width: min(460px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px 22px 20px;
+    border: 1px solid var(--ar-line);
+    border-top: 4px solid var(--ar-dialog-c);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-dialog.is-bad { --ar-dialog-c: var(--ar-bad); }
+.ar-dialog.is-info { --ar-dialog-c: var(--ar-info); }
+.ar-dialog.is-center { align-items: center; text-align: center; }
+.ar-dialog .ar-body { margin: 0; }
+.ar-dialog .ar-body strong { color: var(--ar-text); }
+.ar-dialog-kicker { color: var(--ar-dialog-c); }
+.ar-dialog-head { display: flex; justify-content: space-between; align-items: center; margin: -6px 0 -6px; }
+.ar-dialog-head .ar-icon-btn { width: 36px; height: 36px; }
+.ar-dialog-clock { font-family: var(--ar-display); font-weight: 800; font-size: 88px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ar-dialog-metrics { width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 10px 0; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-dialog-metrics > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ar-dialog-val { font-family: var(--ar-display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+.ar-dialog-val.is-hr { color: var(--ar-bad); }
+.ar-dialog-full { width: 100%; }
+.ar-dialog-actions { display: flex; gap: 10px; }
+.ar-dialog-actions > button { flex: 1; }
+.ar-dialog-actions > .ar-btn-primary { flex: 1.5; }
+.ar-dialog-actions-3 > button { padding: 0 12px; }
+
+/* ======================================================================
+   Assessments (fitnessTestModal.html)
+   ====================================================================== */
+
+.ar-assess { max-width: none; }
+.ar-assess-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: min(760px, 100%); }
+.ar-assess-head .ar-caption { letter-spacing: 1px; text-transform: uppercase; }
+.ar-assess-list { width: min(760px, 100%); display: flex; flex-direction: column; }
+.ar-assess-row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 90px;
+    align-items: center;
+    column-gap: 12px;
+    width: 100%;
+    padding: 16px 18px;
+    border: 0;
+    border-top: 1px solid var(--ar-line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ar-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.ar-assess-row:first-child { border-top: 0; }
+.ar-assess-row:hover, .ar-assess-row:focus-visible { background: var(--ar-accent-soft); box-shadow: inset 5px 0 0 var(--ar-accent); outline: none; }
+.ar-assess-num { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: rgba(255, 255, 255, 0.1); font-family: var(--ar-display); font-weight: 800; font-size: 22px; }
+.ar-assess-row:hover .ar-assess-num { background: var(--ar-accent); color: var(--ar-navy); }
+.ar-assess-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ar-assess-text strong { font-family: var(--ar-display); font-weight: 700; font-size: 26px; letter-spacing: 1px; line-height: 1; text-transform: uppercase; }
+.ar-assess-text span { font-size: 13px; line-height: 1.45; color: var(--ar-soft); }
+.ar-assess-dur { text-align: right; font-family: var(--ar-display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+.ar-assess-dur small { font-size: 0.5em; font-weight: 600; color: var(--ar-muted); }
+
+/* ======================================================================
+   Toast (index.html #toast-notification)
+   ====================================================================== */
+
+body.ar-shell .toast {
+    top: 84px;
+    bottom: auto;
+    left: 50%;
+    z-index: 10030;
+    max-width: min(560px, calc(100vw - 32px));
+    padding: 12px 18px;
+    border: 1px solid rgba(25, 236, 214, 0.5);
+    border-left: 4px solid var(--ar-accent);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    color: var(--ar-text);
+    font-family: var(--ar-body);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    white-space: pre-line;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+body.ar-shell .toast.show { transform: translateX(-50%) translateY(6px); }
+
+/* ======================================================================
+   Route creator (index.html #routeEditorPanel)
+   ====================================================================== */
+
+body.ar-route-editing .ar-ride-hud,
+body.ar-route-editing > footer { display: none !important; }
+
+body.ar-shell .editor-panel.ar-route-editor {
+    top: 20px;
+    left: 24px;
+    right: auto;
+    width: 340px;
+    padding: 0;
+    z-index: 1003;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-route-editor > * + * { margin-top: 12px; }
+.ar-route-editor .ar-tag { color: var(--ar-navy); }
+.ar-route-editor .ar-panel { background: var(--ar-glass); overflow: hidden; }
+.ar-route-editor .editor-instr.ar-note { margin: 0; padding: 14px 18px; border-radius: 0; border-bottom: 1px solid var(--ar-line); font-size: 13px; }
+.ar-route-editor .editor-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0; padding: 14px 0; }
+.ar-route-editor .editor-stats > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ar-route-editor .editor-stats strong { font-family: var(--ar-display); font-weight: 800; font-size: 34px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+.ar-route-editor .ar-route-name { padding: 0 18px 16px; color: var(--ar-muted); font-size: 13px; font-weight: 600; }
+.ar-route-editor .editor-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ar-route-editor .editor-actions .ar-btn { flex: 1; }
+.ar-route-editor .editor-actions .ar-btn-primary { flex: 1.4; }
+
+/* ======================================================================
+   End of ride summary (index.html #finishModal)
+   ====================================================================== */
+
+#finishModal .ar-dialog.finish-content { width: min(560px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 32px); text-align: left; }
+#finishModal .ar-tag { color: var(--ar-navy); }
+#finishModal .finish-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+#finishModal .stat-box-small { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 8px 10px; border: 1px solid var(--ar-line); border-radius: 4px; background: rgba(255, 255, 255, 0.03); text-align: left; }
+#finishModal .stat-box-small .label { font-family: var(--ar-display); font-weight: 600; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ar-muted); }
+#finishModal .stat-box-small .value { justify-content: flex-start !important; font-family: var(--ar-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+#finishModal .zones-container { margin: 0; padding: 0; background: none; border: 0; display: flex; flex-direction: column; gap: 6px; }
+#finishModal .zones-bar { height: 14px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.06); }
+#finishModal .zones-legend { display: flex; justify-content: space-between; font-family: var(--ar-display); font-weight: 700; font-size: 13px; }
+.ar-xp { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-xp-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ar-soft); }
+.ar-xp-row > span:last-child { font-family: var(--ar-display); font-weight: 700; font-size: 16px; color: var(--ar-text); }
+.ar-xp-total { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--ar-line); font-weight: 600; color: var(--ar-text); }
+.ar-xp-total > span:last-child { color: var(--ar-accent); font-size: 20px; }
+.ar-xp-levelup { margin-top: 8px; padding: 8px; border-radius: 4px; background: var(--ar-accent-soft); color: var(--ar-accent); text-align: center; font-family: var(--ar-display); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+.ar-finish-actions { flex-wrap: wrap; margin: 0; }
+.ar-finish-actions .hidden { display: none !important; }
+.ar-finish-actions .btn-strava.ar-btn, .ar-finish-actions .btn-intervals.ar-btn { background: var(--ar-glass); color: var(--ar-text); border: 1px solid var(--ar-line-2); box-shadow: none; font-size: 13px; }
+.ar-drift-warn { padding: 1px 6px; border-radius: 3px; background: rgba(255, 210, 61, 0.15); color: var(--ar-z4); font-family: var(--ar-display); font-weight: 700; font-size: 12px; letter-spacing: 1px; }
+
+/* Info "?" markers and their tooltips (finish modal and activity detail) */
+.ar-dialog .info-icon, .ar-detail .info-icon { background: rgba(255, 255, 255, 0.12); color: var(--ar-soft); border: 0; }
+.ar-dialog .tooltip-content, .ar-detail .tooltip-content { background: var(--ar-glass-strong); border: 1px solid var(--ar-line-2); border-radius: 4px; font-family: var(--ar-body); text-transform: none; letter-spacing: 0; }
+
+/* ======================================================================
+   Activity detail (index.html #activityDetailModal)
+   ====================================================================== */
+
+#activityDetailModal.ar-detail .modern-detail-modal { width: 100%; max-width: none; padding: 24px 32px; }
+#activityDetailModal .ar-page-top { margin: 0; padding: 0; border: 0; }
+#activityDetailModal #detail-route-name { margin: 0; max-width: 520px; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 44px; text-transform: uppercase; }
+.ar-detail-actions { display: flex; gap: 10px; align-items: center; }
+#activityDetailModal .share-dropdown-menu { background: var(--ar-glass-strong); border: 1px solid var(--ar-line-2); border-radius: 4px; }
+#activityDetailModal .share-dropdown-menu button { color: var(--ar-text); font-family: var(--ar-body); }
+#activityDetailModal .share-dropdown-menu button:hover { background: var(--ar-accent-soft); }
+#activityDetailModal .share-dropdown-menu .hidden, #activityDetailModal .share-dropdown-menu.hidden { display: none; }
+#activityDetailModal .detail-body { gap: 12px; }
+#activityDetailModal .modern-stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; }
+#activityDetailModal .modern-stat-card { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border: 1px solid var(--ar-line); border-radius: 4px; background: var(--ar-glass); box-shadow: none; transform: none; text-align: left; align-items: flex-start; }
+#activityDetailModal .modern-stat-card .label { font-family: var(--ar-display); font-weight: 600; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ar-muted); }
+#activityDetailModal .modern-stat-card .value { font-family: var(--ar-display); font-weight: 800; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--ar-text); }
+#activityDetailModal .modern-stat-card .value.is-power { color: var(--ar-accent); }
+#activityDetailModal .charts-row { gap: 12px; }
+#activityDetailModal .modern-chart-wrapper { padding: 0; border: 1px solid var(--ar-line); border-radius: 4px; display: flex; flex-direction: column; }
+.ar-detail-telemetry { flex: 1.8; min-width: 0; }
+.ar-detail-mmp { flex: 1; min-width: 0; }
+.ar-detail-chart { width: 100%; height: clamp(260px, 38vh, 400px); }
+.ar-thresholds { display: flex; justify-content: space-around; align-items: center; gap: 16px; padding: 12px 18px; }
+.ar-thresholds h4 { margin: 0 0 4px; }
+.ar-vt1 { color: var(--ar-z3) !important; }
+.ar-vt2 { color: var(--ar-z5) !important; }
+.ar-vt-data { margin-top: 4px; font-family: var(--ar-display); font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) {
+    #activityDetailModal .modern-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #activityDetailModal .charts-row { flex-direction: column; }
+    #finishModal .finish-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Finish modal: compact enough for 720 px tall windows, scrolls inside beyond that. */
+#finishModal .ar-dialog.finish-content { max-height: calc(100vh - 32px) !important; overflow-y: auto !important; gap: 10px; padding: 18px 20px; margin: 0; }
+#finishModal .ar-dialog .ar-h2 { font-size: 26px; }
+#finishModal .stat-box-small { padding: 6px 10px; align-items: flex-start; }
+#finishModal .stat-box-small .label { justify-content: flex-start; text-align: left; }
+#finishModal .stat-box-small .value { font-size: 20px; white-space: nowrap; }
+#finishModal .ar-xp { gap: 3px; padding: 10px 12px; }
+#finishModal .modal-actions { padding: 0; border: 0; }
+.ar-thresholds .toggle-switch input:checked + .slider { background-color: var(--ar-accent); }
+
+/* While drawing a route the ride panels are hidden: map tools go back to the corner. */
+body.ar-route-editing .ar-map-tools { right: 24px !important; }
+body.ar-route-editing #map-container .maplibregl-ctrl-top-right { right: 24px !important; }
+
+/* ======================================================================
+   In-app alert / confirm / prompt (modules/ArgusDialog.js)
+   ====================================================================== */
+
+/* Above every page and dialog; also shown over the home and the event mode, which hide
+   the other overlays. */
+#arDialog.modal-overlay { z-index: 10050; }
+body.ar-home-open #arDialog,
+body.ev-event-mode #arDialog { visibility: visible !important; }
+#arDialog .ar-dialog-msg { white-space: pre-line; overflow-wrap: anywhere; max-height: 50vh; overflow-y: auto; }
+#arDialog .ar-dialog-msg[hidden], #arDialog .ar-input[hidden], #arDialog button[hidden] { display: none; }
+#arDialog .ar-input { width: 100%; box-sizing: border-box; }
+#arDialog .ar-dialog-actions { justify-content: flex-end; }
+#arDialog .ar-dialog-actions > button { flex: 0 1 auto; min-width: 120px; }
+#arDialog .ar-dialog-danger { background: var(--ar-bad); border-color: var(--ar-bad); color: #fff; font-family: var(--ar-display); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+#arDialog .ar-dialog-danger:hover { background: #ff8487; }
+
+/* ======================================================================
+   First-run tutorial (tutorialModal.html) — overrides tutorial.css
+   ====================================================================== */
+
+#tutorialModal.ar-tutorial { z-index: 10008; background: rgba(5, 15, 34, 0.88); }
+#tutorialModal .ar-tut {
+    width: min(920px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--ar-line);
+    border-top: 4px solid var(--ar-accent);
+    border-radius: 4px;
+    background: var(--ar-glass-strong);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    font-family: var(--ar-body);
+    color: var(--ar-text);
+}
+.ar-tut-top { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px 0; }
+.ar-tut-top .ar-tag { color: var(--ar-navy); }
+#tutorialModal .tutorial-close.ar-icon-btn { position: static; width: 36px; height: 36px; border-radius: 4px; background: var(--ar-glass); border: 1px solid var(--ar-line-2); color: var(--ar-text); }
+#tutorialModal .tutorial-close.ar-icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Fixed height: the dialog and its buttons do not jump between steps. */
+#tutorialModal .tutorial-carousel { flex: none; height: clamp(260px, calc(100vh - 220px), 340px); min-height: 0; overflow-y: auto; padding: 0; }
+#tutorialModal .tutorial-step { padding: 18px 22px 22px; height: auto; }
+#tutorialModal .tutorial-step.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 28px; animation: ar-tut-in 0.35s ease both; }
+@keyframes ar-tut-in { from { opacity: 0; transform: translateX(16px); } }
+@media (prefers-reduced-motion: reduce) { #tutorialModal .tutorial-step.active { animation: none; } }
+
+.ar-tut-text { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
+.ar-tut-text .ar-h1 { font-size: clamp(32px, 4vw, 44px); }
+.ar-tut-text .ar-body { margin: 0; font-size: 15px; line-height: 1.55; }
+.ar-tut-text .ar-body strong, .ar-tut-text .ar-caption strong { color: var(--ar-text); }
+.ar-tut-text .ar-caption { margin: 0; }
+.ar-tut-kicker { color: var(--ar-accent); }
+.ar-tut-visual { display: flex; align-items: center; justify-content: center; min-height: 240px; }
+
+/* Step visuals: small copies of the real screens */
+.ar-tut-logo { position: relative; height: 240px; aspect-ratio: 515 / 737; }
+.ar-tut-logo .ar-logo-swirl { animation: ar-logo-spin 10s linear infinite; }
+.ar-tut-card { text-align: left; width: 100%; max-width: 360px; display: flex; flex-direction: column; overflow: hidden; background: var(--ar-glass); }
+.ar-tut-card > .ar-tagline { padding: 16px 16px 0; }
+.ar-tut-card .ar-tag { color: var(--ar-navy); }
+.ar-tut-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+.ar-tut-metrics > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--ar-line); border-radius: 4px; }
+.ar-tut-metrics > div.is-on { border-color: var(--ar-accent); background: var(--ar-accent-soft); }
+.ar-tut-metrics strong, .ar-tut-studio strong { font-family: var(--ar-display); font-weight: 800; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ar-tut-metrics small, .ar-tut-studio small { font-size: 0.45em; color: var(--ar-muted); }
+.ar-tut-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--ar-line); font-size: 14px; color: var(--ar-soft); }
+.ar-tut-row:last-child { border-bottom: 0; }
+.ar-tut-row strong { flex: 1; color: var(--ar-text); font-weight: 600; }
+.ar-tut-row b { font-family: var(--ar-display); font-weight: 700; font-size: 17px; color: var(--ar-text); }
+.ar-tut-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ar-muted); }
+.ar-tut-dot.is-good { background: var(--ar-good); box-shadow: 0 0 0 4px rgba(90, 214, 106, 0.18); }
+.ar-tut-num { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: rgba(255, 255, 255, 0.1); font-family: var(--ar-display); font-weight: 800; font-size: 18px; }
+.ar-tut-num.is-on { background: var(--ar-accent); color: var(--ar-navy); }
+.ar-tut-row .ar-tut-num + strong { font-family: var(--ar-display); font-weight: 700; font-size: 18px; letter-spacing: 1px; }
+.ar-tut-svg { display: block; width: 100%; height: 130px; padding: 10px 12px 12px; box-sizing: border-box; }
+.ar-tut-map { background: linear-gradient(135deg, #12304a, #0b2033); }
+.ar-tut-map .ar-tut-svg { height: 180px; }
+.ar-tut-bars { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; align-items: end; height: 130px; padding: 14px 16px; }
+.ar-tut-bars i { border-radius: 2px 2px 0 0; }
+.ar-tut-bars i.is-on { outline: 2px solid #fff; outline-offset: 1px; }
+.ar-tut-studio { align-items: center; gap: 8px; padding: 22px; box-shadow: inset 0 -5px 0 var(--ar-z4); }
+.ar-tut-studio strong { font-size: 96px; }
+.ar-tut-zone { padding: 4px 12px; border-radius: 3px; background: var(--ar-z4); color: var(--ar-navy); font-family: var(--ar-display); font-weight: 800; font-size: 15px; letter-spacing: 1.5px; }
+.ar-tut-privacy { align-items: center; gap: 12px; padding: 30px; color: var(--ar-good); border-color: rgba(90, 214, 106, 0.4); }
+.ar-tut-privacy strong { font-family: var(--ar-display); font-weight: 800; font-size: 28px; letter-spacing: 1.5px; }
+
+/* Footer: checkbox, step dots, navigation */
+#tutorialModal .ar-tut-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 14px 22px; border-top: 1px solid var(--ar-line); background: rgba(255, 255, 255, 0.03); }
+.ar-tut-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ar-muted); cursor: pointer; white-space: nowrap; }
+.ar-tut-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--ar-accent); }
+#tutorialModal .indicators-container { flex: 1; display: flex; justify-content: center; }
+#tutorialModal .step-indicators { gap: 6px; }
+#tutorialModal .step-indicators.hidden { visibility: hidden; display: flex; }
+#tutorialModal .dot { width: 8px; height: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.18); box-shadow: none; }
+#tutorialModal .dot.active { width: 22px; background: var(--ar-accent); box-shadow: none; }
+#tutorialModal .nav-actions { display: flex; gap: 10px; margin: 0; }
+#tutorialModal .nav-actions .hidden { display: none; }
+#tutorialModal .nav-actions button { min-width: 110px; }
+
+@media (max-width: 760px) {
+    #tutorialModal .tutorial-carousel { height: clamp(300px, calc(100vh - 240px), 460px); }
+    #tutorialModal .tutorial-step.active { grid-template-columns: 1fr; gap: 16px; }
+    .ar-tut-visual { min-height: 0; }
+    .ar-tut-logo { height: 160px; }
+    #tutorialModal .ar-tut-footer { flex-wrap: wrap; }
+    #tutorialModal .indicators-container { order: 3; flex-basis: 100%; }
+}
+@media (max-height: 640px) {
+    .ar-tut-visual { min-height: 0; }
+    .ar-tut-logo { height: 170px; }
+    .ar-tut-studio strong { font-size: 64px; }
+}
+
+/* Rider deletion (athlete area, profile tab): only for the logged-in rider. */
+.ar-danger-zone { border-color: rgba(255, 107, 111, 0.35) !important; }
+.ar-danger-zone .ar-panel-head { color: var(--ar-bad); }
+.ar-danger-body { display: flex; align-items: center; gap: 14px; padding: 14px 18px; }
+.ar-danger-body .ar-body { margin: 0; flex: 1; font-size: 13px; }
+.ar-danger-body .ar-btn-danger { flex-shrink: 0; }

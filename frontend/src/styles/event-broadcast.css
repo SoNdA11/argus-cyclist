@@ -9,19 +9,20 @@
 */
 
 :root {
-    --ev-navy: #0b1430;
-    --ev-panel: rgba(11, 20, 48, 0.92);
-    --ev-panel-strong: rgba(11, 20, 48, 0.96);
-    --ev-line: rgba(255, 255, 255, 0.1);
-    --ev-text: #f5f7fb;
-    --ev-text-soft: #dbe3f0;
-    --ev-muted: #a9b4c8;
-    --ev-accent: #ffc62e;
-    --ev-accent-soft: rgba(255, 198, 46, 0.14);
-    --ev-ghost: #4fe3ff;
-    --ev-ahead: #2bd576;
-    --ev-behind: #ff6b6f;
-    --ev-live: #ff4d5e;
+    /* Same palette as the shared standard (argus-ui.css). */
+    --ev-navy: var(--ar-navy);
+    --ev-panel: var(--ar-glass);
+    --ev-panel-strong: var(--ar-glass-strong);
+    --ev-line: var(--ar-line);
+    --ev-text: var(--ar-text);
+    --ev-text-soft: var(--ar-soft);
+    --ev-muted: var(--ar-muted);
+    --ev-accent: var(--ar-accent);
+    --ev-accent-soft: var(--ar-accent-soft);
+    --ev-ghost: var(--ar-info);
+    --ev-ahead: var(--ar-good);
+    --ev-behind: var(--ar-bad);
+    --ev-live: var(--ar-live);
     --ev-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
     --ev-font-body: 'Inter', system-ui, sans-serif;
 }
@@ -117,8 +118,8 @@
 
 .ev-btn.is-on {
     color: var(--ev-ahead);
-    border-color: rgba(43, 213, 118, 0.5);
-    background: rgba(43, 213, 118, 0.12);
+    border-color: rgba(90, 214, 106, 0.5);
+    background: rgba(90, 214, 106, 0.12);
 }
 
 .ev-btn--muted {
@@ -151,9 +152,8 @@
 /* ---------- Event hub: start list ---------- */
 
 #eventHubPage.ev-hub {
-    /* The live 3D scene shows through on the right; the left side stays readable. */
-    background:
-        linear-gradient(90deg, #070c1d 0%, #070c1d 44%, rgba(6, 11, 26, 0.7) 52%, rgba(6, 11, 26, 0.25) 78%, rgba(6, 11, 26, 0.1) 100%) !important;
+    /* Opaque page: the animated logo fills the free area on the right (no 3D behind). */
+    background: radial-gradient(ellipse 45% 60% at 76% 50%, rgba(79, 227, 255, 0.09), transparent 70%), var(--ar-bg) !important;
     padding: 24px 32px;
     font-family: var(--ev-font-body);
     color: var(--ev-text);
@@ -221,7 +221,7 @@
 .ev-equip[data-state="real"] .ev-equip-dot,
 .ev-equip[data-state="virtual"] .ev-equip-dot {
     background: var(--ev-ahead);
-    box-shadow: 0 0 0 4px rgba(43, 213, 118, 0.2);
+    box-shadow: 0 0 0 4px rgba(90, 214, 106, 0.2);
 }
 
 .ev-equip #eventTrainerStatus {
@@ -368,7 +368,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
 }
 
 .ev-start-row:hover {
-    background: rgba(255, 198, 46, 0.07);
+    background: rgba(25, 236, 214, 0.07);
 }
 
 .ev-start-row[aria-checked="true"] {
@@ -493,7 +493,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     -webkit-appearance: none;
     appearance: none;
     background-color: #17213f;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffc62e' stroke-width='2'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2319ecd6' stroke-width='2'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 32px !important;
@@ -548,14 +548,13 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     justify-content: center;
     align-items: flex-start;
     gap: 2px;
-    padding: 12px 34px 12px 22px;
+    padding: 12px 22px;
     border: 0;
     border-radius: 6px;
     background: var(--ev-accent);
     color: var(--ev-navy);
     cursor: pointer;
     text-align: left;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
     transition: filter 0.15s ease;
 }
 
@@ -595,7 +594,7 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
 
 .ev-hub-tip {
     max-width: 380px;
-    background: rgba(11, 20, 48, 0.85);
+    background: rgba(10, 26, 54, 0.85);
     border-left: 4px solid var(--ev-ghost);
     padding: 10px 14px;
     font-size: 13px;
@@ -603,20 +602,21 @@ body.ev-event-mode .modal-overlay:not(#eventLeaderboardModal):not(#raceHistoryMo
     color: var(--ev-text-soft);
 }
 
-/* The scene keeps rendering behind the start list, narrowed to the free area on the right so
-   the rider waiting on the start line stays in view (the layer's size change resizes the 3D). */
-body.ev-hub-open .scene3d-layer {
-    left: 44% !important;
+/* Logo stage: right of the 800 px column (scaled with the hub zoom), above the footer. */
+#eventHubPage .ev-hub-stage {
+    left: calc(64px + 800px * var(--ev-zoom, 1));
+    bottom: calc(96px * var(--ev-zoom, 1));
 }
 
-@media (max-width: 900px) {
-    body.ev-hub-open .scene3d-layer {
-        left: 0 !important;
-    }
+#eventHubPage .ev-hub-top,
+#eventHubPage .ev-hub-main,
+#eventHubPage .ev-hub-footer {
+    position: relative;
+    z-index: 1;
 }
 
 /* Big fair screens (TV / 1080p and up): scale the whole hub instead of leaving it small. */
-#eventHubPage.ev-hub>* {
+#eventHubPage.ev-hub>*:not(.ev-hub-stage) {
     zoom: var(--ev-zoom, 1);
 }
 
@@ -634,7 +634,7 @@ body.ev-hub-open .scene3d-layer {
 
 @media (max-width: 900px) {
     #eventHubPage.ev-hub {
-        background: rgba(6, 11, 26, 0.92) !important;
+        background: rgba(5, 15, 34, 0.92) !important;
         padding: 16px;
     }
 
@@ -763,7 +763,7 @@ body.ev-hub-open .scene3d-layer {
 .ev-live-shade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(6, 11, 26, 0.55) 0%, rgba(6, 11, 26, 0) 22%, rgba(6, 11, 26, 0) 66%, rgba(6, 11, 26, 0.65) 100%);
+    background: linear-gradient(180deg, rgba(5, 15, 34, 0.55) 0%, rgba(5, 15, 34, 0) 22%, rgba(5, 15, 34, 0) 66%, rgba(5, 15, 34, 0.65) 100%);
 }
 
 .ev-live-tl {
@@ -781,7 +781,7 @@ body.ev-hub-open .scene3d-layer {
     padding: 6px 12px;
     border: 0;
     border-radius: 3px;
-    background: rgba(11, 20, 48, 0.8);
+    background: rgba(10, 26, 54, 0.8);
     color: var(--ev-text-soft);
     font-family: var(--ev-font-body);
     font-size: 13px;
@@ -804,7 +804,7 @@ body.ev-hub-open .scene3d-layer {
     width: min(600px, calc(100% - 682px));
     box-sizing: border-box;
     padding: 10px 16px 8px;
-    background: rgba(11, 20, 48, 0.9);
+    background: rgba(10, 26, 54, 0.9);
     border-radius: 4px;
 }
 
@@ -1141,6 +1141,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-tower-name {
+    color: var(--ev-text);
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -1159,6 +1160,10 @@ body.ev-hub-open .scene3d-layer {
 
 .ev-tower-row.is-live {
     background: var(--ev-accent);
+    color: var(--ev-navy);
+}
+
+.ev-tower-row.is-live .ev-tower-name {
     color: var(--ev-navy);
 }
 
@@ -1265,20 +1270,6 @@ body.ev-hub-open .scene3d-layer {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
-.ev-live-zone-pointer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
-    border-top: 12px solid #ffffff;
-    transform: translateX(-50%);
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
-    transition: left 0.2s linear;
-}
-
 .ev-live-athlete {
     position: absolute;
     left: 32px;
@@ -1295,7 +1286,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-live-metric {
-    padding: 0 18px;
+    padding: 0 14px;
     border-right: 1px solid var(--ev-line);
 }
 
@@ -1317,6 +1308,7 @@ body.ev-hub-open .scene3d-layer {
     font-size: 38px;
     line-height: 1.05;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap; /* the unit stays beside the number (km/h used to wrap) */
 }
 
 .ev-live-metric-val small {
@@ -1411,7 +1403,7 @@ body.ev-hub-open .scene3d-layer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(6, 11, 26, 0.35);
+    background: rgba(5, 15, 34, 0.35);
 }
 
 .ev-live-countdown strong {
@@ -1476,13 +1468,13 @@ body.ev-hub-open .scene3d-layer {
 .ev-screen-shade {
     position: absolute;
     inset: 0;
-    background: rgba(6, 11, 26, 0.72);
+    background: rgba(5, 15, 34, 0.72);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
 
 .ev-screen-shade--deep {
-    background: rgba(6, 11, 26, 0.82);
+    background: rgba(5, 15, 34, 0.82);
 }
 
 .ev-screen-top {
@@ -1531,7 +1523,7 @@ body.ev-hub-open .scene3d-layer {
 .ev-result-auto {
     padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(11, 20, 48, 0.9);
+    background: rgba(10, 26, 54, 0.9);
     font-size: 14px;
     color: var(--ev-text-soft);
 }
@@ -1960,7 +1952,8 @@ body.ev-hub-open .scene3d-layer {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.ev-rank-row.is-sim {
+.ev-rank-row.is-sim .ev-rank-who small,
+.ev-rank-row.is-sim .ev-rank-val {
     opacity: 0.7;
 }
 
@@ -2008,6 +2001,7 @@ body.ev-hub-open .scene3d-layer {
     white-space: nowrap;
     font-weight: 600;
     font-size: 16px;
+    color: var(--ev-text);
 }
 
 .ev-rank-who small {
@@ -2016,6 +2010,7 @@ body.ev-hub-open .scene3d-layer {
 }
 
 .ev-rank-val {
+    color: var(--ev-text);
     font-family: var(--ev-font-display);
     font-weight: 700;
     font-size: 22px;
@@ -2049,4 +2044,10 @@ body.ev-hub-open .scene3d-layer {
         flex-wrap: wrap;
         justify-content: flex-end;
     }
+}
+/* Event mode: the Free Ride map tools (centre / layers) and the map zoom never show
+   through the event screens, whatever main view was saved. */
+body.ev-event-mode .ar-map-tools,
+body.ev-event-mode #map-container .maplibregl-ctrl-top-right {
+    display: none !important;
 }

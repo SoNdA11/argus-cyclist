@@ -21,6 +21,7 @@ import * as echarts from 'echarts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { telemetryBus } from './TelemetryEventBus.js';
+import { arAlert, arConfirm, arPrompt } from './ArgusDialog.js';
 
 /**
  * UIManager
@@ -327,50 +328,53 @@ export class UIManager {
 
         const option = {
             animation: false,
+            backgroundColor: 'transparent',
             tooltip: { trigger: 'axis' },
-            legend: {
-                data: ['Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)'],
-                textStyle: { color: '#ccc' },
-                top: 0
-            },
-            grid: { left: '3%', right: '3%', bottom: '5%', top: 40, containLabel: true },
+            // The legend lives in the panel header (index.html).
+            legend: { show: false, data: ['Power (W)', 'Heart rate (bpm)', 'Cadence (rpm)'] },
+            grid: { left: 8, right: 28, bottom: 4, top: 28, containLabel: true },
             xAxis: {
                 type: 'category',
                 boundaryGap: false,
                 data: this.liveTimeData,
-                axisLabel: { color: '#888' },
+                axisLabel: { color: '#9fb2c9' },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.18)' } },
                 splitLine: { show: false }
             },
             yAxis: [
                 {
                     type: 'value',
-                    name: 'Watts',
                     position: 'left',
-                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                    nameTextStyle: { color: '#9fb2c9' },
+                    axisLabel: { color: '#9fb2c9' },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)' } }
                 },
                 {
                     type: 'value',
-                    name: 'BPM / RPM',
                     position: 'right',
+                    nameTextStyle: { color: '#9fb2c9' },
+                    axisLabel: { color: '#9fb2c9' },
                     splitLine: { show: false }
                 }
             ],
             series: [
                 {
-                    name: 'Power (w)',
+                    name: 'Power (W)',
                     type: 'line',
                     yAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#f1c40f' },
-                    areaStyle: { color: 'rgba(241, 196, 15, 0.1)' },
+                    itemStyle: { color: '#19ecd6' },
+                    lineStyle: { width: 2.5 },
+                    areaStyle: { color: 'rgba(25, 236, 214, 0.10)' },
                     data: this.livePowerData
                 },
                 {
-                    name: 'Heart Rate (bpm)',
+                    name: 'Heart rate (bpm)',
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#e74c3c' },
+                    itemStyle: { color: '#ff6b6f' },
+                    lineStyle: { width: 2.5 },
                     smooth: true,
                     data: this.liveHrData
                 },
@@ -379,7 +383,8 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#3498db' },
+                    itemStyle: { color: '#4c95f2' },
+                    lineStyle: { width: 2, type: 'dashed' },
                     smooth: true,
                     data: this.liveCadenceData
                 }
@@ -487,10 +492,10 @@ export class UIManager {
      */
     getTSSColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value < 150) return '#2ecc71'; // Safe (Green)
-        if (value <= 300) return '#3498db'; // Neutral (Blue)
-        if (value <= 450) return '#f1c40f'; // Warn (Yellow)
-        return '#e74c3c'; // Alert (Red)
+        if (value < 150) return '#5ad66a'; // Safe (Green)
+        if (value <= 300) return '#4c95f2'; // Neutral (Blue)
+        if (value <= 450) return '#ffd23d'; // Warn (Yellow)
+        return '#ff6b6f'; // Alert (Red)
     }
 
     /**
@@ -501,10 +506,10 @@ export class UIManager {
      */
     getIFColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value < 0.75) return '#2ecc71'; // Safe
-        if (value <= 0.85) return '#3498db'; // Neutral
-        if (value <= 0.95) return '#f1c40f'; // Warn
-        return '#e74c3c'; // Alert
+        if (value < 0.75) return '#5ad66a'; // Safe
+        if (value <= 0.85) return '#4c95f2'; // Neutral
+        if (value <= 0.95) return '#ffd23d'; // Warn
+        return '#ff6b6f'; // Alert
     }
 
     /**
@@ -515,10 +520,10 @@ export class UIManager {
      */
     getTRIMPColor(value) {
         if (!value || value <= 0) return 'var(--text-main)';
-        if (value <= 70) return '#2ecc71'; // Safe
-        if (value <= 140) return '#3498db'; // Neutral
-        if (value <= 250) return '#f1c40f'; // Warn
-        return '#e74c3c'; // Alert
+        if (value <= 70) return '#5ad66a'; // Safe
+        if (value <= 140) return '#4c95f2'; // Neutral
+        if (value <= 250) return '#ffd23d'; // Warn
+        return '#ff6b6f'; // Alert
     }
 
     /**
@@ -529,9 +534,9 @@ export class UIManager {
      */
     getDriftColor(value) {
         if (value == null || isNaN(value)) return 'var(--text-main)';
-        if (value < 5) return '#2ecc71'; // Safe
-        if (value < 10) return '#f1c40f'; // Warn (Yellow)
-        return '#e74c3c'; // Alert (Poor Endurance)
+        if (value < 5) return '#5ad66a'; // Safe
+        if (value < 10) return '#ffd23d'; // Warn (Yellow)
+        return '#ff6b6f'; // Alert (Poor Endurance)
     }
 
     /**
@@ -543,10 +548,10 @@ export class UIManager {
      */
     getHRRColor(value) {
         if (!value || value <= 0) return 'var(--text-main)'; // Default fallback
-        if (value < 12) return '#e74c3c'; // Alert (Severe Risk)
-        if (value <= 20) return '#f1c40f'; // Warn (Average)
-        if (value <= 35) return '#2ecc71'; // Safe (Good)
-        return '#3498db'; // Elite (Neutral/Blue indicator)
+        if (value < 12) return '#ff6b6f'; // Alert (Severe Risk)
+        if (value <= 20) return '#ffd23d'; // Warn (Average)
+        if (value <= 35) return '#5ad66a'; // Safe (Good)
+        return '#4c95f2'; // Elite (Neutral/Blue indicator)
     }
 
     // =================
@@ -564,12 +569,12 @@ export class UIManager {
         const hrColor = this.getHeartRateZoneColor(data.heart_rate);
 
         // Raw telemetry values
-        this.els.watts.innerHTML = `${data.power}<span class="data-unit">w</span>`;
+        this.els.watts.innerHTML = `${data.power}<span class="data-unit">W</span>`;
         this.els.watts.style.color = powerColor;
 
         this.els.rpm.innerHTML = `${data.cadence}<span class="data-unit">rpm</span>`;
 
-        this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">❤</span>`;
+        this.els.hr.innerHTML = `${data.heart_rate}<span class="data-unit">bpm</span>`;
         this.els.hr.style.color = hrColor;
 
         const gradeColor = this.getGradeColor(data.grade);
@@ -599,7 +604,7 @@ export class UIManager {
         // power output against the rider's body mass, directly affecting climbing ability.
         const totalWeight = data.rider_weight || data.riderWeight || this.riderWeight || 75;
         const wkgVal = (data.power / totalWeight).toFixed(2);
-        this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit">w/kg</span>`;
+        this.els.wkg.innerHTML = `${wkgVal}<span class="data-unit"></span>`;
 
         // Update Studio / Challenge HUD metrics
         if (this.isStudioMode || (this.hud && this.hud.isOpen())) {
@@ -644,10 +649,10 @@ export class UIManager {
 
         // --- NEW: Update Dashboard Mode Data & Chart ---
         if (this.isDashboardMode) {
-            this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">w</span>`;
+            this.els.dashPower.innerHTML = `${data.power}<span class="dash-unit">W</span>`;
             this.els.dashPower.style.color = powerColor;
 
-            this.els.dashWkg.innerText = `${wkgVal} w/kg`;
+            if (!window.workoutCtrl?.activeWorkout) this.els.dashWkg.innerText = `${wkgVal} W/kg`;
 
             this.els.dashHr.innerHTML = `${data.heart_rate}<span class="dash-unit">bpm</span>`;
             this.els.dashHr.style.color = hrColor;
@@ -704,7 +709,7 @@ export class UIManager {
      * Display the currently loaded route filename.
      */
     setFilename(name) {
-        this.els.filename.innerText = "| " + name;
+        this.els.filename.innerText = name;
     }
 
     // ===============
@@ -716,10 +721,10 @@ export class UIManager {
         this.updateTimerDisplay();
 
         if (this.els.dashPower) {
-            this.els.dashPower.innerHTML = `0<span class="dash-unit">w</span>`;
+            this.els.dashPower.innerHTML = `0<span class="dash-unit">W</span>`;
             this.els.dashPower.style.color = '';
         }
-        if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 w/kg`;
+        if (this.els.dashWkg) this.els.dashWkg.innerText = `0.0 W/kg`;
         if (this.els.dashHr) {
             this.els.dashHr.innerHTML = `--<span class="dash-unit">bpm</span>`;
             this.els.dashHr.style.color = '';
@@ -729,12 +734,12 @@ export class UIManager {
         if (this.els.dashDist) this.els.dashDist.innerHTML = `0.00<span class="dash-unit">km</span>`;
 
         if (this.els.watts) {
-            this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+            this.els.watts.innerHTML = `0<span class="data-unit">W</span>`;
             this.els.watts.style.color = '';
         }
-        if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+        if (this.els.wkg) this.els.wkg.innerHTML = `0.0<span class="data-unit"></span>`;
         if (this.els.hr) {
-            this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+            this.els.hr.innerHTML = `--<span class="data-unit">bpm</span>`;
             this.els.hr.style.color = '';
         }
         if (this.els.rpm) this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
@@ -769,12 +774,12 @@ export class UIManager {
      */
     showRoutePreview(totalDistance, totalElevation = 0) {
         // Reset telemetry values to zero/dash
-        this.els.watts.innerHTML = `0<span class="data-unit">w</span>`;
+        this.els.watts.innerHTML = `0<span class="data-unit">W</span>`;
         this.els.watts.style.color = '';
 
         this.els.rpm.innerHTML = `0<span class="data-unit">rpm</span>`;
 
-        this.els.hr.innerHTML = `--<span class="data-unit">❤</span>`;
+        this.els.hr.innerHTML = `--<span class="data-unit">bpm</span>`;
         this.els.hr.style.color = '';
 
         this.els.grade.innerHTML = `0.0<span class="data-unit">%</span>`;
@@ -786,7 +791,7 @@ export class UIManager {
         }
 
         this.els.speed.innerHTML = `0.0<span class="data-unit">km/h</span>`; // Or miles based on preference
-        this.els.wkg.innerHTML = `0.0<span class="data-unit">w/kg</span>`;
+        this.els.wkg.innerHTML = `0.0<span class="data-unit"></span>`;
 
         // Reset Timer
         this.els.time.innerText = `00:00:00`;
@@ -837,6 +842,9 @@ export class UIManager {
     }
 
     startRouteEditor() {
+        // Points are placed on the real map: leave the 3D view and the dashboard first.
+        if (window.setMainView) window.setMainView('map');
+        document.body.classList.add('ar-route-editing'); // hides the ride HUD (argus-ui.css)
         document.getElementById('routeEditorPanel').style.display = 'block';
         document.getElementById('btnOpenEditor').style.display = 'none'; // Esconde botão de abrir
 
@@ -850,7 +858,8 @@ export class UIManager {
 
     cancelRoute() {
         document.getElementById('routeEditorPanel').style.display = 'none';
-        document.getElementById('btnOpenEditor').style.display = 'block';
+        document.getElementById('btnOpenEditor').style.display = '';
+        document.body.classList.remove('ar-route-editing');
 
         window.mapController.disableEditorMode();
     }
@@ -920,27 +929,14 @@ export class UIManager {
         }
     }
 
+    /**
+     * Bike components live in a tab of the athlete area: show=true opens the area on that
+     * tab (kept for older callers); show=false is a no-op.
+     */
     toggleBikeComponentsModal(show) {
-        if (!this.els.bikeComponentsModal) {
-            this.els.bikeComponentsModal = document.getElementById('bikeComponentsModal');
-            this.els.btnCloseBikeComponents = document.getElementById('btnCloseBikeComponents');
-        }
-        if (show) {
-            this.loadBikeComponentsBike();
-            if (this.els.bikeComponentsModal) {
-                this.els.bikeComponentsModal.classList.remove('hidden', 'hide');
-                this.els.bikeComponentsModal.classList.add('active');
-            }
-            if (this.els.header) this.els.header.classList.add('header-dimmed');
-        } else {
-            if (this.els.bikeComponentsModal) {
-                this.els.bikeComponentsModal.classList.remove('active');
-                this.els.bikeComponentsModal.classList.add('hidden');
-            }
-            if (this.els.header && !this.isAnyOverlayActive()) {
-                this.els.header.classList.remove('header-dimmed');
-            }
-        }
+        if (!show) return;
+        if (!this.els.settingsModal.classList.contains('active')) this.toggleSettings(true);
+        document.querySelector('#settingsModal [data-tab="tab-components"]')?.click();
     }
 
     isAnyOverlayActive() {
@@ -999,6 +995,10 @@ export class UIManager {
      * @param {'RECORDING' | 'PAUSED' | 'IDLE'} state
      */
     setRecordingState(state) {
+        // Ride HUD state tag (FREE RIDE · READY / RECORDING / PAUSED).
+        const stateText = document.getElementById('arRideStateText');
+        if (stateText) stateText.textContent = { RECORDING: 'RECORDING', PAUSED: 'PAUSED' }[state] || 'READY';
+        document.getElementById('arRideState')?.classList.toggle('is-live', state === 'RECORDING');
         if (state === 'RECORDING') {
             this.els.btnAction.innerText = "STOP";
             this.els.btnAction.className = "btn-action btn-stop";
@@ -1059,6 +1059,14 @@ export class UIManager {
 
             this.setLevelProgress({ level: profile.level, xp: profile.current_xp });
             await this.loadLevelProgress();
+
+            // Rider tag above the ride metrics.
+            const riderName = document.getElementById('arRiderName');
+            if (riderName) riderName.textContent = (profile.name || 'Rider').split(' ')[0].toUpperCase();
+            const athleteName = document.getElementById('arAthleteName');
+            if (athleteName) athleteName.textContent = (profile.name || 'Rider').toUpperCase();
+            const riderMeta = document.getElementById('arRiderMeta');
+            if (riderMeta) riderMeta.textContent = `${profile.weight || 75} kg · FTP ${profile.ftp || 200} W`;
 
             // Set Photo Details Update if on main view
             if (document.getElementById('profileNameDisplay')) {
@@ -1194,26 +1202,26 @@ export class UIManager {
                     if (achieved) {
                         bDiv.className = 'badge-item minimalist-badge';
                         let tierColor = '#94a3b8';
-                        if (m.type === 'consistency') tierColor = '#e67e22';
-                        else if (m.type === 'recovery') tierColor = '#2ecc71';
-                        else if (m.type === 'routine') tierColor = '#f1c40f';
+                        if (m.type === 'consistency') tierColor = '#ff8c3a';
+                        else if (m.type === 'recovery') tierColor = '#3fd08a';
+                        else if (m.type === 'routine') tierColor = '#ffd23d';
                         else if (m.type === 'explorer') tierColor = '#9b59b6';
                         else if (m.type === 'balance') tierColor = '#1abc9c';
-                        else if (m.type === 'cardio') tierColor = '#e74c3c';
+                        else if (m.type === 'cardio') tierColor = '#ff6b6f';
                         else if (m.val >= 1000 || m.val >= 50) tierColor = 'var(--argus-safe)';
-                        else if (m.val >= 500 || m.val >= 25) tierColor = '#3498db';
+                        else if (m.val >= 500 || m.val >= 25) tierColor = '#4c95f2';
 
                         bDiv.innerHTML = `
                             <div class="badge-icon-wrap" style="color: ${tierColor};">${getIcon(m.type)}</div>
-                            <strong style="font-size: 0.9rem; display: block; margin-top: 10px; color: #fff;">${m.name}</strong>
-                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">${new Date(achieved.achieved_at).toLocaleDateString()}</div>
+                            <strong class="ar-badge-title">${m.name}</strong>
+                            <div class="ar-badge-sub">Earned ${new Date(achieved.achieved_at).toLocaleDateString()}</div>
                         `;
                     } else {
                         bDiv.className = 'badge-item minimalist-badge badge-locked';
                         bDiv.innerHTML = `
                             <div class="badge-icon-wrap">${getIcon(m.type)}</div>
-                            <strong style="font-size: 0.9rem; display: block; margin-top: 10px;">${m.name}</strong>
-                            <div style="font-size: 0.8rem; margin-top: 4px;">Locked</div>
+                            <strong class="ar-badge-title">${m.name}</strong>
+                            <div class="ar-badge-sub">Locked</div>
                         `;
                     }
                     badgesContainer.appendChild(bDiv);
@@ -1230,7 +1238,7 @@ export class UIManager {
             if (goalsList) {
                 goalsList.innerHTML = '';
                 if (activeGoals.length === 0) {
-                    goalsList.innerHTML = '<div style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No active goals.</div>';
+                    goalsList.innerHTML = '<div class="ar-empty">No active goals.</div>';
                 } else {
                     activeGoals.forEach(g => {
                         const progressPct = Math.min((g.current_progress / g.target_value) * 100, 100);
@@ -1267,14 +1275,14 @@ export class UIManager {
             if (completedGoalsList) {
                 completedGoalsList.innerHTML = '';
                 if (completedGoals.length === 0) {
-                    completedGoalsList.innerHTML = '<div style="color: #555; text-align: center; font-style: italic;">No goals completed yet.</div>';
+                    completedGoalsList.innerHTML = '<div class="ar-empty">No goals completed yet.</div>';
                 } else {
                     completedGoals.slice(0, 3).forEach(g => {
                         const gDiv = document.createElement('div');
-                        gDiv.style.cssText = 'display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(46, 204, 113, 0.1); border-radius: 4px; margin-bottom: 4px; border-left: 3px solid #2ecc71;';
+                        gDiv.className = 'ar-goal-done';
                         gDiv.innerHTML = `
                             <span>${g.metric.charAt(0).toUpperCase() + g.metric.slice(1)} (${g.target_value})</span>
-                            <span style="color: #2ecc71;">✓ Done</span>
+                            <span class="ar-goal-done-tag">DONE</span>
                         `;
                         completedGoalsList.appendChild(gDiv);
                     });
@@ -1303,13 +1311,13 @@ export class UIManager {
         const deadline = document.getElementById('goalDeadline').value; // YYYY-MM-DD
 
         if (!targetStr || !deadline) {
-            alert("Please fill all fields.");
+            arAlert("Please fill all fields.");
             return;
         }
 
         const target = parseFloat(targetStr);
         if (isNaN(target) || target <= 0) {
-            alert("Target value must be a valid number greater than 0.");
+            arAlert("Target value must be a valid number greater than 0.");
             return;
         }
 
@@ -1322,17 +1330,17 @@ export class UIManager {
             this.closeCustomGoalModal();
             this.loadTrophyRoom();
         } catch (e) {
-            alert("Error creating goal: " + e);
+            arAlert("Error creating goal: " + e);
         }
     }
 
     async deleteCustomGoal(id) {
-        if (!confirm("Are you sure you want to delete this goal?")) return;
+        if (!await arConfirm("Are you sure you want to delete this goal?")) return;
         try {
             await window.go.main.App.DeleteCustomGoal(id);
             this.loadTrophyRoom();
         } catch (e) {
-            alert("Error deleting goal: " + e);
+            arAlert("Error deleting goal: " + e);
         }
     }
 
@@ -1391,7 +1399,7 @@ export class UIManager {
             }
             console.log("Profile Saved");
         } catch (e) {
-            alert("Error saving profile: " + e);
+            arAlert("Error saving profile: " + e);
         }
     }
 
@@ -1441,8 +1449,6 @@ export class UIManager {
             div.className = 'history-item';
             div.style.cursor = 'pointer';
 
-            div.onmouseover = () => div.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            div.onmouseout = () => div.style.backgroundColor = 'transparent';
 
             div.onclick = () => {
                 this.openActivityDetail(act);
@@ -1461,12 +1467,12 @@ export class UIManager {
             const intervalsCursor = isIntervalsUploaded ? 'default' : 'pointer';
 
             div.innerHTML = `
-                <span style="flex: 2;">${date} - <small style="color: var(--text-muted);">${name}</small></span>
-                <span style="flex: 1; text-align: center;">${dist}</span>
-                <span style="flex: 1; text-align: center; color: var(--power-color); font-weight: bold;">${pwr}w</span>
-                <span style="flex: 1; text-align: center; color: #e74c3c; font-weight: bold;" title="TRIMP">${trimp}</span> 
-                
-                <div style="display: flex; gap: 12px; width: 130px; justify-content: flex-end; align-items: center; padding-right: 10px;">
+                <span class="ar-hist-name" title="${name}"><strong>${date}</strong> · ${name}</span>
+                <span class="ar-hist-num">${dist}</span>
+                <span class="ar-hist-num is-power">${pwr} W</span>
+                <span class="ar-hist-num" title="TRIMP">${trimp || '—'}</span>
+
+                <div class="ar-hist-actions">
                     
                     <span 
                         title="${stravaTitle}" 
@@ -1508,13 +1514,7 @@ export class UIManager {
                     <span 
                         title="Delete Workout" 
                         class="icon-minimal icon-minimal-danger"
-                        onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this workout? Statistics will be recalculated and the file will be removed from disk.')) { 
-                            const targetId = ${act.id || act.ID};
-                            window.go.main.App.DeleteActivityHistory(targetId).then(() => {
-                                window.ui.toggleSettings(true);
-                                window.ui.loadCareerDashboard(); 
-                            }).catch(err => alert('Error deleting: ' + err)); 
-                        }"
+                        onclick="event.stopPropagation(); window.ui.deleteActivityFromHistory(${act.id || act.ID})"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
@@ -1531,7 +1531,7 @@ export class UIManager {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth() + 1;
 
-        document.getElementById('calendarTitle').innerText = this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+        document.getElementById('calendarTitle').innerText = this.currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // Free Ride UI is English
         const container = document.getElementById('calendarGrid');
         container.innerHTML = "";
 
@@ -1597,7 +1597,7 @@ export class UIManager {
                 const row = `
                     <tr>
                         <td>${label}</td>
-                        <td class="col-watts">${rec.watts}w</td>
+                        <td class="col-watts">${rec.watts}</td>
                         <td>${rec.wkg.toFixed(2)}</td>
                         <td class="col-date">${dateStr}</td>
                     </tr>
@@ -1615,7 +1615,7 @@ export class UIManager {
     async saveRoute() {
         const points = window.mapController.getGeneratedRoute();
         if (!points || points.length === 0) {
-            alert("Create a route first by clicking 2 points on map.");
+            arAlert("Create a route first by clicking 2 points on map.");
             return;
         }
 
@@ -1623,11 +1623,11 @@ export class UIManager {
 
         try {
             const result = await window.go.main.App.SaveGeneratedGPX(name, points);
-            alert(result);
+            arAlert(result);
 
             this.cancelRoute();
         } catch (e) {
-            alert("Error saving: " + e);
+            arAlert("Error saving: " + e);
         }
     }
 
@@ -1681,7 +1681,7 @@ export class UIManager {
         if (!modal) return;
 
         if (summary && summary.activity) {
-            document.getElementById('finish-np').innerText = summary.activity.normalized_power ? `${summary.activity.normalized_power} w` : '-- w';
+            document.getElementById('finish-np').innerText = summary.activity.normalized_power ? `${summary.activity.normalized_power} W` : '-- W';
             document.getElementById('finish-if').innerText = summary.activity.intensity_factor ? summary.activity.intensity_factor.toFixed(2) : '--';
             document.getElementById('finish-tss').innerText = summary.activity.tss ? summary.activity.tss.toFixed(1) : '--';
             document.getElementById('finish-cal').innerText = summary.activity.calories ? summary.activity.calories : '--';
@@ -1696,7 +1696,7 @@ export class UIManager {
                 // Only show valid decoupling for rides longer than 1 hour (3600s)
                 if (durationSec >= 3600) {
                     // Display yellow warning emoji if drift > 5%
-                    const warning = drift > 5.0 ? `<span title="High Cardiovascular Drift! Indicates lack of base aerobic conditioning." style="color: #f1c40f; font-size: 1.1rem;">⚠️</span>` : '';
+                    const warning = drift > 5.0 ? `<span class="ar-drift-warn" title="High cardiovascular drift: indicates a weak aerobic base.">HIGH</span>` : '';
                     decouplingEl.innerHTML = `${drift.toFixed(1)}% ${warning}`;
                 } else {
                     decouplingEl.innerText = 'N/A (<1h)';
@@ -1777,12 +1777,12 @@ export class UIManager {
         bar.innerHTML = '';
 
         const zoneKeys = [
-            { key: 'z1_time', color: 'var(--zone-1)' },
-            { key: 'z2_time', color: 'var(--zone-2)' },
-            { key: 'z3_time', color: 'var(--zone-3)' },
-            { key: 'z4_time', color: 'var(--zone-4)' },
-            { key: 'z5_time', color: 'var(--zone-5)' },
-            { key: 'z6_time', color: 'var(--zone-6)' }
+            { key: 'z1_time', color: 'var(--ar-z1)' },
+            { key: 'z2_time', color: 'var(--ar-z2)' },
+            { key: 'z3_time', color: 'var(--ar-z3)' },
+            { key: 'z4_time', color: 'var(--ar-z4)' },
+            { key: 'z5_time', color: 'var(--ar-z5)' },
+            { key: 'z6_time', color: 'var(--ar-z6)' }
         ];
 
         zoneKeys.forEach(zone => {
@@ -1939,10 +1939,10 @@ export class UIManager {
             const hrrColor = this.getHRRColor(activity.hrr_1);
 
             document.getElementById('detail-metrics-grid').innerHTML = `
-                <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} m</span></div>
+                <div class="modern-stat-card"><span class="label">Duration</span><span class="value">${durationMin} min</span></div>
                 <div class="modern-stat-card"><span class="label">Distance</span><span class="value">${distKm} km</span></div>
-                <div class="modern-stat-card"><span class="label">Avg Power</span><span class="value" style="color:var(--power-color)">${activity.avg_power} w</span></div>
-                <div class="modern-stat-card"><span class="label">NP®</span><span class="value" style="color:var(--power-color)">${activity.normalized_power || '--'} w</span></div>
+                <div class="modern-stat-card"><span class="label">Avg Power</span><span class="value is-power">${activity.avg_power} W</span></div>
+                <div class="modern-stat-card"><span class="label">NP®</span><span class="value is-power">${activity.normalized_power || '--'} W</span></div>
                 <div class="modern-stat-card"><span class="label">Calories</span><span class="value">${activity.calories || '--'} kcal</span></div>
                 
                 <div class="modern-stat-card">
@@ -1986,16 +1986,7 @@ export class UIManager {
                 const chartsRow = document.querySelector('.charts-row');
                 analysisBox = document.createElement('div');
                 analysisBox.id = 'physiological-analysis-box';
-                analysisBox.style.cssText = `
-                    margin-top: 15px; 
-                    padding: 15px; 
-                    background: rgba(0,0,0,0.3); 
-                    border: 1px dashed rgba(255,255,255,0.2); 
-                    border-radius: 8px;
-                    display: flex;
-                    justify-content: space-around;
-                    align-items: center;
-                `;
+                analysisBox.className = 'ar-panel ar-thresholds';
                 chartsRow.parentNode.insertBefore(analysisBox, chartsRow.nextSibling);
             }
 
@@ -2011,17 +2002,17 @@ export class UIManager {
                 </div>
                 
                 <div id="vt1-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
-                    <h4 style="color: #2ecc71; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT1 / LT1 (Aerobic)</h4>
-                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#2ecc71">GREEN</strong> line</span>
-                    <div id="vt1-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                    <h4 class="ar-label ar-vt1">VT1 / LT1 · AEROBIC</h4>
+                    <span class="ar-caption">Drag the <strong class="ar-vt1">GREEN</strong> line</span>
+                    <div id="vt1-data" class="ar-vt-data">-- W | -- bpm</div>
                 </div>
                 
                 <div style="width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 10px;"></div>
                 
                 <div id="vt2-container" style="text-align: center; transition: opacity 0.3s; flex: 1;">
-                    <h4 style="color: #9b59b6; margin:0 0 5px 0; font-size: 0.8rem; text-transform: uppercase;">VT2 / LT2 (Anaerobic)</h4>
-                    <span style="color: #ccc; font-size: 0.85rem;">Drag the <strong style="color:#9b59b6">PURPLE</strong> line</span>
-                    <div id="vt2-data" style="font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">-- w | -- bpm</div>
+                    <h4 class="ar-label ar-vt2">VT2 / LT2 · ANAEROBIC</h4>
+                    <span class="ar-caption">Drag the <strong class="ar-vt2">ORANGE</strong> line</span>
+                    <div id="vt2-data" class="ar-vt-data">-- W | -- bpm</div>
                 </div>
             `;
 
@@ -2058,20 +2049,21 @@ export class UIManager {
 
             const el = document.getElementById(`${type}-data`);
             if (el) {
-                el.innerText = `${pwr} w | ${hr} bpm`;
+                el.innerText = `${pwr} W | ${hr} bpm`;
                 el.style.color = '#fff';
                 setTimeout(() => el.style.color = '', 300);
             }
         };
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'cross' }
             },
             legend: {
                 data: ['Elevation', 'Power (w)', 'Heart Rate (bpm)', 'Cadence (rpm)', 'VT1', 'VT2'],
-                textStyle: { color: '#ccc' },
+                textStyle: { color: '#d6e2f0' },
                 selected: { 'Elevation': false },
                 top: 0
             },
@@ -2084,14 +2076,14 @@ export class UIManager {
                 type: 'category',
                 boundaryGap: false,
                 data: timeAxis,
-                axisLabel: { color: '#888' }
+                axisLabel: { color: '#9fb2c9' }
             },
             yAxis: [
                 {
                     type: 'value',
                     name: 'Watts',
                     position: 'left',
-                    splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)', type: 'dashed' } }
                 },
                 {
                     type: 'value',
@@ -2125,12 +2117,12 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#f1c40f' },
-                    lineStyle: { width: 2.5, color: '#f1c40f' },
+                    itemStyle: { color: '#19ecd6' },
+                    lineStyle: { width: 2.5, color: '#19ecd6' },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(241, 196, 15, 0.3)' },
-                            { offset: 1, color: 'rgba(241, 196, 15, 0.0)' }
+                            { offset: 0, color: 'rgba(25, 236, 214, 0.3)' },
+                            { offset: 1, color: 'rgba(25, 236, 214, 0.0)' }
                         ])
                     },
                     data: details.power
@@ -2140,12 +2132,12 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#e74c3c' },
-                    lineStyle: { width: 2.5, color: '#e74c3c' },
+                    itemStyle: { color: '#ff6b6f' },
+                    lineStyle: { width: 2.5, color: '#ff6b6f' },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(231, 76, 60, 0.25)' },
-                            { offset: 1, color: 'rgba(231, 76, 60, 0.0)' }
+                            { offset: 0, color: 'rgba(255, 107, 111, 0.25)' },
+                            { offset: 1, color: 'rgba(255, 107, 111, 0.0)' }
                         ])
                     },
                     data: details.hr
@@ -2155,8 +2147,8 @@ export class UIManager {
                     type: 'line',
                     yAxisIndex: 1,
                     symbol: 'none',
-                    itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 1.5, color: '#3498db', type: 'dashed' },
+                    itemStyle: { color: '#4c95f2' },
+                    lineStyle: { width: 1.5, color: '#4c95f2', type: 'dashed' },
                     data: details.cadence
                 },
                 {
@@ -2164,16 +2156,16 @@ export class UIManager {
                     type: 'line',
                     data: [],
                     symbol: 'none',
-                    itemStyle: { color: '#2ecc71' },
-                    lineStyle: { width: 2, color: '#2ecc71', type: 'dashed' }
+                    itemStyle: { color: '#3fd08a' },
+                    lineStyle: { width: 2, color: '#3fd08a', type: 'dashed' }
                 },
                 {
                     name: 'VT2',
                     type: 'line',
                     data: [],
                     symbol: 'none',
-                    itemStyle: { color: '#9b59b6' },
-                    lineStyle: { width: 2, color: '#9b59b6', type: 'dashed' }
+                    itemStyle: { color: '#ff8c3a' },
+                    lineStyle: { width: 2, color: '#ff8c3a', type: 'dashed' }
                 }
             ]
         };
@@ -2217,13 +2209,13 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                style: { stroke: '#2ecc71', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                style: { stroke: '#3fd08a', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
                                 shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
-                                style: { fill: '#2ecc71', opacity: 1 },
+                                style: { fill: '#3fd08a', opacity: 1 },
                                 z: 101
                             },
                             {
@@ -2249,13 +2241,13 @@ export class UIManager {
                             {
                                 type: 'line',
                                 shape: { x1: 0, y1: 0, x2: 0, y2: gridRect.height },
-                                style: { stroke: '#9b59b6', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
+                                style: { stroke: '#ff8c3a', lineWidth: 2, lineDash: [5, 5], opacity: 1 },
                                 z: 100
                             },
                             {
                                 type: 'rect',
                                 shape: { x: -16, y: -10, width: 32, height: 20, r: 4 },
-                                style: { fill: '#9b59b6', opacity: 1 },
+                                style: { fill: '#ff8c3a', opacity: 1 },
                                 z: 101
                             },
                             {
@@ -2363,24 +2355,25 @@ export class UIManager {
         const labels = ['1s', '5s', '15s', '30s', '1m', '5m', '10m', '20m'];
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: { trigger: 'axis' },
             grid: { left: '5%', right: '5%', bottom: '12%', top: '10%', containLabel: true },
             xAxis: {
                 type: 'category',
                 data: labels,
-                axisLabel: { color: '#888' }
+                axisLabel: { color: '#9fb2c9' }
             },
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#333', type: 'dashed' } }
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)', type: 'dashed' } }
             },
             series: [{
                 data: mmpValues,
                 type: 'bar',
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#f1c40f' },
-                        { offset: 1, color: '#e67e22' }
+                        { offset: 0, color: '#19ecd6' },
+                        { offset: 1, color: '#0fb8a6' }
                     ]),
                     borderRadius: [6, 6, 0, 0]
                 },
@@ -2434,12 +2427,12 @@ export class UIManager {
 
             if (tsbEl) {
                 const tsbVal = Math.round(lastEntry.tsb);
-                let tsbColor = '#ccc';
-                if (tsbVal >= 25) tsbColor = '#e67e22';
-                else if (tsbVal >= 5) tsbColor = '#3498db';
-                else if (tsbVal >= -10) tsbColor = '#2ecc71';
-                else if (tsbVal >= -30) tsbColor = '#f1c40f';
-                else tsbColor = '#e74c3c';
+                let tsbColor = '#d6e2f0';
+                if (tsbVal >= 25) tsbColor = '#ff8c3a';
+                else if (tsbVal >= 5) tsbColor = '#4c95f2';
+                else if (tsbVal >= -10) tsbColor = '#3fd08a';
+                else if (tsbVal >= -30) tsbColor = '#ffd23d';
+                else tsbColor = '#ff4d5e';
 
                 tsbEl.textContent = tsbVal > 0 ? `+${tsbVal}` : tsbVal;
                 tsbEl.style.color = tsbColor;
@@ -2457,6 +2450,7 @@ export class UIManager {
         const tsb = pmcData.map(d => Math.round(d.tsb));
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
@@ -2469,15 +2463,15 @@ export class UIManager {
                     params.forEach(param => {
                         let color = param.color;
                         let valueStr = param.value;
-                        let textColor = '#ccc';
+                        let textColor = '#d6e2f0';
 
                         if (param.seriesName === 'TSB (Form)') {
                             const val = param.value;
-                            if (val >= 25) color = '#e67e22';
-                            else if (val >= 5) color = '#3498db';
-                            else if (val >= -10) color = '#2ecc71';
-                            else if (val >= -30) color = '#f1c40f';
-                            else color = '#e74c3c';
+                            if (val >= 25) color = '#ff8c3a';
+                            else if (val >= 5) color = '#4c95f2';
+                            else if (val >= -10) color = '#3fd08a';
+                            else if (val >= -30) color = '#ffd23d';
+                            else color = '#ff4d5e';
 
                             valueStr = val > 0 ? `+${val}` : val;
                             textColor = color;
@@ -2496,9 +2490,11 @@ export class UIManager {
                     return tooltipHtml;
                 }
             },
+            // The legend lives in the panel (settingsModal.html).
             legend: {
+                show: false,
                 data: ['CTL (Fitness)', 'ATL (Fatigue)', 'TSB (Form)'],
-                textStyle: { color: '#ccc' },
+                textStyle: { color: '#d6e2f0' },
                 top: 0
             },
             grid: { left: '3%', right: '3%', bottom: '15%', top: '15%', containLabel: true },
@@ -2517,8 +2513,8 @@ export class UIManager {
                     height: 20,
                     bottom: 5,
                     borderColor: 'transparent',
-                    fillerColor: 'rgba(52, 152, 219, 0.2)',
-                    textStyle: { color: '#888' }
+                    fillerColor: 'rgba(76, 149, 242, 0.2)',
+                    textStyle: { color: '#9fb2c9' }
                 }
             ],
             xAxis: [
@@ -2526,8 +2522,8 @@ export class UIManager {
                     type: 'category',
                     boundaryGap: false,
                     data: dates,
-                    axisLabel: { color: '#888' },
-                    axisLine: { lineStyle: { color: '#444' } }
+                    axisLabel: { color: '#9fb2c9' },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.18)' } }
                 },
                 {
                     type: 'category',
@@ -2538,18 +2534,18 @@ export class UIManager {
             ],
             yAxis: {
                 type: 'value',
-                splitLine: { lineStyle: { color: '#333', type: 'dashed' } },
-                axisLabel: { color: '#ccc' }
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)', type: 'dashed' } },
+                axisLabel: { color: '#d6e2f0' }
             },
             visualMap: {
                 seriesIndex: 2,
                 show: false,
                 pieces: [
-                    { min: 25, color: '#e67e22' },
-                    { min: 5, max: 25, color: '#3498db' },
-                    { min: -10, max: 5, color: '#2ecc71' },
-                    { min: -30, max: -10, color: '#f1c40f' },
-                    { max: -30, color: '#e74c3c' }
+                    { min: 25, color: '#ff8c3a' },
+                    { min: 5, max: 25, color: '#4c95f2' },
+                    { min: -10, max: 5, color: '#3fd08a' },
+                    { min: -30, max: -10, color: '#ffd23d' },
+                    { max: -30, color: '#ff4d5e' }
                 ]
             },
             series: [
@@ -2558,12 +2554,12 @@ export class UIManager {
                     type: 'line',
                     xAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#3498db' },
-                    lineStyle: { width: 3, color: '#3498db' },
+                    itemStyle: { color: '#4c95f2' },
+                    lineStyle: { width: 3, color: '#4c95f2' },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(52, 152, 219, 0.4)' },
-                            { offset: 1, color: 'rgba(52, 152, 219, 0.05)' }
+                            { offset: 0, color: 'rgba(76, 149, 242, 0.4)' },
+                            { offset: 1, color: 'rgba(76, 149, 242, 0.05)' }
                         ])
                     },
                     data: ctl,
@@ -2574,8 +2570,8 @@ export class UIManager {
                     type: 'line',
                     xAxisIndex: 0,
                     symbol: 'none',
-                    itemStyle: { color: '#e056fd' },
-                    lineStyle: { width: 2, color: '#e056fd' },
+                    itemStyle: { color: '#ff8c3a' },
+                    lineStyle: { width: 2, color: '#ff8c3a' },
                     data: atl,
                     z: 2
                 },
@@ -2583,7 +2579,7 @@ export class UIManager {
                     name: 'TSB (Form)',
                     type: 'bar',
                     xAxisIndex: 1,
-                    itemStyle: { color: '#3498db', borderRadius: [2, 2, 0, 0] },
+                    itemStyle: { color: '#4c95f2', borderRadius: [2, 2, 0, 0] },
                     data: tsb,
                     z: 1,
                     markArea: {
@@ -2613,6 +2609,7 @@ export class UIManager {
         const drift = decouplingData.map(d => d.decoupling);
 
         const option = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
                 formatter: '{b}: {c}% Drift'
@@ -2636,14 +2633,14 @@ export class UIManager {
                 type: 'value',
                 name: 'Drift (%)',
                 min: 0, // Force start at 0
-                splitLine: { lineStyle: { color: '#333' } }
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.07)' } }
             },
             // Dynamically color the bars: Green if <= 5% (Good base), Red if > 5% (Needs work)
             visualMap: {
                 show: false,
                 pieces: [
-                    { gt: -100, lte: 5, color: '#2ecc71' }, // Green
-                    { gt: 5, lte: 100, color: '#e74c3c' }   // Red
+                    { gt: -100, lte: 5, color: '#3fd08a' }, // Green
+                    { gt: 5, lte: 100, color: '#ff4d5e' }   // Red
                 ]
             },
             series: [{
@@ -2837,7 +2834,7 @@ export class UIManager {
             }
         } catch (error) {
             console.error("Export CSV Error:", error);
-            alert("Failed to export CSV: " + error);
+            arAlert("Failed to export CSV: " + error);
         }
     }
 
@@ -2964,7 +2961,7 @@ export class UIManager {
 
         } catch (error) {
             console.error("Export PDF Error:", error);
-            alert("Failed to export PDF: " + error);
+            arAlert("Failed to export PDF: " + error);
         }
     }
 
@@ -3051,13 +3048,13 @@ export class UIManager {
 
             components.forEach(c => {
                 const wearPct = c.wear_percent || 0;
-                let wearColor = 'var(--argus-safe)';
+                let wearColor = 'var(--ar-good)';
                 let wearLabel = 'Good';
                 if (wearPct >= 80) {
-                    wearColor = 'var(--argus-alert)';
+                    wearColor = 'var(--ar-bad)';
                     wearLabel = 'Critical';
                 } else if (wearPct >= 50) {
-                    wearColor = '#f1c40f';
+                    wearColor = 'var(--ar-z4)';
                     wearLabel = 'Worn';
                 }
 
@@ -3080,7 +3077,7 @@ export class UIManager {
                             </div>
                             <span style="font-size: 0.75rem; color: ${wearColor}; font-weight: bold;">${wearPct}%</span>
                         </div>
-                        ${wearPct >= 80 ? '<div style="color: var(--argus-alert); font-size: 0.7rem; margin-top: 2px;">⚠ Replace soon</div>' : ''}
+                        ${wearPct >= 80 ? '<div class="ar-wear-warn">Replace soon</div>' : ''}
                     </div>
                     <div style="flex: 1; text-align: center;">
                         <span class="status-badge ${c.status}">${c.status}</span>
@@ -3163,12 +3160,12 @@ export class UIManager {
             this.showToast("Component saved!", 2000);
         } catch (err) {
             console.error("Error saving component:", err);
-            alert("Error saving component: " + err);
+            arAlert("Error saving component: " + err);
         }
     }
 
     async replaceComponentBike(id) {
-        const reason = prompt("Reason for replacement (optional):");
+        const reason = await arPrompt("Reason for replacement (optional):");
         if (reason === null) return;
         try {
             await window.go.main.App.ReplaceBikeComponent(id, reason || "");
@@ -3176,12 +3173,12 @@ export class UIManager {
             this.showToast("Component replaced and archived.", 2000);
         } catch (err) {
             console.error("Error replacing component:", err);
-            alert("Error: " + err);
+            arAlert("Error: " + err);
         }
     }
 
     async archiveComponentBike(id) {
-        if (!confirm("Archive this component? It will be marked as archived.")) return;
+        if (!await arConfirm("Archive this component? It will be marked as archived.")) return;
         try {
             await window.go.main.App.ArchiveBikeComponent(id);
             this.loadBikeComponentsBike();
@@ -3192,7 +3189,7 @@ export class UIManager {
     }
 
     async deleteComponentBike(id) {
-        if (!confirm("Permanently delete this component and its history?")) return;
+        if (!await arConfirm("Permanently delete this component and its history?")) return;
         try {
             await window.go.main.App.DeleteBikeComponent(id);
             this.loadBikeComponentsBike();
@@ -3202,11 +3199,23 @@ export class UIManager {
         }
     }
 
+    /** Deletes an activity from the history list after an in-app confirmation. */
+    async deleteActivityFromHistory(targetId) {
+        if (!await arConfirm('Delete this workout? Statistics will be recalculated and the file will be removed from disk.')) return;
+        try {
+            await window.go.main.App.DeleteActivityHistory(targetId);
+            this.toggleSettings(true);
+            this.loadCareerDashboard();
+        } catch (err) {
+            arAlert('Error deleting: ' + err);
+        }
+    }
+
     async showComponentHistoryBike(componentId) {
         try {
             const reps = await window.go.main.App.GetComponentReplacements(componentId);
             if (!reps || reps.length === 0) {
-                alert("No replacement history for this component.");
+                arAlert("No replacement history for this component.");
                 return;
             }
 
@@ -3216,7 +3225,7 @@ export class UIManager {
                 msg += `\n${date} - Usage: ${(r.usage_at_replace || 0).toFixed(0)} km`;
                 if (r.reason) msg += ` - Reason: ${r.reason}`;
             });
-            alert(msg);
+            arAlert(msg);
         } catch (err) {
             console.error("Error loading history:", err);
         }
@@ -3238,7 +3247,7 @@ window.uploadHistoricalToStrava = async (id, event) => {
         // Validate if user has connected Strava
         const isConn = await window.go.main.App.IsStravaConnected();
         if (!isConn) {
-            alert("Please connect your Strava account in Settings > Profile & Devices first.");
+            arAlert("Please connect your Strava account in Settings > Profile & Devices first.");
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
             return;
@@ -3259,7 +3268,7 @@ window.uploadHistoricalToStrava = async (id, event) => {
 
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
 
         // Revert button state so user can try again
         btn.style.opacity = '1';
@@ -3281,7 +3290,7 @@ window.uploadHistoricalToIntervals = async (id, event) => {
         // Validate if user has connected Intervals.icu
         const isConn = await window.go.main.App.IsIntervalsConnected();
         if (!isConn) {
-            alert("Please connect your Intervals.icu account in Settings > Profile & Devices first.");
+            arAlert("Please connect your Intervals.icu account in Settings > Profile & Devices first.");
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
             return;
@@ -3302,7 +3311,7 @@ window.uploadHistoricalToIntervals = async (id, event) => {
 
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Failed to upload: " + err);
+        arAlert("Failed to upload: " + err);
 
         // Revert button state so user can try again
         btn.style.opacity = '1';

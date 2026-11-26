@@ -16,17 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
-<div id="cooldownModal" class="modal-overlay">
-        <div class="modal-content-small text-center" style="text-align: center;">
-            <h3 style="color: var(--zone-4);">Heart Rate Recovery 🫀</h3>
-            <p style="color: var(--text-muted); margin-top: 10px;">Stop pedaling or spin lightly. Measuring your
-                heart's
-                ability to recover...</p>
-            <div style="font-size: 3.5rem; font-family: var(--metric-font); font-weight: bold; margin: 20px 0; color: var(--text-main);"
-                id="cooldownTimer">02:00</div>
-            <div style="font-size: 1.5rem; color: var(--zone-2);" id="cooldownHR">-- bpm</div>
-            <div class="action-buttons" style="justify-content: center; margin-top: 25px;">
-                <button id="btnSkipCooldown" class="btn-secondary">Skip & Save</button>
-            </div>
+<!-- Heart-rate recovery after the ride (main.js updates the timer and the current HR). -->
+<div id="cooldownModal" class="modal-overlay ar-dialog-overlay">
+    <section class="ar-dialog is-bad is-center" role="dialog" aria-labelledby="cooldownTitle">
+        <span class="ar-label ar-dialog-kicker">End of ride</span>
+        <h2 class="ar-h2" id="cooldownTitle">HEART RATE RECOVERY</h2>
+        <p class="ar-body">Stop pedaling or spin lightly. We are measuring how fast your heart slows down.</p>
+        <span class="ar-dialog-clock" id="cooldownTimer">02:00</span>
+        <div class="ar-dialog-metrics">
+            <div><span class="ar-label">Now</span><span class="ar-dialog-val is-hr" id="cooldownHR">-- bpm</span></div>
         </div>
-    </div>
+        <button id="btnSkipCooldown" class="ar-btn ar-dialog-full" type="button">Skip and save</button>
+    </section>
+</div>
